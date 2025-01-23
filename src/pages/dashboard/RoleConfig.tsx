@@ -6,11 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Shield, Save, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { PermissionGroup } from "@/components/permissions/PermissionGroup";
+import { groupPermissionsByModule } from "@/lib/permissions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,18 +23,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  module: string;
-}
-
-interface RolePermission {
-  role_id: string;
-  permission_id: string;
-}
 
 const RoleConfig = () => {
   const { id } = useParams();
@@ -70,7 +59,7 @@ const RoleConfig = () => {
         .order('module');
       
       if (error) throw error;
-      return data as Permission[];
+      return data;
     }
   });
 
@@ -84,7 +73,7 @@ const RoleConfig = () => {
         .eq('role_id', id);
       
       if (error) throw error;
-      return data as RolePermission[];
+      return data;
     }
   });
 
@@ -195,6 +184,8 @@ const RoleConfig = () => {
     return <div>Loading...</div>;
   }
 
+  const groupedPermissions = groupPermissionsByModule(permissions || []);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -264,49 +255,16 @@ const RoleConfig = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Permissions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {permissions?.reduce((acc: JSX.Element[], permission) => {
-                    // Check if we need to add a module header
-                    const lastPermission = acc[acc.length - 1];
-                    if (!lastPermission || lastPermission.key !== `module-${permission.module}`) {
-                      acc.push(
-                        <div key={`module-${permission.module}`} className="mt-6 first:mt-0">
-                          <h3 className="text-lg font-semibold capitalize mb-4">{permission.module}</h3>
-                        </div>
-                      );
-                    }
-                    
-                    // Add the permission toggle
-                    acc.push(
-                      <div
-                        key={permission.id}
-                        className="flex items-center justify-between py-3"
-                      >
-                        <div className="space-y-0.5">
-                          <div className="text-sm font-medium">
-                            {permission.name}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {permission.description}
-                          </div>
-                        </div>
-                        <Switch
-                          checked={selectedPermissions.includes(permission.id)}
-                          onCheckedChange={() => handlePermissionToggle(permission.id)}
-                        />
-                      </div>
-                    );
-                    
-                    return acc;
-                  }, [])}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid gap-6 md:grid-cols-2">
+              {groupedPermissions.map((group) => (
+                <PermissionGroup
+                  key={group.module}
+                  group={group}
+                  selectedPermissions={selectedPermissions}
+                  onTogglePermission={handlePermissionToggle}
+                />
+              ))}
+            </div>
           </div>
         </main>
       </div>

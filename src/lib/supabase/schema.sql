@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS permissions (
   name TEXT NOT NULL UNIQUE,
   description TEXT,
   module TEXT NOT NULL,
+  action TEXT NOT NULL DEFAULT 'read',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -108,18 +109,42 @@ CREATE POLICY "Super admins can manage user roles" ON user_roles
     )
   );
 
--- Insert default permissions
-INSERT INTO permissions (name, description, module) VALUES
-  ('view_dashboard', 'Access to view dashboard', 'dashboard'),
-  ('manage_users', 'Manage user accounts', 'users'),
-  ('manage_roles', 'Manage roles and permissions', 'roles'),
-  ('view_reports', 'Access to view reports', 'reports'),
-  ('manage_settings', 'Configure system settings', 'settings'),
-  ('manage_notifications', 'Manage notification settings', 'notifications'),
-  ('manage_calendar', 'Manage calendar and appointments', 'calendar'),
-  ('manage_pos', 'Manage POS system', 'pos'),
-  ('manage_erp', 'Manage ERP features', 'erp'),
-  ('manage_approvals', 'Manage approval workflows', 'approvals');
+-- Insert granular permissions for each module
+INSERT INTO permissions (name, description, module, action) VALUES
+  -- Users module
+  ('create_users', 'Create new user accounts', 'users', 'create'),
+  ('view_users', 'View user accounts', 'users', 'read'),
+  ('update_users', 'Update user accounts', 'users', 'update'),
+  ('delete_users', 'Delete user accounts', 'users', 'delete'),
+  
+  -- Roles module
+  ('create_roles', 'Create new roles', 'roles', 'create'),
+  ('view_roles', 'View roles', 'roles', 'read'),
+  ('update_roles', 'Update roles', 'roles', 'update'),
+  ('delete_roles', 'Delete roles', 'roles', 'delete'),
+  
+  -- Settings module
+  ('view_settings', 'View system settings', 'settings', 'read'),
+  ('update_settings', 'Modify system settings', 'settings', 'update'),
+  
+  -- Reports module
+  ('create_reports', 'Create new reports', 'reports', 'create'),
+  ('view_reports', 'View reports', 'reports', 'read'),
+  ('export_reports', 'Export reports', 'reports', 'update'),
+  ('delete_reports', 'Delete reports', 'reports', 'delete'),
+  
+  -- Calendar module
+  ('create_events', 'Create calendar events', 'calendar', 'create'),
+  ('view_calendar', 'View calendar', 'calendar', 'read'),
+  ('update_events', 'Update calendar events', 'calendar', 'update'),
+  ('delete_events', 'Delete calendar events', 'calendar', 'delete'),
+  
+  -- Notifications module
+  ('create_notifications', 'Create notifications', 'notifications', 'create'),
+  ('view_notifications', 'View notifications', 'notifications', 'read'),
+  ('update_notifications', 'Update notifications', 'notifications', 'update'),
+  ('delete_notifications', 'Delete notifications', 'notifications', 'delete')
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert default super admin role
 INSERT INTO roles (name, description) VALUES
