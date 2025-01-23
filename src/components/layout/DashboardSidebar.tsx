@@ -1,4 +1,4 @@
-import { Home, Settings, Users, Shield } from "lucide-react";
+import { Home, Settings, Users, Shield, UserCog } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 
 const menuItems = [
   { title: "Dashboard", icon: Home, path: "/dashboard" },
+  { title: "Profile", icon: UserCog, path: "/dashboard/profile" },
   { title: "Users", icon: Users, path: "/dashboard/users" },
   { title: "Roles", icon: Shield, path: "/dashboard/roles" },
   { title: "Settings", icon: Settings, path: "/dashboard/settings" },

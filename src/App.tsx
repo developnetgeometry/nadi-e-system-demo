@@ -11,6 +11,7 @@ import Settings from "./pages/dashboard/Settings";
 import Users from "./pages/dashboard/Users";
 import Roles from "./pages/dashboard/Roles";
 import RoleConfig from "./pages/dashboard/RoleConfig";
+import Profile from "./pages/dashboard/Profile";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/dashboard/users" element={<Users />} />
           <Route path="/dashboard/roles" element={<Roles />} />
           <Route path="/dashboard/roles/:id" element={<RoleConfig />} />
+          <Route path="/dashboard/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
