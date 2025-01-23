@@ -1,15 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
+const userTypes = [
+  { value: "member", label: "Member" },
+  { value: "vendor", label: "Vendor" },
+  { value: "tp", label: "TP" },
+  { value: "sso", label: "SSO" },
+  { value: "dusp", label: "DUSP" },
+  { value: "medical_office", label: "Medical Office" },
+  { value: "staff_internal", label: "Staff (Internal)" },
+  { value: "staff_external", label: "Staff (External)" },
+];
+
 const Register = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,6 +55,7 @@ const Register = () => {
               id: authData.user.id,
               full_name: fullName,
               email: email,
+              user_type: userType,
             },
           ]);
 
@@ -100,6 +120,21 @@ const Register = () => {
               placeholder="••••••••"
               required
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="userType">User Type</Label>
+            <Select value={userType} onValueChange={setUserType} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select user type" />
+              </SelectTrigger>
+              <SelectContent>
+                {userTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button className="w-full" type="submit" disabled={loading}>
             {loading ? "Creating account..." : "Create account"}
