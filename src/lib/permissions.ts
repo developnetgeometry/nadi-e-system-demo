@@ -1,18 +1,21 @@
 export type PermissionAction = 'create' | 'read' | 'update' | 'delete';
 export type PermissionModule = 'users' | 'roles' | 'settings' | 'reports' | 'calendar' | 'notifications';
 
-export interface PermissionGroup {
+export interface Permission {
+  id: string;
+  name: string;
+  description: string;
+  action: PermissionAction;
   module: PermissionModule;
-  permissions: {
-    id: string;
-    name: string;
-    description: string;
-    action: PermissionAction;
-  }[];
 }
 
-export const groupPermissionsByModule = (permissions: any[]): PermissionGroup[] => {
-  const grouped = permissions.reduce((acc: { [key: string]: any[] }, permission) => {
+export interface PermissionGroup {
+  module: PermissionModule;
+  permissions: Permission[];
+}
+
+export const groupPermissionsByModule = (permissions: Permission[]): PermissionGroup[] => {
+  const grouped = permissions.reduce((acc: { [key: string]: Permission[] }, permission) => {
     if (!acc[permission.module]) {
       acc[permission.module] = [];
     }
