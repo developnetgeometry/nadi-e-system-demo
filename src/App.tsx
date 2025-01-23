@@ -9,6 +9,8 @@ import Register from "./pages/auth/Register";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Settings from "./pages/dashboard/Settings";
 import Users from "./pages/dashboard/Users";
+import Roles from "./pages/dashboard/Roles";
+import RoleConfig from "./pages/dashboard/RoleConfig";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/settings" element={<Settings />} />
           <Route path="/dashboard/users" element={<Users />} />
+          <Route path="/dashboard/roles" element={<Roles />} />
+          <Route path="/dashboard/roles/:id" element={<RoleConfig />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
