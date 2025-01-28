@@ -5,7 +5,8 @@ import {
   Shield, 
   UserCog,
   Activity,
-  FileBarChart
+  FileBarChart,
+  Bell
 } from "lucide-react";
 import {
   Sidebar,
@@ -45,6 +46,11 @@ const menuItems = [
     title: "Reports", 
     icon: FileBarChart, 
     path: "/dashboard/reports" 
+  },
+  { 
+    title: "Notifications", 
+    icon: Bell, 
+    path: "/dashboard/notifications" 
   },
   { 
     title: "Settings", 
