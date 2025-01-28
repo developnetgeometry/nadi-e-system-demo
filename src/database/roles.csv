@@ -1,4 +1,4 @@
-name,description,created_at,updated_at
-super_admin,"Full system access with all permissions",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
-admin,"System administrator with limited permissions",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
-user,"Regular user with basic access",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
+id,name,description,created_at,updated_at
+d11b3c7a-b87c-4c10-a5b5-af0ba5a9e45b,super_admin,"Full system access with all permissions",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
+67f235c3-d39c-4b84-9e2d-0b2c6c29d38c,admin,"System administrator with limited permissions",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
+a4b8c7d6-e5f4-4g3h-2i1j-0k9l8m7n6o5p,user,"Regular user with basic access",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
