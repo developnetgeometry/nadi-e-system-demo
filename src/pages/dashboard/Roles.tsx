@@ -33,31 +33,42 @@ const Roles = () => {
     queryKey: ['roles'],
     queryFn: async () => {
       console.log('Fetching roles data...');
-      const { data, error } = await supabase
+      const { data: rolesData, error: rolesError } = await supabase
         .from('roles')
         .select(`
           id,
           name,
           description,
           created_at,
-          users_count:user_roles(count)
+          user_roles (count)
         `);
       
-      if (error) {
-        console.error('Error fetching roles:', error);
-        throw error;
+      if (rolesError) {
+        console.error('Error fetching roles:', rolesError);
+        throw rolesError;
       }
       
-      console.log('Roles data fetched:', data);
-      return data as Role[];
+      // Transform the data to match our Role interface
+      const transformedRoles: Role[] = rolesData.map(role => ({
+        id: role.id,
+        name: role.name,
+        description: role.description,
+        created_at: role.created_at,
+        users_count: role.user_roles[0]?.count || 0
+      }));
+      
+      console.log('Roles data fetched:', transformedRoles);
+      return transformedRoles;
     },
-    onError: (error) => {
-      console.error('Query error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch roles data",
-        variant: "destructive",
-      });
+    meta: {
+      onError: (error: Error) => {
+        console.error('Query error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch roles data",
+          variant: "destructive",
+        });
+      }
     }
   });
 
