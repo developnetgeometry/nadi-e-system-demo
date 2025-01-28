@@ -6,7 +6,8 @@ import {
   UserCog,
   Activity,
   FileBarChart,
-  Bell
+  Bell,
+  Calendar
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +47,11 @@ const menuItems = [
     title: "Reports", 
     icon: FileBarChart, 
     path: "/dashboard/reports" 
+  },
+  { 
+    title: "Calendar", 
+    icon: Calendar, 
+    path: "/dashboard/calendar" 
   },
   { 
     title: "Notifications", 

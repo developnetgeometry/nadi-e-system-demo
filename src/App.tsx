@@ -8,6 +8,7 @@ import Settings from "@/pages/dashboard/Settings";
 import Users from "@/pages/dashboard/Users";
 import Roles from "@/pages/dashboard/Roles";
 import Notifications from "@/pages/dashboard/Notifications";
+import Calendar from "@/pages/dashboard/Calendar";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ function App() {
             <Route path="/dashboard/users" element={<Users />} />
             <Route path="/dashboard/roles" element={<Roles />} />
             <Route path="/dashboard/notifications" element={<Notifications />} />
+            <Route path="/dashboard/calendar" element={<Calendar />} />
           </Routes>
         </Router>
         <Toaster />
