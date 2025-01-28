@@ -1,4 +1,12 @@
-import { Home, Settings, Users, Shield, UserCog } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Settings, 
+  Users, 
+  Shield, 
+  UserCog,
+  Activity,
+  FileBarChart
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,11 +20,37 @@ import {
 import { Link } from "react-router-dom";
 
 const menuItems = [
-  { title: "Dashboard", icon: Home, path: "/dashboard" },
-  { title: "Profile", icon: UserCog, path: "/dashboard/profile" },
-  { title: "Users", icon: Users, path: "/dashboard/users" },
-  { title: "Roles", icon: Shield, path: "/dashboard/roles" },
-  { title: "Settings", icon: Settings, path: "/dashboard/settings" },
+  { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { 
+    title: "User Management",
+    icon: Users, 
+    path: "/dashboard/users"
+  },
+  { 
+    title: "Roles & Permissions", 
+    icon: Shield, 
+    path: "/dashboard/roles" 
+  },
+  { 
+    title: "Access Control", 
+    icon: UserCog, 
+    path: "/dashboard/access-control" 
+  },
+  { 
+    title: "Activity Log", 
+    icon: Activity, 
+    path: "/dashboard/activity" 
+  },
+  { 
+    title: "Reports", 
+    icon: FileBarChart, 
+    path: "/dashboard/reports" 
+  },
+  { 
+    title: "Settings", 
+    icon: Settings, 
+    path: "/dashboard/settings" 
+  },
 ];
 
 export const DashboardSidebar = () => {
@@ -24,7 +58,7 @@ export const DashboardSidebar = () => {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>Admin Console</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
