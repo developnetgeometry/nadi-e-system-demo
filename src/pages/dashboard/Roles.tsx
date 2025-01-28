@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import {
@@ -33,39 +33,52 @@ const Roles = () => {
     queryKey: ['roles'],
     queryFn: async () => {
       console.log('Fetching roles data...');
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('roles')
-        .select(`
-          id,
-          name,
-          description,
-          created_at,
-          user_roles (count)
-        `);
       
-      if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
-        throw rolesError;
+      try {
+        // First fetch basic role data
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('roles')
+          .select('id, name, description, created_at');
+        
+        if (rolesError) {
+          console.error('Error fetching roles:', rolesError);
+          throw rolesError;
+        }
+
+        if (!rolesData) {
+          throw new Error('No roles data returned');
+        }
+
+        console.log('Roles data fetched:', rolesData);
+
+        // Then get user counts for each role
+        const rolesWithCounts = await Promise.all(
+          rolesData.map(async (role) => {
+            const { count } = await supabase
+              .from('user_roles')
+              .select('*', { count: 'exact', head: true })
+              .eq('role_id', role.id);
+
+            return {
+              ...role,
+              users_count: count || 0
+            };
+          })
+        );
+
+        console.log('Roles with counts:', rolesWithCounts);
+        return rolesWithCounts;
+      } catch (error) {
+        console.error('Error in queryFn:', error);
+        throw error;
       }
-      
-      // Transform the data to match our Role interface
-      const transformedRoles: Role[] = rolesData.map(role => ({
-        id: role.id,
-        name: role.name,
-        description: role.description,
-        created_at: role.created_at,
-        users_count: role.user_roles[0]?.count || 0
-      }));
-      
-      console.log('Roles data fetched:', transformedRoles);
-      return transformedRoles;
     },
     meta: {
       onError: (error: Error) => {
         console.error('Query error:', error);
         toast({
           title: "Error",
-          description: "Failed to fetch roles data",
+          description: "Failed to fetch roles data. Please try again.",
           variant: "destructive",
         });
       }
@@ -88,7 +101,6 @@ const Roles = () => {
         <div className="flex-1 flex flex-col">
           <DashboardNavbar />
           <main className="flex-1 p-8">
-            <SidebarTrigger />
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold">Roles & Permissions</h1>
               <Button onClick={() => navigate("/dashboard/roles/new")}>
