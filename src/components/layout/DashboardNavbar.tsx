@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { NotificationList } from "@/components/notifications/NotificationList";
 
 export const DashboardNavbar = () => {
   const { toast } = useToast();
@@ -46,12 +47,10 @@ export const DashboardNavbar = () => {
                 <Bell className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <div className="py-2 px-4 text-sm text-muted-foreground">
-                No new notifications
-              </div>
+              <NotificationList />
             </DropdownMenuContent>
           </DropdownMenu>
 

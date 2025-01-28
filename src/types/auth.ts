@@ -9,15 +9,33 @@ export type UserType =
   | "staff_internal"
   | "staff_external";
 
+export type NotificationType = "info" | "warning" | "success" | "error";
+
 export interface Profile {
   id: string;
   email: string;
   full_name: string;
   ic_number: string;
   phone_number: string;
+  avatar_url?: string;
   user_type: UserType;
+  theme_preference: "light" | "dark";
+  notification_preferences: {
+    email: boolean;
+    push: boolean;
+  };
   created_at: string;
   updated_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  read: boolean;
+  created_at: string;
 }
 
 export interface Role {

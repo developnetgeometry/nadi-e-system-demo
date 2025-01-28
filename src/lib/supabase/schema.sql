@@ -14,6 +14,14 @@ CREATE TYPE user_type AS ENUM (
   'staff_external'
 );
 
+-- Create notification_type enum
+CREATE TYPE notification_type AS ENUM (
+  'info',
+  'warning',
+  'success',
+  'error'
+);
+
 -- Create profiles table with user type
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
@@ -21,9 +29,23 @@ CREATE TABLE IF NOT EXISTS profiles (
   full_name TEXT,
   ic_number TEXT UNIQUE,
   phone_number TEXT UNIQUE,
+  avatar_url TEXT,
   user_type user_type NOT NULL,
+  theme_preference TEXT DEFAULT 'light',
+  notification_preferences JSONB DEFAULT '{"email": true, "push": true}'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Create notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type notification_type DEFAULT 'info',
+  read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
 -- Create roles table
@@ -158,3 +180,38 @@ SELECT
   (SELECT id FROM roles WHERE name = 'super_admin'),
   id
 FROM permissions;
+
+-- Enable Row Level Security
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Create notification policies
+CREATE POLICY "Users can view their own notifications" ON notifications
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Super admins can manage all notifications" ON notifications
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND user_type = 'super_admin'
+    )
+  );
+
+-- Create notification function
+CREATE OR REPLACE FUNCTION create_notification(
+  p_user_id UUID,
+  p_title TEXT,
+  p_message TEXT,
+  p_type notification_type DEFAULT 'info'
+)
+RETURNS notifications AS $$
+DECLARE
+  v_notification notifications;
+BEGIN
+  INSERT INTO notifications (user_id, title, message, type)
+  VALUES (p_user_id, p_title, p_message, p_type)
+  RETURNING * INTO v_notification;
+  
+  RETURN v_notification;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
