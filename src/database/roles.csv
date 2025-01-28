@@ -1,0 +1,4 @@
+name,description,created_at,updated_at
+super_admin,"Full system access with all permissions",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
+admin,"System administrator with limited permissions",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z
+user,"Regular user with basic access",2024-02-01T00:00:00Z,2024-02-01T00:00:00Z

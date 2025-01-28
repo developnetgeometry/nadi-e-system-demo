@@ -1,0 +1,23 @@
+name,description,module,action,created_at
+create_users,"Create new user accounts",users,create,2024-02-01T00:00:00Z
+view_users,"View user accounts",users,read,2024-02-01T00:00:00Z
+update_users,"Update user accounts",users,update,2024-02-01T00:00:00Z
+delete_users,"Delete user accounts",users,delete,2024-02-01T00:00:00Z
+create_roles,"Create new roles",roles,create,2024-02-01T00:00:00Z
+view_roles,"View roles",roles,read,2024-02-01T00:00:00Z
+update_roles,"Update roles",roles,update,2024-02-01T00:00:00Z
+delete_roles,"Delete roles",roles,delete,2024-02-01T00:00:00Z
+view_settings,"View system settings",settings,read,2024-02-01T00:00:00Z
+update_settings,"Modify system settings",settings,update,2024-02-01T00:00:00Z
+create_reports,"Create new reports",reports,create,2024-02-01T00:00:00Z
+view_reports,"View reports",reports,read,2024-02-01T00:00:00Z
+export_reports,"Export reports",reports,update,2024-02-01T00:00:00Z
+delete_reports,"Delete reports",reports,delete,2024-02-01T00:00:00Z
+create_events,"Create calendar events",calendar,create,2024-02-01T00:00:00Z
+view_calendar,"View calendar",calendar,read,2024-02-01T00:00:00Z
+update_events,"Update calendar events",calendar,update,2024-02-01T00:00:00Z
+delete_events,"Delete calendar events",calendar,delete,2024-02-01T00:00:00Z
+create_notifications,"Create notifications",notifications,create,2024-02-01T00:00:00Z
+view_notifications,"View notifications",notifications,read,2024-02-01T00:00:00Z
+update_notifications,"Update notifications",notifications,update,2024-02-01T00:00:00Z
+delete_notifications,"Delete notifications",notifications,delete,2024-02-01T00:00:00Z
