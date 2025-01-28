@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 
 const CalendarPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -26,12 +28,16 @@ const CalendarPage = () => {
   const handleDateSelect = (selectedDate: Date | undefined) => {
     setDate(selectedDate);
     setSelectedSlot(null);
+    console.log("Selected date:", selectedDate);
   };
 
   const handleSlotSelect = (slot: string) => {
     setSelectedSlot(slot);
-    // Here you would typically handle the booking logic
-    console.log(`Selected date: ${date?.toDateString()}, time: ${slot}`);
+    console.log(`Selected time slot: ${slot}`);
+    toast({
+      title: "Time slot selected",
+      description: `You selected ${format(date!, "PPP")} at ${slot}`,
+    });
   };
 
   return (
@@ -47,56 +53,56 @@ const CalendarPage = () => {
               <h1 className="text-3xl font-bold">Calendar</h1>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="p-4">
                 <CardHeader>
-                  <CardTitle>Select Date</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5" />
+                    Select Date
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col space-y-4">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={handleDateSelect}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={handleDateSelect}
+                    className="rounded-md border shadow"
+                    disabled={(date) => date < new Date()}
+                  />
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="p-4">
                 <CardHeader>
-                  <CardTitle>Available Time Slots</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Available Time Slots
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     {timeSlots.map((slot) => (
                       <Button
                         key={slot}
                         variant={selectedSlot === slot ? "default" : "outline"}
                         onClick={() => handleSlotSelect(slot)}
-                        className="w-full"
+                        className={cn(
+                          "w-full justify-center",
+                          selectedSlot === slot && "bg-primary text-primary-foreground"
+                        )}
                       >
                         {slot}
                       </Button>
                     ))}
                   </div>
+                  {date && selectedSlot && (
+                    <div className="mt-6">
+                      <h3 className="text-sm font-medium mb-2">Selected Time:</h3>
+                      <Badge variant="outline" className="text-sm">
+                        {format(date, "PPP")} at {selectedSlot}
+                      </Badge>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
