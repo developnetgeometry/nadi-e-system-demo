@@ -124,9 +124,9 @@ const Users = () => {
     setSelectedUsers(checked ? (users?.map((user) => user.id) ?? []) : []);
   };
 
-  const handleSelectUser = (userId: string, checked: boolean) => {
+  const handleSelectUser = (userId: string, checked: boolean | string) => {
     setSelectedUsers((prev) =>
-      checked ? [...prev, userId] : prev.filter((id) => id !== userId)
+      checked === true ? [...prev, userId] : prev.filter((id) => id !== userId)
     );
   };
 
