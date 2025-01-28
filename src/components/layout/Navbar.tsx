@@ -40,7 +40,7 @@ export const Navbar = () => {
     <nav className="border-b">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold">
-          AppName
+          NADI
         </Link>
         <div className="flex items-center space-x-4">
           <DropdownMenu>
