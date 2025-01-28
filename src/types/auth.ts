@@ -13,6 +13,8 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string;
+  ic_number: string;
+  phone_number: string;
   user_type: UserType;
   created_at: string;
   updated_at: string;
