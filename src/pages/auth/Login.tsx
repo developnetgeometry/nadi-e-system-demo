@@ -43,14 +43,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
-      <div className="w-full max-w-md space-y-8 bg-background p-8 rounded-lg shadow-lg">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Welcome back</h2>
-          <p className="text-muted-foreground mt-2">
-            Sign in to access your account
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-100">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-lg">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+          <p className="text-sm text-gray-500">
+            Enter your credentials to access your account
           </p>
         </div>
+
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -59,12 +60,22 @@ const Login = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="name@example.com"
               required
+              className="w-full"
             />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link 
+                to="/forgot-password" 
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <Input
               id="password"
               type="password"
@@ -72,18 +83,26 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
+              className="w-full"
             />
           </div>
-          <Button className="w-full" type="submit" disabled={loading}>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            size="lg"
+            disabled={loading}
+          >
             {loading ? "Signing in..." : "Sign in"}
           </Button>
+
+          <p className="text-center text-sm text-gray-500">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-primary hover:underline">
+              Sign up
+            </Link>
+          </p>
         </form>
-        <p className="text-center text-sm text-muted-foreground">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );
