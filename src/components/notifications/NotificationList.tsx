@@ -5,15 +5,21 @@ import { Bell, CheckCircle, Info, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const NotificationList = () => {
-  const { data: notifications, isLoading } = useQuery({
+  const { data: notifications, isLoading, error } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
+      console.log("Fetching notifications...");
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching notifications:", error);
+        throw error;
+      }
+      
+      console.log("Notifications fetched:", data);
       return data as Notification[];
     },
   });
@@ -35,6 +41,15 @@ export const NotificationList = () => {
     return (
       <div className="py-2 px-4 text-sm text-muted-foreground">
         Loading notifications...
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("Notification list error:", error);
+    return (
+      <div className="py-2 px-4 text-sm text-red-500">
+        Error loading notifications. Please try again later.
       </div>
     );
   }

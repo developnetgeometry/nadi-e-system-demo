@@ -11,8 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, LogOut, Settings, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { NotificationList } from "@/components/notifications/NotificationList";
 
 export const DashboardNavbar = () => {
@@ -48,7 +47,17 @@ export const DashboardNavbar = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuLabel className="flex justify-between items-center">
+                Notifications
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => navigate("/dashboard/notifications")}
+                >
+                  View All
+                </Button>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <NotificationList />
             </DropdownMenuContent>
