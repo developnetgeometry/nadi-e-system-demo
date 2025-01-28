@@ -4,7 +4,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { UserForm } } from "@/types/auth";
+import { UserForm } from "@/components/users/UserForm";
+import { Profile } from "@/types/auth";
 
 interface UserFormDialogProps {
   open: boolean;
