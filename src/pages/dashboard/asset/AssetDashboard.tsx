@@ -7,8 +7,6 @@ import { supabase } from "@/lib/supabase";
 import { AssetList } from "@/components/assets/AssetList";
 import { useState } from "react";
 import { AssetFormDialog } from "@/components/assets/AssetFormDialog";
-import { DashboardMap } from "@/components/dashboard/DashboardMap";
-import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 
 const AssetDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -106,9 +104,6 @@ const AssetDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        <DashboardCharts />
-        <DashboardMap />
 
         <AssetList />
         <AssetFormDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />

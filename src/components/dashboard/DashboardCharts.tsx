@@ -45,7 +45,7 @@ export const DashboardCharts = () => {
     <div className="grid gap-4 md:grid-cols-2 mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>Activity Trends</CardTitle>
+          <CardTitle>User Growth</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -64,7 +64,7 @@ export const DashboardCharts = () => {
       
       <Card>
         <CardHeader>
-          <CardTitle>Daily Distribution</CardTitle>
+          <CardTitle>Daily Activity</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -82,7 +82,7 @@ export const DashboardCharts = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Status Overview</CardTitle>
+          <CardTitle>User Status Distribution</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -117,11 +117,11 @@ export const DashboardCharts = () => {
               <span className="text-sm font-medium text-green-500">Operational</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">Last Update</span>
+              <span className="text-sm">Last Backup</span>
               <span className="text-sm font-medium">Today, 03:00 AM</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm">Performance</span>
+              <span className="text-sm">Server Load</span>
               <span className="text-sm font-medium">23%</span>
             </div>
           </div>

@@ -1,13 +1,11 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus, Users, Clock, ClipboardCheck } from "lucide-react";
-import { DashboardMap } from "@/components/dashboard/DashboardMap";
-import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 
 const HRDashboard = () => {
   return (
     <DashboardLayout>
-      <div className="container mx-auto max-w-7xl">
+      <div className="container mx-auto max-w-6xl">
         <h1 className="text-3xl font-bold mb-8">HR Dashboard</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -71,9 +69,6 @@ const HRDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        <DashboardCharts />
-        <DashboardMap />
       </div>
     </DashboardLayout>
   );
