@@ -9,6 +9,7 @@ import Settings from "@/pages/dashboard/Settings";
 import Users from "@/pages/dashboard/Users";
 import Roles from "@/pages/dashboard/Roles";
 import AccessControl from "@/pages/dashboard/AccessControl";
+import Activity from "@/pages/dashboard/Activity";
 import Notifications from "@/pages/dashboard/Notifications";
 import Calendar from "@/pages/dashboard/Calendar";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
@@ -53,6 +54,7 @@ function App() {
             <Route path="/dashboard/users" element={<Users />} />
             <Route path="/dashboard/roles" element={<Roles />} />
             <Route path="/dashboard/access-control" element={<AccessControl />} />
+            <Route path="/dashboard/activity" element={<Activity />} />
             <Route path="/dashboard/notifications" element={<Notifications />} />
             <Route path="/dashboard/calendar" element={<Calendar />} />
             {/* HR Module Routes */}
