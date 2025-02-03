@@ -29,6 +29,7 @@ import UsageSessions from "@/pages/dashboard/UsageSessions";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,8 @@ function App() {
             <Route path="/dashboard/programmes/settings" element={<ProgrammeSettings />} />
             <Route path="/dashboard/reports" element={<Reports />} />
             <Route path="/dashboard/usage-sessions" element={<UsageSessions />} />
+            {/* Workflow Management Routes */}
+            <Route path="/dashboard/workflow" element={<WorkflowDashboard />} />
           </Routes>
         </Router>
         <Toaster />

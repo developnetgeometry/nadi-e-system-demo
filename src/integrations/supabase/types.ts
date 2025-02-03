@@ -424,6 +424,165 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_escalations: {
+        Row: {
+          created_at: string
+          escalated_by: string | null
+          escalated_to: string | null
+          id: string
+          reason: string
+          resolved: boolean | null
+          resolved_at: string | null
+          task_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          escalated_by?: string | null
+          escalated_to?: string | null
+          id?: string
+          reason: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          task_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          escalated_by?: string | null
+          escalated_to?: string | null
+          id?: string
+          reason?: string
+          resolved?: boolean | null
+          resolved_at?: string | null
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_escalations_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_task_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          task_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_tasks: {
+        Row: {
+          approver_id: string | null
+          assignee_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          order_index: number
+          priority: Database["public"]["Enums"]["priority_level"] | null
+          requires_approval: boolean | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at: string
+          workflow_id: string | null
+        }
+        Insert: {
+          approver_id?: string | null
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          order_index: number
+          priority?: Database["public"]["Enums"]["priority_level"] | null
+          requires_approval?: boolean | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Update: {
+          approver_id?: string | null
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          order_index?: number
+          priority?: Database["public"]["Enums"]["priority_level"] | null
+          requires_approval?: boolean | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          title?: string
+          updated_at?: string
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_tasks_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["workflow_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["workflow_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["workflow_status"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -443,9 +602,17 @@ export type Database = {
       claim_status: "pending" | "approved" | "rejected"
       claim_type: "damage" | "reimbursement" | "medical" | "travel" | "other"
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+      priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
       session_type: "login" | "system_access" | "feature_usage" | "api_call"
+      task_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "blocked"
+        | "cancelled"
       transaction_type: "income" | "expense" | "transfer"
+      workflow_status: "draft" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
