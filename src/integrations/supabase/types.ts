@@ -9,7 +9,101 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assets: {
+        Row: {
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["asset_category"]
+          created_at: string
+          current_value: number | null
+          depreciation_rate: number | null
+          description: string | null
+          id: string
+          last_maintenance_date: string | null
+          location: string | null
+          name: string
+          next_maintenance_date: string | null
+          purchase_cost: number
+          purchase_date: string
+          status: Database["public"]["Enums"]["asset_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["asset_category"]
+          created_at?: string
+          current_value?: number | null
+          depreciation_rate?: number | null
+          description?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          location?: string | null
+          name: string
+          next_maintenance_date?: string | null
+          purchase_cost: number
+          purchase_date: string
+          status?: Database["public"]["Enums"]["asset_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["asset_category"]
+          created_at?: string
+          current_value?: number | null
+          depreciation_rate?: number | null
+          description?: string | null
+          id?: string
+          last_maintenance_date?: string | null
+          location?: string | null
+          name?: string
+          next_maintenance_date?: string | null
+          purchase_cost?: number
+          purchase_date?: string
+          status?: Database["public"]["Enums"]["asset_status"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_records: {
+        Row: {
+          asset_id: string | null
+          cost: number
+          created_at: string
+          description: string
+          id: string
+          maintenance_date: string
+          next_maintenance_date: string | null
+          performed_by: string
+        }
+        Insert: {
+          asset_id?: string | null
+          cost: number
+          created_at?: string
+          description: string
+          id?: string
+          maintenance_date: string
+          next_maintenance_date?: string | null
+          performed_by: string
+        }
+        Update: {
+          asset_id?: string | null
+          cost?: number
+          created_at?: string
+          description?: string
+          id?: string
+          maintenance_date?: string
+          next_maintenance_date?: string | null
+          performed_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_records_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +112,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      asset_category:
+        | "equipment"
+        | "furniture"
+        | "vehicle"
+        | "electronics"
+        | "software"
+        | "other"
+      asset_status: "active" | "in_maintenance" | "retired" | "disposed"
     }
     CompositeTypes: {
       [_ in never]: never
