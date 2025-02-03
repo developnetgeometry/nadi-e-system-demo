@@ -64,12 +64,12 @@ const Login = () => {
 
       console.log("Auth successful, fetching profile...");
 
-      // Then fetch the user's profile
+      // Then fetch the user's profile using maybeSingle() instead of single()
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authData.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error("Profile fetch error:", profileError);
@@ -82,13 +82,27 @@ const Login = () => {
       }
 
       if (!profile) {
-        console.error("No profile found for user");
-        toast({
-          title: "Error",
-          description: "User profile not found. Please contact support.",
-          variant: "destructive",
-        });
-        return;
+        console.error("No profile found for user, creating one...");
+        // Create a profile if it doesn't exist
+        const { error: createProfileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              email: authData.user.email,
+              user_type: 'member' // Default user type
+            }
+          ]);
+
+        if (createProfileError) {
+          console.error("Error creating profile:", createProfileError);
+          toast({
+            title: "Error",
+            description: "Failed to create user profile. Please contact support.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
 
       console.log('Login successful:', { auth: authData, profile });
