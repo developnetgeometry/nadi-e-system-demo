@@ -5,15 +5,33 @@ import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, MessageSquare, Flag } from "lucide-react";
 import { format } from "date-fns";
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  created_at: string;
+  votes_up: number;
+  votes_down: number;
+  author: {
+    full_name: string | null;
+  } | null;
+  comments: {
+    count: number;
+  }[];
+  flags: {
+    count: number;
+  }[];
+}
+
 export const PostList = () => {
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ['posts'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('content_posts')
         .select(`
           *,
-          author:author_id(full_name),
+          author:profiles(full_name),
           comments:content_comments(count),
           flags:content_flags(count)
         `)
