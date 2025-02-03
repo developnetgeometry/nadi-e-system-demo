@@ -1,4 +1,4 @@
-import { Bell, Settings, User, X } from "lucide-react";
+import { Bell, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +17,11 @@ import {
 } from "@/components/ui/dialog";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export const DashboardNavbar = () => {
+  const { logout } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center px-4 sm:px-8">
@@ -94,7 +97,7 @@ export const DashboardNavbar = () => {
                   <Link to="/dashboard/settings">Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>

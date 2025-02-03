@@ -10,38 +10,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, LogOut, Settings, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Navbar = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      // Clear all session data
-      localStorage.clear();
-      
-      toast({
-        title: "Logged out successfully",
-        description: "You have been logged out of your account",
-      });
-
-      // Redirect to login page
-      navigate("/login");
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  const { logout } = useAuth();
 
   return (
     <nav className="border-b">
@@ -92,7 +64,7 @@ export const Navbar = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Log out
               </DropdownMenuItem>
