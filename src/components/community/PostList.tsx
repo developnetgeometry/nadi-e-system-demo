@@ -10,8 +10,9 @@ interface Post {
   title: string;
   content: string;
   created_at: string;
-  votes_up: number;
-  votes_down: number;
+  votes_up: number | null;
+  votes_down: number | null;
+  author_id: string | null;
   author: {
     full_name: string | null;
   } | null;
@@ -27,18 +28,23 @@ export const PostList = () => {
   const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ['posts'],
     queryFn: async () => {
+      console.log('Fetching posts...');
       const { data, error } = await supabase
         .from('content_posts')
         .select(`
           *,
-          author:profiles(full_name),
+          author:profiles!content_posts_author_id_fkey(full_name),
           comments:content_comments(count),
           flags:content_flags(count)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        throw error;
+      }
+      console.log('Posts fetched:', data);
       return data;
     },
   });
@@ -81,7 +87,7 @@ export const PostList = () => {
                 onClick={() => handleVote(post.id, 'up')}
               >
                 <ThumbsUp className="h-4 w-4 mr-2" />
-                {post.votes_up}
+                {post.votes_up || 0}
               </Button>
               <Button
                 variant="ghost"
@@ -89,7 +95,7 @@ export const PostList = () => {
                 onClick={() => handleVote(post.id, 'down')}
               >
                 <ThumbsDown className="h-4 w-4 mr-2" />
-                {post.votes_down}
+                {post.votes_down || 0}
               </Button>
               <Button variant="ghost" size="sm">
                 <MessageSquare className="h-4 w-4 mr-2" />
