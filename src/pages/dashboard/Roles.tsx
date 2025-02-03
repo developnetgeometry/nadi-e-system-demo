@@ -35,7 +35,6 @@ const Roles = () => {
       console.log('Fetching roles data...');
       
       try {
-        // First fetch basic role data
         const { data: rolesData, error: rolesError } = await supabase
           .from('roles')
           .select('id, name, description, created_at');
@@ -51,7 +50,6 @@ const Roles = () => {
 
         console.log('Roles data fetched:', rolesData);
 
-        // Then get user counts for each role
         const rolesWithCounts = await Promise.all(
           rolesData.map(async (role) => {
             const { count } = await supabase
@@ -100,66 +98,79 @@ const Roles = () => {
         <DashboardSidebar />
         <div className="flex-1 flex flex-col">
           <DashboardNavbar />
-          <main className="flex-1 p-8">
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl font-bold">Roles & Permissions</h1>
-              <Button onClick={() => navigate("/dashboard/roles/new")}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Role
-              </Button>
-            </div>
-            
-            {isLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <main className="flex-1 p-8 bg-background">
+            <div className="max-w-7xl mx-auto space-y-8">
+              <div className="flex justify-between items-center">
+                <div className="space-y-1">
+                  <h1 className="text-3xl font-bold tracking-tight">Roles & Permissions</h1>
+                  <p className="text-muted-foreground">
+                    Manage user roles and their associated permissions
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => navigate("/dashboard/roles/new")}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Role
+                </Button>
               </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Role Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Users</TableHead>
-                      <TableHead>Created At</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {roles?.map((role) => (
-                      <TableRow key={role.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <Shield className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {role.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>{role.description}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                            {role.users_count}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(role.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate(`/dashboard/roles/${role.id}`)}
-                          >
-                            <Key className="h-4 w-4 mr-2" />
-                            Configure
-                          </Button>
-                        </TableCell>
+              
+              {isLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="rounded-lg border bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-muted/50">
+                        <TableHead className="w-[250px]">Role Name</TableHead>
+                        <TableHead className="max-w-[400px]">Description</TableHead>
+                        <TableHead className="w-[100px]">Users</TableHead>
+                        <TableHead className="w-[150px]">Created At</TableHead>
+                        <TableHead className="w-[100px] text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                    </TableHeader>
+                    <TableBody>
+                      {roles?.map((role) => (
+                        <TableRow key={role.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">
+                            <div className="flex items-center space-x-2">
+                              <Shield className="h-4 w-4 text-muted-foreground" />
+                              <span>{role.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {role.description}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-1">
+                              <Users className="h-4 w-4 text-muted-foreground" />
+                              <span>{role.users_count}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(role.created_at).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/dashboard/roles/${role.id}`)}
+                              className="hover:bg-muted"
+                            >
+                              <Key className="h-4 w-4 mr-2" />
+                              Configure
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
           </main>
         </div>
       </div>
