@@ -285,7 +285,15 @@ export type Database = {
           votes_down?: number | null
           votes_up?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_votes: {
         Row: {
