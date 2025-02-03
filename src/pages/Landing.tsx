@@ -1,14 +1,42 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Shield, Users, BarChart3, Calendar } from "lucide-react";
+import { ArrowRight, Shield, Users, BarChart3, Calendar, LogIn, UserPlus } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen">
+      {/* Navigation Bar */}
+      <nav className="bg-white/80 backdrop-blur-md fixed w-full z-10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex-shrink-0">
+              <span className="text-2xl font-bold text-indigo-600">NADI</span>
+            </div>
+            <div className="flex gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/login")}
+                className="flex items-center"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
+              <Button
+                onClick={() => navigate("/register")}
+                className="flex items-center"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Register
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden pt-16">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 opacity-90" />
         <div className="relative px-4 py-16 mx-auto sm:px-6 sm:py-24 lg:py-32 lg:px-8">
           <h1 className="text-center text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
