@@ -1,28 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, MessageSquare, Flag } from "lucide-react";
 import { format } from "date-fns";
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-  votes_up: number;
-  votes_down: number;
-  author_id: string | null;
-  author: {
-    full_name: string | null;
-  } | null;
-  comments: {
-    count: number;
-  }[];
-  flags: {
-    count: number;
-  }[];
-}
+import { Post } from "@/types/post";
+import { transformPostData, handleVote } from "@/utils/post-utils";
+import { PostActions } from "./PostActions";
 
 export const PostList = () => {
   const { data: posts, isLoading } = useQuery<Post[]>({
@@ -51,35 +33,11 @@ export const PostList = () => {
         throw error;
       }
       
-      // Transform the data to ensure it matches our Post interface
-      const transformedData: Post[] = data.map(post => ({
-        ...post,
-        votes_up: post.votes_up || 0,
-        votes_down: post.votes_down || 0,
-        author: post.author || { full_name: null },
-        comments: post.comments || [{ count: 0 }],
-        flags: post.flags || [{ count: 0 }]
-      }));
-      
+      const transformedData = data.map(transformPostData);
       console.log('Posts fetched:', transformedData);
       return transformedData;
     },
   });
-
-  const handleVote = async (postId: string, voteType: 'up' | 'down') => {
-    try {
-      const { error } = await supabase
-        .from('content_votes')
-        .upsert({
-          post_id: postId,
-          vote_type: voteType,
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error voting:', error);
-    }
-  };
 
   if (isLoading) {
     return <div>Loading posts...</div>;
@@ -97,32 +55,14 @@ export const PostList = () => {
           </CardHeader>
           <CardContent>
             <p className="mb-4">{post.content}</p>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleVote(post.id, 'up')}
-              >
-                <ThumbsUp className="h-4 w-4 mr-2" />
-                {post.votes_up}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleVote(post.id, 'down')}
-              >
-                <ThumbsDown className="h-4 w-4 mr-2" />
-                {post.votes_down}
-              </Button>
-              <Button variant="ghost" size="sm">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                {post.comments?.[0]?.count || 0}
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Flag className="h-4 w-4 mr-2" />
-                {post.flags?.[0]?.count || 0}
-              </Button>
-            </div>
+            <PostActions
+              postId={post.id}
+              votesUp={post.votes_up}
+              votesDown={post.votes_down}
+              commentsCount={post.comments?.[0]?.count || 0}
+              flagsCount={post.flags?.[0]?.count || 0}
+              onVote={(postId, voteType) => handleVote(supabase, postId, voteType)}
+            />
           </CardContent>
         </Card>
       ))}
