@@ -24,6 +24,8 @@ import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
 import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
+import Reports from "@/pages/dashboard/Reports";
+import UsageSessions from "@/pages/dashboard/UsageSessions";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -64,6 +66,8 @@ function App() {
             <Route path="/dashboard/finance/settings" element={<FinanceSettings />} />
             <Route path="/dashboard/programmes" element={<ProgrammesDashboard />} />
             <Route path="/dashboard/programmes/settings" element={<ProgrammeSettings />} />
+            <Route path="/dashboard/reports" element={<Reports />} />
+            <Route path="/dashboard/usage-sessions" element={<UsageSessions />} />
           </Routes>
         </Router>
         <Toaster />
