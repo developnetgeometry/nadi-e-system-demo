@@ -45,21 +45,21 @@ import CommunityModeration from "@/pages/dashboard/community/CommunityModeration
 import FinancialWallet from "@/pages/dashboard/financial/Wallet";
 import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 
-function App() {
-  // Create a new QueryClient instance inside the component
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        retry: 1,
-      },
+// Initialize QueryClient outside of component
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
     },
-  });
+  },
+});
 
+export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Router>
+    <Router>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
@@ -113,11 +113,9 @@ function App() {
             <Route path="/dashboard/financial/wallet" element={<FinancialWallet />} />
             <Route path="/dashboard/financial/transactions" element={<FinancialTransactions />} />
           </Routes>
-        </Router>
-        <Toaster />
-      </ThemeProvider>
-    </QueryClientProvider>
+          <Toaster />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </Router>
   );
 }
-
-export default App;
