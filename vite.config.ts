@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
+// This is needed to properly type the test configuration
+import type { UserConfig } from 'vitest/config';
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -25,4 +28,4 @@ export default defineConfig({
       ],
     },
   },
-});
+} as UserConfig);
