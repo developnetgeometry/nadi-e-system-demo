@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -7,70 +8,68 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
-interface Transaction {
-  id: string;
-  items: {
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
-  total: number;
-  date: string;
-  transactionId: string;
-}
-
-export default function Transactions() {
-  const { data: transactions } = useQuery({
-    queryKey: ["transactions"],
+const Transactions = () => {
+  const { data: transactions, isLoading } = useQuery({
+    queryKey: ['transactions'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .order("date", { ascending: false });
-
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
       if (error) throw error;
-      return data as Transaction[];
+      return data;
     },
   });
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Transaction History</h2>
-      <Card className="p-4">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Transaction ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions?.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>{transaction.transactionId}</TableCell>
-                <TableCell>
-                  {new Date(transaction.date).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <ul className="list-disc list-inside">
-                    {transaction.items.map((item, index) => (
-                      <li key={index}>
-                        {item.name} x {item.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell>${transaction.total.toFixed(2)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+    <DashboardLayout>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Transactions</h1>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaction History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Transaction ID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Items</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions?.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>{transaction.transaction_id}</TableCell>
+                    <TableCell>
+                      {new Date(transaction.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>${transaction.total}</TableCell>
+                    <TableCell>
+                      {JSON.parse(transaction.items).length} items
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
       </Card>
-    </div>
+    </DashboardLayout>
   );
-}
+};
+
+export default Transactions;

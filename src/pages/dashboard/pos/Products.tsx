@@ -1,151 +1,76 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Search, Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Plus, Edit, Trash2 } from "lucide-react";
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  barcode?: string;
-}
-
-export default function Products() {
-  const [newProduct, setNewProduct] = useState({
-    name: "",
-    price: "",
-    stock: "",
-    barcode: "",
-  });
-  const { toast } = useToast();
-
-  const { data: products, refetch } = useQuery({
-    queryKey: ["products"],
+const Products = () => {
+  const { data: products, isLoading } = useQuery({
+    queryKey: ['products'],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("*");
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+      
       if (error) throw error;
-      return data as Product[];
+      return data;
     },
   });
 
-  const handleAddProduct = async () => {
-    try {
-      const { error } = await supabase.from("products").insert([
-        {
-          name: newProduct.name,
-          price: parseFloat(newProduct.price),
-          stock: parseInt(newProduct.stock),
-          barcode: newProduct.barcode,
-        },
-      ]);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Product added successfully",
-      });
-
-      setNewProduct({ name: "", price: "", stock: "", barcode: "" });
-      refetch();
-    } catch (error) {
-      console.error("Error adding product:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add product",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Add New Product</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Input
-            placeholder="Product Name"
-            value={newProduct.name}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, name: e.target.value })
-            }
-          />
-          <Input
-            type="number"
-            placeholder="Price"
-            value={newProduct.price}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, price: e.target.value })
-            }
-          />
-          <Input
-            type="number"
-            placeholder="Stock"
-            value={newProduct.stock}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, stock: e.target.value })
-            }
-          />
-          <Input
-            placeholder="Barcode (optional)"
-            value={newProduct.barcode}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, barcode: e.target.value })
-            }
-          />
-        </div>
-        <Button className="mt-4" onClick={handleAddProduct}>
+    <DashboardLayout>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Products</h1>
+        <Button>
           <Plus className="h-4 w-4 mr-2" />
           Add Product
         </Button>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Product List</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Barcode</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products?.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>${product.price.toFixed(2)}</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>{product.barcode || "-"}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Catalog</CardTitle>
+          <div className="flex items-center space-x-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                className="pl-8"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {products?.map((product) => (
+                <Card key={product.id}>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Price: ${product.price}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Stock: {product.stock}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Barcode: {product.barcode}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </DashboardLayout>
   );
-}
+};
+
+export default Products;
