@@ -16,6 +16,10 @@ import Leave from "@/pages/dashboard/hr/Leave";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
 import Transactions from "@/pages/dashboard/pos/Transactions";
+import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
+import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
+import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
+import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -47,6 +51,11 @@ function App() {
             <Route path="/dashboard/pos" element={<POSDashboard />} />
             <Route path="/dashboard/pos/products" element={<Products />} />
             <Route path="/dashboard/pos/transactions" element={<Transactions />} />
+            {/* New Management Module Routes */}
+            <Route path="/dashboard/claim" element={<ClaimDashboard />} />
+            <Route path="/dashboard/asset" element={<AssetDashboard />} />
+            <Route path="/dashboard/finance" element={<FinanceDashboard />} />
+            <Route path="/dashboard/programmes" element={<ProgrammesDashboard />} />
           </Routes>
         </Router>
         <Toaster />

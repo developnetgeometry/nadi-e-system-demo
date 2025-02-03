@@ -14,7 +14,12 @@ import {
   Clock,
   ShoppingCart,
   Barcode,
-  Receipt
+  Receipt,
+  Box,
+  Package,
+  DollarSign,
+  List,
+  FileText
 } from "lucide-react";
 import {
   Sidebar,
@@ -30,87 +35,43 @@ import { Link } from "react-router-dom";
 
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { 
-    title: "User Management",
-    icon: Users, 
-    path: "/dashboard/users"
-  },
-  { 
-    title: "Roles & Permissions", 
-    icon: Shield, 
-    path: "/dashboard/roles" 
-  },
-  { 
-    title: "Access Control", 
-    icon: UserCog, 
-    path: "/dashboard/access-control" 
-  },
-  { 
-    title: "Activity Log", 
-    icon: Activity, 
-    path: "/dashboard/activity" 
-  },
-  { 
-    title: "Reports", 
-    icon: FileBarChart, 
-    path: "/dashboard/reports" 
-  },
-  { 
-    title: "Calendar", 
-    icon: Calendar, 
-    path: "/dashboard/calendar" 
-  },
-  { 
-    title: "Notifications", 
-    icon: Bell, 
-    path: "/dashboard/notifications" 
-  },
-  { 
-    title: "Settings", 
-    icon: Settings, 
-    path: "/dashboard/settings" 
-  },
+  { title: "User Management", icon: Users, path: "/dashboard/users" },
+  { title: "Roles & Permissions", icon: Shield, path: "/dashboard/roles" },
+  { title: "Access Control", icon: UserCog, path: "/dashboard/access-control" },
+  { title: "Activity Log", icon: Activity, path: "/dashboard/activity" },
+  { title: "Reports", icon: FileBarChart, path: "/dashboard/reports" },
+  { title: "Calendar", icon: Calendar, path: "/dashboard/calendar" },
+  { title: "Notifications", icon: Bell, path: "/dashboard/notifications" },
+  { title: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
 
 const hrMenuItems = [
-  {
-    title: "HR Dashboard",
-    icon: Briefcase,
-    path: "/dashboard/hr"
-  },
-  {
-    title: "Employees",
-    icon: UserPlus,
-    path: "/dashboard/hr/employees"
-  },
-  {
-    title: "Attendance",
-    icon: ClipboardCheck,
-    path: "/dashboard/hr/attendance"
-  },
-  {
-    title: "Leave Management",
-    icon: Clock,
-    path: "/dashboard/hr/leave"
-  },
+  { title: "HR Dashboard", icon: Briefcase, path: "/dashboard/hr" },
+  { title: "Employees", icon: UserPlus, path: "/dashboard/hr/employees" },
+  { title: "Attendance", icon: ClipboardCheck, path: "/dashboard/hr/attendance" },
+  { title: "Leave Management", icon: Clock, path: "/dashboard/hr/leave" },
 ];
 
 const posMenuItems = [
-  {
-    title: "POS Dashboard",
-    icon: ShoppingCart,
-    path: "/dashboard/pos"
-  },
-  {
-    title: "Products",
-    icon: Barcode,
-    path: "/dashboard/pos/products"
-  },
-  {
-    title: "Transactions",
-    icon: Receipt,
-    path: "/dashboard/pos/transactions"
-  },
+  { title: "POS Dashboard", icon: ShoppingCart, path: "/dashboard/pos" },
+  { title: "Products", icon: Barcode, path: "/dashboard/pos/products" },
+  { title: "Transactions", icon: Receipt, path: "/dashboard/pos/transactions" },
+];
+
+const claimItems = [
+  { title: "Claims Dashboard", icon: FileText, path: "/dashboard/claim" },
+];
+
+const assetItems = [
+  { title: "Asset Dashboard", icon: Box, path: "/dashboard/asset" },
+];
+
+const financeItems = [
+  { title: "Finance Dashboard", icon: DollarSign, path: "/dashboard/finance" },
+];
+
+const programmesItems = [
+  { title: "Programmes Dashboard", icon: List, path: "/dashboard/programmes" },
 ];
 
 export const DashboardSidebar = () => {
@@ -158,6 +119,78 @@ export const DashboardSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {posMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Claim Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {claimItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Asset Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {assetItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Finance Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {financeItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Programmes Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {programmesItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.path}>
