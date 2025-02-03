@@ -61,7 +61,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         }}
         className={cn(
           "sidebar fixed top-0 bottom-0 z-40 flex flex-col transition-all duration-300",
-          state === "collapsed" ? "w-[60px]" : "w-[240px]",
+          state === "collapsed" ? "w-[72px]" : "w-[280px]",
           isMobile && "transform",
           isMobile && !openMobile && "-translate-x-full",
           className
