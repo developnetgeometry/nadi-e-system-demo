@@ -1,16 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Calendar, MapPin, Users, Plus } from "lucide-react";
+import { Calendar, MapPin, Users, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import { ProgrammeForm } from "./ProgrammeForm";
 
 interface Programme {
   id: string;
   title: string;
   description: string;
-  status: string;
+  status: "draft" | "active" | "completed" | "cancelled";
   start_date: string;
   end_date: string;
   location: string;
@@ -19,6 +22,10 @@ interface Programme {
 
 export const ProgrammeList = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProgramme, setSelectedProgramme] = useState<Programme | undefined>();
+
   const { data: programmes, isLoading, error } = useQuery({
     queryKey: ["programmes"],
     queryFn: async () => {
@@ -46,6 +53,17 @@ export const ProgrammeList = () => {
     });
   }
 
+  const handleAddEdit = (programme?: Programme) => {
+    setSelectedProgramme(programme);
+    setIsDialogOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    setIsDialogOpen(false);
+    setSelectedProgramme(undefined);
+    queryClient.invalidateQueries({ queryKey: ["programmes"] });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -63,7 +81,7 @@ export const ProgrammeList = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Programmes</h2>
-        <Button>
+        <Button onClick={() => handleAddEdit()}>
           <Plus className="h-4 w-4 mr-2" />
           Add Programme
         </Button>
@@ -93,9 +111,18 @@ export const ProgrammeList = () => {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{programme.title}</CardTitle>
-                  <Badge className={getStatusColor(programme.status)}>
-                    {programme.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getStatusColor(programme.status)}>
+                      {programme.status}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleAddEdit(programme)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <CardDescription>{programme.description}</CardDescription>
               </CardHeader>
@@ -122,6 +149,21 @@ export const ProgrammeList = () => {
           ))}
         </div>
       )}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedProgramme ? "Edit Programme" : "Add Programme"}
+            </DialogTitle>
+          </DialogHeader>
+          <ProgrammeForm
+            programme={selectedProgramme}
+            onSuccess={handleFormSuccess}
+            onCancel={() => setIsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
