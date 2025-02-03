@@ -216,36 +216,64 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create products table
-CREATE TABLE IF NOT EXISTS products (
+-- Create asset_status enum
+CREATE TYPE asset_status AS ENUM (
+  'active',
+  'in_maintenance',
+  'retired',
+  'disposed'
+);
+
+-- Create asset_category enum
+CREATE TYPE asset_category AS ENUM (
+  'equipment',
+  'furniture',
+  'vehicle',
+  'electronics',
+  'software',
+  'other'
+);
+
+-- Create assets table
+CREATE TABLE IF NOT EXISTS assets (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
-  price DECIMAL(10,2) NOT NULL,
-  stock INTEGER NOT NULL DEFAULT 0,
-  barcode TEXT,
+  description TEXT,
+  category asset_category NOT NULL,
+  status asset_status DEFAULT 'active',
+  purchase_date DATE NOT NULL,
+  purchase_cost DECIMAL(10,2) NOT NULL,
+  current_value DECIMAL(10,2),
+  depreciation_rate DECIMAL(5,2),
+  last_maintenance_date DATE,
+  next_maintenance_date DATE,
+  location TEXT,
+  assigned_to UUID REFERENCES auth.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Create transactions table
-CREATE TABLE IF NOT EXISTS transactions (
+-- Create maintenance_records table
+CREATE TABLE IF NOT EXISTS maintenance_records (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  transaction_id TEXT NOT NULL,
-  items JSONB NOT NULL,
-  total DECIMAL(10,2) NOT NULL,
-  date TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  asset_id UUID REFERENCES assets(id) ON DELETE CASCADE,
+  maintenance_date DATE NOT NULL,
+  description TEXT NOT NULL,
+  cost DECIMAL(10,2) NOT NULL,
+  performed_by TEXT NOT NULL,
+  next_maintenance_date DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Enable Row Level Security
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+-- Enable RLS
+ALTER TABLE assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE maintenance_records ENABLE ROW LEVEL SECURITY;
 
--- Create policies for products
-CREATE POLICY "Products are viewable by everyone" ON products
-  FOR SELECT USING (true);
+-- Create policies
+CREATE POLICY "Assets are viewable by authenticated users" ON assets
+  FOR SELECT USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Staff can manage products" ON products
+CREATE POLICY "Staff can manage assets" ON assets
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM profiles
@@ -254,102 +282,14 @@ CREATE POLICY "Staff can manage products" ON products
     )
   );
 
--- Create policies for transactions
-CREATE POLICY "Transactions are viewable by staff" ON transactions
-  FOR SELECT USING (
+CREATE POLICY "Maintenance records are viewable by authenticated users" ON maintenance_records
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Staff can manage maintenance records" ON maintenance_records
+  FOR ALL USING (
     EXISTS (
       SELECT 1 FROM profiles
       WHERE id = auth.uid()
       AND (user_type = 'staff_internal' OR user_type = 'super_admin')
-    )
-  );
-
-CREATE POLICY "Staff can create transactions" ON transactions
-  FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid()
-      AND (user_type = 'staff_internal' OR user_type = 'super_admin')
-    )
-  );
-
--- Create sales table for analytics
-CREATE TABLE IF NOT EXISTS sales (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  date DATE NOT NULL,
-  amount DECIMAL(10,2) NOT NULL,
-  transaction_id UUID REFERENCES transactions(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
--- Enable Row Level Security
-ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
-
--- Create policies for sales table
-CREATE POLICY "Staff can view sales data" ON sales
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid()
-      AND (user_type = 'staff_internal' OR user_type = 'super_admin')
-    )
-  );
-
--- Create claim_status enum
-CREATE TYPE claim_status AS ENUM (
-  'pending',
-  'under_review',
-  'approved',
-  'rejected'
-);
-
--- Create claim_type enum
-CREATE TYPE claim_type AS ENUM (
-  'damage',
-  'reimbursement',
-  'medical',
-  'travel',
-  'other'
-);
-
--- Create claims table
-CREATE TABLE IF NOT EXISTS claims (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  claim_number TEXT UNIQUE NOT NULL,
-  claim_type claim_type NOT NULL,
-  title TEXT NOT NULL,
-  description TEXT,
-  amount DECIMAL(10,2) NOT NULL,
-  status claim_status DEFAULT 'pending',
-  attachments TEXT[],
-  reviewer_id UUID REFERENCES auth.users(id),
-  review_notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
--- Enable RLS
-ALTER TABLE claims ENABLE ROW LEVEL SECURITY;
-
--- Create policies for claims
-CREATE POLICY "Users can view their own claims" ON claims
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create their own claims" ON claims
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own pending claims" ON claims
-  FOR UPDATE USING (
-    auth.uid() = user_id 
-    AND status = 'pending'
-  );
-
-CREATE POLICY "Reviewers can update claims" ON claims
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE id = auth.uid()
-      AND (user_type = 'super_admin' OR user_type = 'staff_internal')
     )
   );
