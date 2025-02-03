@@ -28,7 +28,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <DashboardNavbar />
           <main className="flex-1 p-4 md:p-8 overflow-auto">
             <div className="container mx-auto max-w-7xl">
-              <SidebarTrigger className="lg:hidden mb-4" />
+              <div className="lg:hidden mb-4">
+                <SidebarTrigger />
+              </div>
               {children}
             </div>
           </main>
