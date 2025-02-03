@@ -20,7 +20,9 @@ import {
   DollarSign,
   List,
   FileText,
-  Cog
+  Cog,
+  ChartBar,
+  Timer
 } from "lucide-react";
 import {
   Sidebar,
@@ -77,6 +79,11 @@ const financeItems = [
 const programmesItems = [
   { title: "Programmes Dashboard", icon: List, path: "/dashboard/programmes" },
   { title: "Programmes Settings", icon: Cog, path: "/dashboard/programmes/settings" },
+];
+
+const reportItems = [
+  { title: "Reports Dashboard", icon: ChartBar, path: "/dashboard/reports" },
+  { title: "Usage Sessions", icon: Timer, path: "/dashboard/usage-sessions" },
 ];
 
 export const DashboardSidebar = () => {
@@ -196,6 +203,24 @@ export const DashboardSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {programmesItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Report Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {reportItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.path}>
