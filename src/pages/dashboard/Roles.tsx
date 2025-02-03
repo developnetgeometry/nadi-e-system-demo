@@ -94,12 +94,12 @@ const Roles = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col ml-[240px]">
           <DashboardNavbar />
-          <main className="flex-1 p-8 bg-background">
-            <div className="max-w-7xl mx-auto space-y-8">
+          <main className="flex-1 p-8 overflow-auto">
+            <div className="container mx-auto max-w-6xl space-y-8">
               <div className="flex justify-between items-center">
                 <div className="space-y-1">
                   <h1 className="text-3xl font-bold tracking-tight">Roles & Permissions</h1>
