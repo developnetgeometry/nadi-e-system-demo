@@ -18,7 +18,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // First, authenticate with Supabase Auth
+      // Sign in with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -64,7 +64,7 @@ const Login = () => {
       <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-lg">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Enter your credentials to access your account
           </p>
         </div>
@@ -79,7 +79,6 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
               required
-              className="w-full"
             />
           </div>
 
@@ -100,7 +99,6 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full"
             />
           </div>
 
@@ -113,7 +111,7 @@ const Login = () => {
             {loading ? "Signing in..." : "Sign in"}
           </Button>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link to="/register" className="text-primary hover:underline">
               Sign up

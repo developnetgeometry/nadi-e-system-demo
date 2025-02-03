@@ -1,34 +1,15 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
-const userTypes = [
-  { value: "member", label: "Member" },
-  { value: "vendor", label: "Vendor" },
-  { value: "tp", label: "TP" },
-  { value: "sso", label: "SSO" },
-  { value: "dusp", label: "DUSP" },
-  { value: "medical_office", label: "Medical Office" },
-  { value: "staff_internal", label: "Staff (Internal)" },
-  { value: "staff_external", label: "Staff (External)" },
-];
-
 const Register = () => {
-  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -38,7 +19,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Sign up the user
+      // Sign up with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -53,22 +34,23 @@ const Register = () => {
           .insert([
             {
               id: authData.user.id,
+              email,
               full_name: fullName,
-              email: email,
-              user_type: userType,
+              user_type: 'member',
             },
           ]);
 
         if (profileError) throw profileError;
-      }
 
-      toast({
-        title: "Success",
-        description: "Registration successful! Please check your email to verify your account.",
-      });
-      
-      navigate("/login");
+        toast({
+          title: "Success",
+          description: "Registration successful! Please check your email to verify your account.",
+        });
+        
+        navigate("/login");
+      }
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -80,25 +62,27 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
-      <div className="w-full max-w-md space-y-8 bg-background p-8 rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-100">
+      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-lg">
         <div className="text-center">
-          <h2 className="text-2xl font-bold">Create an account</h2>
+          <h2 className="text-2xl font-bold">Create your account</h2>
           <p className="text-muted-foreground mt-2">
-            Get started with your free account
+            Enter your details to get started
           </p>
         </div>
+
         <form onSubmit={handleRegister} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="fullName">Full Name</Label>
             <Input
-              id="name"
+              id="fullName"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter your name"
+              placeholder="John Doe"
               required
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -106,10 +90,11 @@ const Register = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="name@example.com"
               required
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -121,31 +106,22 @@ const Register = () => {
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="userType">User Type</Label>
-            <Select value={userType} onValueChange={setUserType} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select user type" />
-              </SelectTrigger>
-              <SelectContent>
-                {userTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button className="w-full" type="submit" disabled={loading}>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading}
+          >
             {loading ? "Creating account..." : "Create account"}
           </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline">
+              Sign in
+            </Link>
+          </p>
         </form>
-        <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </p>
       </div>
     </div>
   );
