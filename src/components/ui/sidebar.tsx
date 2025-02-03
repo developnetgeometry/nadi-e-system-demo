@@ -26,7 +26,6 @@ const Sidebar = React.forwardRef<
       if (typeof ResizeObserver === "undefined") return null;
       return new ResizeObserver((entries) => {
         if (!entries.length) return;
-        // Throttle resize observations
         const currentRef = sidebarRef.current;
         if (currentRef) {
           requestAnimationFrame(() => {
@@ -69,4 +68,61 @@ const Sidebar = React.forwardRef<
   }
 );
 
-export { Sidebar };
+Sidebar.displayName = "Sidebar";
+
+const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-provider">{children}</div>;
+};
+
+const SidebarContent: React.FC<{ children: React.ReactNode; className?: string }> = ({ 
+  children, 
+  className 
+}) => {
+  return <div className={`sidebar-content ${className || ''}`}>{children}</div>;
+};
+
+const SidebarTrigger: React.FC = () => {
+  const { toggleSidebar } = useSidebar();
+  return (
+    <button onClick={toggleSidebar} className="sidebar-trigger">
+      Toggle Sidebar
+    </button>
+  );
+};
+
+const SidebarMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-menu">{children}</div>;
+};
+
+const SidebarMenuItem: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-menu-item">{children}</div>;
+};
+
+const SidebarMenuButton: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-menu-button">{children}</div>;
+};
+
+const SidebarGroup: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-group">{children}</div>;
+};
+
+const SidebarGroupLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-group-label">{children}</div>;
+};
+
+const SidebarGroupContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div className="sidebar-group-content">{children}</div>;
+};
+
+export {
+  Sidebar,
+  SidebarProvider,
+  SidebarContent,
+  SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+};
