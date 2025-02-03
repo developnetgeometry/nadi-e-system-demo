@@ -1,20 +1,20 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { ReportList } from "@/components/reports/ReportList";
+import { UsageSessionList } from "@/components/usage/UsageSessionList";
 
-const Reports = () => {
+const UsageSessions = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Reports</h1>
+          <h1 className="text-3xl font-bold">Usage Sessions</h1>
           <p className="text-muted-foreground mt-2">
-            View and manage system reports
+            Monitor system usage and activity
           </p>
         </div>
-        <ReportList />
+        <UsageSessionList />
       </div>
     </DashboardLayout>
   );
 };
 
-export default Reports;
+export default UsageSessions;

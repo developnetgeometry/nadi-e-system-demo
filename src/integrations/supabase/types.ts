@@ -266,6 +266,164 @@ export type Database = {
           },
         ]
       }
+      programme_participants: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          programme_id: string | null
+          registration_date: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          programme_id?: string | null
+          registration_date?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          programme_id?: string | null
+          registration_date?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_participants_programme_id_fkey"
+            columns: ["programme_id"]
+            isOneToOne: false
+            referencedRelation: "programmes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programmes: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          location: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["programme_status"] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["programme_status"] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["programme_status"] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          last_generated: string | null
+          parameters: Json | null
+          schedule: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          last_generated?: string | null
+          parameters?: Json | null
+          schedule?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          last_generated?: string | null
+          parameters?: Json | null
+          schedule?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      usage_sessions: {
+        Row: {
+          actions_performed: Json | null
+          created_at: string
+          device_info: Json | null
+          end_time: string | null
+          id: string
+          ip_address: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          start_time: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actions_performed?: Json | null
+          created_at?: string
+          device_info?: Json | null
+          end_time?: string | null
+          id?: string
+          ip_address?: string | null
+          session_type: Database["public"]["Enums"]["session_type"]
+          start_time?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actions_performed?: Json | null
+          created_at?: string
+          device_info?: Json | null
+          end_time?: string | null
+          id?: string
+          ip_address?: string | null
+          session_type?: Database["public"]["Enums"]["session_type"]
+          start_time?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -285,6 +443,8 @@ export type Database = {
       claim_status: "pending" | "approved" | "rejected"
       claim_type: "damage" | "reimbursement" | "medical" | "travel" | "other"
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+      programme_status: "draft" | "active" | "completed" | "cancelled"
+      session_type: "login" | "system_access" | "feature_usage" | "api_call"
       transaction_type: "income" | "expense" | "transfer"
     }
     CompositeTypes: {
