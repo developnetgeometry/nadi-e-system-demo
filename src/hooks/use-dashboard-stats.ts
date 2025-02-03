@@ -1,17 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-
-interface DashboardStats {
-  totalUsers: number;
-  totalRoles: number;
-  activeUsers: number;
-  lastActivity: string;
-}
+import { DashboardStatsData } from "@/types/dashboard";
 
 export const useDashboardStats = () => {
   return useQuery({
     queryKey: ['dashboard-stats'],
-    queryFn: async (): Promise<DashboardStats> => {
+    queryFn: async (): Promise<DashboardStatsData> => {
       console.log("Fetching dashboard stats...");
       
       const { data: profiles, error: profilesError } = await supabase

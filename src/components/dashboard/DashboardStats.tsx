@@ -1,15 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Shield, Activity, UserCog } from "lucide-react";
-
-interface StatsData {
-  totalUsers: number;
-  totalRoles: number;
-  activeUsers: number;
-  lastActivity: string;
-}
+import { DashboardStatsData } from "@/types/dashboard";
 
 interface DashboardStatsProps {
-  stats: StatsData;
+  stats?: DashboardStatsData;
   isLoading: boolean;
 }
 
@@ -35,7 +29,7 @@ export const DashboardStats = ({ stats, isLoading }: DashboardStatsProps) => {
     },
     {
       title: "Last Activity",
-      value: isLoading ? "Loading..." : new Date(stats?.lastActivity || "").toLocaleDateString(),
+      value: isLoading ? "Loading..." : stats?.lastActivity ? new Date(stats.lastActivity).toLocaleDateString() : "No activity",
       icon: Activity,
       description: "Most recent system activity",
     },

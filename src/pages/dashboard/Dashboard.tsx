@@ -5,15 +5,7 @@ import { DashboardMap } from "@/components/dashboard/DashboardMap";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import { useDashboardStats } from "@/hooks/use-dashboard-stats";
 import { ErrorBoundary } from "react-error-boundary";
-
-const ErrorFallback = ({ error }: { error: Error }) => {
-  return (
-    <div className="p-4 text-red-500">
-      <h2>Something went wrong:</h2>
-      <pre>{error.message}</pre>
-    </div>
-  );
-};
+import { ErrorFallback } from "@/components/error/ErrorFallback";
 
 const Dashboard = () => {
   const { data: stats, isLoading } = useDashboardStats();
