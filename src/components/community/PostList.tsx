@@ -39,7 +39,7 @@ export const PostList = () => {
           votes_up,
           votes_down,
           author_id,
-          author:profiles!content_posts_author_id_fkey(full_name),
+          author:profiles(full_name),
           comments:content_comments(count),
           flags:content_flags(count)
         `)
