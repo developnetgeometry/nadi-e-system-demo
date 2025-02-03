@@ -1,43 +1,17 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Table, TableBody } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  UserPlus,
-  Search,
-  MoreVertical,
-  UserCog,
-  Trash2,
-  Download,
-} from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { UserPlus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserFormDialog } from "@/components/users/UserFormDialog";
+import { UserTableHeader } from "@/components/users/UserTableHeader";
+import { UserTableRow } from "@/components/users/UserTableRow";
+import { UserToolbar } from "@/components/users/UserToolbar";
+import { fetchUsers, deleteUsers, exportUsersToCSV } from "@/utils/users-utils";
 import type { Profile, UserType } from "@/types/auth";
 
 const Users = () => {
@@ -51,40 +25,9 @@ const Users = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch users with filters
   const { data: users, isLoading } = useQuery({
     queryKey: ["users", searchQuery, userTypeFilter],
-    queryFn: async () => {
-      console.log("Fetching users with filters:", {
-        searchQuery,
-        userTypeFilter,
-      });
-
-      let query = supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (searchQuery) {
-        query = query.or(
-          `full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`
-        );
-      }
-
-      if (userTypeFilter) {
-        query = query.eq("user_type", userTypeFilter);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Error fetching users:", error);
-        throw error;
-      }
-
-      console.log("Users fetched:", data);
-      return data as Profile[];
-    },
+    queryFn: fetchUsers,
     meta: {
       onError: (error: Error) => {
         console.error("Query error:", error);
@@ -97,16 +40,8 @@ const Users = () => {
     }
   });
 
-  // Delete users mutation
-  const deleteUsers = useMutation({
-    mutationFn: async (userIds: string[]) => {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .in("id", userIds);
-
-      if (error) throw error;
-    },
+  const deleteUsersMutation = useMutation({
+    mutationFn: deleteUsers,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       setSelectedUsers([]);
@@ -141,38 +76,23 @@ const Users = () => {
     setSelectedUsers(checked ? (users?.map((user) => user.id) ?? []) : []);
   };
 
-  const handleSelectUser = (userId: string, checked: boolean | string) => {
+  const handleSelectUser = (userId: string, checked: boolean) => {
     setSelectedUsers((prev) =>
-      checked === true ? [...prev, userId] : prev.filter((id) => id !== userId)
+      checked ? [...prev, userId] : prev.filter((id) => id !== userId)
     );
   };
 
   const handleDeleteSelected = () => {
     if (selectedUsers.length > 0) {
-      deleteUsers.mutate(selectedUsers);
+      deleteUsersMutation.mutate(selectedUsers);
     }
   };
 
   const handleExportUsers = () => {
     if (!users) return;
-
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      "Full Name,Email,User Type,Created At\n" +
-      users
-        .map((user) =>
-          [
-            user.full_name,
-            user.email,
-            user.user_type,
-            new Date(user.created_at).toLocaleDateString(),
-          ].join(",")
-        )
-        .join("\n");
-
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = exportUsersToCSV(users);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", csvContent);
     link.setAttribute("download", "users.csv");
     document.body.appendChild(link);
     link.click();
@@ -180,197 +100,109 @@ const Users = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <DashboardSidebar />
-        <div className="flex-1 flex flex-col">
-          <DashboardNavbar />
-          <main className="flex-1 p-8">
-            <SidebarTrigger />
-
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl font-bold">User Management</h1>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add User
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select
-                  value={userTypeFilter}
-                  onValueChange={setUserTypeFilter}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    {userTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.replace(/_/g, ' ').split(' ').map(word => 
-                          word.charAt(0).toUpperCase() + word.slice(1)
-                        ).join(' ')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedUsers.length > 0 && (
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedUsers.length} users selected
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleExportUsers}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDeleteSelected}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Selected
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox
-                        checked={
-                          users?.length
-                            ? selectedUsers.length === users.length
-                            : false
-                        }
-                        onCheckedChange={handleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center py-8"
-                      >
-                        Loading users...
-                      </TableCell>
-                    </TableRow>
-                  ) : users?.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center py-8"
-                      >
-                        No users found
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    users?.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedUsers.includes(user.id)}
-                            onCheckedChange={(checked) =>
-                              handleSelectUser(user.id, checked)
-                            }
-                          />
-                        </TableCell>
-                        <TableCell>{user.full_name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell className="capitalize">
-                          {user.user_type.replace(/_/g, ' ')}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="h-8 w-8 p-0"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setUserToEdit(user);
-                                  setIsEditDialogOpen(true);
-                                }}
-                              >
-                                <UserCog className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() =>
-                                  deleteUsers.mutate([user.id])
-                                }
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            <UserFormDialog
-              open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
-              onSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ["users"] });
-              }}
-            />
-
-            <UserFormDialog
-              open={isEditDialogOpen}
-              onOpenChange={setIsEditDialogOpen}
-              user={userToEdit}
-              onSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ["users"] });
-                setUserToEdit(undefined);
-              }}
-            />
-          </main>
-        </div>
+    <DashboardLayout>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
       </div>
-    </SidebarProvider>
+
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={userTypeFilter}
+            onValueChange={setUserTypeFilter}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {userTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type.replace(/_/g, ' ').split(' ').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                  ).join(' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <UserToolbar
+          selectedCount={selectedUsers.length}
+          onExport={handleExportUsers}
+          onDelete={handleDeleteSelected}
+        />
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <UserTableHeader
+            onSelectAll={handleSelectAll}
+            allSelected={users?.length ? selectedUsers.length === users.length : false}
+          />
+          <TableBody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  Loading users...
+                </td>
+              </tr>
+            ) : users?.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  No users found
+                </td>
+              </tr>
+            ) : (
+              users?.map((user) => (
+                <UserTableRow
+                  key={user.id}
+                  user={user}
+                  isSelected={selectedUsers.includes(user.id)}
+                  onSelect={handleSelectUser}
+                  onEdit={(user) => {
+                    setUserToEdit(user);
+                    setIsEditDialogOpen(true);
+                  }}
+                  onDelete={(userId) => deleteUsersMutation.mutate([userId])}
+                />
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <UserFormDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["users"] });
+        }}
+      />
+
+      <UserFormDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        user={userToEdit}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["users"] });
+          setUserToEdit(undefined);
+        }}
+      />
+    </DashboardLayout>
   );
 };
 
