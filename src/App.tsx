@@ -17,9 +17,13 @@ import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
 import Transactions from "@/pages/dashboard/pos/Transactions";
 import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
+import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
 import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
+import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
 import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
+import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
+import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -51,11 +55,15 @@ function App() {
             <Route path="/dashboard/pos" element={<POSDashboard />} />
             <Route path="/dashboard/pos/products" element={<Products />} />
             <Route path="/dashboard/pos/transactions" element={<Transactions />} />
-            {/* New Management Module Routes */}
+            {/* Management Module Routes */}
             <Route path="/dashboard/claim" element={<ClaimDashboard />} />
+            <Route path="/dashboard/claim/settings" element={<ClaimSettings />} />
             <Route path="/dashboard/asset" element={<AssetDashboard />} />
+            <Route path="/dashboard/asset/settings" element={<AssetSettings />} />
             <Route path="/dashboard/finance" element={<FinanceDashboard />} />
+            <Route path="/dashboard/finance/settings" element={<FinanceSettings />} />
             <Route path="/dashboard/programmes" element={<ProgrammesDashboard />} />
+            <Route path="/dashboard/programmes/settings" element={<ProgrammeSettings />} />
           </Routes>
         </Router>
         <Toaster />

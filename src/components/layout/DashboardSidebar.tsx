@@ -19,7 +19,8 @@ import {
   Package,
   DollarSign,
   List,
-  FileText
+  FileText,
+  Cog
 } from "lucide-react";
 import {
   Sidebar,
@@ -60,18 +61,22 @@ const posMenuItems = [
 
 const claimItems = [
   { title: "Claims Dashboard", icon: FileText, path: "/dashboard/claim" },
+  { title: "Claims Settings", icon: Cog, path: "/dashboard/claim/settings" },
 ];
 
 const assetItems = [
   { title: "Asset Dashboard", icon: Box, path: "/dashboard/asset" },
+  { title: "Asset Settings", icon: Cog, path: "/dashboard/asset/settings" },
 ];
 
 const financeItems = [
   { title: "Finance Dashboard", icon: DollarSign, path: "/dashboard/finance" },
+  { title: "Finance Settings", icon: Cog, path: "/dashboard/finance/settings" },
 ];
 
 const programmesItems = [
   { title: "Programmes Dashboard", icon: List, path: "/dashboard/programmes" },
+  { title: "Programmes Settings", icon: Cog, path: "/dashboard/programmes/settings" },
 ];
 
 export const DashboardSidebar = () => {
