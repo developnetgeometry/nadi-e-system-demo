@@ -183,9 +183,12 @@ const Sidebar = React.forwardRef<
       return new ResizeObserver((entries) => {
         if (!entries.length) return
         // Throttle resize observations
-        if (sidebarRef.current) {
+        const currentRef = sidebarRef.current
+        if (currentRef) {
           requestAnimationFrame(() => {
-            sidebarRef.current?.style.height = `${entries[0].contentRect.height}px`
+            if (currentRef) {
+              currentRef.style.height = `${entries[0].contentRect.height}px`
+            }
           })
         }
       })
