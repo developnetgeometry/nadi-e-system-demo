@@ -23,6 +23,7 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const RESIZE_OBSERVER_THROTTLE = 16 // ~60fps
 
 type SidebarContext = {
   state: "expanded" | "collapsed"
@@ -67,9 +68,9 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
+    const resizeTimeout = React.useRef<number>()
 
     // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
     const setOpen = React.useCallback(
@@ -81,20 +82,17 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState)
         }
 
-        // This sets the cookie to keep the sidebar state.
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
       },
       [setOpenProp, open]
     )
 
-    // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       return isMobile
         ? setOpenMobile((open) => !open)
         : setOpen((open) => !open)
     }, [isMobile, setOpen, setOpenMobile])
 
-    // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (
@@ -107,13 +105,16 @@ const SidebarProvider = React.forwardRef<
       }
 
       window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown)
+        // Cleanup any pending resize timeouts
+        if (resizeTimeout.current) {
+          window.clearTimeout(resizeTimeout.current)
+        }
+      }
     }, [toggleSidebar])
 
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
-
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
         state,
@@ -154,6 +155,8 @@ const SidebarProvider = React.forwardRef<
 )
 SidebarProvider.displayName = "SidebarProvider"
 
+// ... keep existing code (rest of the components)
+
 const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -174,6 +177,29 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const sidebarRef = React.useRef<HTMLDivElement>(null)
+    const [resizeObserver] = React.useState(() => {
+      if (typeof ResizeObserver === "undefined") return null
+      return new ResizeObserver((entries) => {
+        if (!entries.length) return
+        // Throttle resize observations
+        if (sidebarRef.current) {
+          requestAnimationFrame(() => {
+            sidebarRef.current?.style.height = `${entries[0].contentRect.height}px`
+          })
+        }
+      })
+    })
+
+    React.useEffect(() => {
+      const sidebar = sidebarRef.current
+      if (!sidebar || !resizeObserver) return
+
+      resizeObserver.observe(sidebar)
+      return () => {
+        resizeObserver.disconnect()
+      }
+    }, [resizeObserver])
 
     if (collapsible === "none") {
       return (
@@ -204,7 +230,9 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="flex h-full w-full flex-col" ref={sidebarRef}>
+              {children}
+            </div>
           </SheetContent>
         </Sheet>
       )
@@ -219,7 +247,6 @@ const Sidebar = React.forwardRef<
         data-variant={variant}
         data-side={side}
       >
-        {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
             "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
@@ -231,12 +258,12 @@ const Sidebar = React.forwardRef<
           )}
         />
         <div
+          ref={sidebarRef}
           className={cn(
             "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
             side === "left"
               ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
               : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Adjust the padding for floating and inset variants.
             variant === "floating" || variant === "inset"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
               : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
