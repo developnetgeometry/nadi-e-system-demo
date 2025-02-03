@@ -80,12 +80,12 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                 <SidebarMenuButton asChild>
                   <Link 
                     to={item.path}
-                    className={`flex items-center gap-3 px-4 py-2 text-sm text-sidebar-foreground rounded-md transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group ${
+                    className={`flex items-start gap-3 px-4 py-2 text-sm text-sidebar-foreground rounded-md transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group ${
                       location.pathname === item.path ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                     }`}
                   >
-                    <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-                    <span className="truncate">{item.title}</span>
+                    <item.icon className="h-4 w-4 flex-shrink-0 mt-0.5 transition-transform group-hover:scale-110" />
+                    <span className="break-words leading-tight">{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
