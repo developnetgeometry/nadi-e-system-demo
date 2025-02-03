@@ -1,107 +1,54 @@
 import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { supabase } from '@/lib/supabase';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    const initializeMap = async () => {
-      if (!mapContainer.current) return;
+    if (!mapContainer.current || map.current) return;
 
-      try {
-        const { data: { token }, error } = await supabase
-          .functions.invoke('get-mapbox-token');
+    // Initialize map centered on Malaysia
+    map.current = L.map(mapContainer.current).setView([4.2105, 108.9758], 5);
 
-        if (error) {
-          console.error('Error fetching Mapbox token:', error);
-          return;
-        }
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+    }).addTo(map.current);
 
-        mapboxgl.accessToken = token;
-        
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/light-v11',
-          projection: 'globe',
-          zoom: 1.5,
-          center: [30, 15],
-          pitch: 45,
-        });
+    // Add Malaysia boundary (approximate)
+    const malaysiaBounds = L.latLngBounds(
+      [1.0, 99.6], // Southwest corner
+      [7.4, 119.3]  // Northeast corner
+    );
 
-        map.current.addControl(
-          new mapboxgl.NavigationControl({
-            visualizePitch: true,
-          }),
-          'top-right'
-        );
+    map.current.fitBounds(malaysiaBounds);
 
-        map.current.scrollZoom.disable();
+    // Restrict panning to Malaysia region
+    map.current.setMaxBounds(malaysiaBounds.pad(0.1));
 
-        map.current.on('style.load', () => {
-          map.current?.setFog({
-            color: 'rgb(255, 255, 255)',
-            'high-color': 'rgb(200, 200, 225)',
-            'horizon-blend': 0.2,
-          });
-        });
+    // Add some major cities in Malaysia
+    const cities = [
+      { name: 'Kuala Lumpur', coords: [3.1390, 101.6869] },
+      { name: 'George Town', coords: [5.4141, 100.3288] },
+      { name: 'Johor Bahru', coords: [1.4927, 103.7414] },
+      { name: 'Kuching', coords: [1.5497, 110.3592] },
+      { name: 'Kota Kinabalu', coords: [5.9804, 116.0735] },
+    ];
 
-        const secondsPerRevolution = 240;
-        const maxSpinZoom = 5;
-        const slowSpinZoom = 3;
-        let userInteracting = false;
-        let spinEnabled = true;
-
-        function spinGlobe() {
-          if (!map.current) return;
-          
-          const zoom = map.current.getZoom();
-          if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
-            let distancePerSecond = 360 / secondsPerRevolution;
-            if (zoom > slowSpinZoom) {
-              const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
-              distancePerSecond *= zoomDif;
-            }
-            const center = map.current.getCenter();
-            center.lng -= distancePerSecond;
-            map.current.easeTo({ center, duration: 1000, easing: (n) => n });
-          }
-        }
-
-        map.current.on('mousedown', () => {
-          userInteracting = true;
-        });
-        
-        map.current.on('dragstart', () => {
-          userInteracting = true;
-        });
-        
-        map.current.on('mouseup', () => {
-          userInteracting = false;
-          spinGlobe();
-        });
-        
-        map.current.on('touchend', () => {
-          userInteracting = false;
-          spinGlobe();
-        });
-
-        map.current.on('moveend', () => {
-          spinGlobe();
-        });
-
-        spinGlobe();
-      } catch (error) {
-        console.error('Error initializing map:', error);
-      }
-    };
-
-    initializeMap();
+    cities.forEach(city => {
+      L.marker(city.coords as [number, number])
+        .bindPopup(city.name)
+        .addTo(map.current!);
+    });
 
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, []);
 
