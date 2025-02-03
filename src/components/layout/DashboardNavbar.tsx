@@ -21,7 +21,7 @@ import { Link } from "react-router-dom";
 export const DashboardNavbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center px-4 sm:px-8">
+      <div className="container flex h-14 items-center px-4 sm:px-8">
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
             <Dialog>
