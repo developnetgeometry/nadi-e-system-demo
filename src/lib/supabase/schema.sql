@@ -293,3 +293,13 @@ CREATE POLICY "Staff can manage maintenance records" ON maintenance_records
       AND (user_type = 'staff_internal' OR user_type = 'super_admin')
     )
   );
+
+-- Update Assets RLS policies to allow anonymous read access
+DROP POLICY IF EXISTS "Assets are viewable by authenticated users" ON assets;
+CREATE POLICY "Assets are viewable by everyone" ON assets
+  FOR SELECT USING (true);
+
+-- Update Maintenance Records RLS policies to allow anonymous read access
+DROP POLICY IF EXISTS "Maintenance records are viewable by authenticated users" ON maintenance_records;
+CREATE POLICY "Maintenance records are viewable by everyone" ON maintenance_records
+  FOR SELECT USING (true);
