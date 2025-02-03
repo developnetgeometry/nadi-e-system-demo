@@ -1,5 +1,4 @@
-import { Bell, Settings, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bell, Settings, User, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +8,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { NotificationList } from "@/components/notifications/NotificationList";
+import { Link } from "react-router-dom";
 
 export const DashboardNavbar = () => {
   return (
@@ -16,18 +24,58 @@ export const DashboardNavbar = () => {
       <div className="container flex h-16 items-center px-4 sm:px-8">
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/dashboard/notifications">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Notifications</span>
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/dashboard/settings">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
-              </Link>
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Notifications</DialogTitle>
+                </DialogHeader>
+                <NotificationList />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-5 w-5" />
+                  <span className="sr-only">Settings</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Settings</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium">Theme</h4>
+                    <div className="flex items-center space-x-4">
+                      <Button variant="outline" size="sm">Light</Button>
+                      <Button variant="outline" size="sm">Dark</Button>
+                      <Button variant="outline" size="sm">System</Button>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium">Notification Preferences</h4>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" className="form-checkbox" />
+                        <span className="text-sm">Email notifications</span>
+                      </label>
+                      <label className="flex items-center space-x-2">
+                        <input type="checkbox" className="form-checkbox" />
+                        <span className="text-sm">Push notifications</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
