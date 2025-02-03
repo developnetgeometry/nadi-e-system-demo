@@ -126,64 +126,85 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-white to-gray-100">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-lg shadow-lg">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your credentials to access your account
-          </p>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
-              required
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-8 space-y-6 border border-gray-100">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome back
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Enter your credentials to access your account
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link 
-                to="/forgot-password" 
-                className="text-sm text-primary hover:underline"
-              >
-                Forgot password?
-              </Link>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label 
+                    htmlFor="password"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Password
+                  </Label>
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </div>
             </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            size="lg"
-            disabled={loading}
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </Button>
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200" 
+              size="lg"
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </form>
+            <p className="text-center text-sm text-gray-600">
+              Don't have an account?{" "}
+              <Link 
+                to="/register" 
+                className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
+              >
+                Sign up
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   );
