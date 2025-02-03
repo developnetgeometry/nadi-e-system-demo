@@ -3,7 +3,8 @@ import Landing from "@/pages/Landing";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { authRoutes } from "@/routes/auth.routes";
+import Login from "@/pages/auth/Login";
+import Register from "@/pages/auth/Register";
 import { dashboardRoutes } from "@/routes/dashboard.routes";
 import { memberRoutes } from "@/routes/member.routes";
 import { moduleRoutes } from "@/routes/module.routes";
@@ -17,13 +18,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Landing />} />
-            {authRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={route.element}
-              />
-            ))}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             {dashboardRoutes.map((route) => (
               <Route
                 key={route.path}
