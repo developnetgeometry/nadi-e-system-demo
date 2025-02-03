@@ -14,7 +14,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        <DashboardSidebar />
+        <div className="fixed inset-y-0">
+          <DashboardSidebar />
+        </div>
         <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'ml-[60px]' : 'ml-[240px]'}`}>
           <DashboardNavbar />
           <main className="flex-1 p-8 overflow-auto">

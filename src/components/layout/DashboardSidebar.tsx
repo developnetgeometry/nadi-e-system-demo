@@ -7,11 +7,11 @@ import { menuGroups } from "@/utils/menu-groups";
 
 export const DashboardSidebar = () => {
   return (
-    <Sidebar className="border-r border-border bg-sidebar-background">
-      <div className="p-4 border-b border-border">
+    <Sidebar className="border-r border-border bg-sidebar-background h-screen flex flex-col">
+      <div className="p-4 border-b border-border flex-shrink-0">
         <h1 className="nadi-gradient-text">NADI</h1>
       </div>
-      <SidebarContent className="p-4">
+      <SidebarContent className="p-4 flex-1 overflow-y-auto">
         {menuGroups.map((group) => (
           <SidebarAccordion
             key={group.label}
