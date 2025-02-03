@@ -149,7 +149,7 @@ const Dashboard = () => {
         <CardHeader>
           <CardTitle>Global Activity Map</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-[400px]">
           <Map />
         </CardContent>
       </Card>
@@ -159,8 +159,8 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle>User Growth</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer className="h-[300px]" config={{}}>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -170,7 +170,7 @@ const Dashboard = () => {
                 <Line type="monotone" dataKey="users" stroke="#8884d8" />
                 <Line type="monotone" dataKey="activities" stroke="#82ca9d" />
               </LineChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
         
@@ -178,8 +178,8 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle>Daily Activity</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer className="h-[300px]" config={{}}>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -188,7 +188,7 @@ const Dashboard = () => {
                 <Legend />
                 <Bar dataKey="value" fill="#8884d8" />
               </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
@@ -196,8 +196,8 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle>User Status Distribution</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ChartContainer className="h-[300px]" config={{}}>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={donutData}
@@ -214,7 +214,7 @@ const Dashboard = () => {
                 <Tooltip />
                 <Legend />
               </PieChart>
-            </ChartContainer>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
