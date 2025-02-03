@@ -10,8 +10,8 @@ interface Post {
   title: string;
   content: string;
   created_at: string;
-  votes_up: number | null;
-  votes_down: number | null;
+  votes_up: number;
+  votes_down: number;
   author_id: string | null;
   author: {
     full_name: string | null;
@@ -43,7 +43,8 @@ export const PostList = () => {
           comments:content_comments(count),
           flags:content_flags(count)
         `)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching posts:', error);
@@ -103,7 +104,7 @@ export const PostList = () => {
                 onClick={() => handleVote(post.id, 'up')}
               >
                 <ThumbsUp className="h-4 w-4 mr-2" />
-                {post.votes_up || 0}
+                {post.votes_up}
               </Button>
               <Button
                 variant="ghost"
@@ -111,7 +112,7 @@ export const PostList = () => {
                 onClick={() => handleVote(post.id, 'down')}
               >
                 <ThumbsDown className="h-4 w-4 mr-2" />
-                {post.votes_down || 0}
+                {post.votes_down}
               </Button>
               <Button variant="ghost" size="sm">
                 <MessageSquare className="h-4 w-4 mr-2" />
