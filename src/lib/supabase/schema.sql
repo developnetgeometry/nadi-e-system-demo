@@ -215,3 +215,60 @@ BEGIN
   RETURN v_notification;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create products table
+CREATE TABLE IF NOT EXISTS products (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  stock INTEGER NOT NULL DEFAULT 0,
+  barcode TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Create transactions table
+CREATE TABLE IF NOT EXISTS transactions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  transaction_id TEXT NOT NULL,
+  items JSONB NOT NULL,
+  total DECIMAL(10,2) NOT NULL,
+  date TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Enable Row Level Security
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for products
+CREATE POLICY "Products are viewable by everyone" ON products
+  FOR SELECT USING (true);
+
+CREATE POLICY "Staff can manage products" ON products
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND (user_type = 'staff_internal' OR user_type = 'super_admin')
+    )
+  );
+
+-- Create policies for transactions
+CREATE POLICY "Transactions are viewable by staff" ON transactions
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND (user_type = 'staff_internal' OR user_type = 'super_admin')
+    )
+  );
+
+CREATE POLICY "Staff can create transactions" ON transactions
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND (user_type = 'staff_internal' OR user_type = 'super_admin')
+    )
+  );

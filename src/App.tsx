@@ -13,6 +13,9 @@ import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Employees from "@/pages/dashboard/hr/Employees";
 import Attendance from "@/pages/dashboard/hr/Attendance";
 import Leave from "@/pages/dashboard/hr/Leave";
+import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
+import Products from "@/pages/dashboard/pos/Products";
+import Transactions from "@/pages/dashboard/pos/Transactions";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -40,6 +43,10 @@ function App() {
             <Route path="/dashboard/hr/employees" element={<Employees />} />
             <Route path="/dashboard/hr/attendance" element={<Attendance />} />
             <Route path="/dashboard/hr/leave" element={<Leave />} />
+            {/* POS Module Routes */}
+            <Route path="/dashboard/pos" element={<POSDashboard />} />
+            <Route path="/dashboard/pos/products" element={<Products />} />
+            <Route path="/dashboard/pos/transactions" element={<Transactions />} />
           </Routes>
         </Router>
         <Toaster />
