@@ -2,31 +2,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { UserType, Profile } from "@/types/auth";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
-
-interface UserFormData {
-  email: string;
-  full_name: string;
-  user_type: UserType;
-  phone_number?: string;
-}
+import { UserEmailField } from "./form-fields/UserEmailField";
+import { UserNameField } from "./form-fields/UserNameField";
+import { UserPhoneField } from "./form-fields/UserPhoneField";
+import { UserTypeField } from "./form-fields/UserTypeField";
+import { handleCreateUser, handleUpdateUser } from "./utils/form-handlers";
+import { UserFormData } from "./types";
 
 interface UserFormProps {
   user?: Profile;
@@ -51,72 +34,18 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
     setIsLoading(true);
     try {
       if (user) {
-        // Update existing user
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({
-            full_name: data.full_name,
-            user_type: data.user_type,
-            phone_number: data.phone_number,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", user.id);
-
-        if (profileError) throw profileError;
-
-        // Update user table
-        const { error: userError } = await supabase
-          .from("users")
-          .update({
-            phone_number: data.phone_number,
-            updated_by: (await supabase.auth.getUser()).data.user?.id,
-          })
-          .eq("id", user.id);
-
-        if (userError) throw userError;
-
+        await handleUpdateUser(data, user);
         toast({
           title: "Success",
           description: "User updated successfully",
         });
       } else {
-        // Create new user
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: data.email,
-          password: Math.random().toString(36).slice(-8), // Generate random password
-        });
-
-        if (authError) throw authError;
-
-        if (!authData.user?.id) throw new Error("No user ID returned");
-
-        // Create profile
-        const { error: profileError } = await supabase.from("profiles").insert({
-          id: authData.user.id,
-          email: data.email,
-          full_name: data.full_name,
-          user_type: data.user_type,
-          phone_number: data.phone_number,
-        });
-
-        if (profileError) throw profileError;
-
-        // Create user record
-        const { error: userError } = await supabase.from("users").insert({
-          id: authData.user.id,
-          email: data.email,
-          phone_number: data.phone_number,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
-        });
-
-        if (userError) throw userError;
-
+        await handleCreateUser(data);
         toast({
           title: "Success",
           description: "User created successfully. A password reset email has been sent.",
         });
       }
-
       onSuccess?.();
     } catch (error) {
       console.error("Error saving user:", error);
@@ -133,85 +62,10 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="email"
-                  disabled={!!user || isLoading}
-                  placeholder="user@example.com"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="full_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone_number"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isLoading} type="tel" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="user_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>User Type</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={isLoading}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select user type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="vendor">Vendor</SelectItem>
-                  <SelectItem value="tp">TP</SelectItem>
-                  <SelectItem value="sso">SSO</SelectItem>
-                  <SelectItem value="dusp">DUSP</SelectItem>
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
-                  <SelectItem value="medical_office">Medical Office</SelectItem>
-                  <SelectItem value="staff_internal">Staff Internal</SelectItem>
-                  <SelectItem value="staff_external">Staff External</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <UserEmailField form={form} isLoading={isLoading} isEditMode={!!user} />
+        <UserNameField form={form} isLoading={isLoading} />
+        <UserPhoneField form={form} isLoading={isLoading} />
+        <UserTypeField form={form} isLoading={isLoading} />
 
         <div className="flex justify-end gap-4">
           <Button
