@@ -294,3 +294,62 @@ CREATE POLICY "Staff can view sales data" ON sales
       AND (user_type = 'staff_internal' OR user_type = 'super_admin')
     )
   );
+
+-- Create claim_status enum
+CREATE TYPE claim_status AS ENUM (
+  'pending',
+  'under_review',
+  'approved',
+  'rejected'
+);
+
+-- Create claim_type enum
+CREATE TYPE claim_type AS ENUM (
+  'damage',
+  'reimbursement',
+  'medical',
+  'travel',
+  'other'
+);
+
+-- Create claims table
+CREATE TABLE IF NOT EXISTS claims (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  claim_number TEXT UNIQUE NOT NULL,
+  claim_type claim_type NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  amount DECIMAL(10,2) NOT NULL,
+  status claim_status DEFAULT 'pending',
+  attachments TEXT[],
+  reviewer_id UUID REFERENCES auth.users(id),
+  review_notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Enable RLS
+ALTER TABLE claims ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for claims
+CREATE POLICY "Users can view their own claims" ON claims
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own claims" ON claims
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own pending claims" ON claims
+  FOR UPDATE USING (
+    auth.uid() = user_id 
+    AND status = 'pending'
+  );
+
+CREATE POLICY "Reviewers can update claims" ON claims
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND (user_type = 'super_admin' OR user_type = 'staff_internal')
+    )
+  );
