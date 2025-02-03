@@ -63,6 +63,54 @@ export type Database = {
         }
         Relationships: []
       }
+      claims: {
+        Row: {
+          amount: number
+          attachments: Json | null
+          claim_number: string
+          claim_type: Database["public"]["Enums"]["claim_type"]
+          created_at: string
+          description: string | null
+          id: string
+          review_notes: string | null
+          reviewer_id: string | null
+          status: Database["public"]["Enums"]["claim_status"] | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          attachments?: Json | null
+          claim_number: string
+          claim_type: Database["public"]["Enums"]["claim_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          review_notes?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["claim_status"] | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          attachments?: Json | null
+          claim_number?: string
+          claim_type?: Database["public"]["Enums"]["claim_type"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          review_notes?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["claim_status"] | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       maintenance_records: {
         Row: {
           asset_id: string | null
@@ -120,6 +168,8 @@ export type Database = {
         | "software"
         | "other"
       asset_status: "active" | "in_maintenance" | "retired" | "disposed"
+      claim_status: "pending" | "approved" | "rejected"
+      claim_type: "damage" | "reimbursement" | "medical" | "travel" | "other"
     }
     CompositeTypes: {
       [_ in never]: never

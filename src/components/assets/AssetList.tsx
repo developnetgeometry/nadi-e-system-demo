@@ -21,7 +21,10 @@ interface Asset {
   status: 'active' | 'in_maintenance' | 'retired' | 'disposed';
   purchase_date: string;
   current_value: number;
+  purchase_cost: number;
+  depreciation_rate: number;
   next_maintenance_date: string | null;
+  location: string;
 }
 
 export const AssetList = () => {
@@ -57,6 +60,12 @@ export const AssetList = () => {
     return <Badge variant={variants[status]}>{status.replace('_', ' ')}</Badge>;
   };
 
+  const calculateDepreciation = (asset: Asset) => {
+    const yearsSincePurchase = (new Date().getTime() - new Date(asset.purchase_date).getTime()) / (365 * 24 * 60 * 60 * 1000);
+    const depreciation = asset.purchase_cost * (asset.depreciation_rate / 100) * yearsSincePurchase;
+    return Math.max(0, asset.purchase_cost - depreciation);
+  };
+
   const handleMaintenanceClick = (asset: Asset) => {
     setSelectedAsset(asset);
     setIsMaintenanceDialogOpen(true);
@@ -75,45 +84,57 @@ export const AssetList = () => {
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Purchase Date</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Purchase Cost</TableHead>
               <TableHead>Current Value</TableHead>
+              <TableHead>Depreciation</TableHead>
               <TableHead>Next Maintenance</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {assets.map((asset) => (
-              <TableRow key={asset.id}>
-                <TableCell>{asset.name}</TableCell>
-                <TableCell>{asset.category}</TableCell>
-                <TableCell>{getStatusBadge(asset.status)}</TableCell>
-                <TableCell>{new Date(asset.purchase_date).toLocaleDateString()}</TableCell>
-                <TableCell>${asset.current_value.toLocaleString()}</TableCell>
-                <TableCell>
-                  {asset.next_maintenance_date
-                    ? new Date(asset.next_maintenance_date).toLocaleDateString()
-                    : 'Not scheduled'}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleMaintenanceClick(asset)}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {assets.map((asset) => {
+              const currentValue = calculateDepreciation(asset);
+              const depreciationAmount = asset.purchase_cost - currentValue;
+              return (
+                <TableRow key={asset.id}>
+                  <TableCell>{asset.name}</TableCell>
+                  <TableCell>{asset.category}</TableCell>
+                  <TableCell>{getStatusBadge(asset.status)}</TableCell>
+                  <TableCell>{asset.location}</TableCell>
+                  <TableCell>${asset.purchase_cost.toLocaleString()}</TableCell>
+                  <TableCell>${currentValue.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <span className="text-destructive">
+                      -${depreciationAmount.toLocaleString()}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {asset.next_maintenance_date
+                      ? new Date(asset.next_maintenance_date).toLocaleDateString()
+                      : 'Not scheduled'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleMaintenanceClick(asset)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

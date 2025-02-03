@@ -24,23 +24,38 @@ export const AssetFormDialog = ({ open, onOpenChange }: AssetFormDialogProps) =>
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const calculateDepreciation = (purchaseCost: number, depreciationRate: number, purchaseDate: string) => {
+    const yearsSincePurchase = (new Date().getTime() - new Date(purchaseDate).getTime()) / (365 * 24 * 60 * 60 * 1000);
+    const depreciation = purchaseCost * (depreciationRate / 100) * yearsSincePurchase;
+    const currentValue = Math.max(0, purchaseCost - depreciation);
+    return currentValue;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
+    const purchaseCost = Number(formData.get('purchaseCost'));
+    const depreciationRate = Number(formData.get('depreciationRate'));
+    const purchaseDate = formData.get('purchaseDate') as string;
+    
+    const currentValue = calculateDepreciation(purchaseCost, depreciationRate, purchaseDate);
+
     const asset = {
       name: formData.get('name'),
       description: formData.get('description'),
       category: formData.get('category'),
-      purchase_date: formData.get('purchaseDate'),
-      purchase_cost: formData.get('purchaseCost'),
-      current_value: formData.get('purchaseCost'), // Initially same as purchase cost
-      depreciation_rate: formData.get('depreciationRate'),
+      purchase_date: purchaseDate,
+      purchase_cost: purchaseCost,
+      current_value: currentValue,
+      depreciation_rate: depreciationRate,
       location: formData.get('location'),
+      status: 'active',
     };
 
     try {
+      console.log('Creating new asset:', asset);
       const { error } = await supabase.from('assets').insert([asset]);
       
       if (error) throw error;
