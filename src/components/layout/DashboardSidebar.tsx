@@ -11,7 +11,10 @@ import {
   Briefcase,
   UserPlus,
   ClipboardCheck,
-  Clock
+  Clock,
+  ShoppingCart,
+  Barcode,
+  Receipt
 } from "lucide-react";
 import {
   Sidebar,
@@ -92,6 +95,24 @@ const hrMenuItems = [
   },
 ];
 
+const posMenuItems = [
+  {
+    title: "POS Dashboard",
+    icon: ShoppingCart,
+    path: "/dashboard/pos"
+  },
+  {
+    title: "Products",
+    icon: Barcode,
+    path: "/dashboard/pos/products"
+  },
+  {
+    title: "Transactions",
+    icon: Receipt,
+    path: "/dashboard/pos/transactions"
+  },
+];
+
 export const DashboardSidebar = () => {
   return (
     <Sidebar>
@@ -119,6 +140,24 @@ export const DashboardSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {hrMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>POS Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {posMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link to={item.path}>
