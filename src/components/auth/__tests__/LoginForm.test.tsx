@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import { LoginForm } from '../LoginForm';
 import { supabase } from '@/lib/supabase';
@@ -126,14 +126,12 @@ describe('LoginForm', () => {
   });
 
   it('handles login failure with invalid credentials', async () => {
-    class MockAuthError extends Error implements AuthError {
-      name = 'AuthError';
-      status = 400;
-      code = 'invalid_credentials';
-      protected __isAuthError = true;
-
+    class MockAuthError extends AuthError {
       constructor() {
         super('Invalid login credentials');
+        this.name = 'AuthError';
+        this.status = 400;
+        this.code = 'invalid_credentials';
       }
     }
 
@@ -162,14 +160,12 @@ describe('LoginForm', () => {
   });
 
   it('handles login with unverified email', async () => {
-    class MockAuthError extends Error implements AuthError {
-      name = 'AuthError';
-      status = 400;
-      code = 'email_not_confirmed';
-      protected __isAuthError = true;
-
+    class MockAuthError extends AuthError {
       constructor() {
         super('Email not confirmed');
+        this.name = 'AuthError';
+        this.status = 400;
+        this.code = 'email_not_confirmed';
       }
     }
 

@@ -31,3 +31,11 @@ global.console = {
   error: vi.fn(),
   warn: vi.fn(),
 };
+
+// Declare test globals
+declare global {
+  namespace Vi {
+    interface JestAssertion<T = any> extends jest.Matchers<void, T> {}
+    interface AsymmetricMatchersContaining extends jest.Matchers<void, any> {}
+  }
+}
