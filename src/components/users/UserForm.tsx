@@ -101,6 +101,16 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
 
         if (profileError) throw profileError;
 
+        // Create user record
+        const { error: userError } = await supabase.from("users").insert({
+          id: authData.user.id,
+          email: data.email,
+          phone_number: data.phone_number,
+          created_by: (await supabase.auth.getUser()).data.user?.id,
+        });
+
+        if (userError) throw userError;
+
         toast({
           title: "Success",
           description: "User created successfully. A password reset email has been sent.",
