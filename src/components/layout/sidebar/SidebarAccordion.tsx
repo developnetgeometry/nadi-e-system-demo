@@ -5,51 +5,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { SidebarMenu } from "@/components/ui/sidebar";
 import { MenuItem } from "@/types/menu";
 import { useSidebar } from "@/hooks/use-sidebar";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings,
-  MessageSquare,
-  Wallet,
-  FileCheck,
-  Briefcase,
-  ShoppingCart,
-  Box,
-  DollarSign,
-  List,
-  ChartBar,
-  LucideIcon 
-} from "lucide-react";
+import { getAccordionIcon } from "@/utils/sidebar-icons";
+import { sidebarStyles } from "@/utils/sidebar-styles";
+import { SidebarItem } from "./SidebarItem";
+import { cn } from "@/lib/utils";
 
 interface SidebarAccordionProps {
   label: string;
   items: MenuItem[];
 }
-
-const getAccordionIcon = (label: string): LucideIcon => {
-  const iconMap: Record<string, LucideIcon> = {
-    "Admin Console": LayoutDashboard,
-    "Member Management": Users,
-    "Service Module": Settings,
-    "Community": MessageSquare,
-    "Financial": Wallet,
-    "Compliance": FileCheck,
-    "HR Management": Briefcase,
-    "POS Management": ShoppingCart,
-    "Asset Management": Box,
-    "Finance Management": DollarSign,
-    "Programmes Management": List,
-    "Report Management": ChartBar,
-  };
-  return iconMap[label] || LayoutDashboard;
-};
 
 export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
   const location = useLocation();
@@ -67,32 +34,26 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
     >
       <AccordionItem value={label} className="border-none">
         <AccordionTrigger 
-          className={`py-2 px-4 text-sm font-medium text-sidebar-foreground rounded-md transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group ${
-            isActive ? 'bg-sidebar-accent/50' : ''
-          }`}
+          className={cn(
+            sidebarStyles.accordionTrigger,
+            isActive && sidebarStyles.accordionTriggerActive
+          )}
         >
           <div className="flex items-center gap-3 min-w-0 w-full justify-start">
-            <AccordionIcon className="h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110" />
+            <AccordionIcon className={sidebarStyles.iconWrapper} />
             {!isCollapsed && <span className="truncate flex-1 text-left">{label}</span>}
           </div>
         </AccordionTrigger>
         <AccordionContent className={`pb-1 ${isCollapsed ? 'pl-4' : 'pl-11'}`}>
           <SidebarMenu>
             {items.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <Link 
-                    to={item.path}
-                    className={`flex items-start gap-3 px-4 py-2 text-sm text-sidebar-foreground rounded-md transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group ${
-                      location.pathname === item.path ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
-                    }`}
-                    title={isCollapsed ? item.title : undefined}
-                  >
-                    <item.icon className="h-4 w-4 flex-shrink-0 mt-0.5 transition-transform group-hover:scale-110" />
-                    {!isCollapsed && <span className="break-words leading-tight">{item.title}</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <SidebarItem
+                key={item.title}
+                title={item.title}
+                path={item.path}
+                icon={item.icon}
+                isCollapsed={isCollapsed}
+              />
             ))}
           </SidebarMenu>
         </AccordionContent>
