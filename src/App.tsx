@@ -29,6 +29,7 @@ import Reports from "@/pages/dashboard/Reports";
 import UsageSessions from "@/pages/dashboard/UsageSessions";
 import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
+import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -76,6 +77,7 @@ function App() {
             <Route path="/dashboard/workflow" element={<WorkflowDashboard />} />
             {/* Compliance Routes */}
             <Route path="/dashboard/compliance/audit" element={<AuditLogs />} />
+            <Route path="/dashboard/compliance/reports" element={<ComplianceReports />} />
           </Routes>
         </Router>
         <Toaster />
