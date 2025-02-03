@@ -50,8 +50,19 @@ export const PostList = () => {
         console.error('Error fetching posts:', error);
         throw error;
       }
-      console.log('Posts fetched:', data);
-      return data as Post[];
+      
+      // Transform the data to ensure it matches our Post interface
+      const transformedData = data.map(post => ({
+        ...post,
+        votes_up: post.votes_up || 0,
+        votes_down: post.votes_down || 0,
+        author: post.author || { full_name: null },
+        comments: post.comments || [{ count: 0 }],
+        flags: post.flags || [{ count: 0 }]
+      }));
+      
+      console.log('Posts fetched:', transformedData);
+      return transformedData;
     },
   });
 
