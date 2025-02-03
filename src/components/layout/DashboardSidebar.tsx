@@ -2,8 +2,7 @@ import {
   Sidebar,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { SidebarAccordion } from "./sidebar/SidebarAccordion";
-import { menuGroups } from "@/utils/menu-groups";
+import { SidebarContent as CustomSidebarContent } from "./sidebar/SidebarContent";
 
 export const DashboardSidebar = () => {
   return (
@@ -12,13 +11,7 @@ export const DashboardSidebar = () => {
         <h1 className="nadi-gradient-text">NADI</h1>
       </div>
       <SidebarContent className="p-4 flex-1 overflow-y-auto scrollbar-none">
-        {menuGroups.map((group) => (
-          <SidebarAccordion
-            key={group.label}
-            label={group.label}
-            items={group.items}
-          />
-        ))}
+        <CustomSidebarContent />
       </SidebarContent>
     </Sidebar>
   );
