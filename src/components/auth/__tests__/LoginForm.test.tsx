@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { LoginForm } from '../LoginForm';
 import { supabase } from '@/lib/supabase';
 import { ToastProvider } from '@/components/ui/toast';
-import type { AuthError, User, Session } from '@supabase/supabase-js';
+import { AuthError, User, Session } from '@supabase/supabase-js';
 
 // Mock supabase auth
 vi.mock('@/lib/supabase', () => ({
@@ -126,18 +126,21 @@ describe('LoginForm', () => {
   });
 
   it('handles login failure with invalid credentials', async () => {
-    const mockAuthError: AuthError = {
-      name: 'AuthError',
-      message: 'Invalid login credentials',
-      status: 400,
-      code: 'invalid_credentials',
-      __isAuthError: true,
-    };
+    class MockAuthError extends Error implements AuthError {
+      name = 'AuthError';
+      status = 400;
+      code = 'invalid_credentials';
+      protected __isAuthError = true;
+
+      constructor() {
+        super('Invalid login credentials');
+      }
+    }
 
     // Mock failed auth response
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
       data: { user: null, session: null },
-      error: mockAuthError,
+      error: new MockAuthError(),
     });
 
     renderLoginForm();
@@ -159,18 +162,21 @@ describe('LoginForm', () => {
   });
 
   it('handles login with unverified email', async () => {
-    const mockAuthError: AuthError = {
-      name: 'AuthError',
-      message: 'Email not confirmed',
-      status: 400,
-      code: 'email_not_confirmed',
-      __isAuthError: true,
-    };
+    class MockAuthError extends Error implements AuthError {
+      name = 'AuthError';
+      status = 400;
+      code = 'email_not_confirmed';
+      protected __isAuthError = true;
+
+      constructor() {
+        super('Email not confirmed');
+      }
+    }
 
     // Mock auth response for unverified email
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
       data: { user: null, session: null },
-      error: mockAuthError,
+      error: new MockAuthError(),
     });
 
     renderLoginForm();
