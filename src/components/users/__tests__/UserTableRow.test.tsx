@@ -1,13 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { UserTableRow } from '../UserTableRow';
+import type { Profile } from '@/types/auth';
 
-const mockUser = {
+const mockUser: Profile = {
   id: '1',
   email: 'test@example.com',
   full_name: 'Test User',
   user_type: 'member',
+  ic_number: '123456789012',
+  phone_number: '+60123456789',
+  theme_preference: 'light',
+  notification_preferences: {
+    email: true,
+    push: true
+  },
   created_at: '2024-01-01',
+  updated_at: '2024-01-01'
 };
 
 describe('UserTableRow', () => {
