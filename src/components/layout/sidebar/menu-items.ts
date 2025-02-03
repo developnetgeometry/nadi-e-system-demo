@@ -22,7 +22,10 @@ import {
   FileText,
   Cog,
   ChartBar,
-  Timer
+  Timer,
+  User,
+  Database,
+  CreditCard
 } from "lucide-react";
 
 export const menuItems = [
@@ -77,4 +80,15 @@ export const reportItems = [
 
 export const workflowItems = [
   { title: "Workflow Dashboard", icon: List, path: "/dashboard/workflow" },
+];
+
+export const memberManagementItems = [
+  { title: "Personal Details", icon: User, path: "/dashboard/members/details" },
+  { title: "Registration", icon: UserPlus, path: "/dashboard/members/registration" },
+  { title: "Activity Logs", icon: Activity, path: "/dashboard/members/activity" },
+];
+
+export const serviceModuleItems = [
+  { title: "Service Information", icon: Database, path: "/dashboard/services/info" },
+  { title: "Transactions", icon: CreditCard, path: "/dashboard/services/transactions" },
 ];

@@ -266,6 +266,85 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          channels: Database["public"]["Enums"]["notification_channel"][] | null
+          created_at: string
+          enabled: boolean | null
+          id: string
+          template_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          channels?:
+            | Database["public"]["Enums"]["notification_channel"][]
+            | null
+          created_at?: string
+          enabled?: boolean | null
+          id?: string
+          template_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          channels?:
+            | Database["public"]["Enums"]["notification_channel"][]
+            | null
+          created_at?: string
+          enabled?: boolean | null
+          id?: string
+          template_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_templates: {
+        Row: {
+          channels: Database["public"]["Enums"]["notification_channel"][] | null
+          created_at: string
+          id: string
+          message_template: string
+          name: string
+          title_template: string
+          type: Database["public"]["Enums"]["notification_type"] | null
+          updated_at: string
+        }
+        Insert: {
+          channels?:
+            | Database["public"]["Enums"]["notification_channel"][]
+            | null
+          created_at?: string
+          id?: string
+          message_template: string
+          name: string
+          title_template: string
+          type?: Database["public"]["Enums"]["notification_type"] | null
+          updated_at?: string
+        }
+        Update: {
+          channels?:
+            | Database["public"]["Enums"]["notification_channel"][]
+            | null
+          created_at?: string
+          id?: string
+          message_template?: string
+          name?: string
+          title_template?: string
+          type?: Database["public"]["Enums"]["notification_type"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -293,6 +372,39 @@ export type Database = {
           title?: string
           type?: Database["public"]["Enums"]["notification_type"] | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          ic_number: string | null
+          id: string
+          phone_number: string | null
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          ic_number?: string | null
+          id: string
+          phone_number?: string | null
+          updated_at?: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          ic_number?: string | null
+          id?: string
+          phone_number?: string | null
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
       }
@@ -618,7 +730,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_notification_from_template: {
+        Args: {
+          p_template_id: string
+          p_user_id: string
+          p_params: Json
+        }
+        Returns: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"] | null
+          user_id: string | null
+        }
+      }
     }
     Enums: {
       asset_category:
@@ -632,6 +759,7 @@ export type Database = {
       claim_status: "pending" | "approved" | "rejected"
       claim_type: "damage" | "reimbursement" | "medical" | "travel" | "other"
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+      notification_channel: "in_app" | "email" | "sms"
       notification_type: "info" | "warning" | "success" | "error"
       priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
@@ -643,6 +771,16 @@ export type Database = {
         | "blocked"
         | "cancelled"
       transaction_type: "income" | "expense" | "transfer"
+      user_type:
+        | "member"
+        | "vendor"
+        | "tp"
+        | "sso"
+        | "dusp"
+        | "super_admin"
+        | "medical_office"
+        | "staff_internal"
+        | "staff_external"
       workflow_status: "draft" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {

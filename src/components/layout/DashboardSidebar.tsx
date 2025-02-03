@@ -13,6 +13,8 @@ import {
   programmesItems,
   reportItems,
   workflowItems,
+  memberManagementItems,
+  serviceModuleItems,
 } from "./sidebar/menu-items";
 
 export const DashboardSidebar = () => {
@@ -20,6 +22,8 @@ export const DashboardSidebar = () => {
     <Sidebar>
       <SidebarContent>
         <SidebarMenuSection label="Admin Console" items={menuItems} />
+        <SidebarMenuSection label="Member Management" items={memberManagementItems} />
+        <SidebarMenuSection label="Service Module" items={serviceModuleItems} />
         <SidebarMenuSection label="HR Management" items={hrMenuItems} />
         <SidebarMenuSection label="POS Management" items={posMenuItems} />
         <SidebarMenuSection label="Claim Management" items={claimItems} />
