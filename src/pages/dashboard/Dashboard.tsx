@@ -10,6 +10,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { ChartContainer } from "@/components/ui/chart";
+import Map from "@/components/ui/map";
 import { 
   LineChart, 
   Line, 
@@ -143,6 +144,15 @@ const Dashboard = () => {
           </Card>
         ))}
       </div>
+
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Global Activity Map</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Map />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 mt-8">
         <Card>
