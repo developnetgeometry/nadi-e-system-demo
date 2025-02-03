@@ -11,7 +11,7 @@ export const DashboardSidebar = () => {
       <div className="p-4 border-b border-border flex-shrink-0">
         <h1 className="nadi-gradient-text">NADI</h1>
       </div>
-      <SidebarContent className="p-4 flex-1 overflow-y-auto">
+      <SidebarContent className="p-4 flex-1 overflow-y-auto scrollbar-none">
         {menuGroups.map((group) => (
           <SidebarAccordion
             key={group.label}
