@@ -68,9 +68,9 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
             isActive ? 'bg-sidebar-accent/50' : ''
           }`}
         >
-          <div className="flex items-center gap-3 min-w-0 w-full">
+          <div className="flex items-center gap-3 min-w-0 w-full justify-start">
             <AccordionIcon className="h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110" />
-            <span className="truncate flex-1">{label}</span>
+            <span className="truncate flex-1 text-left">{label}</span>
           </div>
         </AccordionTrigger>
         <AccordionContent className="pb-1 pl-11">
