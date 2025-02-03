@@ -272,3 +272,25 @@ CREATE POLICY "Staff can create transactions" ON transactions
       AND (user_type = 'staff_internal' OR user_type = 'super_admin')
     )
   );
+
+-- Create sales table for analytics
+CREATE TABLE IF NOT EXISTS sales (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  date DATE NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  transaction_id UUID REFERENCES transactions(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Enable Row Level Security
+ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for sales table
+CREATE POLICY "Staff can view sales data" ON sales
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND (user_type = 'staff_internal' OR user_type = 'super_admin')
+    )
+  );
