@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { LoginForm } from '../LoginForm';
 import { supabase } from '@/lib/supabase';
 import { ToastProvider } from '@/components/ui/toast';
+import type { AuthError, User, Session } from '@supabase/supabase-js';
 
 // Mock supabase auth
 vi.mock('@/lib/supabase', () => ({
@@ -68,9 +69,23 @@ describe('LoginForm', () => {
   });
 
   it('handles successful login', async () => {
-    const mockUser = {
+    const mockUser: User = {
       id: '123',
       email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+      role: 'authenticated',
+      updated_at: new Date().toISOString(),
+    };
+
+    const mockSession: Session = {
+      access_token: 'mock-token',
+      token_type: 'bearer',
+      expires_in: 3600,
+      refresh_token: 'mock-refresh',
+      user: mockUser,
     };
 
     const mockProfile = {
@@ -81,7 +96,7 @@ describe('LoginForm', () => {
 
     // Mock successful auth response
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
-      data: { user: mockUser },
+      data: { user: mockUser, session: mockSession },
       error: null,
     });
 
@@ -90,7 +105,7 @@ describe('LoginForm', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValueOnce({ data: mockProfile, error: null }),
-    }));
+    } as any));
 
     renderLoginForm();
 
@@ -111,10 +126,18 @@ describe('LoginForm', () => {
   });
 
   it('handles login failure with invalid credentials', async () => {
+    const mockAuthError: AuthError = {
+      name: 'AuthError',
+      message: 'Invalid login credentials',
+      status: 400,
+      code: 'invalid_credentials',
+      __isAuthError: true,
+    };
+
     // Mock failed auth response
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
-      data: { user: null },
-      error: { message: 'Invalid login credentials', name: 'AuthError' },
+      data: { user: null, session: null },
+      error: mockAuthError,
     });
 
     renderLoginForm();
@@ -136,10 +159,18 @@ describe('LoginForm', () => {
   });
 
   it('handles login with unverified email', async () => {
+    const mockAuthError: AuthError = {
+      name: 'AuthError',
+      message: 'Email not confirmed',
+      status: 400,
+      code: 'email_not_confirmed',
+      __isAuthError: true,
+    };
+
     // Mock auth response for unverified email
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValueOnce({
-      data: { user: null },
-      error: { message: 'Email not confirmed', name: 'AuthError' },
+      data: { user: null, session: null },
+      error: mockAuthError,
     });
 
     renderLoginForm();
