@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { useSidebar } from "@/hooks/use-sidebar";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps extends React.ComponentProps<"div"> {
   side?: "left" | "right";
@@ -58,7 +59,13 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
             }
           }
         }}
-        className={`sidebar ${className}`}
+        className={cn(
+          "sidebar fixed top-0 bottom-0 z-40 flex flex-col transition-all duration-300",
+          state === "collapsed" ? "w-[60px]" : "w-[240px]",
+          isMobile && "transform",
+          isMobile && !openMobile && "-translate-x-full",
+          className
+        )}
         {...props}
       >
         {children}

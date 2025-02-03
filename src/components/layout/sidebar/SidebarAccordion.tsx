@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { MenuItem } from "@/types/menu";
+import { useSidebar } from "@/hooks/use-sidebar";
 import { 
   LayoutDashboard, 
   Users, 
@@ -52,8 +53,10 @@ const getAccordionIcon = (label: string): LucideIcon => {
 
 export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
   const location = useLocation();
+  const { state } = useSidebar();
   const isActive = items.some(item => location.pathname.startsWith(item.path));
   const AccordionIcon = getAccordionIcon(label);
+  const isCollapsed = state === "collapsed";
 
   return (
     <Accordion 
@@ -70,10 +73,10 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
         >
           <div className="flex items-center gap-3 min-w-0 w-full justify-start">
             <AccordionIcon className="h-4 w-4 flex-shrink-0 transition-transform group-hover:scale-110" />
-            <span className="truncate flex-1 text-left">{label}</span>
+            {!isCollapsed && <span className="truncate flex-1 text-left">{label}</span>}
           </div>
         </AccordionTrigger>
-        <AccordionContent className="pb-1 pl-11">
+        <AccordionContent className={`pb-1 ${isCollapsed ? 'pl-4' : 'pl-11'}`}>
           <SidebarMenu>
             {items.map((item) => (
               <SidebarMenuItem key={item.title}>
@@ -83,9 +86,10 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                     className={`flex items-start gap-3 px-4 py-2 text-sm text-sidebar-foreground rounded-md transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group ${
                       location.pathname === item.path ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''
                     }`}
+                    title={isCollapsed ? item.title : undefined}
                   >
                     <item.icon className="h-4 w-4 flex-shrink-0 mt-0.5 transition-transform group-hover:scale-110" />
-                    <span className="break-words leading-tight">{item.title}</span>
+                    {!isCollapsed && <span className="break-words leading-tight">{item.title}</span>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
