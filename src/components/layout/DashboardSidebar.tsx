@@ -9,7 +9,7 @@ export const DashboardSidebar = () => {
   return (
     <Sidebar className="border-r border-border bg-sidebar-background">
       <div className="p-4 border-b border-border">
-        <h1 className="text-2xl font-bold text-primary">NADI</h1>
+        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary-foreground bg-clip-text text-transparent">NADI</h1>
       </div>
       <SidebarContent className="p-4">
         {menuGroups.map((group) => (
