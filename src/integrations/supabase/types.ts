@@ -224,6 +224,7 @@ export type Database = {
           content_type: string
           created_at: string
           id: string
+          post_id: string | null
           reason: string
           reporter_id: string | null
           resolved_at: string | null
@@ -234,6 +235,7 @@ export type Database = {
           content_type: string
           created_at?: string
           id?: string
+          post_id?: string | null
           reason: string
           reporter_id?: string | null
           resolved_at?: string | null
@@ -244,12 +246,21 @@ export type Database = {
           content_type?: string
           created_at?: string
           id?: string
+          post_id?: string | null
           reason?: string
           reporter_id?: string | null
           resolved_at?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_flags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "content_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_posts: {
         Row: {
