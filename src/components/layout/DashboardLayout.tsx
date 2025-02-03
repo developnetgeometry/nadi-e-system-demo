@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardNavbar } from "./DashboardNavbar";
 import { useSidebar } from "@/hooks/use-sidebar";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -13,15 +14,21 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <div className="fixed inset-y-0">
+      <div className="relative min-h-screen flex w-full bg-background">
+        <div className="fixed inset-y-0 z-50">
           <DashboardSidebar />
         </div>
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${isCollapsed ? 'ml-[72px]' : 'ml-[280px]'}`}>
+        <div 
+          className={cn(
+            "flex-1 flex flex-col transition-all duration-300",
+            isCollapsed ? "ml-[72px]" : "ml-[280px]",
+            "lg:ml-[280px]"
+          )}
+        >
           <DashboardNavbar />
-          <main className="flex-1 p-8 overflow-auto">
+          <main className="flex-1 p-4 md:p-8 overflow-auto">
             <div className="container mx-auto max-w-7xl">
-              <SidebarTrigger />
+              <SidebarTrigger className="lg:hidden mb-4" />
               {children}
             </div>
           </main>
