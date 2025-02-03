@@ -9,13 +9,15 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar />
         <div className="flex-1 flex flex-col">
           <DashboardNavbar />
-          <main className="flex-1 p-8">
-            <SidebarTrigger />
-            {children}
+          <main className="flex-1 p-8 overflow-auto">
+            <div className="container mx-auto max-w-7xl">
+              <SidebarTrigger />
+              {children}
+            </div>
           </main>
         </div>
       </div>
