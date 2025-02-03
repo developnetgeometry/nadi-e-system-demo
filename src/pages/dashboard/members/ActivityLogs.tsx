@@ -1,24 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const ActivityLogs = () => {
-  const { data: sessions, isLoading } = useQuery({
-    queryKey: ["activity-logs"],
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ["member-activity-logs"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("usage_sessions")
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email
-          )
-        `)
+        .from("audit_logs")
+        .select("*")
+        .eq("entity_type", "member")
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching activity logs:", error);
+        console.error("Error fetching member activity logs:", error);
         throw error;
       }
 
@@ -29,30 +25,34 @@ const ActivityLogs = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Activity Logs</h1>
-      <div className="space-y-4">
-        {sessions?.map((session) => (
-          <Card key={session.id}>
-            <CardHeader>
-              <CardTitle className="text-lg">
-                {session.profiles?.full_name || "Unknown User"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><span className="font-medium">Session Type:</span> {session.session_type}</p>
-                <p><span className="font-medium">Start Time:</span> {new Date(session.start_time).toLocaleString()}</p>
-                {session.end_time && (
-                  <p><span className="font-medium">End Time:</span> {new Date(session.end_time).toLocaleString()}</p>
-                )}
-                <p><span className="font-medium">IP Address:</span> {session.ip_address}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+    <DashboardLayout>
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">Member Activity Logs</h1>
+        <div className="space-y-4">
+          {logs?.map((log) => (
+            <Card key={log.id}>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {log.action}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Entity Type:</span> {log.entity_type}</p>
+                  {log.changes && (
+                    <p><span className="font-medium">Changes:</span> {JSON.stringify(log.changes, null, 2)}</p>
+                  )}
+                  <p><span className="font-medium">Time:</span> {new Date(log.created_at).toLocaleString()}</p>
+                  {log.ip_address && (
+                    <p><span className="font-medium">IP Address:</span> {log.ip_address}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

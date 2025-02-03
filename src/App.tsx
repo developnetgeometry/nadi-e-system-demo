@@ -12,6 +12,9 @@ import AccessControl from "@/pages/dashboard/AccessControl";
 import Activity from "@/pages/dashboard/Activity";
 import Notifications from "@/pages/dashboard/Notifications";
 import Calendar from "@/pages/dashboard/Calendar";
+import PersonalDetails from "@/pages/dashboard/members/PersonalDetails";
+import Registration from "@/pages/dashboard/members/Registration";
+import ActivityLogs from "@/pages/dashboard/members/ActivityLogs";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Employees from "@/pages/dashboard/hr/Employees";
 import Attendance from "@/pages/dashboard/hr/Attendance";
@@ -57,6 +60,10 @@ function App() {
             <Route path="/dashboard/activity" element={<Activity />} />
             <Route path="/dashboard/notifications" element={<Notifications />} />
             <Route path="/dashboard/calendar" element={<Calendar />} />
+            {/* Member Management Routes */}
+            <Route path="/dashboard/members/details" element={<PersonalDetails />} />
+            <Route path="/dashboard/members/registration" element={<Registration />} />
+            <Route path="/dashboard/members/activity" element={<ActivityLogs />} />
             {/* HR Module Routes */}
             <Route path="/dashboard/hr" element={<HRDashboard />} />
             <Route path="/dashboard/hr/employees" element={<Employees />} />
