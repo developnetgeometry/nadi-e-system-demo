@@ -1,15 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 // Fix for default marker icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
 });
 
 // Malaysian cities coordinates
@@ -22,30 +22,43 @@ const cities = [
 ];
 
 export const DashboardMap = () => {
-  // Ensure map is only rendered on client side
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    // Force a re-render after component mount
-    const map = L.map;
+    setIsMounted(true);
     return () => {
-      if (map) {
-        // Cleanup if needed
-      }
+      setIsMounted(false);
     };
   }, []);
+
+  if (!isMounted) {
+    return (
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Regional Activity Map</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px]">
+          <div className="h-full w-full flex items-center justify-center">
+            Loading map...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mt-8">
       <CardHeader>
         <CardTitle>Regional Activity Map</CardTitle>
       </CardHeader>
-      <CardContent className="h-[400px]">
-        <div className="h-full w-full">
+      <CardContent className="h-[400px] relative">
+        <div className="absolute inset-0">
           <MapContainer
-            key="map-container"
-            center={[4.2105, 108.9758]} // Center of Malaysia
+            center={[4.2105, 108.9758]}
             zoom={5}
             style={{ height: "100%", width: "100%" }}
-            maxBounds={[[0.8, 98], [7.5, 120]]} // Restrict to Malaysia region
+            maxBounds={[[0.8, 98], [7.5, 120]]}
+            key="malaysia-map"
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
