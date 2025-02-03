@@ -3,12 +3,16 @@ import { LayoutDashboard } from "lucide-react";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardMap } from "@/components/dashboard/DashboardMap";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
-import { useDashboardStats } from "@/hooks/use-dashboard-stats";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/error/ErrorFallback";
 
 const Dashboard = () => {
-  const { data: stats, isLoading } = useDashboardStats();
+  const { data: stats, isLoading, error } = useDashboardData();
+
+  if (error) {
+    console.error("Dashboard data error:", error);
+  }
 
   return (
     <DashboardLayout>
