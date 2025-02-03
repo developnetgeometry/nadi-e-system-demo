@@ -48,11 +48,11 @@ export const AssetList = () => {
   });
 
   const getStatusBadge = (status: Asset['status']) => {
-    const variants = {
-      active: 'success',
-      in_maintenance: 'destructive',
-      retired: 'secondary',
-      disposed: 'outline',
+    const variants: Record<Asset['status'], "default" | "destructive" | "outline" | "secondary"> = {
+      active: "default",
+      in_maintenance: "destructive",
+      retired: "secondary",
+      disposed: "outline",
     };
     return <Badge variant={variants[status]}>{status.replace('_', ' ')}</Badge>;
   };
