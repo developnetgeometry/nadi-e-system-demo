@@ -9,6 +9,10 @@ import Users from "@/pages/dashboard/Users";
 import Roles from "@/pages/dashboard/Roles";
 import Notifications from "@/pages/dashboard/Notifications";
 import Calendar from "@/pages/dashboard/Calendar";
+import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
+import Employees from "@/pages/dashboard/hr/Employees";
+import Attendance from "@/pages/dashboard/hr/Attendance";
+import Leave from "@/pages/dashboard/hr/Leave";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -31,6 +35,11 @@ function App() {
             <Route path="/dashboard/roles" element={<Roles />} />
             <Route path="/dashboard/notifications" element={<Notifications />} />
             <Route path="/dashboard/calendar" element={<Calendar />} />
+            {/* HR Module Routes */}
+            <Route path="/dashboard/hr" element={<HRDashboard />} />
+            <Route path="/dashboard/hr/employees" element={<Employees />} />
+            <Route path="/dashboard/hr/attendance" element={<Attendance />} />
+            <Route path="/dashboard/hr/leave" element={<Leave />} />
           </Routes>
         </Router>
         <Toaster />
