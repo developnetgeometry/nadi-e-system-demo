@@ -25,15 +25,21 @@ interface Post {
 }
 
 export const PostList = () => {
-  const { data: posts, isLoading } = useQuery<Post[]>({
+  const { data: posts, isLoading } = useQuery({
     queryKey: ['posts'],
-    queryFn: async () => {
+    queryFn: async (): Promise<Post[]> => {
       console.log('Fetching posts...');
       const { data, error } = await supabase
         .from('content_posts')
         .select(`
-          *,
-          author:profiles!content_posts_author_id_fkey(full_name),
+          id,
+          title,
+          content,
+          created_at,
+          votes_up,
+          votes_down,
+          author_id,
+          author:profiles(full_name),
           comments:content_comments(count),
           flags:content_flags(count)
         `)
@@ -45,7 +51,7 @@ export const PostList = () => {
         throw error;
       }
       console.log('Posts fetched:', data);
-      return data;
+      return data as Post[];
     },
   });
 
