@@ -25,9 +25,9 @@ interface Post {
 }
 
 export const PostList = () => {
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ['posts'],
-    queryFn: async (): Promise<Post[]> => {
+    queryFn: async () => {
       console.log('Fetching posts...');
       const { data, error } = await supabase
         .from('content_posts')
@@ -52,7 +52,7 @@ export const PostList = () => {
       }
       
       // Transform the data to ensure it matches our Post interface
-      const transformedData = data.map(post => ({
+      const transformedData: Post[] = data.map(post => ({
         ...post,
         votes_up: post.votes_up || 0,
         votes_down: post.votes_down || 0,
