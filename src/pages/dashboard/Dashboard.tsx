@@ -1,7 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { 
   Users, 
   Shield, 
@@ -17,21 +14,41 @@ const Dashboard = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const { data: users } = await supabase
-        .from('users')
+      console.log("Fetching dashboard stats...");
+      
+      // Query profiles table instead of users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
         .select('count');
       
-      const { data: roles } = await supabase
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
+      }
+
+      const { data: roles, error: rolesError } = await supabase
         .from('roles')
         .select('count');
       
+      if (rolesError) {
+        console.error("Error fetching roles:", rolesError);
+        throw rolesError;
+      }
+
+      console.log("Stats fetched:", { profiles, roles });
+      
       return {
-        totalUsers: users?.[0]?.count || 0,
+        totalUsers: profiles?.[0]?.count || 0,
         totalRoles: roles?.[0]?.count || 0,
         activeUsers: 0, // To be implemented
         lastActivity: new Date().toISOString(),
       };
     },
+    meta: {
+      onError: (error: Error) => {
+        console.error("Query error:", error);
+      }
+    }
   });
 
   const dashboardCards = [
