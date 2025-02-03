@@ -25,7 +25,7 @@ export const Navbar = () => {
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
-      navigate("/login");
+      navigate("/"); // Changed from "/login" to "/"
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
