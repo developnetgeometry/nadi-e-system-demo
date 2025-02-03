@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
+import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
@@ -97,41 +98,45 @@ const Settings = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar />
-        <main className="flex-1 p-8">
-          <SidebarTrigger />
-          <h1 className="text-3xl font-bold mb-8">Settings</h1>
-          <div className="max-w-2xl">
-            <form onSubmit={handleUpdateProfile} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                />
+        <div className="flex-1 flex flex-col ml-[240px]">
+          <DashboardNavbar />
+          <main className="flex-1 p-8 overflow-auto">
+            <div className="container mx-auto max-w-6xl">
+              <h1 className="text-3xl font-bold mb-8">Settings</h1>
+              <div className="max-w-2xl">
+                <form onSubmit={handleUpdateProfile} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      disabled
+                      className="bg-gray-100"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Email cannot be changed. Contact support if you need to update it.
+                    </p>
+                  </div>
+                  <Button type="submit" disabled={updating}>
+                    {updating ? "Updating..." : "Save Changes"}
+                  </Button>
+                </form>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  disabled
-                  className="bg-gray-100"
-                />
-                <p className="text-sm text-gray-500">
-                  Email cannot be changed. Contact support if you need to update it.
-                </p>
-              </div>
-              <Button type="submit" disabled={updating}>
-                {updating ? "Updating..." : "Save Changes"}
-              </Button>
-            </form>
-          </div>
-        </main>
+            </div>
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
