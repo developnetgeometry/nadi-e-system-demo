@@ -25,6 +25,7 @@ interface UserFormData {
   email: string;
   full_name: string;
   user_type: UserType;
+  phone_number?: string;
 }
 
 interface UserFormProps {
@@ -42,6 +43,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       email: user?.email || "",
       full_name: user?.full_name || "",
       user_type: user?.user_type || "member",
+      phone_number: user?.phone_number || "",
     },
   });
 
@@ -50,16 +52,28 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
     try {
       if (user) {
         // Update existing user
-        const { error } = await supabase
+        const { error: profileError } = await supabase
           .from("profiles")
           .update({
             full_name: data.full_name,
             user_type: data.user_type,
+            phone_number: data.phone_number,
             updated_at: new Date().toISOString(),
           })
           .eq("id", user.id);
 
-        if (error) throw error;
+        if (profileError) throw profileError;
+
+        // Update user table
+        const { error: userError } = await supabase
+          .from("users")
+          .update({
+            phone_number: data.phone_number,
+            updated_by: (await supabase.auth.getUser()).data.user?.id,
+          })
+          .eq("id", user.id);
+
+        if (userError) throw userError;
 
         toast({
           title: "Success",
@@ -74,11 +88,15 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
 
         if (authError) throw authError;
 
+        if (!authData.user?.id) throw new Error("No user ID returned");
+
+        // Create profile
         const { error: profileError } = await supabase.from("profiles").insert({
-          id: authData.user?.id,
+          id: authData.user.id,
           email: data.email,
           full_name: data.full_name,
           user_type: data.user_type,
+          phone_number: data.phone_number,
         });
 
         if (profileError) throw profileError;
@@ -132,6 +150,20 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
               <FormLabel>Full Name</FormLabel>
               <FormControl>
                 <Input {...field} disabled={isLoading} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input {...field} disabled={isLoading} type="tel" />
               </FormControl>
               <FormMessage />
             </FormItem>
