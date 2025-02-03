@@ -45,9 +45,17 @@ import CommunityModeration from "@/pages/dashboard/community/CommunityModeration
 import FinancialWallet from "@/pages/dashboard/financial/Wallet";
 import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 
-const queryClient = new QueryClient();
-
 function App() {
+  // Create a new QueryClient instance inside the component
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        retry: 1,
+      },
+    },
+  });
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
