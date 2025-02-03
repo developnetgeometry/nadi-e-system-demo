@@ -5,7 +5,7 @@ import Attendance from "@/pages/dashboard/hr/Attendance";
 import Leave from "@/pages/dashboard/hr/Leave";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
-import Transactions from "@/pages/dashboard/pos/Transactions";
+import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
 import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
 import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
@@ -14,15 +14,15 @@ import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
 import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
-import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
 import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
 import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
-import FinancialWallet from "@/pages/dashboard/financial/Wallet";
+import Wallet from "@/pages/dashboard/financial/Wallet";
 import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
+import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -53,7 +53,7 @@ export const moduleRoutes: RouteObject[] = [
   },
   {
     path: "/dashboard/pos/transactions",
-    element: <Transactions />,
+    element: <POSTransactions />,
   },
   // Claim Routes
   {
@@ -91,11 +91,6 @@ export const moduleRoutes: RouteObject[] = [
     path: "/dashboard/programmes/settings",
     element: <ProgrammeSettings />,
   },
-  // Workflow Routes
-  {
-    path: "/dashboard/workflow",
-    element: <WorkflowDashboard />,
-  },
   // Service Routes
   {
     path: "/dashboard/services/info",
@@ -117,7 +112,7 @@ export const moduleRoutes: RouteObject[] = [
   // Financial Routes
   {
     path: "/dashboard/financial/wallet",
-    element: <FinancialWallet />,
+    element: <Wallet />,
   },
   {
     path: "/dashboard/financial/transactions",
@@ -131,5 +126,10 @@ export const moduleRoutes: RouteObject[] = [
   {
     path: "/dashboard/compliance/reports",
     element: <ComplianceReports />,
+  },
+  // Workflow Routes
+  {
+    path: "/dashboard/workflow",
+    element: <WorkflowDashboard />,
   },
 ];

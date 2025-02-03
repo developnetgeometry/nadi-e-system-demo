@@ -5,15 +5,15 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 
 export const authRoutes: RouteObject[] = [
   {
-    path: "/login",
+    path: "/auth/login",
     element: <Login />,
   },
   {
-    path: "/register",
+    path: "/auth/register",
     element: <Register />,
   },
   {
-    path: "/forgot-password",
+    path: "/auth/forgot-password",
     element: <ForgotPassword />,
   },
 ];
