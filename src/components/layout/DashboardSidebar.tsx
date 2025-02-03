@@ -15,6 +15,9 @@ import {
   workflowItems,
   memberManagementItems,
   serviceModuleItems,
+  communityItems,
+  financialItems,
+  complianceItems,
 } from "./sidebar/menu-items";
 
 export const DashboardSidebar = () => {
@@ -24,6 +27,8 @@ export const DashboardSidebar = () => {
         <SidebarMenuSection label="Admin Console" items={menuItems} />
         <SidebarMenuSection label="Member Management" items={memberManagementItems} />
         <SidebarMenuSection label="Service Module" items={serviceModuleItems} />
+        <SidebarMenuSection label="Community" items={communityItems} />
+        <SidebarMenuSection label="Financial" items={financialItems} />
         <SidebarMenuSection label="HR Management" items={hrMenuItems} />
         <SidebarMenuSection label="POS Management" items={posMenuItems} />
         <SidebarMenuSection label="Claim Management" items={claimItems} />
@@ -32,6 +37,7 @@ export const DashboardSidebar = () => {
         <SidebarMenuSection label="Programmes Management" items={programmesItems} />
         <SidebarMenuSection label="Report Management" items={reportItems} />
         <SidebarMenuSection label="Workflow Management" items={workflowItems} />
+        <SidebarMenuSection label="Compliance" items={complianceItems} />
       </SidebarContent>
     </Sidebar>
   );

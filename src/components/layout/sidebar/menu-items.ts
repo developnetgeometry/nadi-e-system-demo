@@ -25,7 +25,12 @@ import {
   Timer,
   User,
   Database,
-  CreditCard
+  CreditCard,
+  MessageSquare,
+  Flag,
+  Wallet,
+  Gauge,
+  FileCheck
 } from "lucide-react";
 
 export const menuItems = [
@@ -91,4 +96,19 @@ export const memberManagementItems = [
 export const serviceModuleItems = [
   { title: "Service Information", icon: Database, path: "/dashboard/services/info" },
   { title: "Transactions", icon: CreditCard, path: "/dashboard/services/transactions" },
+];
+
+export const communityItems = [
+  { title: "Community Dashboard", icon: MessageSquare, path: "/dashboard/community" },
+  { title: "Moderation", icon: Flag, path: "/dashboard/community/moderation" },
+];
+
+export const financialItems = [
+  { title: "Wallet", icon: Wallet, path: "/dashboard/financial/wallet" },
+  { title: "Transactions", icon: Receipt, path: "/dashboard/financial/transactions" },
+];
+
+export const complianceItems = [
+  { title: "Audit Logs", icon: FileCheck, path: "/dashboard/compliance/audit" },
+  { title: "System Reports", icon: Gauge, path: "/dashboard/compliance/reports" },
 ];
