@@ -55,7 +55,7 @@ export default function POSDashboard() {
     });
   };
 
-  const generateReceipt = () => {
+  const generateReceipt = async () => {
     const total = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -67,25 +67,21 @@ export default function POSDashboard() {
       transactionId: Math.random().toString(36).substr(2, 9),
     };
 
-    // Save transaction to Supabase
-    supabase
-      .from("transactions")
-      .insert([receipt])
-      .then(() => {
-        toast({
-          title: "Transaction complete",
-          description: `Total amount: $${total.toFixed(2)}`,
-        });
-        setCart([]);
-      })
-      .catch((error) => {
-        console.error("Error saving transaction:", error);
-        toast({
-          title: "Error",
-          description: "Failed to complete transaction",
-          variant: "destructive",
-        });
+    try {
+      await supabase.from("transactions").insert([receipt]);
+      toast({
+        title: "Transaction complete",
+        description: `Total amount: $${total.toFixed(2)}`,
       });
+      setCart([]);
+    } catch (error) {
+      console.error("Error saving transaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to complete transaction",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -93,15 +89,15 @@ export default function POSDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Product Catalog */}
         <div className="md:col-span-2">
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <Input
               type="search"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full"
-              icon={<Search className="h-4 w-4" />}
+              className="w-full pl-10"
             />
+            <Search className="h-4 w-4 absolute left-3 top-3 text-gray-500" />
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {isLoading ? (
