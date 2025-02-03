@@ -3,18 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const ServiceTransactions = () => {
+const FinancialTransactions = () => {
   const { data: transactions, isLoading } = useQuery({
-    queryKey: ["service-transactions"],
+    queryKey: ["wallet-transactions"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("financial_transactions")
+        .from("wallet_transactions")
         .select("*")
-        .eq("category", "service")
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching service transactions:", error);
+        console.error("Error fetching transactions:", error);
         throw error;
       }
 
@@ -28,9 +27,9 @@ const ServiceTransactions = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Service Transactions</h1>
+          <h1 className="text-3xl font-bold">Transactions</h1>
           <p className="text-muted-foreground mt-2">
-            View your service-related transactions
+            View your transaction history
           </p>
         </div>
         <div className="space-y-4">
@@ -38,7 +37,7 @@ const ServiceTransactions = () => {
             <Card key={transaction.id}>
               <CardHeader>
                 <CardTitle className="text-lg">
-                  {transaction.description || "Service Transaction"}
+                  {transaction.description || transaction.type}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -51,17 +50,11 @@ const ServiceTransactions = () => {
                     })}
                   </p>
                   <p><span className="font-medium">Type:</span> {transaction.type}</p>
-                  <p><span className="font-medium">Category:</span> {transaction.category}</p>
+                  <p><span className="font-medium">Status:</span> {transaction.status}</p>
                   <p>
                     <span className="font-medium">Date:</span>{" "}
-                    {new Date(transaction.date).toLocaleDateString()}
+                    {new Date(transaction.created_at).toLocaleString()}
                   </p>
-                  {transaction.reference_number && (
-                    <p>
-                      <span className="font-medium">Reference:</span>{" "}
-                      {transaction.reference_number}
-                    </p>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -72,4 +65,4 @@ const ServiceTransactions = () => {
   );
 };
 
-export default ServiceTransactions;
+export default FinancialTransactions;

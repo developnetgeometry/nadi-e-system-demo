@@ -38,6 +38,12 @@ import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
+import ServiceTransactions from "@/pages/dashboard/services/Transactions";
+import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
+import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
+import FinancialWallet from "@/pages/dashboard/financial/Wallet";
+import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +95,15 @@ function App() {
             {/* Compliance Routes */}
             <Route path="/dashboard/compliance/audit" element={<AuditLogs />} />
             <Route path="/dashboard/compliance/reports" element={<ComplianceReports />} />
+            {/* Service Module Routes */}
+            <Route path="/dashboard/services/info" element={<ServiceInfo />} />
+            <Route path="/dashboard/services/transactions" element={<ServiceTransactions />} />
+            {/* Community Routes */}
+            <Route path="/dashboard/community" element={<CommunityDashboard />} />
+            <Route path="/dashboard/community/moderation" element={<CommunityModeration />} />
+            {/* Financial Routes */}
+            <Route path="/dashboard/financial/wallet" element={<FinancialWallet />} />
+            <Route path="/dashboard/financial/transactions" element={<FinancialTransactions />} />
           </Routes>
         </Router>
         <Toaster />

@@ -1,3 +1,4 @@
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ServiceInfo = () => {
@@ -19,32 +20,39 @@ const ServiceInfo = () => {
   ];
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Service Information</h1>
-      <div className="grid gap-6 md:grid-cols-2">
-        {services.map((service) => (
-          <Card key={service.id}>
-            <CardHeader>
-              <CardTitle>{service.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-muted-foreground">{service.description}</p>
-                <p className="text-xl font-bold">{service.price}</p>
-                <div>
-                  <h4 className="font-medium mb-2">Features:</h4>
-                  <ul className="list-disc list-inside space-y-1">
-                    {service.features.map((feature, index) => (
-                      <li key={index}>{feature}</li>
-                    ))}
-                  </ul>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Service Information</h1>
+          <p className="text-muted-foreground mt-2">
+            View available services and membership plans
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {services.map((service) => (
+            <Card key={service.id}>
+              <CardHeader>
+                <CardTitle>{service.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-muted-foreground">{service.description}</p>
+                  <p className="text-xl font-bold">{service.price}</p>
+                  <div>
+                    <h4 className="font-medium mb-2">Features:</h4>
+                    <ul className="list-disc list-inside space-y-1">
+                      {service.features.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
