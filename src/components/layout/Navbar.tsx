@@ -20,20 +20,24 @@ export const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      // Clear session data
-      localStorage.removeItem('session');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Clear all session data
+      localStorage.clear();
       
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
-      navigate("/");
+
+      // Redirect to login page
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
         title: "Error",
-        description: "Failed to log out",
+        description: "Failed to log out. Please try again.",
         variant: "destructive",
       });
     }
