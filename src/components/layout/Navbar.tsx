@@ -21,11 +21,14 @@ export const Navbar = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      // Clear session data
+      localStorage.removeItem('session');
+      
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
-      navigate("/"); // Changed from "/login" to "/"
+      navigate("/");
     } catch (error) {
       console.error("Error logging out:", error);
       toast({

@@ -101,6 +101,16 @@ export const LoginForm = () => {
         }
       }
 
+      // Store session data
+      localStorage.setItem('session', JSON.stringify({
+        user: authData.user,
+        profile: profile || {
+          id: authData.user.id,
+          email: authData.user.email,
+          user_type: 'member'
+        }
+      }));
+
       console.log('Login successful:', { auth: authData, profile });
 
       toast({
