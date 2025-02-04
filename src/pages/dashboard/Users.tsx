@@ -140,7 +140,7 @@ const Users = () => {
         <Table>
           <UserTableHeader
             onSelectAll={handleSelectAll}
-            allSelected={users?.length ? selectedUsers.length === users.length : false}
+            allSelected={users.length ? selectedUsers.length === users.length : false}
           />
           <TableBody>
             {isLoading ? (
@@ -149,14 +149,14 @@ const Users = () => {
                   Loading users...
                 </td>
               </tr>
-            ) : users?.length === 0 ? (
+            ) : users.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center py-8">
                   No users found
                 </td>
               </tr>
             ) : (
-              users?.map((user) => (
+              users.map((user) => (
                 <UserTableRow
                   key={user.id}
                   user={user}
