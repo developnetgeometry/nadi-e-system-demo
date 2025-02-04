@@ -8,6 +8,38 @@ interface WrapperProps {
   children: React.ReactNode;
 }
 
+export const createMockUser = () => ({
+  id: "test-user-id",
+  email: "test@example.com",
+  aud: "authenticated",
+  role: "authenticated",
+});
+
+export const createMockSession = (user: any) => ({
+  access_token: "test-access-token",
+  refresh_token: "test-refresh-token",
+  expires_in: 3600,
+  user,
+});
+
+export const createMockProfile = (userId: string) => ({
+  id: userId,
+  email: "test@example.com",
+  full_name: "Test User",
+  user_type: "member",
+});
+
+export class TestAuthError extends Error {
+  name: string;
+  status: number;
+  
+  constructor(message: string, name: string) {
+    super(message);
+    this.name = name;
+    this.status = 400;
+  }
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -16,22 +48,21 @@ const queryClient = new QueryClient({
   },
 });
 
-export const wrapper = ({ children }: WrapperProps) => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <BrowserRouter>
-          {children}
-          <Toaster />
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
-  );
-};
+export const renderWithProviders = (ui: React.ReactElement) => {
+  const Wrapper = ({ children }: WrapperProps) => {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <BrowserRouter>
+            {children}
+            <Toaster />
+          </BrowserRouter>
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+  };
 
-export const customRender = (ui: React.ReactElement) => {
-  return render(ui, { wrapper });
+  return render(ui, { wrapper: Wrapper });
 };
 
 export * from "@testing-library/react";
-export { customRender as render };
