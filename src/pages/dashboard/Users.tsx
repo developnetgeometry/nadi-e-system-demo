@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Table, TableBody } from "@/components/ui/table";
@@ -25,19 +25,9 @@ const Users = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery({
     queryKey: ["users", searchQuery, userTypeFilter],
-    queryFn: fetchUsers,
-    meta: {
-      onError: (error: Error) => {
-        console.error("Query error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch users data",
-          variant: "destructive",
-        });
-      }
-    }
+    queryFn: () => fetchUsers(),
   });
 
   const deleteUsersMutation = useMutation({
@@ -72,24 +62,23 @@ const Users = () => {
     "staff_external"
   ];
 
-  const handleSelectAll = (checked: boolean) => {
-    setSelectedUsers(checked ? (users?.map((user) => user.id) ?? []) : []);
-  };
+  const handleSelectAll = useCallback((checked: boolean) => {
+    setSelectedUsers(checked ? users.map((user) => user.id) : []);
+  }, [users]);
 
-  const handleSelectUser = (userId: string, checked: boolean) => {
+  const handleSelectUser = useCallback((userId: string, checked: boolean) => {
     setSelectedUsers((prev) =>
       checked ? [...prev, userId] : prev.filter((id) => id !== userId)
     );
-  };
+  }, []);
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = useCallback(() => {
     if (selectedUsers.length > 0) {
       deleteUsersMutation.mutate(selectedUsers);
     }
-  };
+  }, [selectedUsers, deleteUsersMutation]);
 
-  const handleExportUsers = () => {
-    if (!users) return;
+  const handleExportUsers = useCallback(() => {
     const csvContent = exportUsersToCSV(users);
     const link = document.createElement("a");
     link.setAttribute("href", csvContent);
@@ -97,7 +86,7 @@ const Users = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, [users]);
 
   return (
     <DashboardLayout>
@@ -128,7 +117,7 @@ const Users = () => {
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="">All Types</SelectItem>
               {userTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type.replace(/_/g, ' ').split(' ').map(word => 
