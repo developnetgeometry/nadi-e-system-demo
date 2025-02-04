@@ -54,8 +54,13 @@ const Map = () => {
 
   return (
     <div className="relative w-full h-[400px]">
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg shadow-lg" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-background/10 rounded-lg" />
+      <div 
+        ref={mapContainer} 
+        className="absolute inset-0 rounded-lg shadow-lg z-0" // Added z-0 to ensure map stays below modals
+      />
+      <div 
+        className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-background/10 rounded-lg z-[1]" // Added z-[1] to keep gradient above map but below modals
+      />
     </div>
   );
 };
