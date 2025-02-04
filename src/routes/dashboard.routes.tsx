@@ -1,4 +1,5 @@
 import { RouteObject } from "react-router-dom";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import Profile from "@/pages/dashboard/Profile";
 import Settings from "@/pages/dashboard/Settings";
@@ -14,46 +15,46 @@ import UsageSessions from "@/pages/dashboard/UsageSessions";
 export const dashboardRoutes: RouteObject[] = [
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: <ProtectedRoute><Dashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/profile",
-    element: <Profile />,
+    element: <ProtectedRoute><Profile /></ProtectedRoute>,
   },
   {
     path: "/dashboard/settings",
-    element: <Settings />,
+    element: <ProtectedRoute requiredPermission="manage_settings"><Settings /></ProtectedRoute>,
   },
   {
     path: "/dashboard/users",
-    element: <Users />,
+    element: <ProtectedRoute requiredPermission="manage_users"><Users /></ProtectedRoute>,
   },
   {
     path: "/dashboard/roles",
-    element: <Roles />,
+    element: <ProtectedRoute requiredPermission="manage_roles"><Roles /></ProtectedRoute>,
   },
   {
     path: "/dashboard/access-control",
-    element: <AccessControl />,
+    element: <ProtectedRoute requiredPermission="manage_permissions"><AccessControl /></ProtectedRoute>,
   },
   {
     path: "/dashboard/activity",
-    element: <Activity />,
+    element: <ProtectedRoute requiredPermission="view_activity"><Activity /></ProtectedRoute>,
   },
   {
     path: "/dashboard/notifications",
-    element: <Notifications />,
+    element: <ProtectedRoute><Notifications /></ProtectedRoute>,
   },
   {
     path: "/dashboard/calendar",
-    element: <Calendar />,
+    element: <ProtectedRoute><Calendar /></ProtectedRoute>,
   },
   {
     path: "/dashboard/reports",
-    element: <Reports />,
+    element: <ProtectedRoute requiredPermission="view_reports"><Reports /></ProtectedRoute>,
   },
   {
     path: "/dashboard/usage-sessions",
-    element: <UsageSessions />,
+    element: <ProtectedRoute requiredPermission="view_usage_sessions"><UsageSessions /></ProtectedRoute>,
   },
 ];
