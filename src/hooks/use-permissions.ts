@@ -54,7 +54,14 @@ export const usePermissions = () => {
       // Transform the data to match the Permission interface
       const transformedPermissions = permissions
         .map(p => p.permissions)
-        .filter((p): p is Permission => p !== null);
+        .filter((p): p is Permission => 
+          p !== null && 
+          typeof p === 'object' &&
+          'id' in p &&
+          'name' in p &&
+          'module' in p &&
+          'action' in p
+        );
 
       return transformedPermissions;
     },
