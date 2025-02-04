@@ -1,18 +1,14 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Table, TableBody } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { UserPlus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { UserFormDialog } from "@/components/users/UserFormDialog";
-import { UserTableHeader } from "@/components/users/UserTableHeader";
-import { UserTableRow } from "@/components/users/UserTableRow";
 import { UserToolbar } from "@/components/users/UserToolbar";
 import { fetchUsers, deleteUsers, exportUsersToCSV } from "@/utils/users-utils";
-import type { Profile, UserType } from "@/types/auth";
+import type { Profile } from "@/types/auth";
+import { UserHeader } from "@/components/users/UserHeader";
+import { UserSearch } from "@/components/users/UserSearch";
+import { UserTable } from "@/components/users/UserTable";
 
 const Users = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,18 +46,6 @@ const Users = () => {
     },
   });
 
-  const userTypes: UserType[] = [
-    "member",
-    "vendor",
-    "tp",
-    "sso",
-    "dusp",
-    "super_admin",
-    "medical_office",
-    "staff_internal",
-    "staff_external"
-  ];
-
   const handleSelectAll = useCallback((checked: boolean) => {
     setSelectedUsers(checked ? users.map((user) => user.id) : []);
   }, [users]);
@@ -90,44 +74,15 @@ const Users = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
-      </div>
+      <UserHeader onCreateUser={() => setIsCreateDialogOpen(true)} />
 
       <div className="flex flex-col gap-4 mb-6">
-        <div className="flex gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select
-            value={userTypeFilter}
-            onValueChange={setUserTypeFilter}
-          >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
-              {userTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type.replace(/_/g, ' ').split(' ').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                  ).join(' ')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <UserSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          userTypeFilter={userTypeFilter}
+          onUserTypeFilterChange={setUserTypeFilter}
+        />
 
         <UserToolbar
           selectedCount={selectedUsers.length}
@@ -136,43 +91,18 @@ const Users = () => {
         />
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <UserTableHeader
-            onSelectAll={handleSelectAll}
-            allSelected={users.length ? selectedUsers.length === users.length : false}
-          />
-          <TableBody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={6} className="text-center py-8">
-                  Loading users...
-                </td>
-              </tr>
-            ) : users.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-8">
-                  No users found
-                </td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <UserTableRow
-                  key={user.id}
-                  user={user}
-                  isSelected={selectedUsers.includes(user.id)}
-                  onSelect={handleSelectUser}
-                  onEdit={(user) => {
-                    setUserToEdit(user);
-                    setIsEditDialogOpen(true);
-                  }}
-                  onDelete={(userId) => deleteUsersMutation.mutate([userId])}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <UserTable
+        users={users}
+        isLoading={isLoading}
+        selectedUsers={selectedUsers}
+        onSelectAll={handleSelectAll}
+        onSelectUser={handleSelectUser}
+        onEditUser={(user) => {
+          setUserToEdit(user);
+          setIsEditDialogOpen(true);
+        }}
+        onDeleteUser={(userId) => deleteUsersMutation.mutate([userId])}
+      />
 
       <UserFormDialog
         open={isCreateDialogOpen}
