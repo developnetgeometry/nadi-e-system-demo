@@ -1,4 +1,5 @@
 import { RouteObject } from "react-router-dom";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Employees from "@/pages/dashboard/hr/Employees";
 import Attendance from "@/pages/dashboard/hr/Attendance";
@@ -28,108 +29,108 @@ export const moduleRoutes: RouteObject[] = [
   // HR Routes
   {
     path: "/dashboard/hr",
-    element: <HRDashboard />,
+    element: <ProtectedRoute requiredPermission="view_hr_dashboard"><HRDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/hr/employees",
-    element: <Employees />,
+    element: <ProtectedRoute requiredPermission="manage_employees"><Employees /></ProtectedRoute>,
   },
   {
     path: "/dashboard/hr/attendance",
-    element: <Attendance />,
+    element: <ProtectedRoute requiredPermission="manage_attendance"><Attendance /></ProtectedRoute>,
   },
   {
     path: "/dashboard/hr/leave",
-    element: <Leave />,
+    element: <ProtectedRoute requiredPermission="manage_leave"><Leave /></ProtectedRoute>,
   },
   // POS Routes
   {
     path: "/dashboard/pos",
-    element: <POSDashboard />,
+    element: <ProtectedRoute requiredPermission="view_pos_dashboard"><POSDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/pos/products",
-    element: <Products />,
+    element: <ProtectedRoute requiredPermission="manage_products"><Products /></ProtectedRoute>,
   },
   {
     path: "/dashboard/pos/transactions",
-    element: <POSTransactions />,
+    element: <ProtectedRoute requiredPermission="view_pos_transactions"><POSTransactions /></ProtectedRoute>,
   },
   // Claim Routes
   {
     path: "/dashboard/claim",
-    element: <ClaimDashboard />,
+    element: <ProtectedRoute requiredPermission="view_claims"><ClaimDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/claim/settings",
-    element: <ClaimSettings />,
+    element: <ProtectedRoute requiredPermission="manage_claim_settings"><ClaimSettings /></ProtectedRoute>,
   },
   // Asset Routes
   {
     path: "/dashboard/asset",
-    element: <AssetDashboard />,
+    element: <ProtectedRoute requiredPermission="view_assets"><AssetDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/asset/settings",
-    element: <AssetSettings />,
+    element: <ProtectedRoute requiredPermission="manage_asset_settings"><AssetSettings /></ProtectedRoute>,
   },
   // Finance Routes
   {
     path: "/dashboard/finance",
-    element: <FinanceDashboard />,
+    element: <ProtectedRoute requiredPermission="view_finance"><FinanceDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/finance/settings",
-    element: <FinanceSettings />,
+    element: <ProtectedRoute requiredPermission="manage_finance_settings"><FinanceSettings /></ProtectedRoute>,
   },
   // Programmes Routes
   {
     path: "/dashboard/programmes",
-    element: <ProgrammesDashboard />,
+    element: <ProtectedRoute requiredPermission="view_programmes"><ProgrammesDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/programmes/settings",
-    element: <ProgrammeSettings />,
+    element: <ProtectedRoute requiredPermission="manage_programme_settings"><ProgrammeSettings /></ProtectedRoute>,
   },
   // Service Routes
   {
     path: "/dashboard/services/info",
-    element: <ServiceInfo />,
+    element: <ProtectedRoute requiredPermission="view_services"><ServiceInfo /></ProtectedRoute>,
   },
   {
     path: "/dashboard/services/transactions",
-    element: <ServiceTransactions />,
+    element: <ProtectedRoute requiredPermission="view_service_transactions"><ServiceTransactions /></ProtectedRoute>,
   },
   // Community Routes
   {
     path: "/dashboard/community",
-    element: <CommunityDashboard />,
+    element: <ProtectedRoute requiredPermission="view_community"><CommunityDashboard /></ProtectedRoute>,
   },
   {
     path: "/dashboard/community/moderation",
-    element: <CommunityModeration />,
+    element: <ProtectedRoute requiredPermission="moderate_community"><CommunityModeration /></ProtectedRoute>,
   },
   // Financial Routes
   {
     path: "/dashboard/financial/wallet",
-    element: <Wallet />,
+    element: <ProtectedRoute requiredPermission="view_wallet"><Wallet /></ProtectedRoute>,
   },
   {
     path: "/dashboard/financial/transactions",
-    element: <FinancialTransactions />,
+    element: <ProtectedRoute requiredPermission="view_financial_transactions"><FinancialTransactions /></ProtectedRoute>,
   },
   // Compliance Routes
   {
     path: "/dashboard/compliance/audit",
-    element: <AuditLogs />,
+    element: <ProtectedRoute requiredPermission="view_audit_logs"><AuditLogs /></ProtectedRoute>,
   },
   {
     path: "/dashboard/compliance/reports",
-    element: <ComplianceReports />,
+    element: <ProtectedRoute requiredPermission="view_compliance_reports"><ComplianceReports /></ProtectedRoute>,
   },
   // Workflow Routes
   {
     path: "/dashboard/workflow",
-    element: <WorkflowDashboard />,
+    element: <ProtectedRoute requiredPermission="manage_workflows"><WorkflowDashboard /></ProtectedRoute>,
   },
 ];
