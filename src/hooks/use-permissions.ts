@@ -34,8 +34,8 @@ export const usePermissions = () => {
       const { data: permissions, error: permissionsError } = await supabase
         .from('role_permissions')
         .select(`
-          permission_id,
           permissions:permission_id (
+            id,
             name,
             description,
             module,
@@ -50,7 +50,13 @@ export const usePermissions = () => {
       }
 
       console.log('Fetched permissions:', permissions);
-      return permissions.map(p => p.permissions) as Permission[];
+      
+      // Transform the data to match the Permission interface
+      const transformedPermissions = permissions
+        .map(p => p.permissions)
+        .filter((p): p is Permission => p !== null);
+
+      return transformedPermissions;
     },
     meta: {
       onError: (error: Error) => {
