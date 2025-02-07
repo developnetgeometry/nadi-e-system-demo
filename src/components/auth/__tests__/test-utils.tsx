@@ -1,3 +1,4 @@
+
 import React, { PropsWithChildren } from 'react';
 import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
@@ -26,15 +27,13 @@ export const renderWithProviders = (ui: React.ReactElement) => {
   return render(ui, { wrapper: Wrapper });
 };
 
-export class TestAuthError extends Error implements AuthError {
-  status: number;
-  __isAuthError: true;
-
-  constructor(message: string, public code: string) {
+// Create a proper mock of AuthError
+export class TestAuthError extends AuthError {
+  constructor(message: string, code: string) {
     super(message);
     this.name = 'AuthError';
     this.status = 400;
-    this.__isAuthError = true;
+    this.code = code;
   }
 }
 

@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -11,7 +12,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) => {
   const location = useLocation();
   const { toast } = useToast();
-  const { data: permissions, isLoading, error } = usePermissions();
+  const { data: permissions = [], isLoading, error } = usePermissions();
 
   if (isLoading) {
     return <div>Loading permissions...</div>;
@@ -28,7 +29,7 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
   }
 
   const hasPermission = requiredPermission 
-    ? permissions?.some(p => p.name === requiredPermission)
+    ? permissions.some(permission => permission.name === requiredPermission)
     : true;
 
   if (!hasPermission) {

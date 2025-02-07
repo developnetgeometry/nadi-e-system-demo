@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
@@ -50,18 +51,14 @@ export const usePermissions = () => {
       }
 
       console.log('Fetched permissions:', permissions);
-      
+
       // Transform the data to match the Permission interface
       const transformedPermissions = permissions
         .map(p => p.permissions)
-        .filter((p): p is Permission => 
-          p !== null && 
-          typeof p === 'object' &&
-          'id' in p &&
-          'name' in p &&
-          'module' in p &&
-          'action' in p
-        );
+        .filter((p): p is Permission => {
+          if (!p || typeof p !== 'object') return false;
+          return 'id' in p && 'name' in p && 'module' in p && 'action' in p;
+        });
 
       return transformedPermissions;
     },
