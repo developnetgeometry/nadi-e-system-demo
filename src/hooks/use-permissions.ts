@@ -4,7 +4,14 @@ import { supabase } from "@/lib/supabase";
 import { Permission } from "@/types/auth";
 
 interface RolePermissionJoin {
-  permissions: Permission;
+  permissions: {
+    id: string;
+    name: string;
+    description: string | null;
+    module: string;
+    action: string;
+    created_at?: string;
+  }
 }
 
 export const usePermissions = () => {
@@ -52,7 +59,13 @@ export const usePermissions = () => {
 
       // Transform the data to match the Permission interface
       const transformedPermissions = permissions
-        .map((p: RolePermissionJoin) => p.permissions)
+        .map((p: RolePermissionJoin) => ({
+          id: p.permissions.id,
+          name: p.permissions.name,
+          description: p.permissions.description,
+          module: p.permissions.module,
+          action: p.permissions.action
+        }))
         .filter((p): p is Permission => p !== null);
 
       return transformedPermissions;
