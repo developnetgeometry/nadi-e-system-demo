@@ -1,5 +1,6 @@
 
 import { usePermissions } from "./use-permissions";
+import { Permission } from "@/types/auth";
 
 export const useHasPermission = (requiredPermission: string) => {
   const { data: permissions = [], isLoading, error } = usePermissions();
@@ -8,5 +9,5 @@ export const useHasPermission = (requiredPermission: string) => {
     return false;
   }
 
-  return permissions.some(permission => permission.name === requiredPermission);
+  return permissions.some((permission: Permission) => permission.name === requiredPermission);
 };

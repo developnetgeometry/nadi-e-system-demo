@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useToast } from "@/hooks/use-toast";
+import { Permission } from "@/types/auth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -29,7 +30,7 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
   }
 
   const hasPermission = requiredPermission 
-    ? permissions.some(permission => permission.name === requiredPermission)
+    ? permissions.some((permission: Permission) => permission.name === requiredPermission)
     : true;
 
   if (!hasPermission) {

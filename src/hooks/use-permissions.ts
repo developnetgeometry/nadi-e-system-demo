@@ -1,13 +1,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { Permission } from "@/types/auth";
 
-interface Permission {
-  id: string;
-  name: string;
-  description: string | null;
-  module: string;
-  action: string;
+interface RolePermissionJoin {
+  permissions: Permission;
 }
 
 export const usePermissions = () => {
@@ -15,6 +12,7 @@ export const usePermissions = () => {
     queryKey: ['user-permissions'],
     queryFn: async () => {
       console.log('Fetching user permissions...');
+      
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('role_id')
@@ -54,11 +52,8 @@ export const usePermissions = () => {
 
       // Transform the data to match the Permission interface
       const transformedPermissions = permissions
-        .map(p => p.permissions)
-        .filter((p): p is Permission => {
-          if (!p || typeof p !== 'object') return false;
-          return 'id' in p && 'name' in p && 'module' in p && 'action' in p;
-        });
+        .map((p: RolePermissionJoin) => p.permissions)
+        .filter((p): p is Permission => p !== null);
 
       return transformedPermissions;
     },
