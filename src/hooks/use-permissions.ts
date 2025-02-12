@@ -13,7 +13,7 @@ interface PermissionData {
 }
 
 interface RolePermissionResponse {
-  permissions: PermissionData;
+  permissions: PermissionData[];
 }
 
 export const usePermissions = () => {
@@ -61,14 +61,16 @@ export const usePermissions = () => {
       console.log('Fetched permissions:', permissions);
 
       // Transform the data to match the Permission interface
-      const transformedPermissions = permissions.map((p: RolePermissionResponse) => ({
-        id: p.permissions.id,
-        name: p.permissions.name,
-        description: p.permissions.description,
-        module: p.permissions.module,
-        action: p.permissions.action,
-        created_at: p.permissions.created_at
-      }));
+      const transformedPermissions = permissions.flatMap((p: RolePermissionResponse) => 
+        p.permissions.map(permission => ({
+          id: permission.id,
+          name: permission.name,
+          description: permission.description,
+          module: permission.module,
+          action: permission.action,
+          created_at: permission.created_at
+        }))
+      );
 
       return transformedPermissions;
     },
