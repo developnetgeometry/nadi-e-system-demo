@@ -3,8 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Permission } from "@/types/auth";
 
-interface RolePermissionJoin {
-  permissions: Permission;
+interface PermissionData {
+  id: string;
+  name: string;
+  description: string | null;
+  module: string;
+  action: string;
+  created_at?: string;
+}
+
+interface RolePermissionResponse {
+  permissions: PermissionData;
 }
 
 export const usePermissions = () => {
@@ -25,7 +34,7 @@ export const usePermissions = () => {
 
       if (!userRoles.length) {
         console.log('No roles found for user');
-        return [];
+        return [] as Permission[];
       }
 
       const roleIds = userRoles.map(ur => ur.role_id);
@@ -51,7 +60,17 @@ export const usePermissions = () => {
 
       console.log('Fetched permissions:', permissions);
 
-      return permissions.map((p: RolePermissionJoin) => p.permissions);
+      // Transform the data to match the Permission interface
+      const transformedPermissions = permissions.map((p: RolePermissionResponse) => ({
+        id: p.permissions.id,
+        name: p.permissions.name,
+        description: p.permissions.description,
+        module: p.permissions.module,
+        action: p.permissions.action,
+        created_at: p.permissions.created_at
+      }));
+
+      return transformedPermissions;
     },
     meta: {
       onError: (error: Error) => {
