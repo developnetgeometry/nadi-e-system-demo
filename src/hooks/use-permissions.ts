@@ -22,10 +22,22 @@ export const usePermissions = () => {
     queryFn: async () => {
       console.log('Fetching user permissions...');
       
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        throw userError;
+      }
+
+      if (!user) {
+        console.log('No authenticated user found');
+        return [] as Permission[];
+      }
+
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('role_id')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', user.id);
 
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
@@ -60,8 +72,8 @@ export const usePermissions = () => {
 
       console.log('Fetched permissions:', permissions);
 
-      // Transform the data to match the Permission interface
-      const transformedPermissions = permissions.flatMap((p: RolePermissionResponse) => 
+      // Remove duplicates and transform the data to match the Permission interface
+      const transformedPermissions = [...new Set(permissions.flatMap((p: RolePermissionResponse) => 
         p.permissions.map(permission => ({
           id: permission.id,
           name: permission.name,
@@ -70,10 +82,11 @@ export const usePermissions = () => {
           action: permission.action,
           created_at: permission.created_at
         }))
-      );
+      ))];
 
       return transformedPermissions;
     },
+    retry: 1,
     meta: {
       onError: (error: Error) => {
         console.error('Query error:', error);
