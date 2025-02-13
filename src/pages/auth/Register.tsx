@@ -20,7 +20,6 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Sign up with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -34,23 +33,6 @@ const Register = () => {
       if (signUpError) throw signUpError;
 
       if (authData.user) {
-        // Create a profile for the user
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              email,
-              full_name: fullName,
-              user_type: 'member',
-            },
-          ]);
-
-        if (profileError) {
-          console.error('Profile creation error:', profileError);
-          throw profileError;
-        }
-
         toast({
           title: "Success",
           description: "Registration successful! Please check your email to verify your account.",
