@@ -45,9 +45,12 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const hasPermission = requiredPermission 
+  // Check if user has super_admin role by checking if they have manage_settings permission
+  const isSuperAdmin = permissions.some((permission: Permission) => permission.name === 'manage_settings');
+
+  const hasPermission = isSuperAdmin || (requiredPermission 
     ? permissions.some((permission: Permission) => permission.name === requiredPermission)
-    : true;
+    : true);
 
   if (!hasPermission) {
     return <Navigate to="/dashboard" replace />;
