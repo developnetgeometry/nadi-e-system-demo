@@ -1,10 +1,30 @@
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { User } from "@supabase/supabase-js";
 
 export const useAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const logout = async () => {
     try {
@@ -14,6 +34,7 @@ export const useAuth = () => {
 
       // Clear all session data
       localStorage.clear();
+      setUser(null);
       
       console.log("User logged out successfully");
       toast({
@@ -34,6 +55,7 @@ export const useAuth = () => {
   };
 
   return {
+    user,
     logout,
   };
 };
