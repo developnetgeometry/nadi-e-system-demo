@@ -37,7 +37,7 @@ export const DashboardNavbar = () => {
         .from('profiles')
         .select('full_name, user_type')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
