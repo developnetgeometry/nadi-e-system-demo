@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,40 +28,14 @@ export const LoginForm = () => {
 
       if (authError) {
         console.error("Authentication error:", authError);
-        
-        if (authError.message.includes("Invalid login credentials")) {
-          toast({
-            title: "Login Failed",
-            description: "Invalid email or password. Please try again.",
-            variant: "destructive",
-          });
-        } else if (authError.message.includes("Email not confirmed")) {
-          toast({
-            title: "Email Not Verified",
-            description: "Please check your email and verify your account before logging in.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "An error occurred during login. Please try again.",
-            variant: "destructive",
-          });
-        }
-        return;
+        throw authError;
       }
 
       if (!authData.user) {
-        console.error("No user data returned after successful auth");
-        toast({
-          title: "Error",
-          description: "Unable to retrieve user data. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        throw new Error("No user data returned after successful auth");
       }
 
-      console.log("Auth successful, fetching profile...");
+      console.log("Auth successful, checking profile...");
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -70,16 +45,12 @@ export const LoginForm = () => {
 
       if (profileError) {
         console.error("Profile fetch error:", profileError);
-        toast({
-          title: "Error",
-          description: "Unable to load user profile. Please try again.",
-          variant: "destructive",
-        });
-        return;
+        throw profileError;
       }
 
+      // If no profile exists, create one
       if (!profile) {
-        console.error("No profile found for user, creating one...");
+        console.log("No profile found, creating one...");
         const { error: createProfileError } = await supabase
           .from('profiles')
           .insert([
@@ -92,12 +63,7 @@ export const LoginForm = () => {
 
         if (createProfileError) {
           console.error("Error creating profile:", createProfileError);
-          toast({
-            title: "Error",
-            description: "Failed to create user profile. Please contact support.",
-            variant: "destructive",
-          });
-          return;
+          throw createProfileError;
         }
       }
 
@@ -111,7 +77,7 @@ export const LoginForm = () => {
         }
       }));
 
-      console.log('Login successful:', { auth: authData, profile });
+      console.log('Login successful');
 
       toast({
         title: "Success",
@@ -120,10 +86,21 @@ export const LoginForm = () => {
       
       navigate("/dashboard");
     } catch (error: any) {
-      console.error('Unexpected login error:', error);
+      console.error('Login error:', error);
+      
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (error.message.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.message.includes("Email not confirmed")) {
+        errorMessage = "Please verify your email before logging in.";
+      } else if (error.message.includes("User not found")) {
+        errorMessage = "No account found with this email. Please sign up.";
+      }
+
       toast({
         title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
