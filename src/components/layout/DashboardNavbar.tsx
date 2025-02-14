@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -19,9 +20,29 @@ import {
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 export const DashboardNavbar = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  // Fetch user profile including name and role
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, user_type')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-[#000080] backdrop-blur supports-[backdrop-filter]:bg-[#000080]/60">
@@ -85,12 +106,21 @@ export const DashboardNavbar = () => {
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback>
-                      <User className="h-5 w-5" />
+                      {profile?.full_name?.charAt(0) || <User className="h-5 w-5" />}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{profile?.full_name || 'Loading...'}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {profile?.user_type ? profile.user_type.replace(/_/g, ' ').toLowerCase() : 'Loading...'}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/dashboard/profile">Profile</Link>
                 </DropdownMenuItem>
