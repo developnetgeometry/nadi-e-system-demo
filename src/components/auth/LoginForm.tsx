@@ -37,16 +37,19 @@ export const LoginForm = () => {
 
       console.log("Auth successful, checking profile...");
 
-      const { data: profile, error: profileError } = await supabase
+      // Use select() instead of maybeSingle() to avoid recursion
+      const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', authData.user.id)
-        .maybeSingle();
+        .eq('id', authData.user.id);
 
       if (profileError) {
         console.error("Profile fetch error:", profileError);
         throw profileError;
       }
+
+      // Get the first profile or null
+      const profile = profiles?.[0];
 
       // If no profile exists, create one
       if (!profile) {
