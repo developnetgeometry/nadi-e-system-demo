@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,19 +36,16 @@ export const LoginForm = () => {
 
       console.log("Auth successful, checking profile...");
 
-      // Use select() instead of maybeSingle() to avoid recursion
-      const { data: profiles, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', authData.user.id);
+        .eq('id', authData.user.id)
+        .single();
 
-      if (profileError) {
+      if (profileError && profileError.code !== 'PGRST116') { // Ignore "not found" error
         console.error("Profile fetch error:", profileError);
         throw profileError;
       }
-
-      // Get the first profile or null
-      const profile = profiles?.[0];
 
       // If no profile exists, create one
       if (!profile) {
