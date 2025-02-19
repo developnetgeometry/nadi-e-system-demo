@@ -14,6 +14,7 @@ import { useAppSettings } from "@/hooks/use-app-settings";
 import { usePermissions } from "@/hooks/use-permissions";
 import { EmailConfiguration } from "@/components/settings/EmailConfiguration";
 import { MenuVisibilitySettings } from "@/components/settings/MenuVisibility";
+import { Settings as SettingsIcon, User as UserIcon, Mail, Menu, Sliders } from "lucide-react";
 
 const Settings = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -129,7 +130,10 @@ const Settings = () => {
         <div className="min-h-screen flex w-full">
           <DashboardSidebar />
           <main className="flex-1 p-8">
-            <div>Loading...</div>
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 w-48 bg-gray-200 rounded"></div>
+              <div className="h-[200px] bg-gray-200 rounded"></div>
+            </div>
           </main>
         </div>
       </SidebarProvider>
@@ -142,41 +146,52 @@ const Settings = () => {
         <DashboardSidebar />
         <div className="flex-1 flex flex-col ml-[240px]">
           <DashboardNavbar />
-          <main className="flex-1 p-8 overflow-auto">
+          <main className="flex-1 p-8 overflow-auto bg-gray-50 dark:bg-gray-900">
             <div className="container mx-auto max-w-6xl">
-              <h1 className="text-3xl font-bold mb-8">Settings</h1>
+              <div className="flex items-center gap-3 mb-8">
+                <SettingsIcon className="h-8 w-8 text-indigo-600" />
+                <h1 className="text-3xl font-bold">Settings</h1>
+              </div>
               
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Profile Settings Card */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profile Settings</CardTitle>
+                <Card className="overflow-hidden border-none shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600">
+                    <div className="flex items-center gap-3">
+                      <UserIcon className="h-6 w-6 text-white" />
+                      <CardTitle className="text-white">Profile Settings</CardTitle>
+                    </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-6">
                     <form onSubmit={handleUpdateProfile} className="space-y-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
                         <Input
                           id="name"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           placeholder="John Doe"
+                          className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                         <Input
                           id="email"
                           type="email"
                           value={email}
                           disabled
-                          className="bg-gray-100"
+                          className="bg-gray-50 cursor-not-allowed"
                         />
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 italic">
                           Email cannot be changed. Contact support if you need to update it.
                         </p>
                       </div>
-                      <Button type="submit" disabled={updating}>
+                      <Button 
+                        type="submit" 
+                        disabled={updating}
+                        className="w-full sm:w-auto"
+                      >
                         {updating ? "Updating..." : "Save Changes"}
                       </Button>
                     </form>
@@ -184,55 +199,87 @@ const Settings = () => {
                 </Card>
 
                 {canManageSettings && (
-                  <>
-                    <EmailConfiguration />
-                    <MenuVisibilitySettings />
-
-                    {/* Application Settings */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Application Settings</CardTitle>
+                  <div className="space-y-8">
+                    {/* Email Configuration with updated styling */}
+                    <Card className="overflow-hidden border-none shadow-lg">
+                      <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-600">
+                        <div className="flex items-center gap-3">
+                          <Mail className="h-6 w-6 text-white" />
+                          <CardTitle className="text-white">Email Configuration</CardTitle>
+                        </div>
                       </CardHeader>
-                      <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="app_name">Application Name</Label>
-                          <Input
-                            id="app_name"
-                            value={appSettings.app_name}
-                            onChange={(e) => setAppSettings({ ...appSettings, app_name: e.target.value })}
-                            onBlur={() => handleUpdateSetting('app_name', appSettings.app_name)}
-                          />
+                      <CardContent className="p-6">
+                        <EmailConfiguration />
+                      </CardContent>
+                    </Card>
+
+                    {/* Menu Visibility with updated styling */}
+                    <Card className="overflow-hidden border-none shadow-lg">
+                      <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600">
+                        <div className="flex items-center gap-3">
+                          <Menu className="h-6 w-6 text-white" />
+                          <CardTitle className="text-white">Menu Visibility</CardTitle>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="dashboard_title">Dashboard Title</Label>
-                          <Input
-                            id="dashboard_title"
-                            value={appSettings.dashboard_title}
-                            onChange={(e) => setAppSettings({ ...appSettings, dashboard_title: e.target.value })}
-                            onBlur={() => handleUpdateSetting('dashboard_title', appSettings.dashboard_title)}
-                          />
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <MenuVisibilitySettings />
+                      </CardContent>
+                    </Card>
+
+                    {/* Application Settings with updated styling */}
+                    <Card className="overflow-hidden border-none shadow-lg">
+                      <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600">
+                        <div className="flex items-center gap-3">
+                          <Sliders className="h-6 w-6 text-white" />
+                          <CardTitle className="text-white">Application Settings</CardTitle>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="users_title">Users Section Title</Label>
-                          <Input
-                            id="users_title"
-                            value={appSettings.users_title}
-                            onChange={(e) => setAppSettings({ ...appSettings, users_title: e.target.value })}
-                            onBlur={() => handleUpdateSetting('users_title', appSettings.users_title)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="roles_title">Roles Section Title</Label>
-                          <Input
-                            id="roles_title"
-                            value={appSettings.roles_title}
-                            onChange={(e) => setAppSettings({ ...appSettings, roles_title: e.target.value })}
-                            onBlur={() => handleUpdateSetting('roles_title', appSettings.roles_title)}
-                          />
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-6">
+                        <div className="grid gap-6 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="app_name" className="text-sm font-medium">Application Name</Label>
+                            <Input
+                              id="app_name"
+                              value={appSettings.app_name}
+                              onChange={(e) => setAppSettings({ ...appSettings, app_name: e.target.value })}
+                              onBlur={() => handleUpdateSetting('app_name', appSettings.app_name)}
+                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="dashboard_title" className="text-sm font-medium">Dashboard Title</Label>
+                            <Input
+                              id="dashboard_title"
+                              value={appSettings.dashboard_title}
+                              onChange={(e) => setAppSettings({ ...appSettings, dashboard_title: e.target.value })}
+                              onBlur={() => handleUpdateSetting('dashboard_title', appSettings.dashboard_title)}
+                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="users_title" className="text-sm font-medium">Users Section Title</Label>
+                            <Input
+                              id="users_title"
+                              value={appSettings.users_title}
+                              onChange={(e) => setAppSettings({ ...appSettings, users_title: e.target.value })}
+                              onBlur={() => handleUpdateSetting('users_title', appSettings.users_title)}
+                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="roles_title" className="text-sm font-medium">Roles Section Title</Label>
+                            <Input
+                              id="roles_title"
+                              value={appSettings.roles_title}
+                              onChange={(e) => setAppSettings({ ...appSettings, roles_title: e.target.value })}
+                              onBlur={() => handleUpdateSetting('roles_title', appSettings.roles_title)}
+                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
