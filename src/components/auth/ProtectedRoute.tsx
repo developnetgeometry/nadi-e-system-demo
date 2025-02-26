@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import { Permission } from "@/types/auth";
 
 interface ProtectedRouteProps {
@@ -14,6 +15,20 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
   const location = useLocation();
   const { toast } = useToast();
   const { data: permissions = [], isLoading, error } = usePermissions();
+
+  // Check if user is super_admin
+  const checkSuperAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    return profile?.user_type === 'super_admin';
+  };
 
   useEffect(() => {
     if (error) {
@@ -27,14 +42,22 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
   }, [error, toast]);
 
   useEffect(() => {
-    if (!isLoading && requiredPermission && !permissions.some((permission: Permission) => permission.name === requiredPermission)) {
-      console.log('Access denied: Missing required permission:', requiredPermission);
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access this page.",
-        variant: "destructive",
-      });
-    }
+    const checkAccess = async () => {
+      if (!isLoading && requiredPermission) {
+        const isSuperAdmin = await checkSuperAdmin();
+        
+        if (!isSuperAdmin && !permissions.some((permission: Permission) => permission.name === requiredPermission)) {
+          console.log('Access denied: Missing required permission:', requiredPermission);
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access this page.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    checkAccess();
   }, [isLoading, permissions, requiredPermission, toast]);
 
   if (isLoading) {
@@ -45,14 +68,14 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user has super_admin role by checking if they have manage_settings permission
-  const isSuperAdmin = permissions.some((permission: Permission) => permission.name === 'manage_settings');
+  const hasAccess = async () => {
+    const isSuperAdmin = await checkSuperAdmin();
+    return isSuperAdmin || (requiredPermission 
+      ? permissions.some((permission: Permission) => permission.name === requiredPermission)
+      : true);
+  };
 
-  const hasPermission = isSuperAdmin || (requiredPermission 
-    ? permissions.some((permission: Permission) => permission.name === requiredPermission)
-    : true);
-
-  if (!hasPermission) {
+  if (!hasAccess()) {
     return <Navigate to="/dashboard" replace />;
   }
 

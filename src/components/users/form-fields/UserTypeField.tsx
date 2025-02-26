@@ -1,3 +1,4 @@
+
 import {
   FormControl,
   FormField,
@@ -14,6 +15,9 @@ import {
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { UserFormData } from "../types";
+import { UserType } from "@/types/auth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface UserTypeFieldProps {
   form: UseFormReturn<UserFormData>;
@@ -21,6 +25,23 @@ interface UserTypeFieldProps {
 }
 
 export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
+  const { data: roles = [] } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('name, description')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching roles:', error);
+        throw error;
+      }
+      
+      return data;
+    }
+  });
+
   return (
     <FormField
       control={form.control}
@@ -39,15 +60,17 @@ export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="vendor">Vendor</SelectItem>
-              <SelectItem value="tp">TP</SelectItem>
-              <SelectItem value="sso">SSO</SelectItem>
-              <SelectItem value="dusp">DUSP</SelectItem>
-              <SelectItem value="super_admin">Super Admin</SelectItem>
-              <SelectItem value="medical_office">Medical Office</SelectItem>
-              <SelectItem value="staff_internal">Staff Internal</SelectItem>
-              <SelectItem value="staff_external">Staff External</SelectItem>
+              {roles.map(({ name, description }) => (
+                <SelectItem 
+                  key={name} 
+                  value={name}
+                  title={description || undefined}
+                >
+                  {name.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                  ).join(' ')}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <FormMessage />
