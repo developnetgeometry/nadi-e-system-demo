@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
-import { useAppSettings } from "@/hooks/use-app-settings";
 import { usePermissions } from "@/hooks/use-permissions";
+import { SystemSettings } from "@/components/settings/SystemSettings";
 import { EmailConfiguration } from "@/components/settings/EmailConfiguration";
 import { MenuVisibilitySettings } from "@/components/settings/MenuVisibility";
-import { Settings as SettingsIcon, User as UserIcon, Mail, Menu, Sliders } from "lucide-react";
+import { Settings as SettingsIcon, User as UserIcon, Mail, Menu } from "lucide-react";
 
 const Settings = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -200,7 +199,10 @@ const Settings = () => {
 
                 {canManageSettings && (
                   <div className="space-y-8">
-                    {/* Email Configuration with updated styling */}
+                    {/* System Settings */}
+                    <SystemSettings />
+
+                    {/* Email Configuration */}
                     <Card className="overflow-hidden border-none shadow-lg">
                       <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-600">
                         <div className="flex items-center gap-3">
@@ -213,7 +215,7 @@ const Settings = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Menu Visibility with updated styling */}
+                    {/* Menu Visibility */}
                     <Card className="overflow-hidden border-none shadow-lg">
                       <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600">
                         <div className="flex items-center gap-3">
@@ -223,60 +225,6 @@ const Settings = () => {
                       </CardHeader>
                       <CardContent className="p-6">
                         <MenuVisibilitySettings />
-                      </CardContent>
-                    </Card>
-
-                    {/* Application Settings with updated styling */}
-                    <Card className="overflow-hidden border-none shadow-lg">
-                      <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-600">
-                        <div className="flex items-center gap-3">
-                          <Sliders className="h-6 w-6 text-white" />
-                          <CardTitle className="text-white">Application Settings</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-6">
-                        <div className="grid gap-6 md:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="app_name" className="text-sm font-medium">Application Name</Label>
-                            <Input
-                              id="app_name"
-                              value={appSettings.app_name}
-                              onChange={(e) => setAppSettings({ ...appSettings, app_name: e.target.value })}
-                              onBlur={() => handleUpdateSetting('app_name', appSettings.app_name)}
-                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="dashboard_title" className="text-sm font-medium">Dashboard Title</Label>
-                            <Input
-                              id="dashboard_title"
-                              value={appSettings.dashboard_title}
-                              onChange={(e) => setAppSettings({ ...appSettings, dashboard_title: e.target.value })}
-                              onBlur={() => handleUpdateSetting('dashboard_title', appSettings.dashboard_title)}
-                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="users_title" className="text-sm font-medium">Users Section Title</Label>
-                            <Input
-                              id="users_title"
-                              value={appSettings.users_title}
-                              onChange={(e) => setAppSettings({ ...appSettings, users_title: e.target.value })}
-                              onBlur={() => handleUpdateSetting('users_title', appSettings.users_title)}
-                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="roles_title" className="text-sm font-medium">Roles Section Title</Label>
-                            <Input
-                              id="roles_title"
-                              value={appSettings.roles_title}
-                              onChange={(e) => setAppSettings({ ...appSettings, roles_title: e.target.value })}
-                              onBlur={() => handleUpdateSetting('roles_title', appSettings.roles_title)}
-                              className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500"
-                            />
-                          </div>
-                        </div>
                       </CardContent>
                     </Card>
                   </div>
