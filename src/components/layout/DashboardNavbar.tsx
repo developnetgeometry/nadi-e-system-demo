@@ -1,4 +1,3 @@
-
 import { Bell, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,9 +21,14 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useAppSettings } from "@/hooks/useAppSettings";
 
 export const DashboardNavbar = () => {
   const { logout, user } = useAuth();
+  const { data: settings = [] } = useAppSettings();
+
+  // Get navbar title from settings
+  const navbarTitle = settings.find(s => s.key === 'navbar_title')?.value || 'Dashboard';
 
   // Fetch user profile including name and role
   const { data: profile } = useQuery({
@@ -53,6 +57,11 @@ export const DashboardNavbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-[#000080] backdrop-blur supports-[backdrop-filter]:bg-[#000080]/60">
       <div className="container flex h-14 items-center px-4 sm:px-8">
+        <div className="mr-4 hidden md:flex">
+          <h2 className="text-lg font-semibold text-white">
+            {navbarTitle}
+          </h2>
+        </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
             <Dialog>

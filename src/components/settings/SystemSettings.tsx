@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Settings as SettingsIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppSettings } from "@/hooks/use-app-settings";
+import { Button } from "@/components/ui/button";
 
 const DEFAULT_SETTINGS = [
   {
@@ -49,6 +50,7 @@ export const SystemSettings = () => {
   const { toast } = useToast();
   const { settings, updateSetting } = useAppSettings();
   const [localSettings, setLocalSettings] = useState(DEFAULT_SETTINGS);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Initialize settings with values from the database
   useEffect(() => {
@@ -59,38 +61,43 @@ export const SystemSettings = () => {
     setLocalSettings(updatedSettings);
   }, [settings]);
 
-  const handleUpdateSetting = async (key: string, value: string) => {
+  const handleSaveAll = async () => {
+    setIsSaving(true);
     try {
-      await updateSetting.mutateAsync({ key, value });
-      
-      // Update local state
-      setLocalSettings(prev => 
-        prev.map(setting => 
-          setting.key === key ? { ...setting, value } : setting
-        )
-      );
+      // Update all settings that have changed
+      const updatePromises = localSettings.map(setting => {
+        const currentSetting = settings.find(s => s.key === setting.key);
+        if (currentSetting?.value !== setting.value) {
+          return updateSetting.mutateAsync({ key: setting.key, value: setting.value });
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(updatePromises);
 
       toast({
         title: "Success",
-        description: "Setting updated successfully",
+        description: "All settings updated successfully",
       });
     } catch (error) {
-      console.error('Error updating setting:', error);
+      console.error('Error updating settings:', error);
       toast({
         title: "Error",
-        description: "Failed to update setting",
+        description: "Failed to update settings",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const groupedSettings = localSettings.reduce((acc, setting) => {
-    if (!acc[setting.group]) {
-      acc[setting.group] = [];
-    }
-    acc[setting.group].push(setting);
-    return acc;
-  }, {} as Record<string, typeof localSettings>);
+  const handleInputChange = (key: string, value: string) => {
+    setLocalSettings(prev =>
+      prev.map(s =>
+        s.key === key ? { ...s, value } : s
+      )
+    );
+  };
 
   return (
     <Card className="overflow-hidden border-none shadow-lg">
@@ -102,7 +109,13 @@ export const SystemSettings = () => {
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-8">
-          {Object.entries(groupedSettings).map(([group, groupSettings]) => (
+          {Object.entries(localSettings.reduce((acc, setting) => {
+            if (!acc[setting.group]) {
+              acc[setting.group] = [];
+            }
+            acc[setting.group].push(setting);
+            return acc;
+          }, {} as Record<string, typeof localSettings>)).map(([group, groupSettings]) => (
             <div key={group} className="space-y-4">
               <h3 className="text-lg font-semibold capitalize">
                 {group} Settings
@@ -116,15 +129,7 @@ export const SystemSettings = () => {
                     <Input
                       id={setting.key}
                       value={setting.value}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        setLocalSettings(prev =>
-                          prev.map(s =>
-                            s.key === setting.key ? { ...s, value: newValue } : s
-                          )
-                        );
-                      }}
-                      onBlur={(e) => handleUpdateSetting(setting.key, e.target.value)}
+                      onChange={(e) => handleInputChange(setting.key, e.target.value)}
                       className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
                       placeholder={`Enter ${setting.label.toLowerCase()}`}
                     />
@@ -138,6 +143,16 @@ export const SystemSettings = () => {
               </div>
             </div>
           ))}
+          
+          <div className="flex justify-end mt-6">
+            <Button
+              onClick={handleSaveAll}
+              disabled={isSaving}
+              className="w-full md:w-auto"
+            >
+              {isSaving ? "Saving..." : "Save All Settings"}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
