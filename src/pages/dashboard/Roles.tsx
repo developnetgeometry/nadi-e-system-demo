@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -12,10 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Shield, Users, Key } from "lucide-react";
+import { Plus, Shield, Users, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { RoleFormDialog } from "@/components/roles/RoleFormDialog";
 
 interface Role {
   id: string;
@@ -28,6 +30,10 @@ interface Role {
 const Roles = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
   
   const { data: roles, isLoading, error } = useQuery({
     queryKey: ['roles'],
@@ -83,6 +89,58 @@ const Roles = () => {
     }
   });
 
+  const handleCreateRole = async (values: { name: string; description: string }) => {
+    try {
+      const { error } = await supabase
+        .from('roles')
+        .insert([values]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Role created successfully",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
+    } catch (error) {
+      console.error('Error creating role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create role. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateRole = async (values: { name: string; description: string }) => {
+    if (!editingRole) return;
+
+    try {
+      const { error } = await supabase
+        .from('roles')
+        .update({ description: values.description })
+        .eq('id', editingRole.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Role updated successfully",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['roles'] });
+      setEditingRole(null);
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update role. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (error) {
     console.error('Rendering error state:', error);
     return (
@@ -108,7 +166,7 @@ const Roles = () => {
                   </p>
                 </div>
                 <Button 
-                  onClick={() => navigate("/dashboard/roles/new")}
+                  onClick={() => setIsCreateDialogOpen(true)}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -129,7 +187,7 @@ const Roles = () => {
                         <TableHead className="max-w-[400px]">Description</TableHead>
                         <TableHead className="w-[100px]">Users</TableHead>
                         <TableHead className="w-[150px]">Created At</TableHead>
-                        <TableHead className="w-[100px] text-right">Actions</TableHead>
+                        <TableHead className="w-[200px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -153,15 +211,23 @@ const Roles = () => {
                           <TableCell className="text-muted-foreground">
                             {new Date(role.created_at).toLocaleDateString()}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingRole(role)}
+                              className="hover:bg-muted"
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => navigate(`/dashboard/roles/${role.id}`)}
                               className="hover:bg-muted"
                             >
-                              <Key className="h-4 w-4 mr-2" />
-                              Configure
+                              Permissions
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -174,6 +240,19 @@ const Roles = () => {
           </main>
         </div>
       </div>
+
+      <RoleFormDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSubmit={handleCreateRole}
+      />
+
+      <RoleFormDialog
+        open={!!editingRole}
+        onOpenChange={(open) => !open && setEditingRole(null)}
+        initialData={editingRole || undefined}
+        onSubmit={handleUpdateRole}
+      />
     </SidebarProvider>
   );
 };
