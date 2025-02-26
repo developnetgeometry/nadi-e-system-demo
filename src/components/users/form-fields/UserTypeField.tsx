@@ -16,25 +16,32 @@ import {
 import { UseFormReturn } from "react-hook-form";
 import { UserFormData } from "../types";
 import { UserType } from "@/types/auth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface UserTypeFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
 }
 
-const userTypes: { value: UserType; label: string }[] = [
-  { value: "member", label: "Member" },
-  { value: "vendor", label: "Vendor" },
-  { value: "tp", label: "TP" },
-  { value: "sso", label: "SSO" },
-  { value: "dusp", label: "DUSP" },
-  { value: "super_admin", label: "Super Admin" },
-  { value: "medical_office", label: "Medical Office" },
-  { value: "staff_internal", label: "Staff Internal" },
-  { value: "staff_external", label: "Staff External" }
-];
-
 export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
+  const { data: roles = [] } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('name, description')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching roles:', error);
+        throw error;
+      }
+      
+      return data;
+    }
+  });
+
   return (
     <FormField
       control={form.control}
@@ -53,9 +60,15 @@ export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {userTypes.map(({ value, label }) => (
-                <SelectItem key={value} value={value}>
-                  {label}
+              {roles.map(({ name, description }) => (
+                <SelectItem 
+                  key={name} 
+                  value={name}
+                  title={description || undefined}
+                >
+                  {name.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                  ).join(' ')}
                 </SelectItem>
               ))}
             </SelectContent>
