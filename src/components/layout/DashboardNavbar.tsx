@@ -1,3 +1,4 @@
+
 import { Bell, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
@@ -21,7 +22,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { useAppSettings } from "@/hooks/useAppSettings";
+import { useAppSettings } from "@/hooks/use-app-settings";
 
 export const DashboardNavbar = () => {
   const { logout, user } = useAuth();
