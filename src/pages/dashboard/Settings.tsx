@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useAppSettings } from "@/hooks/use-app-settings";
 import { SystemSettings } from "@/components/settings/SystemSettings";
 import { EmailConfiguration } from "@/components/settings/EmailConfiguration";
 import { MenuVisibilitySettings } from "@/components/settings/MenuVisibility";
@@ -23,7 +24,6 @@ const Settings = () => {
   const [email, setEmail] = useState("");
   const { toast } = useToast();
   const { data: permissions = [] } = usePermissions();
-  const { settings, updateSetting } = useAppSettings();
   const canManageSettings = permissions.some(p => p.name === 'manage_settings');
 
   const [appSettings, setAppSettings] = useState<Record<string, string>>({

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,7 @@ export const SystemSettings = () => {
   const [localSettings, setLocalSettings] = useState(DEFAULT_SETTINGS);
 
   // Initialize settings with values from the database
-  useState(() => {
+  useEffect(() => {
     const updatedSettings = localSettings.map(setting => ({
       ...setting,
       value: settings.find(s => s.key === setting.key)?.value || setting.value
