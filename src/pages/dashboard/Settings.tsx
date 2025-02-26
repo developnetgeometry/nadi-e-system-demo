@@ -1,8 +1,5 @@
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
@@ -11,16 +8,17 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@supabase/supabase-js";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAppSettings } from "@/hooks/use-app-settings";
+import { Mail, Menu } from "lucide-react";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { SettingsLoading } from "@/components/settings/SettingsLoading";
+import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { SystemSettings } from "@/components/settings/SystemSettings";
 import { EmailConfiguration } from "@/components/settings/EmailConfiguration";
 import { MenuVisibilitySettings } from "@/components/settings/MenuVisibility";
-import { Settings as SettingsIcon, User as UserIcon, Mail, Menu } from "lucide-react";
 
 const Settings = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const { toast } = useToast();
@@ -58,52 +56,8 @@ const Settings = () => {
     getUser();
   }, [toast]);
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    setUpdating(true);
-    try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: fullName,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (profileError) throw profileError;
-
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update profile",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdating(false);
-    }
-  };
-
   if (loading) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <DashboardSidebar />
-          <main className="flex-1 p-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 w-48 bg-gray-200 rounded"></div>
-              <div className="h-[200px] bg-gray-200 rounded"></div>
-            </div>
-          </main>
-        </div>
-      </SidebarProvider>
-    );
+    return <SettingsLoading />;
   }
 
   return (
@@ -114,62 +68,20 @@ const Settings = () => {
           <DashboardNavbar />
           <main className="flex-1 p-8 overflow-auto bg-gray-50 dark:bg-gray-900">
             <div className="container mx-auto max-w-6xl">
-              <div className="flex items-center gap-3 mb-8">
-                <SettingsIcon className="h-8 w-8 text-indigo-600" />
-                <h1 className="text-3xl font-bold">Settings</h1>
-              </div>
+              <SettingsHeader />
               
               <div className="space-y-8">
-                {/* Profile Settings Card */}
-                <Card className="overflow-hidden border-none shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600">
-                    <div className="flex items-center gap-3">
-                      <UserIcon className="h-6 w-6 text-white" />
-                      <CardTitle className="text-white">Profile Settings</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                      <div className="space-y-2">
-                        <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
-                        <Input
-                          id="name"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          placeholder="John Doe"
-                          className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          disabled
-                          className="bg-gray-50 cursor-not-allowed"
-                        />
-                        <p className="text-sm text-gray-500 italic">
-                          Email cannot be changed. Contact support if you need to update it.
-                        </p>
-                      </div>
-                      <Button 
-                        type="submit" 
-                        disabled={updating}
-                        className="w-full sm:w-auto"
-                      >
-                        {updating ? "Updating..." : "Save Changes"}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
+                <ProfileSettings 
+                  user={user}
+                  fullName={fullName}
+                  email={email}
+                  setFullName={setFullName}
+                />
 
                 {canManageSettings && (
                   <div className="space-y-8">
-                    {/* System Settings */}
                     <SystemSettings />
 
-                    {/* Email Configuration */}
                     <Card className="overflow-hidden border-none shadow-lg">
                       <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-600">
                         <div className="flex items-center gap-3">
@@ -182,7 +94,6 @@ const Settings = () => {
                       </CardContent>
                     </Card>
 
-                    {/* Menu Visibility */}
                     <Card className="overflow-hidden border-none shadow-lg">
                       <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600">
                         <div className="flex items-center gap-3">
