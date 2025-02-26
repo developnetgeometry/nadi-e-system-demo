@@ -65,15 +65,22 @@ export const SystemSettings = () => {
     setIsSaving(true);
     try {
       // Update all settings that have changed
-      const updatePromises = localSettings.map(setting => {
+      for (const setting of localSettings) {
         const currentSetting = settings.find(s => s.key === setting.key);
         if (currentSetting?.value !== setting.value) {
-          return updateSetting.mutateAsync({ key: setting.key, value: setting.value });
+          try {
+            await updateSetting.mutateAsync({
+              key: setting.key,
+              value: setting.value
+            });
+          } catch (error: any) {
+            // If the error is just about no rows being returned, we can ignore it
+            if (error.code !== 'PGRST116') {
+              throw error;
+            }
+          }
         }
-        return Promise.resolve();
-      });
-
-      await Promise.all(updatePromises);
+      }
 
       toast({
         title: "Success",
