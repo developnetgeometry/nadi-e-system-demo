@@ -1,3 +1,4 @@
+
 import {
   FormControl,
   FormField,
@@ -14,11 +15,24 @@ import {
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { UserFormData } from "../types";
+import { UserType } from "@/types/auth";
 
 interface UserTypeFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
 }
+
+const userTypes: { value: UserType; label: string }[] = [
+  { value: "member", label: "Member" },
+  { value: "vendor", label: "Vendor" },
+  { value: "tp", label: "TP" },
+  { value: "sso", label: "SSO" },
+  { value: "dusp", label: "DUSP" },
+  { value: "super_admin", label: "Super Admin" },
+  { value: "medical_office", label: "Medical Office" },
+  { value: "staff_internal", label: "Staff Internal" },
+  { value: "staff_external", label: "Staff External" }
+];
 
 export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
   return (
@@ -39,15 +53,11 @@ export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="vendor">Vendor</SelectItem>
-              <SelectItem value="tp">TP</SelectItem>
-              <SelectItem value="sso">SSO</SelectItem>
-              <SelectItem value="dusp">DUSP</SelectItem>
-              <SelectItem value="super_admin">Super Admin</SelectItem>
-              <SelectItem value="medical_office">Medical Office</SelectItem>
-              <SelectItem value="staff_internal">Staff Internal</SelectItem>
-              <SelectItem value="staff_external">Staff External</SelectItem>
+              {userTypes.map(({ value, label }) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <FormMessage />
