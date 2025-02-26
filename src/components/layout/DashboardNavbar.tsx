@@ -26,7 +26,7 @@ import { useAppSettings } from "@/hooks/use-app-settings";
 
 export const DashboardNavbar = () => {
   const { logout, user } = useAuth();
-  const { data: settings = [] } = useAppSettings();
+  const { settings } = useAppSettings();
 
   // Get navbar title from settings
   const navbarTitle = settings.find(s => s.key === 'navbar_title')?.value || 'Dashboard';
