@@ -17,9 +17,9 @@ const DEFAULT_SETTINGS = [
     value: ""
   },
   {
-    key: "navbar_title",
-    label: "Navigation Bar Title",
-    description: "The title displayed in the navigation bar",
+    key: "sidebar_title",
+    label: "Sidebar Title",
+    description: "The title displayed at the top of the sidebar (currently showing 'NADI')",
     group: "general",
     value: ""
   },
