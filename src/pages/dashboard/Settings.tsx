@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,23 +26,6 @@ const Settings = () => {
   const { toast } = useToast();
   const { data: permissions = [] } = usePermissions();
   const canManageSettings = permissions.some(p => p.name === 'manage_settings');
-
-  const [appSettings, setAppSettings] = useState<Record<string, string>>({
-    app_name: '',
-    dashboard_title: '',
-    users_title: '',
-    roles_title: ''
-  });
-
-  useEffect(() => {
-    if (settings) {
-      const settingsMap: Record<string, string> = {};
-      settings.forEach(setting => {
-        settingsMap[setting.key] = setting.value;
-      });
-      setAppSettings(settingsMap);
-    }
-  }, [settings]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -103,23 +87,6 @@ const Settings = () => {
       });
     } finally {
       setUpdating(false);
-    }
-  };
-
-  const handleUpdateSetting = async (key: string, value: string) => {
-    try {
-      await updateSetting.mutateAsync({ key, value });
-      toast({
-        title: "Success",
-        description: "Setting updated successfully",
-      });
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update setting",
-        variant: "destructive",
-      });
     }
   };
 
