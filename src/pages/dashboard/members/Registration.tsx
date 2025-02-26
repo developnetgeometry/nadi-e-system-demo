@@ -35,11 +35,11 @@ const Registration = () => {
 
       if (authError) throw authError;
 
-      // Create profile
+      // Create profile with fixed member type
       const { error: profileError } = await supabase.from("profiles").insert({
         id: authData.user?.id,
         ...data,
-        user_type: "member",
+        user_type: "member", // Always set as member
       });
 
       if (profileError) throw profileError;

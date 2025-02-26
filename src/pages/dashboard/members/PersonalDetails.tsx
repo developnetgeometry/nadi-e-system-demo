@@ -14,6 +14,7 @@ const PersonalDetails = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
+        .eq('user_type', 'member') // Only fetch members
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -53,7 +54,6 @@ const PersonalDetails = () => {
                   <p><span className="font-medium">Email:</span> {member.email}</p>
                   <p><span className="font-medium">Phone:</span> {member.phone_number}</p>
                   <p><span className="font-medium">IC Number:</span> {member.ic_number}</p>
-                  <p><span className="font-medium">User Type:</span> {member.user_type}</p>
                 </div>
               </CardContent>
             </Card>
