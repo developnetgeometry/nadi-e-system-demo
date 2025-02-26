@@ -4,18 +4,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserType } from "@/types/auth";
-import { menuItems } from "@/components/layout/sidebar/menu-items";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/lib/supabase";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { menuGroups } from "@/utils/menu-groups";
 
 interface MenuVisibility {
   menu_key: string;
   visible_to: UserType[];
 }
 
+interface SubmoduleVisibility {
+  parent_module: string;
+  submodule_key: string;
+  visible_to: UserType[];
+}
+
 export const MenuVisibilitySettings = () => {
   const { toast } = useToast();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
+  const [submoduleVisibility, setSubmoduleVisibility] = useState<SubmoduleVisibility[]>([]);
 
   const userTypes: UserType[] = [
     'member',
@@ -30,25 +43,36 @@ export const MenuVisibilitySettings = () => {
   ];
 
   useEffect(() => {
-    const loadMenuVisibility = async () => {
+    const loadVisibilitySettings = async () => {
       try {
-        const { data: menuData } = await supabase
+        // Load menu visibility
+        const { data: menuData, error: menuError } = await supabase
           .from('menu_visibility')
           .select('*');
-        if (menuData) {
-          setMenuVisibility(menuData);
-        }
+
+        if (menuError) throw menuError;
+        
+        setMenuVisibility(menuData || []);
+
+        // Load submodule visibility
+        const { data: submoduleData, error: submoduleError } = await supabase
+          .from('submodule_visibility')
+          .select('*');
+
+        if (submoduleError) throw submoduleError;
+        
+        setSubmoduleVisibility(submoduleData || []);
       } catch (error) {
-        console.error('Error loading menu visibility:', error);
+        console.error('Error loading visibility settings:', error);
         toast({
           title: "Error",
-          description: "Failed to load menu visibility settings",
+          description: "Failed to load visibility settings",
           variant: "destructive",
         });
       }
     };
 
-    loadMenuVisibility();
+    loadVisibilitySettings();
   }, [toast]);
 
   const handleUpdateMenuVisibility = async (menuKey: string, userType: UserType, checked: boolean) => {
@@ -58,7 +82,7 @@ export const MenuVisibilitySettings = () => {
     };
 
     const updatedVisibleTo = checked
-      ? [...currentMenu.visible_to, userType]
+      ? [...new Set([...currentMenu.visible_to, userType])]
       : currentMenu.visible_to.filter(t => t !== userType);
 
     try {
@@ -89,39 +113,134 @@ export const MenuVisibilitySettings = () => {
     }
   };
 
+  const handleUpdateSubmoduleVisibility = async (
+    parentModule: string,
+    submoduleKey: string,
+    userType: UserType,
+    checked: boolean
+  ) => {
+    const currentSubmodule = submoduleVisibility.find(
+      s => s.parent_module === parentModule && s.submodule_key === submoduleKey
+    ) || {
+      parent_module: parentModule,
+      submodule_key: submoduleKey,
+      visible_to: []
+    };
+
+    const updatedVisibleTo = checked
+      ? [...new Set([...currentSubmodule.visible_to, userType])]
+      : currentSubmodule.visible_to.filter(t => t !== userType);
+
+    try {
+      const { error } = await supabase
+        .from('submodule_visibility')
+        .upsert({
+          parent_module: parentModule,
+          submodule_key: submoduleKey,
+          visible_to: updatedVisibleTo
+        });
+
+      if (error) throw error;
+
+      setSubmoduleVisibility(prev => 
+        prev.map(s => 
+          s.parent_module === parentModule && s.submodule_key === submoduleKey
+            ? { ...s, visible_to: updatedVisibleTo }
+            : s
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: "Submodule visibility updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating submodule visibility:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update submodule visibility",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Menu Visibility</CardTitle>
+        <CardTitle>Menu & Submodule Visibility</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          {menuItems.map((item) => (
-            <div key={item.title} className="space-y-4">
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {userTypes.map((userType) => (
-                  <div key={userType} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${item.title}-${userType}`}
-                      checked={menuVisibility.some(
-                        m => m.menu_key === item.title && m.visible_to.includes(userType)
-                      )}
-                      onCheckedChange={(checked) => 
-                        handleUpdateMenuVisibility(item.title, userType, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={`${item.title}-${userType}`}>
-                      {userType.replace(/_/g, ' ').split(' ').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                      ).join(' ')}
-                    </Label>
+        <Accordion type="single" collapsible className="space-y-4">
+          {menuGroups.map((group) => (
+            <AccordionItem key={group.label} value={group.label}>
+              <AccordionTrigger className="text-lg font-semibold">
+                {group.label}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-6 pl-4">
+                  {/* Main menu visibility */}
+                  <div className="space-y-4">
+                    <Label className="text-base">Main Menu Visibility</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {userTypes.map((userType) => (
+                        <div key={userType} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${group.label}-${userType}`}
+                            checked={menuVisibility.some(
+                              m => m.menu_key === group.label && m.visible_to.includes(userType)
+                            )}
+                            onCheckedChange={(checked) => 
+                              handleUpdateMenuVisibility(group.label, userType, checked as boolean)
+                            }
+                          />
+                          <Label htmlFor={`${group.label}-${userType}`}>
+                            {userType.replace(/_/g, ' ').split(' ').map(word => 
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ')}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  {/* Submodules visibility */}
+                  {group.items.map((item) => (
+                    <div key={item.title} className="space-y-4 border-l-2 border-gray-200 pl-4">
+                      <Label className="text-base">{item.title}</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {userTypes.map((userType) => (
+                          <div key={`${item.title}-${userType}`} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`${group.label}-${item.title}-${userType}`}
+                              checked={submoduleVisibility.some(
+                                s => s.parent_module === group.label &&
+                                     s.submodule_key === item.title &&
+                                     s.visible_to.includes(userType)
+                              )}
+                              onCheckedChange={(checked) => 
+                                handleUpdateSubmoduleVisibility(
+                                  group.label,
+                                  item.title,
+                                  userType,
+                                  checked as boolean
+                                )
+                              }
+                            />
+                            <Label htmlFor={`${group.label}-${item.title}-${userType}`}>
+                              {userType.replace(/_/g, ' ').split(' ').map(word => 
+                                word.charAt(0).toUpperCase() + word.slice(1)
+                              ).join(' ')}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </CardContent>
     </Card>
   );
