@@ -1,3 +1,4 @@
+
 import { 
   LayoutDashboard, 
   Settings, 
@@ -30,7 +31,9 @@ import {
   Flag,
   Wallet,
   Gauge,
-  FileCheck
+  FileCheck,
+  Eye,
+  Layout
 } from "lucide-react";
 
 export const menuItems = [
@@ -38,6 +41,7 @@ export const menuItems = [
   { title: "User Management", icon: Users, path: "/dashboard/users" },
   { title: "Roles & Permissions", icon: Shield, path: "/dashboard/roles" },
   { title: "Access Control", icon: UserCog, path: "/dashboard/access-control" },
+  { title: "Menu Visibility", icon: Eye, path: "/dashboard/menu-visibility" },
   { title: "Activity Log", icon: Activity, path: "/dashboard/activity" },
   { title: "Reports", icon: FileBarChart, path: "/dashboard/reports" },
   { title: "Calendar", icon: Calendar, path: "/dashboard/calendar" },

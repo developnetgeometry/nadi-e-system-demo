@@ -35,8 +35,7 @@ export const useAppSettings = () => {
         .from('app_settings')
         .update({ value })
         .eq('key', key)
-        .select()
-        .single();
+        .select();
 
       if (error) throw error;
       return data;
