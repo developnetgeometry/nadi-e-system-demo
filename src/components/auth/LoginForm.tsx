@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -41,9 +40,9 @@ export const LoginForm = () => {
         .from('profiles')
         .select('*')
         .eq('id', authData.user.id)
-        .maybeSingle();
+        .single();
 
-      if (profileError) {
+      if (profileError && profileError.code !== 'PGRST116') { // Ignore "not found" error
         console.error("Profile fetch error:", profileError);
         throw profileError;
       }

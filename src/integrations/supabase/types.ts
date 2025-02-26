@@ -362,6 +362,48 @@ export type Database = {
           },
         ]
       }
+      email_config: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          from_email: string | null
+          from_name: string | null
+          id: string
+          provider: Database["public"]["Enums"]["email_provider_type"]
+          smtp_host: string | null
+          smtp_password: string | null
+          smtp_port: number | null
+          smtp_user: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          provider?: Database["public"]["Enums"]["email_provider_type"]
+          smtp_host?: string | null
+          smtp_password?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          provider?: Database["public"]["Enums"]["email_provider_type"]
+          smtp_host?: string | null
+          smtp_password?: string | null
+          smtp_port?: number | null
+          smtp_user?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_transactions: {
         Row: {
           amount: number
@@ -480,6 +522,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      menu_visibility: {
+        Row: {
+          created_at: string
+          id: string
+          menu_key: string
+          updated_at: string
+          visible_to: Database["public"]["Enums"]["user_type"][]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          menu_key: string
+          updated_at?: string
+          visible_to?: Database["public"]["Enums"]["user_type"][]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          menu_key?: string
+          updated_at?: string
+          visible_to?: Database["public"]["Enums"]["user_type"][]
+        }
+        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -823,6 +889,33 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      submodule_visibility: {
+        Row: {
+          created_at: string
+          id: string
+          parent_module: string
+          submodule_key: string
+          updated_at: string
+          visible_to: Database["public"]["Enums"]["user_type"][]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_module: string
+          submodule_key: string
+          updated_at?: string
+          visible_to?: Database["public"]["Enums"]["user_type"][]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_module?: string
+          submodule_key?: string
+          updated_at?: string
+          visible_to?: Database["public"]["Enums"]["user_type"][]
         }
         Relationships: []
       }
@@ -1187,6 +1280,7 @@ export type Database = {
       asset_status: "active" | "in_maintenance" | "retired" | "disposed"
       claim_status: "pending" | "approved" | "rejected"
       claim_type: "damage" | "reimbursement" | "medical" | "travel" | "other"
+      email_provider_type: "smtp" | "resend" | "sendgrid"
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
       notification_channel: "in_app" | "email" | "sms"
       notification_type: "info" | "warning" | "success" | "error"
