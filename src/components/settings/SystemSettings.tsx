@@ -43,6 +43,13 @@ const DEFAULT_SETTINGS = [
     description: "Welcome message displayed on the dashboard",
     group: "general",
     value: ""
+  },
+  {
+    key: "member_login_enabled",
+    label: "Enable Member Login",
+    description: "Allow or disable member login functionality",
+    group: "access",
+    value: "true"
   }
 ];
 
