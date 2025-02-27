@@ -10,7 +10,7 @@ import { UserType } from "@/types/auth";
 interface UserRoleResponse {
   roles: {
     name: string;
-  };
+  }[];
 }
 
 export const SidebarContent = () => {
@@ -52,10 +52,9 @@ export const SidebarContent = () => {
         return;
       }
 
-      // Type assertion to ensure proper typing
       const roleData = data as UserRoleResponse;
-      if (roleData?.roles?.name) {
-        setUserType(roleData.roles.name as UserType);
+      if (roleData?.roles?.[0]?.name) {
+        setUserType(roleData.roles[0].name as UserType);
       }
     };
 
