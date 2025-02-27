@@ -528,6 +528,7 @@ export type Database = {
           created_at: string
           id: string
           menu_key: string
+          menu_path: string | null
           updated_at: string
           visible_to: Database["public"]["Enums"]["user_type"][]
         }
@@ -535,6 +536,7 @@ export type Database = {
           created_at?: string
           id?: string
           menu_key: string
+          menu_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -542,6 +544,7 @@ export type Database = {
           created_at?: string
           id?: string
           menu_key?: string
+          menu_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -898,6 +901,7 @@ export type Database = {
           id: string
           parent_module: string
           submodule_key: string
+          submodule_path: string | null
           updated_at: string
           visible_to: Database["public"]["Enums"]["user_type"][]
         }
@@ -906,6 +910,7 @@ export type Database = {
           id?: string
           parent_module: string
           submodule_key: string
+          submodule_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -914,6 +919,7 @@ export type Database = {
           id?: string
           parent_module?: string
           submodule_key?: string
+          submodule_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }

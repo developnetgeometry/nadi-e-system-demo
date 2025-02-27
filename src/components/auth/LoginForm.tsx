@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -138,6 +139,7 @@ export const LoginForm = () => {
             </Label>
             <Link 
               to="/forgot-password" 
+              state={{ from: "login" }}
               className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
             >
               Forgot password?
