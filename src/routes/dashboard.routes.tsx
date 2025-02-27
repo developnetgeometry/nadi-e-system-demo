@@ -8,47 +8,52 @@ const Activity = lazy(() => import("@/pages/dashboard/Activity"));
 const Reports = lazy(() => import("@/pages/dashboard/Reports"));
 const Calendar = lazy(() => import("@/pages/dashboard/Calendar"));
 const Notifications = lazy(() => import("@/pages/dashboard/Notifications"));
+const SiteManagement = lazy(() => import("@/pages/dashboard/SiteManagement"));
 const Settings = lazy(() => import("@/pages/dashboard/Settings"));
 
 export const dashboardRoutes = [
   {
-    path: "/dashboard",
+    path: "/admin/dashboard",
     element: <Dashboard />,
   },
   {
-    path: "/dashboard/users",
+    path: "/admin/users",
     element: <Users />,
   },
   {
-    path: "/dashboard/roles",
+    path: "/admin/roles",
     element: <Roles />,
   },
   {
-    path: "/dashboard/access-control",
+    path: "/admin/access-control",
     element: <AccessControl />,
   },
   {
-    path: "/dashboard/menu-visibility",
+    path: "/admin/menu-visibility",
     element: <MenuVisibility />,
   },
   {
-    path: "/dashboard/activity",
+    path: "/admin/activity",
     element: <Activity />,
   },
   {
-    path: "/dashboard/reports",
+    path: "/admin/reports",
     element: <Reports />,
   },
   {
-    path: "/dashboard/calendar",
+    path: "/admin/calendar",
     element: <Calendar />,
   },
   {
-    path: "/dashboard/notifications",
+    path: "/admin/notifications",
     element: <Notifications />,
   },
   {
-    path: "/dashboard/settings",
+    path: "/admin/siteManagement",
+    element: <SiteManagement />,
+  },
+  {
+    path: "/admin/settings",
     element: <Settings />,
   },
 ];

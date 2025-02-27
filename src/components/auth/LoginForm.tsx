@@ -83,7 +83,7 @@ export const LoginForm = () => {
         description: "Logged in successfully",
       });
       
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
     } catch (error: any) {
       console.error('Login error:', error);
       
