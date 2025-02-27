@@ -23,7 +23,7 @@ const Users = () => {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users", searchQuery, userTypeFilter],
-    queryFn: () => fetchUsers(),
+    queryFn: () => fetchUsers(searchQuery, userTypeFilter),
   });
 
   const deleteUsersMutation = useMutation({
