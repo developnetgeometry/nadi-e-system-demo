@@ -10,7 +10,6 @@ const roleToUserTypeMap: Record<string, UserType> = {
   'super_admin': 'super_admin',
   'admin': 'staff_internal',
   'user': 'member',
-  // Add other mappings as needed
 };
 
 export const useVisibilityData = () => {
@@ -39,7 +38,7 @@ export const useVisibilityData = () => {
         if (submoduleError) throw submoduleError;
         setSubmoduleVisibility(submoduleData || []);
 
-        // Load user types from roles table instead of profiles
+        // Load user types from roles table
         const { data: roleData, error: roleError } = await supabase
           .from('roles')
           .select('name');
