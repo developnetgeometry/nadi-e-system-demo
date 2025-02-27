@@ -71,11 +71,8 @@ export const SidebarContent = () => {
         v.menu_key === `/${item.path.split('/')[1]}`  // Check main route
       );
 
-      // If no visibility setting found, show by default
-      if (!visibility) return true;
-
-      // If user type not found, hide item
-      if (!userType) return false;
+      // If no visibility setting found or no user type, hide item
+      if (!visibility || !userType) return false;
 
       // Check if user type is in the visible_to array
       return visibility.visible_to.includes(userType);
