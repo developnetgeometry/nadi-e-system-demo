@@ -12,16 +12,17 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { menuGroups } from "@/utils/menu-groups";
+import { UserType } from "@/types/auth";
 
 interface MenuVisibility {
   menu_key: string;
-  visible_to: string[];
+  visible_to: UserType[];
 }
 
 interface SubmoduleVisibility {
   parent_module: string;
   submodule_key: string;
-  visible_to: string[];
+  visible_to: UserType[];
 }
 
 interface Role {
@@ -34,17 +35,7 @@ export const MenuVisibilitySettings = () => {
   const { toast } = useToast();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
   const [submoduleVisibility, setSubmoduleVisibility] = useState<SubmoduleVisibility[]>([]);
-  const [userTypes, setUserTypes] = useState<string[]>([
-    'member',
-    'vendor',
-    'tp',
-    'sso',
-    'dusp',
-    'super_admin',
-    'medical_office',
-    'staff_internal',
-    'staff_external'
-  ]);
+  const [userTypes, setUserTypes] = useState<UserType[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -64,6 +55,19 @@ export const MenuVisibilitySettings = () => {
 
         if (submoduleError) throw submoduleError;
         setSubmoduleVisibility(submoduleData || []);
+
+        // Load user types from profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .distinct();
+
+        if (profileError) throw profileError;
+        
+        // Extract unique user types
+        const uniqueUserTypes = [...new Set(profileData.map(p => p.user_type))] as UserType[];
+        setUserTypes(uniqueUserTypes);
+
       } catch (error) {
         console.error('Error loading data:', error);
         toast({
@@ -77,7 +81,7 @@ export const MenuVisibilitySettings = () => {
     loadData();
   }, [toast]);
 
-  const handleUpdateMenuVisibility = async (menuKey: string, userType: string, checked: boolean) => {
+  const handleUpdateMenuVisibility = async (menuKey: string, userType: UserType, checked: boolean) => {
     const currentMenu = menuVisibility.find(m => m.menu_key === menuKey) || {
       menu_key: menuKey,
       visible_to: []
@@ -118,7 +122,7 @@ export const MenuVisibilitySettings = () => {
   const handleUpdateSubmoduleVisibility = async (
     parentModule: string,
     submoduleKey: string,
-    userType: string,
+    userType: UserType,
     checked: boolean
   ) => {
     const currentSubmodule = submoduleVisibility.find(
@@ -165,6 +169,18 @@ export const MenuVisibilitySettings = () => {
       });
     }
   };
+
+  if (!userTypes.length) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p>Loading user types...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
