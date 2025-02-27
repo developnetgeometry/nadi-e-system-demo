@@ -31,18 +31,8 @@ export const useVisibilityData = () => {
         if (submoduleError) throw submoduleError;
         setSubmoduleVisibility(submoduleData || []);
 
-        // Set all available user types from the UserType enum
-        setUserTypes([
-          'member',
-          'vendor',
-          'tp',
-          'sso',
-          'dusp',
-          'super_admin',
-          'medical_office',
-          'staff_internal',
-          'staff_external'
-        ]);
+        // Set user types based on the role permissions system
+        setUserTypes(['super_admin']);
 
       } catch (error) {
         console.error('Error loading data:', error);
