@@ -31,15 +31,15 @@ export const useVisibilityData = () => {
         if (submoduleError) throw submoduleError;
         setSubmoduleVisibility(submoduleData || []);
 
-        // Load user types from profiles table
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_type');
+        // Load user types from roles table instead of profiles
+        const { data: roleData, error: roleError } = await supabase
+          .from('roles')
+          .select('name');
 
-        if (profileError) throw profileError;
+        if (roleError) throw roleError;
         
-        // Extract unique user types
-        const uniqueUserTypes = Array.from(new Set(profileData.map(p => p.user_type))) as UserType[];
+        // Extract unique role names as user types
+        const uniqueUserTypes = Array.from(new Set(roleData.map(r => r.name))) as UserType[];
         setUserTypes(uniqueUserTypes);
 
       } catch (error) {
