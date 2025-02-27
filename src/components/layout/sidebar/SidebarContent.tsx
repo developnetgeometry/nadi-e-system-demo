@@ -7,6 +7,12 @@ import { useEffect, useState } from "react";
 import { MenuVisibility } from "@/components/settings/types/menu-visibility.types";
 import { UserType } from "@/types/auth";
 
+interface UserRoleResponse {
+  roles: {
+    name: string;
+  };
+}
+
 export const SidebarContent = () => {
   const { user } = useAuth();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
@@ -46,8 +52,10 @@ export const SidebarContent = () => {
         return;
       }
 
-      if (data?.roles?.name) {
-        setUserType(data.roles.name as UserType);
+      // Type assertion to ensure proper typing
+      const roleData = data as UserRoleResponse;
+      if (roleData?.roles?.name) {
+        setUserType(roleData.roles.name as UserType);
       }
     };
 
