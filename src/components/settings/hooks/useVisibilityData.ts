@@ -5,13 +5,6 @@ import { supabase } from "@/lib/supabase";
 import { MenuVisibility, SubmoduleVisibility } from "../types/menu-visibility.types";
 import { UserType } from "@/types/auth";
 
-// Map between role names and UserType enum values
-const roleToUserTypeMap: Record<string, UserType> = {
-  'super_admin': 'super_admin',
-  'admin': 'staff_internal',
-  'user': 'member',
-};
-
 export const useVisibilityData = () => {
   const { toast } = useToast();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
@@ -38,19 +31,18 @@ export const useVisibilityData = () => {
         if (submoduleError) throw submoduleError;
         setSubmoduleVisibility(submoduleData || []);
 
-        // Load user types from roles table
-        const { data: roleData, error: roleError } = await supabase
-          .from('roles')
-          .select('name');
-
-        if (roleError) throw roleError;
-        
-        // Map role names to valid UserType enum values
-        const validUserTypes = roleData
-          .map(r => roleToUserTypeMap[r.name])
-          .filter((type): type is UserType => type !== undefined);
-
-        setUserTypes(Array.from(new Set(validUserTypes)));
+        // Set all available user types from the UserType enum
+        setUserTypes([
+          'member',
+          'vendor',
+          'tp',
+          'sso',
+          'dusp',
+          'super_admin',
+          'medical_office',
+          'staff_internal',
+          'staff_external'
+        ]);
 
       } catch (error) {
         console.error('Error loading data:', error);
