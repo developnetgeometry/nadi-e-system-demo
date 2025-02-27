@@ -31,8 +31,22 @@ export const useVisibilityData = () => {
         if (submoduleError) throw submoduleError;
         setSubmoduleVisibility(submoduleData || []);
 
-        // Set user types based on the role permissions system
-        setUserTypes(['super_admin']);
+        // Load roles from the database
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('roles')
+          .select('name')
+          .order('name');
+
+        if (rolesError) throw rolesError;
+        
+        // Map role names to user types and filter out any invalid ones
+        const validUserTypes = rolesData
+          .map(role => role.name)
+          .filter((name): name is UserType => 
+            ['super_admin', 'admin', 'user', 'manager', 'vendor'].includes(name)
+          );
+
+        setUserTypes(validUserTypes);
 
       } catch (error) {
         console.error('Error loading data:', error);
