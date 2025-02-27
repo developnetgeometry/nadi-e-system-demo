@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { MenuVisibility } from "@/components/settings/types/menu-visibility.types";
 import { UserType } from "@/types/auth";
+import { useToast } from "@/components/ui/use-toast";
 
 interface UserRoleResponse {
   roles: {
@@ -15,6 +16,7 @@ interface UserRoleResponse {
 
 export const SidebarContent = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
   const [userType, setUserType] = useState<UserType | null>(null);
 
@@ -41,6 +43,20 @@ export const SidebarContent = () => {
     const fetchUserType = async () => {
       if (!user?.id) return;
 
+      // First try to get the user profile to check the user_type
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+
+      if (!profileError && profileData?.user_type) {
+        console.log('Setting user type from profile:', profileData.user_type);
+        setUserType(profileData.user_type as UserType);
+        return;
+      }
+
+      // Fallback to user_roles if profile check fails
       const { data, error } = await supabase
         .from('user_roles')
         .select('roles(name)')
@@ -49,17 +65,23 @@ export const SidebarContent = () => {
 
       if (error) {
         console.error('Error fetching user role:', error);
+        toast({
+          title: "Error",
+          description: "Could not fetch user permissions",
+          variant: "destructive",
+        });
         return;
       }
 
       const roleData = data as UserRoleResponse;
       if (roleData?.roles?.[0]?.name) {
+        console.log('Setting user type from roles:', roleData.roles[0].name);
         setUserType(roleData.roles[0].name as UserType);
       }
     };
 
     fetchUserType();
-  }, [user]);
+  }, [user, toast]);
 
   // Filter menu groups based on visibility settings
   const visibleMenuGroups = menuGroups.map(group => ({
@@ -72,10 +94,15 @@ export const SidebarContent = () => {
       );
 
       // If no visibility setting found or no user type, hide item
-      if (!visibility || !userType) return false;
+      if (!visibility || !userType) {
+        console.log(`No visibility setting found for ${item.path} or no user type`);
+        return false;
+      }
 
       // Check if user type is in the visible_to array
-      return visibility.visible_to.includes(userType);
+      const isVisible = visibility.visible_to.includes(userType);
+      console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
+      return isVisible;
     })
   })).filter(group => group.items.length > 0); // Remove empty groups
 
