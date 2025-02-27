@@ -8,5 +8,6 @@ export interface MenuItem {
 
 export interface MenuGroup {
   label: string;
+  route: string;
   items: MenuItem[];
 }

@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
+import MemberLogin from "@/pages/auth/MemberLogin";
 import { dashboardRoutes } from "@/routes/dashboard.routes";
 import { memberRoutes } from "@/routes/member.routes";
 import { moduleRoutes } from "@/routes/module.routes";
@@ -29,6 +30,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/member-login" element={<MemberLogin />} />
               <Route path="/register" element={<Register />} />
               {dashboardRoutes.map((route) => (
                 <Route
