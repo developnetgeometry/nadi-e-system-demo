@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { UserFormData } from "../types";
 import { Profile } from "@/types/auth";
@@ -33,6 +34,11 @@ export async function handleCreateUser(data: UserFormData) {
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: data.email,
     password: Math.random().toString(36).slice(-8), // Generate random password
+    options: {
+      data: {
+        full_name: data.full_name, // Add full_name to user metadata
+      },
+    },
   });
 
   if (authError) throw authError;

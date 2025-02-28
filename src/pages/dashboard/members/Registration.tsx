@@ -24,6 +24,9 @@ const Registration = () => {
   const onSubmit = async (data: RegistrationForm) => {
     setIsLoading(true);
     try {
+      // Store current session
+      const currentSession = localStorage.getItem('session');
+      
       // Generate a random password for the new user
       const password = Math.random().toString(36).slice(-8);
 
@@ -31,6 +34,11 @@ const Registration = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password,
+        options: {
+          data: {
+            full_name: data.full_name,
+          }
+        }
       });
 
       if (authError) throw authError;
@@ -43,6 +51,11 @@ const Registration = () => {
       });
 
       if (profileError) throw profileError;
+      
+      // Restore the current session
+      if (currentSession) {
+        localStorage.setItem('session', currentSession);
+      }
 
       toast({
         title: "Success",

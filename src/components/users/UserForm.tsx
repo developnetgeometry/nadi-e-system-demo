@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { UserType, Profile } from "@/types/auth";
@@ -40,7 +41,16 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
+        // Temporarily store the current session
+        const currentSession = localStorage.getItem('session');
+        
         await handleCreateUser(data);
+        
+        // Restore the current session
+        if (currentSession) {
+          localStorage.setItem('session', currentSession);
+        }
+        
         toast({
           title: "Success",
           description: "User created successfully. A password reset email has been sent.",
