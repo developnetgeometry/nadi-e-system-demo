@@ -41,8 +41,19 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
-        // The session handling is now inside handleCreateUser
+        // Store current session before creating user
+        const currentSession = localStorage.getItem('session');
+        
+        // Create the user
         await handleCreateUser(data);
+        
+        // Immediately restore the current session
+        if (currentSession) {
+          localStorage.setItem('session', currentSession);
+          
+          // Force auth session refresh
+          await supabase.auth.getSession();
+        }
         
         toast({
           title: "Success",
