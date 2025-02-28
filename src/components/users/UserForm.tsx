@@ -41,15 +41,8 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
-        // Temporarily store the current session
-        const currentSession = localStorage.getItem('session');
-        
+        // The session handling is now inside handleCreateUser
         await handleCreateUser(data);
-        
-        // Restore the current session
-        if (currentSession) {
-          localStorage.setItem('session', currentSession);
-        }
         
         toast({
           title: "Success",

@@ -23,10 +23,11 @@ const Registration = () => {
 
   const onSubmit = async (data: RegistrationForm) => {
     setIsLoading(true);
+    
+    // Store current session
+    const currentSession = localStorage.getItem('session');
+    
     try {
-      // Store current session
-      const currentSession = localStorage.getItem('session');
-      
       // Generate a random password for the new user
       const password = Math.random().toString(36).slice(-8);
 
@@ -72,11 +73,6 @@ const Registration = () => {
 
         if (profileUpdateError) throw profileUpdateError;
       }
-      
-      // Restore the current session
-      if (currentSession) {
-        localStorage.setItem('session', currentSession);
-      }
 
       toast({
         title: "Success",
@@ -92,6 +88,18 @@ const Registration = () => {
         variant: "destructive",
       });
     } finally {
+      // Restore the current session
+      if (currentSession) {
+        localStorage.setItem('session', currentSession);
+        
+        // Force a refresh of the auth state
+        const parsedSession = JSON.parse(currentSession);
+        if (parsedSession && parsedSession.user) {
+          // This ensures the supabase client uses the restored session
+          await supabase.auth.getSession();
+        }
+      }
+      
       setIsLoading(false);
     }
   };
