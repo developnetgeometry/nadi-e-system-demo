@@ -11,6 +11,7 @@ import { UserPhoneField } from "./form-fields/UserPhoneField";
 import { UserTypeField } from "./form-fields/UserTypeField";
 import { handleCreateUser, handleUpdateUser } from "./utils/form-handlers";
 import { UserFormData } from "./types";
+import { supabase } from "@/lib/supabase"; // Import the supabase client
 
 interface UserFormProps {
   user?: Profile;
