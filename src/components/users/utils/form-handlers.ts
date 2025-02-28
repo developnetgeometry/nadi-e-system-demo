@@ -30,54 +30,65 @@ export async function handleUpdateUser(data: UserFormData, user: Profile) {
 }
 
 export async function handleCreateUser(data: UserFormData) {
-  // Instead of using auth.signUp, we'll create the user records directly
+  // We need to use the auth.signUp to properly create a user in the auth schema
+  // but we need to preserve the current session
   
-  // 1. Generate a random UUID for the new user
-  const userId = crypto.randomUUID();
-  const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+  // 1. Store the current session
+  const currentSession = localStorage.getItem('session');
+  const currentUser = (await supabase.auth.getUser()).data.user;
   
-  if (!currentUserId) {
+  if (!currentUser) {
     throw new Error("Current user not found. Please log in again.");
   }
   
   try {
-    // 2. Insert the user profile
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: userId,
+    // 2. Create user with auth.signUp
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
-      full_name: data.full_name,
-      user_type: data.user_type,
-      phone_number: data.phone_number,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      password: crypto.randomUUID(), // Random secure password
+      options: {
+        data: {
+          full_name: data.full_name,
+          user_type: data.user_type,
+        },
+      },
     });
 
-    if (profileError) throw profileError;
+    if (authError) throw authError;
+    if (!authData.user) throw new Error("Failed to create user");
 
-    // 3. Insert the user record
-    const { error: userError } = await supabase.from("users").insert({
-      id: userId,
-      email: data.email,
-      phone_number: data.phone_number,
-      created_by: currentUserId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+    // 3. Update profiles table with additional data if needed
+    // (The trigger should have created the basic profile)
+    const { error: profileUpdateError } = await supabase
+      .from("profiles")
+      .update({
+        phone_number: data.phone_number,
+        user_type: data.user_type, // Ensure user_type is set correctly
+      })
+      .eq("id", authData.user.id);
 
-    if (userError) throw userError;
+    if (profileUpdateError) throw profileUpdateError;
 
-    // 4. Send an invitation email via a custom function or API
-    // This would typically be handled by a Supabase Edge Function
-    // For now, we'll just return the user data
-    
-    return {
-      user: {
-        id: userId,
-        email: data.email,
-      }
-    };
-  } catch (error) {
-    console.error("Error creating user:", error);
-    throw error;
+    // 4. Update the users table if needed
+    const { error: userUpdateError } = await supabase
+      .from("users")
+      .update({
+        phone_number: data.phone_number,
+        created_by: currentUser.id,
+      })
+      .eq("id", authData.user.id);
+
+    if (userUpdateError) throw userUpdateError;
+
+    return authData;
+  } finally {
+    // 5. Always restore the current session
+    if (currentSession) {
+      localStorage.setItem('session', currentSession);
+      
+      // Force a refresh of the auth state
+      // This is critical to restore the admin user's session
+      await supabase.auth.getSession();
+    }
   }
 }
