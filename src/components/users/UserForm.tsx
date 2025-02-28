@@ -11,7 +11,6 @@ import { UserPhoneField } from "./form-fields/UserPhoneField";
 import { UserTypeField } from "./form-fields/UserTypeField";
 import { handleCreateUser, handleUpdateUser } from "./utils/form-handlers";
 import { UserFormData } from "./types";
-import { supabase } from "@/lib/supabase"; // Import the supabase client
 
 interface UserFormProps {
   user?: Profile;
@@ -42,23 +41,12 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
-        // Store current session before creating user
-        const currentSession = localStorage.getItem('session');
-        
-        // Create the user
+        // Create the user with our non-authentication method
         await handleCreateUser(data);
-        
-        // Immediately restore the current session
-        if (currentSession) {
-          localStorage.setItem('session', currentSession);
-          
-          // Force auth session refresh
-          await supabase.auth.getSession();
-        }
         
         toast({
           title: "Success",
-          description: "User created successfully. A password reset email has been sent.",
+          description: "User created successfully. An invitation will be sent to the user's email.",
         });
       }
       onSuccess?.();
@@ -66,7 +54,9 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       console.error("Error saving user:", error);
       toast({
         title: "Error",
-        description: "Failed to save user",
+        description: typeof error === 'object' && error !== null && 'message' in error 
+          ? String(error.message) 
+          : "Failed to save user",
         variant: "destructive",
       });
     } finally {

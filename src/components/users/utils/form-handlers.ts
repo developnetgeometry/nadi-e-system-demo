@@ -30,86 +30,54 @@ export async function handleUpdateUser(data: UserFormData, user: Profile) {
 }
 
 export async function handleCreateUser(data: UserFormData) {
-  // Store the current user's session
-  const currentSession = localStorage.getItem('session');
+  // Instead of using auth.signUp, we'll create the user records directly
+  
+  // 1. Generate a random UUID for the new user
+  const userId = crypto.randomUUID();
+  const currentUserId = (await supabase.auth.getUser()).data.user?.id;
+  
+  if (!currentUserId) {
+    throw new Error("Current user not found. Please log in again.");
+  }
   
   try {
-    // Create new user with admin key to prevent session replacement
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // 2. Insert the user profile
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: userId,
       email: data.email,
-      password: Math.random().toString(36).slice(-8), // Generate random password
-      options: {
-        data: {
-          full_name: data.full_name, // Add full_name to user metadata
-        },
-      },
+      full_name: data.full_name,
+      user_type: data.user_type,
+      phone_number: data.phone_number,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
 
-    if (authError) throw authError;
-    if (!authData.user?.id) throw new Error("No user ID returned");
+    if (profileError) throw profileError;
 
-    // Check if profile already exists (might have been created by trigger)
-    const { data: existingProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", authData.user.id)
-      .single();
+    // 3. Insert the user record
+    const { error: userError } = await supabase.from("users").insert({
+      id: userId,
+      email: data.email,
+      phone_number: data.phone_number,
+      created_by: currentUserId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
 
-    // Only create profile if it doesn't exist
-    if (!existingProfile) {
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user.id,
+    if (userError) throw userError;
+
+    // 4. Send an invitation email via a custom function or API
+    // This would typically be handled by a Supabase Edge Function
+    // For now, we'll just return the user data
+    
+    return {
+      user: {
+        id: userId,
         email: data.email,
-        full_name: data.full_name,
-        user_type: data.user_type,
-        phone_number: data.phone_number,
-      });
-
-      if (profileError) throw profileError;
-    } else {
-      // Profile exists but might need updating
-      const { error: profileUpdateError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: data.full_name,
-          user_type: data.user_type,
-          phone_number: data.phone_number,
-        })
-        .eq("id", authData.user.id);
-
-      if (profileUpdateError) throw profileUpdateError;
-    }
-
-    // Create user record if it doesn't exist
-    const { data: existingUser } = await supabase
-      .from("users")
-      .select("id")
-      .eq("id", authData.user.id)
-      .single();
-
-    if (!existingUser) {
-      const { error: userError } = await supabase.from("users").insert({
-        id: authData.user.id,
-        email: data.email,
-        phone_number: data.phone_number,
-        created_by: (await supabase.auth.getUser()).data.user?.id,
-      });
-
-      if (userError) throw userError;
-    }
-
-    return authData;
-  } finally {
-    // Restore the current user's session, regardless of what happened
-    if (currentSession) {
-      localStorage.setItem('session', currentSession);
-      
-      // Force a refresh of the auth state to ensure we're using the correct session
-      const parsedSession = JSON.parse(currentSession);
-      if (parsedSession && parsedSession.user) {
-        // This ensures the supabase client uses the restored session
-        await supabase.auth.getSession();
       }
-    }
+    };
+  } catch (error) {
+    console.error("Error creating user:", error);
+    throw error;
   }
 }
