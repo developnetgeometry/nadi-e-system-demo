@@ -43,14 +43,35 @@ const Registration = () => {
 
       if (authError) throw authError;
 
-      // Create profile with fixed member type
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user?.id,
-        ...data,
-        user_type: "member", // Always set as member
-      });
+      // Check if profile already exists (might have been created by trigger)
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", authData.user?.id)
+        .single();
 
-      if (profileError) throw profileError;
+      // Only create profile if it doesn't exist
+      if (!existingProfile) {
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: authData.user?.id,
+          ...data,
+          user_type: "member", // Always set as member
+        });
+
+        if (profileError) throw profileError;
+      } else {
+        // Profile exists but might need updating
+        const { error: profileUpdateError } = await supabase
+          .from("profiles")
+          .update({
+            full_name: data.full_name,
+            ic_number: data.ic_number,
+            phone_number: data.phone_number,
+          })
+          .eq("id", authData.user?.id);
+
+        if (profileUpdateError) throw profileUpdateError;
+      }
       
       // Restore the current session
       if (currentSession) {
