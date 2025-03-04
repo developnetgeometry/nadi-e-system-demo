@@ -143,16 +143,22 @@ export const useAuth = () => {
         
         // Log inactivity timeout event
         if (currentSessionId) {
-          supabase.rpc('log_audit_event', {
-            p_action: 'inactivity_timeout',
-            p_entity_type: 'session',
-            p_entity_id: currentSessionId
-          }).then(() => {
-            logout();
-          }).catch(error => {
-            console.error("Error logging inactivity:", error);
-            logout();
-          });
+          // Fix: Use Promise handling with async/await instead of .catch()
+          const logInactivity = async () => {
+            try {
+              await supabase.rpc('log_audit_event', {
+                p_action: 'inactivity_timeout',
+                p_entity_type: 'session',
+                p_entity_id: currentSessionId
+              });
+              logout();
+            } catch (error) {
+              console.error("Error logging inactivity:", error);
+              logout();
+            }
+          };
+          
+          logInactivity();
         } else {
           logout();
         }
