@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { UserType, Profile } from "@/types/auth";
@@ -40,10 +41,12 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
+        // Create the user with our non-authentication method
         await handleCreateUser(data);
+        
         toast({
           title: "Success",
-          description: "User created successfully. A password reset email has been sent.",
+          description: "User created successfully. An invitation will be sent to the user's email.",
         });
       }
       onSuccess?.();
@@ -51,7 +54,9 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       console.error("Error saving user:", error);
       toast({
         title: "Error",
-        description: "Failed to save user",
+        description: typeof error === 'object' && error !== null && 'message' in error 
+          ? String(error.message) 
+          : "Failed to save user",
         variant: "destructive",
       });
     } finally {

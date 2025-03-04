@@ -528,6 +528,7 @@ export type Database = {
           created_at: string
           id: string
           menu_key: string
+          menu_path: string | null
           updated_at: string
           visible_to: Database["public"]["Enums"]["user_type"][]
         }
@@ -535,6 +536,7 @@ export type Database = {
           created_at?: string
           id?: string
           menu_key: string
+          menu_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -542,6 +544,7 @@ export type Database = {
           created_at?: string
           id?: string
           menu_key?: string
+          menu_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -898,6 +901,7 @@ export type Database = {
           id: string
           parent_module: string
           submodule_key: string
+          submodule_path: string | null
           updated_at: string
           visible_to: Database["public"]["Enums"]["user_type"][]
         }
@@ -906,6 +910,7 @@ export type Database = {
           id?: string
           parent_module: string
           submodule_key: string
+          submodule_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -914,6 +919,7 @@ export type Database = {
           id?: string
           parent_module?: string
           submodule_key?: string
+          submodule_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
         }
@@ -1268,6 +1274,16 @@ export type Database = {
           user_id: string | null
         }
       }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_entity_type: string
+          p_entity_id: string
+          p_changes?: Json
+          p_ip_address?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       asset_category:
@@ -1286,6 +1302,12 @@ export type Database = {
       notification_type: "info" | "warning" | "success" | "error"
       priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
+      session_event_type:
+        | "login"
+        | "logout"
+        | "session_expired"
+        | "session_refreshed"
+        | "inactivity_timeout"
       session_type: "login" | "system_access" | "feature_usage" | "api_call"
       task_status:
         | "pending"

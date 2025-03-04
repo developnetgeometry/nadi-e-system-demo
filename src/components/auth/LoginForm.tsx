@@ -138,6 +138,7 @@ export const LoginForm = () => {
             </Label>
             <Link 
               to="/forgot-password" 
+              state={{ from: "login" }}
               className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
             >
               Forgot password?

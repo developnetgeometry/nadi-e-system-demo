@@ -23,6 +23,10 @@ const Registration = () => {
 
   const onSubmit = async (data: RegistrationForm) => {
     setIsLoading(true);
+    
+    // Store current session
+    const currentSession = localStorage.getItem('session');
+    
     try {
       // Generate a random password for the new user
       const password = Math.random().toString(36).slice(-8);
@@ -31,18 +35,44 @@ const Registration = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password,
+        options: {
+          data: {
+            full_name: data.full_name,
+          }
+        }
       });
 
       if (authError) throw authError;
 
-      // Create profile with fixed member type
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user?.id,
-        ...data,
-        user_type: "member", // Always set as member
-      });
+      // Check if profile already exists (might have been created by trigger)
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", authData.user?.id)
+        .single();
 
-      if (profileError) throw profileError;
+      // Only create profile if it doesn't exist
+      if (!existingProfile) {
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: authData.user?.id,
+          ...data,
+          user_type: "member", // Always set as member
+        });
+
+        if (profileError) throw profileError;
+      } else {
+        // Profile exists but might need updating
+        const { error: profileUpdateError } = await supabase
+          .from("profiles")
+          .update({
+            full_name: data.full_name,
+            ic_number: data.ic_number,
+            phone_number: data.phone_number,
+          })
+          .eq("id", authData.user?.id);
+
+        if (profileUpdateError) throw profileUpdateError;
+      }
 
       toast({
         title: "Success",
@@ -58,6 +88,18 @@ const Registration = () => {
         variant: "destructive",
       });
     } finally {
+      // Restore the current session
+      if (currentSession) {
+        localStorage.setItem('session', currentSession);
+        
+        // Force a refresh of the auth state
+        const parsedSession = JSON.parse(currentSession);
+        if (parsedSession && parsedSession.user) {
+          // This ensures the supabase client uses the restored session
+          await supabase.auth.getSession();
+        }
+      }
+      
       setIsLoading(false);
     }
   };
