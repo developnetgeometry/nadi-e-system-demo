@@ -3,28 +3,24 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RefreshCw, Download, Clock, Activity } from "lucide-react";
-import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  createProfileMap,
+  processAuditLogs,
+  processSessions,
+  filterLogs,
+  filterSessions,
+  exportToCSV
+} from "@/components/activity/utils/activity-utils";
+import { AuditLogTable } from "@/components/activity/AuditLogTable";
+import { SessionTable } from "@/components/activity/SessionTable";
 
 const ActivityLogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterBy, setFilterBy] = useState<"all" | "login" | "logout" | "actions">("all");
 
   // Fetch profiles separately
   const { data: profiles = [] } = useQuery({
@@ -44,12 +40,7 @@ const ActivityLogs = () => {
   });
 
   // Create a lookup map for profiles
-  const profileMap = profiles.reduce((acc, profile) => {
-    acc[profile.id] = {
-      email: profile.email
-    };
-    return acc;
-  }, {});
+  const profileMap = createProfileMap(profiles);
 
   // Get member IDs
   const memberIds = profiles.map(profile => profile.id);
@@ -106,100 +97,18 @@ const ActivityLogs = () => {
     enabled: memberIds.length > 0
   });
 
-  // Combine logs with user information
-  const logs = logsRaw.map(log => {
-    const userProfile = log.user_id ? profileMap[log.user_id] : null;
-    return {
-      ...log,
-      userEmail: userProfile?.email || 'Unknown member'
-    };
-  });
+  // Process logs and sessions
+  const logs = processAuditLogs(logsRaw, profileMap);
+  const sessions = processSessions(sessionsRaw, profileMap);
 
-  // Combine sessions with user information and calculate duration
-  const sessions = sessionsRaw.map(session => {
-    const userProfile = session.user_id ? profileMap[session.user_id] : null;
-    const startTime = new Date(session.start_time);
-    const endTime = session.end_time ? new Date(session.end_time) : new Date();
-    const durationMs = endTime.getTime() - startTime.getTime();
-    const durationMinutes = Math.round(durationMs / (1000 * 60));
-
-    return {
-      ...session,
-      duration_minutes: durationMinutes,
-      userEmail: userProfile?.email || 'Unknown member'
-    };
-  });
-
-  // Filter logs based on search term
-  const filteredLogs = logs.filter((log) => {
-    if (!searchTerm) return true;
-    
-    const searchFields = [
-      log.action,
-      log.entity_type,
-      log.entity_id,
-      log.ip_address,
-      log.userEmail,
-    ];
-    
-    return searchFields.some(
-      (field) => field && field.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  // Filter sessions based on search term
-  const filteredSessions = sessions.filter((session) => {
-    if (!searchTerm) return true;
-    
-    const searchFields = [
-      session.session_type,
-      session.ip_address,
-      session.user_agent,
-      session.userEmail,
-    ];
-    
-    return searchFields.some(
-      (field) => field && field.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  // Filter logs and sessions based on search term
+  const filteredLogs = filterLogs(logs, searchTerm);
+  const filteredSessions = filterSessions(sessions, searchTerm);
 
   // Handle refresh
   const handleRefresh = () => {
     refetchLogs();
     refetchSessions();
-  };
-
-  // Export data as CSV
-  const exportToCSV = (data, filename) => {
-    // Prepare CSV content
-    const headers = Object.keys(data[0] || {}).filter(key => !key.startsWith('user'));
-    const csvRows = [
-      // Add headers
-      headers.join(','),
-      // Add data rows
-      ...data.map(row => {
-        return headers
-          .map(header => {
-            const value = row[header];
-            return typeof value === 'object' 
-              ? JSON.stringify(value)
-              : `"${value?.toString().replace(/"/g, '""') || ''}"`;
-          })
-          .join(',');
-      }),
-    ];
-
-    // Create and download the CSV file
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
@@ -250,117 +159,19 @@ const ActivityLogs = () => {
             </TabsList>
 
             <TabsContent value="logs" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Member Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Time</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead>Action</TableHead>
-                          <TableHead>Entity Type</TableHead>
-                          <TableHead className="hidden lg:table-cell">IP Address</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {isLoadingLogs ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center">
-                              <div className="flex justify-center py-4">
-                                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ) : filteredLogs.length > 0 ? (
-                          filteredLogs.map((log) => (
-                            <TableRow key={log.id}>
-                              <TableCell className="whitespace-nowrap">
-                                {format(new Date(log.created_at), "MMM d, h:mm a")}
-                              </TableCell>
-                              <TableCell>{log.userEmail}</TableCell>
-                              <TableCell className="font-medium">{log.action}</TableCell>
-                              <TableCell>{log.entity_type}</TableCell>
-                              <TableCell className="hidden lg:table-cell">{log.ip_address}</TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center">
-                              No member activity logs found
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
+              <AuditLogTable 
+                logs={filteredLogs}
+                isLoading={isLoadingLogs}
+                filterBy={filterBy}
+                setFilterBy={setFilterBy}
+              />
             </TabsContent>
 
             <TabsContent value="sessions" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Member Login Sessions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Start Time</TableHead>
-                          <TableHead>User</TableHead>
-                          <TableHead className="hidden md:table-cell">Duration</TableHead>
-                          <TableHead className="hidden lg:table-cell">IP Address</TableHead>
-                          <TableHead className="hidden xl:table-cell">Browser</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {isLoadingSessions ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center">
-                              <div className="flex justify-center py-4">
-                                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ) : filteredSessions.length > 0 ? (
-                          filteredSessions.map((session) => (
-                            <TableRow key={session.id}>
-                              <TableCell className="whitespace-nowrap">
-                                {format(new Date(session.start_time), "MMM d, h:mm a")}
-                              </TableCell>
-                              <TableCell>{session.userEmail}</TableCell>
-                              <TableCell className="hidden md:table-cell">
-                                {session.end_time ? (
-                                  `${session.duration_minutes} minutes`
-                                ) : (
-                                  <span className="text-green-500 font-medium">Active</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="hidden lg:table-cell">{session.ip_address}</TableCell>
-                              <TableCell className="hidden xl:table-cell">
-                                <span className="truncate max-w-[200px] inline-block" title={session.user_agent}>
-                                  {session.user_agent}
-                                </span>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center">
-                              No member sessions found
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
+              <SessionTable 
+                sessions={filteredSessions}
+                isLoading={isLoadingSessions}
+              />
             </TabsContent>
           </Tabs>
         </div>
