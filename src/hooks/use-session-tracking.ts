@@ -106,11 +106,86 @@ export const useSessionTracking = (user: User | null) => {
     }
   };
 
+  // Track page visit
+  const logPageVisit = async (pagePath: string, pageTitle: string) => {
+    if (!currentSessionId || !user) return;
+    
+    try {
+      await supabase.rpc('log_audit_event', {
+        p_action: 'page_visit',
+        p_entity_type: 'page',
+        p_entity_id: currentSessionId,
+        p_changes: JSON.stringify({
+          path: pagePath,
+          title: pageTitle,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
+      // Also update the session with the last accessed page
+      await supabase
+        .from('usage_sessions')
+        .update({
+          actions_performed: supabase.rpc('append_to_actions', { 
+            p_actions: JSON.stringify([{
+              type: 'page_visit',
+              path: pagePath,
+              title: pageTitle,
+              timestamp: new Date().toISOString()
+            }])
+          })
+        })
+        .eq('id', currentSessionId);
+    } catch (error) {
+      console.error("Error logging page visit:", error);
+    }
+  };
+
+  // Track database actions (create, read, update, delete)
+  const logDatabaseAction = async (
+    action: 'create' | 'read' | 'update' | 'delete',
+    entityType: string,
+    entityId: string,
+    details?: any
+  ) => {
+    if (!currentSessionId || !user) return;
+    
+    try {
+      await supabase.rpc('log_audit_event', {
+        p_action: action,
+        p_entity_type: entityType,
+        p_entity_id: entityId,
+        p_changes: details ? JSON.stringify(details) : null
+      });
+      
+      // Also update the session with the action performed
+      await supabase
+        .from('usage_sessions')
+        .update({
+          actions_performed: supabase.rpc('append_to_actions', { 
+            p_actions: JSON.stringify([{
+              type: 'database_action',
+              action: action,
+              entity_type: entityType,
+              entity_id: entityId,
+              details: details,
+              timestamp: new Date().toISOString()
+            }])
+          })
+        })
+        .eq('id', currentSessionId);
+    } catch (error) {
+      console.error(`Error logging ${action} action:`, error);
+    }
+  };
+
   return {
     currentSessionId,
     startSessionTracking,
     endSessionTracking,
     logInactivityEvent,
-    logSessionRefreshEvent
+    logSessionRefreshEvent,
+    logPageVisit,
+    logDatabaseAction
   };
 };
