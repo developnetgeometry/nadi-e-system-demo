@@ -29,6 +29,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       phone_number: user?.phone_number || "",
     },
   });
+  console.log("UserForm user:", JSON.stringify(user));
 
   const onSubmit = async (data: UserFormData) => {
     setIsLoading(true);
