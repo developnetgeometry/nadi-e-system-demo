@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -34,7 +33,7 @@ export const useAuth = () => {
         .from('usage_sessions')
         .insert({
           user_id: userId,
-          session_type: 'web_session',
+          session_type: 'login', // Changed from 'web_session' to 'login' which should be in the enum
           ip_address: ipData.ip,
           user_agent: userAgent,
           device_info: {
