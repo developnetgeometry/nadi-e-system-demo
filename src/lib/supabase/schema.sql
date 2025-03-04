@@ -22,6 +22,14 @@ CREATE TYPE notification_type AS ENUM (
   'error'
 );
 
+-- Create session_type enum
+CREATE TYPE session_type AS ENUM (
+  'login',
+  'api',
+  'mobile',
+  'desktop'
+);
+
 -- Create profiles table with user type
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,

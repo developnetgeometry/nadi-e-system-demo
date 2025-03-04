@@ -76,7 +76,7 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
   };
 
   if (!hasAccess()) {
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
