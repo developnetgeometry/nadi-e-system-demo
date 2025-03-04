@@ -29,7 +29,7 @@ export const DashboardNavbar = () => {
   const { settings } = useAppSettings();
 
   // Get navbar title from settings
-  const navbarTitle = settings.find(s => s.key === 'navbar_title')?.value || 'Dashboard';
+  const navbarTitle = settings.find(s => s.key === 'navbar_title')?.value || '';
 
   // Fetch user profile including name and role
   const { data: profile } = useQuery({
