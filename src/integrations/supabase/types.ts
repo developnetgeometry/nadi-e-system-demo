@@ -1274,6 +1274,16 @@ export type Database = {
           user_id: string | null
         }
       }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_entity_type: string
+          p_entity_id: string
+          p_changes?: Json
+          p_ip_address?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       asset_category:
@@ -1292,6 +1302,12 @@ export type Database = {
       notification_type: "info" | "warning" | "success" | "error"
       priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
+      session_event_type:
+        | "login"
+        | "logout"
+        | "session_expired"
+        | "session_refreshed"
+        | "inactivity_timeout"
       session_type: "login" | "system_access" | "feature_usage" | "api_call"
       task_status:
         | "pending"
