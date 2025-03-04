@@ -32,6 +32,23 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       console.log("Logging out user...");
+      
+      // Get the user type before logging out
+      let redirectPath = "/login"; // Default redirect path
+      
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+          
+        // If user is a member, redirect to member login
+        if (profileData && profileData.user_type === 'member') {
+          redirectPath = "/member-login";
+        }
+      }
+
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -39,14 +56,14 @@ export const useAuth = () => {
       localStorage.clear();
       setUser(null);
       
-      console.log("User logged out successfully");
+      console.log(`User logged out successfully, redirecting to ${redirectPath}`);
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
 
-      // Redirect to login page
-      navigate("/login");
+      // Redirect based on user type
+      navigate(redirectPath);
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
