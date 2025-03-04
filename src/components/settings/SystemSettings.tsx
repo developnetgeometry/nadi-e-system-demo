@@ -7,6 +7,7 @@ import { Settings as SettingsIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 const DEFAULT_SETTINGS = [
   {
@@ -50,6 +51,28 @@ const DEFAULT_SETTINGS = [
     description: "Allow or disable member login functionality",
     group: "access",
     value: "true"
+  },
+  // Session configuration settings
+  {
+    key: "session_timeout",
+    label: "Session Timeout (seconds)",
+    description: "Maximum duration of a user session in seconds (default: 3600 = 1 hour)",
+    group: "session",
+    value: "3600"
+  },
+  {
+    key: "session_inactivity_timeout",
+    label: "Inactivity Timeout (seconds)",
+    description: "Time in seconds before logging out an inactive user (default: 1800 = 30 minutes)",
+    group: "session",
+    value: "1800"
+  },
+  {
+    key: "enable_inactivity_tracking",
+    label: "Enable Inactivity Tracking",
+    description: "Log out users after a period of inactivity",
+    group: "session",
+    value: "false"
   }
 ];
 
@@ -112,6 +135,55 @@ export const SystemSettings = () => {
       )
     );
   };
+  
+  const handleSwitchChange = (key: string, checked: boolean) => {
+    setLocalSettings(prev =>
+      prev.map(s =>
+        s.key === key ? { ...s, value: checked.toString() } : s
+      )
+    );
+  };
+
+  const renderSettingInput = (setting: typeof localSettings[0]) => {
+    // For boolean settings, render a switch
+    if (setting.value === "true" || setting.value === "false") {
+      return (
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id={setting.key}
+            checked={setting.value === "true"}
+            onCheckedChange={(checked) => handleSwitchChange(setting.key, checked)}
+          />
+          <Label htmlFor={setting.key}>{setting.value === "true" ? "Enabled" : "Disabled"}</Label>
+        </div>
+      );
+    }
+    
+    // For numeric settings, render a number input
+    if (!isNaN(Number(setting.value)) && setting.key.includes("timeout")) {
+      return (
+        <Input
+          id={setting.key}
+          type="number"
+          value={setting.value}
+          onChange={(e) => handleInputChange(setting.key, e.target.value)}
+          className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
+          placeholder={`Enter ${setting.label.toLowerCase()}`}
+        />
+      );
+    }
+    
+    // Default text input
+    return (
+      <Input
+        id={setting.key}
+        value={setting.value}
+        onChange={(e) => handleInputChange(setting.key, e.target.value)}
+        className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
+        placeholder={`Enter ${setting.label.toLowerCase()}`}
+      />
+    );
+  };
 
   return (
     <Card className="overflow-hidden border-none shadow-lg">
@@ -140,13 +212,7 @@ export const SystemSettings = () => {
                     <Label htmlFor={setting.key} className="text-sm font-medium">
                       {setting.label}
                     </Label>
-                    <Input
-                      id={setting.key}
-                      value={setting.value}
-                      onChange={(e) => handleInputChange(setting.key, e.target.value)}
-                      className="transition-all duration-200 focus:ring-2 focus:ring-indigo-500"
-                      placeholder={`Enter ${setting.label.toLowerCase()}`}
-                    />
+                    {renderSettingInput(setting)}
                     {setting.description && (
                       <p className="text-sm text-gray-500">
                         {setting.description}
