@@ -26,18 +26,48 @@ import { format } from "date-fns";
 const ActivityLogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Fetch profiles separately
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["member-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, user_type")
+        .eq("user_type", "member");
+
+      if (error) {
+        console.error("Error fetching member profiles:", error);
+        throw error;
+      }
+      return data;
+    }
+  });
+
+  // Create a lookup map for profiles
+  const profileMap = profiles.reduce((acc, profile) => {
+    acc[profile.id] = {
+      email: profile.email
+    };
+    return acc;
+  }, {});
+
+  // Get member IDs
+  const memberIds = profiles.map(profile => profile.id);
+
   // Fetch member activity logs
   const {
-    data: logs = [],
+    data: logsRaw = [],
     isLoading: isLoadingLogs,
     refetch: refetchLogs,
   } = useQuery({
-    queryKey: ["member-activity-logs"],
+    queryKey: ["member-activity-logs", memberIds],
     queryFn: async () => {
+      if (memberIds.length === 0) return [];
+      
       const { data, error } = await supabase
         .from("audit_logs")
         .select("*")
-        .eq("entity_type", "member")
+        .in("user_id", memberIds)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -47,40 +77,22 @@ const ActivityLogs = () => {
 
       return data;
     },
+    enabled: memberIds.length > 0
   });
 
   // Fetch member sessions
   const {
-    data: sessions = [],
+    data: sessionsRaw = [],
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
   } = useQuery({
-    queryKey: ["member-sessions"],
+    queryKey: ["member-sessions", memberIds],
     queryFn: async () => {
-      // Query to find all users with user_type 'member'
-      const { data: memberProfiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_type", "member");
-
-      if (profileError) {
-        console.error("Error fetching member profiles:", profileError);
-        throw profileError;
-      }
-
-      const memberIds = memberProfiles.map(profile => profile.id);
+      if (memberIds.length === 0) return [];
       
-      // No members found
-      if (memberIds.length === 0) {
-        return [];
-      }
-
       const { data, error } = await supabase
         .from("usage_sessions")
-        .select(`
-          *,
-          user:profiles(email, user_type)
-        `)
+        .select("*")
         .in("user_id", memberIds)
         .order("start_time", { ascending: false });
 
@@ -89,19 +101,33 @@ const ActivityLogs = () => {
         throw error;
       }
 
-      // Calculate session duration
-      return data.map((session) => {
-        const startTime = new Date(session.start_time);
-        const endTime = session.end_time ? new Date(session.end_time) : new Date();
-        const durationMs = endTime.getTime() - startTime.getTime();
-        const durationMinutes = Math.round(durationMs / (1000 * 60));
-
-        return {
-          ...session,
-          duration_minutes: durationMinutes,
-        };
-      });
+      return data;
     },
+    enabled: memberIds.length > 0
+  });
+
+  // Combine logs with user information
+  const logs = logsRaw.map(log => {
+    const userProfile = log.user_id ? profileMap[log.user_id] : null;
+    return {
+      ...log,
+      userEmail: userProfile?.email || 'Unknown member'
+    };
+  });
+
+  // Combine sessions with user information and calculate duration
+  const sessions = sessionsRaw.map(session => {
+    const userProfile = session.user_id ? profileMap[session.user_id] : null;
+    const startTime = new Date(session.start_time);
+    const endTime = session.end_time ? new Date(session.end_time) : new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    return {
+      ...session,
+      duration_minutes: durationMinutes,
+      userEmail: userProfile?.email || 'Unknown member'
+    };
   });
 
   // Filter logs based on search term
@@ -113,6 +139,7 @@ const ActivityLogs = () => {
       log.entity_type,
       log.entity_id,
       log.ip_address,
+      log.userEmail,
     ];
     
     return searchFields.some(
@@ -128,7 +155,7 @@ const ActivityLogs = () => {
       session.session_type,
       session.ip_address,
       session.user_agent,
-      session.user?.email,
+      session.userEmail,
     ];
     
     return searchFields.some(
@@ -233,9 +260,9 @@ const ActivityLogs = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Time</TableHead>
+                          <TableHead>User</TableHead>
                           <TableHead>Action</TableHead>
                           <TableHead>Entity Type</TableHead>
-                          <TableHead className="hidden md:table-cell">Entity ID</TableHead>
                           <TableHead className="hidden lg:table-cell">IP Address</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -254,11 +281,9 @@ const ActivityLogs = () => {
                               <TableCell className="whitespace-nowrap">
                                 {format(new Date(log.created_at), "MMM d, h:mm a")}
                               </TableCell>
+                              <TableCell>{log.userEmail}</TableCell>
                               <TableCell className="font-medium">{log.action}</TableCell>
                               <TableCell>{log.entity_type}</TableCell>
-                              <TableCell className="hidden md:table-cell">
-                                {log.entity_id}
-                              </TableCell>
                               <TableCell className="hidden lg:table-cell">{log.ip_address}</TableCell>
                             </TableRow>
                           ))
@@ -308,9 +333,7 @@ const ActivityLogs = () => {
                               <TableCell className="whitespace-nowrap">
                                 {format(new Date(session.start_time), "MMM d, h:mm a")}
                               </TableCell>
-                              <TableCell>
-                                {session.user?.email || 'Unknown'}
-                              </TableCell>
+                              <TableCell>{session.userEmail}</TableCell>
                               <TableCell className="hidden md:table-cell">
                                 {session.end_time ? (
                                   `${session.duration_minutes} minutes`

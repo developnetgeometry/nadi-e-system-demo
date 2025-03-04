@@ -31,10 +31,8 @@ interface AuditLog {
   changes: any;
   ip_address: string;
   created_at: string;
-  user?: {
-    email: string;
-    user_type: string;
-  };
+  userEmail?: string;
+  userType?: string;
 }
 
 interface Session {
@@ -48,19 +46,42 @@ interface Session {
   device_info: any;
   created_at: string;
   duration_minutes?: number;
-  user?: {
-    email: string;
-    user_type: string;
-  };
+  userEmail?: string;
+  userType?: string;
 }
 
 export const ActivityLogList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState<"all" | "login" | "logout" | "actions">("all");
 
+  // Fetch profiles separately
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, email, user_type");
+
+      if (error) {
+        console.error("Error fetching profiles:", error);
+        throw error;
+      }
+      return data;
+    }
+  });
+
+  // Create a lookup map for profiles
+  const profileMap = profiles.reduce((acc, profile) => {
+    acc[profile.id] = {
+      email: profile.email,
+      user_type: profile.user_type
+    };
+    return acc;
+  }, {});
+
   // Fetch audit logs
   const {
-    data: auditLogs = [],
+    data: auditLogsRaw = [],
     isLoading: isLoadingLogs,
     refetch: refetchLogs,
   } = useQuery({
@@ -68,10 +89,7 @@ export const ActivityLogList = () => {
     queryFn: async () => {
       let query = supabase
         .from("audit_logs")
-        .select(`
-          *,
-          user:profiles(email, user_type)
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       // Apply filters
@@ -90,13 +108,13 @@ export const ActivityLogList = () => {
         throw error;
       }
 
-      return data as AuditLog[];
+      return data;
     },
   });
 
   // Fetch sessions
   const {
-    data: sessions = [],
+    data: sessionsRaw = [],
     isLoading: isLoadingSessions,
     refetch: refetchSessions,
   } = useQuery({
@@ -104,10 +122,7 @@ export const ActivityLogList = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("usage_sessions")
-        .select(`
-          *,
-          user:profiles(email, user_type)
-        `)
+        .select("*")
         .order("start_time", { ascending: false });
 
       if (error) {
@@ -115,19 +130,34 @@ export const ActivityLogList = () => {
         throw error;
       }
 
-      // Calculate session duration
-      return data.map((session: Session) => {
-        const startTime = new Date(session.start_time);
-        const endTime = session.end_time ? new Date(session.end_time) : new Date();
-        const durationMs = endTime.getTime() - startTime.getTime();
-        const durationMinutes = Math.round(durationMs / (1000 * 60));
-
-        return {
-          ...session,
-          duration_minutes: durationMinutes,
-        };
-      }) as Session[];
+      return data;
     },
+  });
+
+  // Combine audit logs with user information
+  const auditLogs = auditLogsRaw.map(log => {
+    const userProfile = log.user_id ? profileMap[log.user_id] : null;
+    return {
+      ...log,
+      userEmail: userProfile?.email,
+      userType: userProfile?.user_type
+    };
+  });
+
+  // Combine sessions with user information and calculate duration
+  const sessions = sessionsRaw.map(session => {
+    const userProfile = session.user_id ? profileMap[session.user_id] : null;
+    const startTime = new Date(session.start_time);
+    const endTime = session.end_time ? new Date(session.end_time) : new Date();
+    const durationMs = endTime.getTime() - startTime.getTime();
+    const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+    return {
+      ...session,
+      duration_minutes: durationMinutes,
+      userEmail: userProfile?.email,
+      userType: userProfile?.user_type
+    };
   });
 
   // Filter logs based on search term
@@ -139,7 +169,7 @@ export const ActivityLogList = () => {
       log.entity_type,
       log.entity_id,
       log.ip_address,
-      log.user?.email,
+      log.userEmail,
     ];
     
     return searchFields.some(
@@ -155,7 +185,7 @@ export const ActivityLogList = () => {
       session.session_type,
       session.ip_address,
       session.user_agent,
-      session.user?.email,
+      session.userEmail,
     ];
     
     return searchFields.some(
@@ -314,8 +344,8 @@ export const ActivityLogList = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <UserIcon className="h-4 w-4 text-muted-foreground" />
-                              <span className="truncate max-w-[120px] md:max-w-none" title={log.user?.email || 'Unknown'}>
-                                {log.user?.email || 'Unknown'}
+                              <span className="truncate max-w-[120px] md:max-w-none" title={log.userEmail || 'Unknown'}>
+                                {log.userEmail || 'Unknown'}
                               </span>
                             </div>
                           </TableCell>
@@ -373,8 +403,8 @@ export const ActivityLogList = () => {
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <UserIcon className="h-4 w-4 text-muted-foreground" />
-                              <span className="truncate max-w-[120px] md:max-w-none" title={session.user?.email || 'Unknown'}>
-                                {session.user?.email || 'Unknown'}
+                              <span className="truncate max-w-[120px] md:max-w-none" title={session.userEmail || 'Unknown'}>
+                                {session.userEmail || 'Unknown'}
                               </span>
                             </div>
                           </TableCell>
