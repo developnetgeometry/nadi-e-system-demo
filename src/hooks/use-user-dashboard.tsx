@@ -44,9 +44,12 @@ export const useUserDashboard = () => {
             throw roleError;
           }
 
-          const role = roleData?.roles?.name;
-          if (role) {
-            setUserType(role as UserType);
+          // Extract the role name from the response
+          if (roleData?.roles && typeof roleData.roles === 'object') {
+            const role = (roleData.roles as { name: string }).name;
+            if (role) {
+              setUserType(role as UserType);
+            }
           }
         }
       } catch (err) {

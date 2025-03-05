@@ -1,54 +1,37 @@
-import { lazy } from "react";
-const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
-const Users = lazy(() => import("@/pages/dashboard/Users"));
-const Roles = lazy(() => import("@/pages/dashboard/Roles"));
-const AccessControl = lazy(() => import("@/pages/dashboard/AccessControl"));
-const MenuVisibility = lazy(() => import("@/pages/dashboard/MenuVisibility"));
-const Activity = lazy(() => import("@/pages/dashboard/Activity"));
-const Reports = lazy(() => import("@/pages/dashboard/Reports"));
-const Calendar = lazy(() => import("@/pages/dashboard/Calendar"));
-const Notifications = lazy(() => import("@/pages/dashboard/Notifications"));
-const Settings = lazy(() => import("@/pages/dashboard/Settings"));
 
-export const dashboardRoutes = [
-  {
-    path: "/dashboard",
-    element: <Dashboard />,
-  },
-  {
-    path: "/dashboard/users",
-    element: <Users />,
-  },
-  {
-    path: "/dashboard/roles",
-    element: <Roles />,
-  },
-  {
-    path: "/dashboard/access-control",
-    element: <AccessControl />,
-  },
-  {
-    path: "/dashboard/menu-visibility",
-    element: <MenuVisibility />,
-  },
-  {
-    path: "/dashboard/activity",
-    element: <Activity />,
-  },
-  {
-    path: "/dashboard/reports",
-    element: <Reports />,
-  },
-  {
-    path: "/dashboard/calendar",
-    element: <Calendar />,
-  },
-  {
-    path: "/dashboard/notifications",
-    element: <Notifications />,
-  },
-  {
-    path: "/dashboard/settings",
-    element: <Settings />,
-  },
-];
+import { Route } from "react-router-dom";
+import Dashboard from "@/pages/dashboard/Dashboard";
+import Users from "@/pages/dashboard/Users";
+import Roles from "@/pages/dashboard/Roles";
+import RoleConfig from "@/pages/dashboard/RoleConfig";
+import Settings from "@/pages/dashboard/Settings";
+import AccessControl from "@/pages/dashboard/AccessControl";
+import MenuVisibility from "@/pages/dashboard/MenuVisibility";
+import Activity from "@/pages/dashboard/Activity";
+import Reports from "@/pages/dashboard/Reports";
+import Calendar from "@/pages/dashboard/Calendar";
+import Notifications from "@/pages/dashboard/Notifications";
+import Profile from "@/pages/dashboard/Profile";
+import UsageSessions from "@/pages/dashboard/UsageSessions";
+import Organizations from "@/pages/dashboard/Organizations";
+import OrganizationDetails from "@/pages/dashboard/OrganizationDetails";
+
+export const dashboardRoutes = (
+  <Route path="dashboard">
+    <Route index element={<Dashboard />} />
+    <Route path="users" element={<Users />} />
+    <Route path="roles" element={<Roles />} />
+    <Route path="roles/:id" element={<RoleConfig />} />
+    <Route path="access-control" element={<AccessControl />} />
+    <Route path="menu-visibility" element={<MenuVisibility />} />
+    <Route path="activity" element={<Activity />} />
+    <Route path="reports" element={<Reports />} />
+    <Route path="calendar" element={<Calendar />} />
+    <Route path="notifications" element={<Notifications />} />
+    <Route path="settings" element={<Settings />} />
+    <Route path="profile" element={<Profile />} />
+    <Route path="usage-sessions" element={<UsageSessions />} />
+    <Route path="organizations" element={<Organizations />} />
+    <Route path="organizations/:id" element={<OrganizationDetails />} />
+  </Route>
+);
