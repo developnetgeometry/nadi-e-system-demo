@@ -56,7 +56,7 @@ export function OrganizationForm({
       type: organization?.type || "dusp",
       description: organization?.description || "",
       logo_url: organization?.logo_url || "",
-      parent_id: organization?.parent_id || "",
+      parent_id: organization?.parent_id || null,
     },
   });
 
@@ -78,10 +78,6 @@ export function OrganizationForm({
   }, [form.watch("type"), organizations, organization?.id]);
 
   const handleSubmit = (values: OrganizationFormValues) => {
-    // Ensure parent_id is null if empty string
-    if (values.parent_id === "") {
-      values.parent_id = null;
-    }
     onSubmit(values);
   };
 
@@ -145,7 +141,7 @@ export function OrganizationForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {filteredParentOrgs.map((org) => (
                     <SelectItem key={org.id} value={org.id}>
                       {org.name}

@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { OrganizationForm } from "./OrganizationForm";
 
@@ -28,6 +29,11 @@ export function OrganizationFormDialog({
           <DialogTitle>
             {organization ? "Edit" : "Create"} Organization
           </DialogTitle>
+          <DialogDescription>
+            {organization 
+              ? "Update organization details" 
+              : "Fill in the details to create a new organization"}
+          </DialogDescription>
         </DialogHeader>
         <OrganizationForm
           organization={organization}
