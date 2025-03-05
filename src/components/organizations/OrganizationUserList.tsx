@@ -110,6 +110,17 @@ export const OrganizationUserList = () => {
     );
   }
 
+  // Type assertion to ensure TypeScript recognizes the profiles property
+  type EnhancedOrgUser = OrganizationUser & {
+    profiles: {
+      id: string;
+      full_name?: string;
+      email?: string;
+      user_type: UserType;
+      avatar_url?: string;
+    };
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -127,8 +138,9 @@ export const OrganizationUserList = () => {
           ) : orgUsers && orgUsers.length > 0 ? (
             <div className="space-y-4">
               {orgUsers.map((orgUser) => {
-                // Find the user profile for this organization user
-                const userProfile = orgUser.profiles;
+                // Type assertion for the organization user to access the profiles property
+                const enhancedOrgUser = orgUser as unknown as EnhancedOrgUser;
+                const userProfile = enhancedOrgUser.profiles;
                 
                 return (
                   <div key={orgUser.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors">

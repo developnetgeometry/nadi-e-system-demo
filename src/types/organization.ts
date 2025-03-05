@@ -9,7 +9,7 @@ export interface Organization {
   type: OrganizationType;
   description?: string;
   logo_url?: string;
-  parent_id?: string;
+  parent_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,7 +28,7 @@ export interface OrganizationFormData {
   type: OrganizationType;
   description?: string;
   logo_url?: string;
-  parent_id?: string;
+  parent_id?: string | null;
 }
 
 export interface OrganizationUserFormData {
