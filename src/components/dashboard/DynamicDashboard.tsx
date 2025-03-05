@@ -46,7 +46,6 @@ export const DynamicDashboard = () => {
     case "vendor":
       return <VendorDashboard />;
     case "member":
-    case "user":
       return <MemberDashboard />;
     default:
       // Fallback to member dashboard if user type is unknown
