@@ -149,7 +149,8 @@ export function OrganizationDetails() {
               </div>
             </TabsContent>
             <TabsContent value="users">
-              <OrganizationUserList organizationId={organization.id} />
+              {/* Fixed: Using the component without any props, as it now reads the id from useParams internally */}
+              <OrganizationUserList />
             </TabsContent>
           </Tabs>
         </CardContent>

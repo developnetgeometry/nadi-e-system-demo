@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const OrganizationUserList = () => {
+  // Get organization ID from route params instead of props
   const { id } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
