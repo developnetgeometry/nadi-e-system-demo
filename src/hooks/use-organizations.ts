@@ -40,9 +40,17 @@ export const useOrganizations = () => {
   };
 
   const createOrganization = async (formData: OrganizationFormData): Promise<Organization> => {
+    // Clean up the data to ensure parent_id is properly handled
+    const cleanData = { ...formData };
+    
+    // Ensure parent_id is either a valid UUID or null, not an empty string
+    if (cleanData.parent_id === "") {
+      cleanData.parent_id = null;
+    }
+
     const { data, error } = await supabase
       .from("organizations")
-      .insert([formData])
+      .insert([cleanData])
       .select()
       .single();
 
@@ -51,9 +59,17 @@ export const useOrganizations = () => {
   };
 
   const updateOrganization = async ({ id, ...formData }: Organization): Promise<Organization> => {
+    // Clean up the data to ensure parent_id is properly handled
+    const cleanData = { ...formData };
+    
+    // Ensure parent_id is either a valid UUID or null, not an empty string
+    if (cleanData.parent_id === "") {
+      cleanData.parent_id = null;
+    }
+
     const { data, error } = await supabase
       .from("organizations")
-      .update(formData)
+      .update(cleanData)
       .eq("id", id)
       .select()
       .single();

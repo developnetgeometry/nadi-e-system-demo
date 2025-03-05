@@ -29,7 +29,7 @@ const organizationSchema = z.object({
   type: z.enum(["dusp", "tp"] as const),
   description: z.string().optional(),
   logo_url: z.string().optional(),
-  parent_id: z.string().optional(),
+  parent_id: z.string().optional().nullable().transform(val => val === "" ? null : val),
 });
 
 type OrganizationFormValues = z.infer<typeof organizationSchema>;
@@ -74,6 +74,10 @@ export function OrganizationForm({
   }, [form.watch("type"), organizations]);
 
   const handleSubmit = (values: OrganizationFormValues) => {
+    // Ensure parent_id is null if empty string
+    if (values.parent_id === "") {
+      values.parent_id = null;
+    }
     onSubmit(values);
   };
 
@@ -129,7 +133,7 @@ export function OrganizationForm({
                 <FormLabel>Parent Organization (DUSP)</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value || ""}
+                  value={field.value || ""}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -137,6 +141,7 @@ export function OrganizationForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="">None</SelectItem>
                     {filteredParentOrgs.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.name}
