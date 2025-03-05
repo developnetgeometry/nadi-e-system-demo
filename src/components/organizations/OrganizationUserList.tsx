@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrganizations } from "@/hooks/use-organizations";
@@ -33,8 +32,8 @@ export const OrganizationUserList = () => {
 
   // Get eligible user types based on organization type
   const eligibleUserTypes: UserType[] = organization?.type === "dusp" 
-    ? ["dusp", "tp_admin", "tp"] 
-    : ["tp_admin", "tp"];
+    ? ["dusp", "tp", "tp_admin"] 
+    : ["tp", "tp_admin"];
 
   // Fetch users already in the organization
   const { 

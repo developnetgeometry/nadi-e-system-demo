@@ -1,7 +1,9 @@
+
 export type UserType =
   | "member"
   | "vendor"
   | "tp"
+  | "tp_admin"
   | "sso"
   | "dusp"
   | "super_admin"
