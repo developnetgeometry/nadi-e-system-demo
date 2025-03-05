@@ -7,6 +7,7 @@ import { useUserDashboard } from "@/hooks/use-user-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { UserType } from "@/types/auth";
 
 export const DynamicDashboard = () => {
   const { userType, isLoading, error } = useUserDashboard();
@@ -41,7 +42,9 @@ export const DynamicDashboard = () => {
   switch (userType) {
     case "super_admin":
       return <SuperAdminDashboard />;
-    case "admin":
+    case "dusp":
+      return <AdminDashboard />;
+    case "tp":
       return <AdminDashboard />;
     case "vendor":
       return <VendorDashboard />;

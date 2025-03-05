@@ -2902,6 +2902,36 @@ export type Database = {
         }
         Relationships: []
       }
+      nd_leave_rep_approval: {
+        Row: {
+          action_by: string | null
+          date_action: string | null
+          flag: number | null
+          id: number
+          leave_rep_id: number | null
+          staff_id: number | null
+          total_day: number | null
+        }
+        Insert: {
+          action_by?: string | null
+          date_action?: string | null
+          flag?: number | null
+          id: number
+          leave_rep_id?: number | null
+          staff_id?: number | null
+          total_day?: number | null
+        }
+        Update: {
+          action_by?: string | null
+          date_action?: string | null
+          flag?: number | null
+          id?: number
+          leave_rep_id?: number | null
+          staff_id?: number | null
+          total_day?: number | null
+        }
+        Relationships: []
+      }
       nd_leave_rep_attachment: {
         Row: {
           created_at: string | null
@@ -3082,36 +3112,6 @@ export type Database = {
           name?: string | null
           total?: number | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      "nd_leave-rep_approval": {
-        Row: {
-          action_by: string | null
-          date_action: string | null
-          flag: number | null
-          id: number
-          leave_rep_id: number | null
-          staff_id: number | null
-          total_day: number | null
-        }
-        Insert: {
-          action_by?: string | null
-          date_action?: string | null
-          flag?: number | null
-          id: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
-          total_day?: number | null
-        }
-        Update: {
-          action_by?: string | null
-          date_action?: string | null
-          flag?: number | null
-          id?: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
-          total_day?: number | null
         }
         Relationships: []
       }
@@ -6914,6 +6914,89 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_users: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_users_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          parent_id: string | null
+          type: Database["public"]["Enums"]["organization_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          parent_id?: string | null
+          type: Database["public"]["Enums"]["organization_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          parent_id?: string | null
+          type?: Database["public"]["Enums"]["organization_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           action: string
@@ -7529,6 +7612,18 @@ export type Database = {
           user_id: string | null
         }
       }
+      get_current_user_type: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_type"]
+      }
+      get_user_type: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_type"]
+      }
+      is_current_user_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           p_action: string
@@ -7555,6 +7650,7 @@ export type Database = {
       invoice_status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
       notification_channel: "in_app" | "email" | "sms"
       notification_type: "info" | "warning" | "success" | "error"
+      organization_type: "dusp" | "tp"
       priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
       session_event_type:
@@ -7581,6 +7677,7 @@ export type Database = {
         | "medical_office"
         | "staff_internal"
         | "staff_external"
+        | "tp_admin"
       workflow_status: "draft" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {
