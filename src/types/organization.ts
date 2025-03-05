@@ -36,3 +36,15 @@ export interface OrganizationUserFormData {
   user_id: string;
   role: string;
 }
+
+// Add a new type for the enhanced organization user with profile data
+export interface EnhancedOrgUser extends OrganizationUser {
+  profiles: {
+    id: string;
+    full_name?: string;
+    email?: string;
+    user_type: UserType;
+    avatar_url?: string;
+  };
+}
+

@@ -2,28 +2,20 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrganizations } from "@/hooks/use-organizations";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, UserPlus, X, Search } from "lucide-react";
-import { OrganizationUser } from "@/types/organization";
-import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { UserType } from "@/types/auth";
+import { EnhancedOrgUser } from "@/types/organization";
+import { OrganizationMembersList } from "./users/OrganizationMembersList";
+import { UserFilters } from "./users/UserFilters";
+import { RoleSelector } from "./users/RoleSelector";
+import { AvailableUsersList } from "./users/AvailableUsersList";
 
 export const OrganizationUserList = () => {
   // Get organization ID from route params
   const { id } = useParams();
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("member");
   const [filterUserType, setFilterUserType] = useState<string>("all");
@@ -110,16 +102,7 @@ export const OrganizationUserList = () => {
     );
   }
 
-  // Type assertion to ensure TypeScript recognizes the profiles property
-  type EnhancedOrgUser = OrganizationUser & {
-    profiles: {
-      id: string;
-      full_name?: string;
-      email?: string;
-      user_type: UserType;
-      avatar_url?: string;
-    };
-  };
+  const enhancedOrgUsers = orgUsers as unknown as EnhancedOrgUser[];
 
   return (
     <div className="space-y-6">
@@ -133,50 +116,11 @@ export const OrganizationUserList = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loadingOrgUsers ? (
-            <div className="flex justify-center py-4">Loading members...</div>
-          ) : orgUsers && orgUsers.length > 0 ? (
-            <div className="space-y-4">
-              {orgUsers.map((orgUser) => {
-                // Type assertion for the organization user to access the profiles property
-                const enhancedOrgUser = orgUser as unknown as EnhancedOrgUser;
-                const userProfile = enhancedOrgUser.profiles;
-                
-                return (
-                  <div key={orgUser.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <Avatar>
-                        <AvatarImage src={userProfile?.avatar_url || "/placeholder.svg"} />
-                        <AvatarFallback>{userProfile?.full_name?.substring(0, 2) || "U"}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{userProfile?.full_name || "Unknown User"}</div>
-                        <div className="text-sm text-muted-foreground">{userProfile?.email}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="capitalize">
-                        {userProfile?.user_type || "unknown"}
-                      </Badge>
-                      <Badge>{orgUser.role}</Badge>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleRemoveUser(orgUser.user_id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-4 text-muted-foreground">
-              No members in this organization yet.
-            </div>
-          )}
+          <OrganizationMembersList 
+            orgUsers={enhancedOrgUsers}
+            isLoading={loadingOrgUsers}
+            onRemoveUser={handleRemoveUser}
+          />
         </CardContent>
       </Card>
 
@@ -186,99 +130,32 @@ export const OrganizationUserList = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search users..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="w-40">
-                <Select
-                  value={filterUserType}
-                  onValueChange={setFilterUserType}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    {eligibleUserTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <UserFilters 
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              filterUserType={filterUserType}
+              onFilterChange={setFilterUserType}
+              eligibleUserTypes={eligibleUserTypes}
+            />
 
             <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <label className="text-sm text-muted-foreground mb-1 block">
-                  Assign Role
-                </label>
-                <Select
-                  value={selectedRole}
-                  onValueChange={setSelectedRole}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <RoleSelector 
+                selectedRole={selectedRole}
+                onRoleChange={setSelectedRole}
+              />
             </div>
           </div>
 
           <div className="mt-4">
             <h4 className="text-sm font-medium mb-2">Available Users</h4>
             
-            {loadingEligibleUsers ? (
-              <div className="flex justify-center py-4">Loading users...</div>
-            ) : filteredAvailableUsers.length > 0 ? (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto border rounded-md p-2">
-                {filteredAvailableUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <Avatar>
-                        <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
-                        <AvatarFallback>{user.full_name?.substring(0, 2) || "U"}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{user.full_name || "Unknown User"}</div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-sm text-muted-foreground">{user.email}</div>
-                          <Badge variant="outline" className="text-xs capitalize">{user.user_type}</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAddUser(user.id)}
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground border rounded-md">
-                {searchTerm || filterUserType !== "all" 
-                  ? "No users match your search criteria." 
-                  : "No users available to add."}
-              </div>
-            )}
+            <AvailableUsersList 
+              users={filteredAvailableUsers}
+              searchTerm={searchTerm}
+              filterUserType={filterUserType}
+              isLoading={loadingEligibleUsers}
+              onAddUser={handleAddUser}
+            />
           </div>
         </CardContent>
       </Card>
