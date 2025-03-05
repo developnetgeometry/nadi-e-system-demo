@@ -3115,36 +3115,6 @@ export type Database = {
         }
         Relationships: []
       }
-      "nd_leave-rep_approval": {
-        Row: {
-          action_by: string | null
-          date_action: string | null
-          flag: number | null
-          id: number
-          leave_rep_id: number | null
-          staff_id: number | null
-          total_day: number | null
-        }
-        Insert: {
-          action_by?: string | null
-          date_action?: string | null
-          flag?: number | null
-          id: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
-          total_day?: number | null
-        }
-        Update: {
-          action_by?: string | null
-          date_action?: string | null
-          flag?: number | null
-          id?: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
-          total_day?: number | null
-        }
-        Relationships: []
-      }
       nd_maintenance_request: {
         Row: {
           asset_id: number | null

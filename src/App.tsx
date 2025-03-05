@@ -32,7 +32,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/member-login" element={<MemberLogin />} />
               <Route path="/register" element={<Register />} />
-              {dashboardRoutes.map((route) => (
+              {Array.isArray(dashboardRoutes) && dashboardRoutes.map((route) => (
                 <Route
                   key={route.path}
                   path={route.path}
@@ -43,7 +43,7 @@ function App() {
                   }
                 />
               ))}
-              {memberRoutes.map((route) => (
+              {Array.isArray(memberRoutes) && memberRoutes.map((route) => (
                 <Route
                   key={route.path}
                   path={route.path}
@@ -54,7 +54,7 @@ function App() {
                   }
                 />
               ))}
-              {moduleRoutes.map((route) => (
+              {Array.isArray(moduleRoutes) && moduleRoutes.map((route) => (
                 <Route
                   key={route.path}
                   path={route.path}

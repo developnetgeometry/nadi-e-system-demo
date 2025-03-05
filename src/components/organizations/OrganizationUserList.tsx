@@ -99,8 +99,8 @@ export function OrganizationUserList({ organizationId }: OrganizationUserListPro
       ) : (
         <div className="space-y-2">
           {organizationUsers.map((userRole) => {
-            // Get the full user data and role
-            const userData = userRole.profiles as unknown as Profile;
+            // Find the full user data using user_id
+            const userData = allUsers.find(user => user.id === userRole.user_id);
             
             return (
               <div

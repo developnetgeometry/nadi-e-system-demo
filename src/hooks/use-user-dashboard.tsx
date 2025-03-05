@@ -45,10 +45,19 @@ export const useUserDashboard = () => {
           }
 
           // Extract the role name from the response
-          if (roleData?.roles && typeof roleData.roles === 'object') {
-            const role = (roleData.roles as { name: string }).name;
-            if (role) {
-              setUserType(role as UserType);
+          if (roleData?.roles) {
+            // Check if roles is an array or an object
+            if (Array.isArray(roleData.roles)) {
+              // If it's an array, use the first item's name
+              if (roleData.roles.length > 0 && roleData.roles[0].name) {
+                setUserType(roleData.roles[0].name as UserType);
+              }
+            } else if (typeof roleData.roles === 'object') {
+              // If it's an object with a name property
+              const role = (roleData.roles as { name: string }).name;
+              if (role) {
+                setUserType(role as UserType);
+              }
             }
           }
         }
