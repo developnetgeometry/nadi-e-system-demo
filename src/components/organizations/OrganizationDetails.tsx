@@ -35,7 +35,7 @@ export function OrganizationDetails() {
     return (
       <div className="flex flex-col items-center p-8">
         <p className="text-destructive">Error loading organization details</p>
-        <Button variant="outline" onClick={() => navigate("/dashboard/organizations")}>
+        <Button variant="outline" onClick={() => navigate("/admin/organizations")}>
           Back to Organizations
         </Button>
       </div>
@@ -49,7 +49,7 @@ export function OrganizationDetails() {
   const handleDeleteOrganization = () => {
     deleteOrganizationMutation.mutate(organization.id, {
       onSuccess: () => {
-        navigate("/dashboard/organizations");
+        navigate("/admin/organizations");
       }
     });
   };
@@ -61,7 +61,7 @@ export function OrganizationDetails() {
           <Button 
             variant="outline" 
             size="icon" 
-            onClick={() => navigate("/dashboard/organizations")}
+            onClick={() => navigate("/admin/organizations")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

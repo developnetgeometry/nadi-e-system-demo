@@ -23,60 +23,114 @@ const OrganizationDetails = lazy(() => import("@/pages/dashboard/OrganizationDet
 export const dashboardRoutes = [
   {
     path: "/admin/dashboard",
-    element: <Dashboard />,
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/users",
-    element: <Users />,
+    element: (
+      <ProtectedRoute>
+        <Users />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/roles",
-    element: <Roles />,
+    element: (
+      <ProtectedRoute>
+        <Roles />
+      </ProtectedRoute>
+    ),
   },
-
   {
-    path: "/dashboard/roles/:id",
-    element: <RoleConfig />,
+    path: "/admin/roles/:id",
+    element: (
+      <ProtectedRoute>
+        <RoleConfig />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/access-control",
-    element: <AccessControl />,
+    element: (
+      <ProtectedRoute>
+        <AccessControl />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/menu-visibility",
-    element: <MenuVisibility />,
+    element: (
+      <ProtectedRoute>
+        <MenuVisibility />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/activity",
-    element: <Activity />,
+    element: (
+      <ProtectedRoute>
+        <Activity />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/reports",
-    element: <Reports />,
+    element: (
+      <ProtectedRoute>
+        <Reports />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/calendar",
-    element: <Calendar />,
+    element: (
+      <ProtectedRoute>
+        <Calendar />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/notifications",
-    element: <Notifications />,
+    element: (
+      <ProtectedRoute>
+        <Notifications />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/siteManagement",
-    element: <SiteManagement />,
+    element: (
+      <ProtectedRoute>
+        <SiteManagement />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/settings",
-    element: <Settings />,
+    element: (
+      <ProtectedRoute>
+        <Settings />
+      </ProtectedRoute>
+    ),
   },
-
   {
-    path: "/dashboard/organizations",
-    element: <Organizations />,
+    path: "/admin/organizations",
+    element: (
+      <ProtectedRoute>
+        <Organizations />
+      </ProtectedRoute>
+    ),
   },
   {
-    path: "/dashboard/organizations/:id",
-    element: <OrganizationDetails />,
-  }
+    path: "/admin/organizations/:id",
+    element: (
+      <ProtectedRoute>
+        <OrganizationDetails />
+      </ProtectedRoute>
+    ),
+  },
 ];
