@@ -1,7 +1,10 @@
 
-import { getAccordionIcon } from "./sidebar-icons";
-import { LucideIcon, LayoutDashboard, Users, FileCheck, Settings, MessageSquare, Wallet, Briefcase, ShoppingCart, Box, DollarSign, List, ChartBar } from "lucide-react";
+import { 
+  LayoutDashboard, Users, FileCheck, Settings, MessageSquare, 
+  Wallet, Briefcase, ShoppingCart, Box, DollarSign, List, ChartBar
+} from "lucide-react";
 import { MenuItem } from "@/types/menu";
+import { getAccordionIcon } from "./sidebar-icons";
 
 // Create the menu items for each section
 const createDashboardItems = (): MenuItem[] => [
