@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useOrganizations } from "@/hooks/use-organizations";
@@ -101,6 +102,7 @@ export const OrganizationUserList = () => {
     );
   }
 
+  // Cast to EnhancedOrgUser to ensure correct typing
   const enhancedOrgUsers = orgUsers as unknown as EnhancedOrgUser[];
 
   return (

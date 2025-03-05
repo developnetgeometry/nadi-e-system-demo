@@ -13,7 +13,16 @@ export const organizationUsersClient = {
   fetchOrganizationUsers: async (organizationId: string): Promise<OrganizationUser[]> => {
     const { data, error } = await supabase
       .from("organization_users")
-      .select("*, profiles:user_id(id, full_name, email, user_type)")
+      .select(`
+        *,
+        profiles:user_id (
+          id, 
+          full_name, 
+          email, 
+          user_type,
+          avatar_url
+        )
+      `)
       .eq("organization_id", organizationId);
 
     if (error) throw error;

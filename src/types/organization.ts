@@ -37,7 +37,7 @@ export interface OrganizationUserFormData {
   role: string;
 }
 
-// Add a new type for the enhanced organization user with profile data
+// Enhanced organization user with profile data
 export interface EnhancedOrgUser extends OrganizationUser {
   profiles: {
     id: string;
@@ -47,4 +47,3 @@ export interface EnhancedOrgUser extends OrganizationUser {
     avatar_url?: string;
   };
 }
-

@@ -6947,6 +6947,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       organizations: {
@@ -7670,6 +7677,7 @@ export type Database = {
         | "medical_office"
         | "staff_internal"
         | "staff_external"
+        | "tp_admin"
       workflow_status: "draft" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {
