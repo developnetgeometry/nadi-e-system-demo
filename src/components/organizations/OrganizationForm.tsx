@@ -67,11 +67,15 @@ export function OrganizationForm({
     if (type === "tp") {
       // If TP is selected, parent can only be DUSP
       setFilteredParentOrgs(organizations.filter(org => org.type === "dusp"));
+    } else if (type === "dusp") {
+      // If DUSP is selected, parent can be another DUSP or null (top level)
+      setFilteredParentOrgs(organizations.filter(org => 
+        org.type === "dusp" && org.id !== organization?.id
+      ));
     } else {
-      // If DUSP is selected, parent can only be null (top level)
       setFilteredParentOrgs([]);
     }
-  }, [form.watch("type"), organizations]);
+  }, [form.watch("type"), organizations, organization?.id]);
 
   const handleSubmit = (values: OrganizationFormValues) => {
     // Ensure parent_id is null if empty string
@@ -124,36 +128,35 @@ export function OrganizationForm({
           )}
         />
 
-        {form.watch("type") === "tp" && (
-          <FormField
-            control={form.control}
-            name="parent_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Parent Organization (DUSP)</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || ""}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select parent organization" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {filteredParentOrgs.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        <FormField
+          control={form.control}
+          name="parent_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Parent Organization</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""}
+                disabled={filteredParentOrgs.length === 0}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select parent organization" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {filteredParentOrgs.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
