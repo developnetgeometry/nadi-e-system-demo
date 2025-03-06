@@ -1,5 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.48.1'
+import { format } from 'https://esm.sh/date-fns@3.6.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,11 +24,11 @@ Deno.serve(async (req) => {
   try {
     // Get request body
     const body = await req.json()
-    const { email, password, api_key } = body
+    const { ic_number, api_key } = body
 
     // Validate request parameters
-    if (!email || !password) {
-      return new Response(JSON.stringify({ error: 'Email and password are required' }), { 
+    if (!ic_number) {
+      return new Response(JSON.stringify({ error: 'IC number is required' }), { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -53,44 +54,29 @@ Deno.serve(async (req) => {
       }
     })
 
-    // Authenticate user with email and password
-    console.log(`Attempting to authenticate user with email: ${email}`)
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
-      email,
-      password
-    })
-
-    if (authError) {
-      console.error('Authentication error:', authError)
-      return new Response(JSON.stringify({ 
-        valid: false,
-        message: 'Invalid credentials'
-      }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    if (!authData.user) {
-      console.error('No user found after authentication')
-      return new Response(JSON.stringify({ 
-        valid: false,
-        message: 'User not found'
-      }), {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    // Query the profile to check if user type is 'member'
+    console.log(`Attempting to validate user with IC number: ${ic_number}`)
+    
+    // Query the profile to check if a user with the provided IC number exists and is a member
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('user_type')
-      .eq('id', authData.user.id)
+      .select('id, user_type, full_name, created_at')
+      .eq('ic_number', ic_number)
       .single()
 
     if (profileError) {
       console.error('Database query error:', profileError)
+      
+      // Check if error is "No rows found"
+      if (profileError.code === 'PGRST116') {
+        return new Response(JSON.stringify({ 
+          valid: false,
+          message: 'User with this IC number not found'
+        }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
       return new Response(JSON.stringify({ error: 'Failed to validate user' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -98,12 +84,16 @@ Deno.serve(async (req) => {
     }
 
     // Return verification result
-    const isMember = profileData?.user_type === 'member'
+    const isMember = profileData.user_type === 'member'
+    const memberSince = profileData.created_at 
+      ? format(new Date(profileData.created_at), 'dd-MM-yyyy')
+      : null
     
     return new Response(JSON.stringify({
       valid: isMember,
-      // user_id: authData.user.id,
-      user_type: profileData?.user_type || null,
+      user_type: profileData.user_type,
+      member_name: profileData.full_name || null,
+      member_since: memberSince,
       message: isMember ? 'Valid member' : 'User is not a member'
     }), {
       status: 200, 
