@@ -4884,49 +4884,49 @@ export type Database = {
       }
       nd_staff_address: {
         Row: {
-          address1: string
+          address1: string | null
           address2: string | null
-          city: string
+          city: string | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           district_id: number | null
-          ic_no: string | null
           id: number
           is_active: boolean | null
           postcode: string | null
           remark: string | null
+          staff_id: number | null
           state_id: number | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          address1: string
+          address1?: string | null
           address2?: string | null
-          city: string
+          city?: string | null
           created_at?: string | null
-          created_by: string
+          created_by?: string | null
           district_id?: number | null
-          ic_no?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           postcode?: string | null
           remark?: string | null
+          staff_id?: number | null
           state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          address1?: string
+          address1?: string | null
           address2?: string | null
-          city?: string
+          city?: string | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           district_id?: number | null
-          ic_no?: string | null
           id?: number
           is_active?: boolean | null
           postcode?: string | null
           remark?: string | null
+          staff_id?: number | null
           state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -5201,7 +5201,7 @@ export type Database = {
           notes: string | null
           notify_email: boolean | null
           reminder_no: number | null
-          staff_id: number | null
+          staff_id: number
           updated_at: string | null
           updated_by: string | null
         }
@@ -5214,7 +5214,7 @@ export type Database = {
           notes?: string | null
           notify_email?: boolean | null
           reminder_no?: number | null
-          staff_id?: number | null
+          staff_id: number
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -5227,7 +5227,7 @@ export type Database = {
           notes?: string | null
           notify_email?: boolean | null
           reminder_no?: number | null
-          staff_id?: number | null
+          staff_id?: number
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -5574,7 +5574,7 @@ export type Database = {
         Insert: {
           abbr?: string | null
           code?: string | null
-          id: number
+          id?: number
           name?: string | null
           region_id?: number | null
         }
