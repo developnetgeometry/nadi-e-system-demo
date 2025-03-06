@@ -4667,7 +4667,7 @@ export type Database = {
           dusp_tp_id?: number | null
           email?: string | null
           fullname?: string | null
-          id: number
+          id?: number
           latitude?: string | null
           level_id?: number | null
           longtitude?: string | null
