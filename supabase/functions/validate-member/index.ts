@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     
     return new Response(JSON.stringify({
       valid: isMember,
-      user_id: authData.user.id,
+      // user_id: authData.user.id,
       user_type: profileData?.user_type || null,
       message: isMember ? 'Valid member' : 'User is not a member'
     }), {
