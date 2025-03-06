@@ -23,27 +23,15 @@ Deno.serve(async (req) => {
   try {
     // Get request body
     const body = await req.json()
-    const { user_id, api_key } = body
+    const { email, password, api_key } = body
 
     // Validate request parameters
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: 'user_id is required' }), { 
+    if (!email || !password) {
+      return new Response(JSON.stringify({ error: 'Email and password are required' }), { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-
-    // Initialize Supabase client with service role key for admin access
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
 
     // Check provided API key against expected value
     const expectedApiKey = Deno.env.get('MEMBER_VALIDATION_API_KEY')
@@ -54,15 +42,55 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
+    // Authenticate user with email and password
+    console.log(`Attempting to authenticate user with email: ${email}`)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password
+    })
+
+    if (authError) {
+      console.error('Authentication error:', authError)
+      return new Response(JSON.stringify({ 
+        valid: false,
+        message: 'Invalid credentials'
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (!authData.user) {
+      console.error('No user found after authentication')
+      return new Response(JSON.stringify({ 
+        valid: false,
+        message: 'User not found'
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     // Query the profile to check if user type is 'member'
-    const { data, error } = await supabaseAdmin
+    const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('user_type')
-      .eq('id', user_id)
+      .eq('id', authData.user.id)
       .single()
 
-    if (error) {
-      console.error('Database query error:', error)
+    if (profileError) {
+      console.error('Database query error:', profileError)
       return new Response(JSON.stringify({ error: 'Failed to validate user' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -70,21 +98,12 @@ Deno.serve(async (req) => {
     }
 
     // Return verification result
-    if (!data) {
-      return new Response(JSON.stringify({ 
-        valid: false,
-        message: 'User not found'
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    const isMember = data.user_type === 'member'
+    const isMember = profileData?.user_type === 'member'
     
     return new Response(JSON.stringify({
       valid: isMember,
-      user_type: data.user_type,
+      user_id: authData.user.id,
+      user_type: profileData?.user_type || null,
       message: isMember ? 'Valid member' : 'User is not a member'
     }), {
       status: 200, 
@@ -93,7 +112,7 @@ Deno.serve(async (req) => {
     
   } catch (error) {
     console.error('Error in validate-member function:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
