@@ -1,5 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.48.1'
+import { format } from 'https://esm.sh/date-fns@3.6.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
     // Query the profile to check if a user with the provided IC number exists and is a member
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('id, user_type')
+      .select('id, user_type, full_name, created_at')
       .eq('ic_number', ic_number)
       .single()
 
@@ -84,11 +85,15 @@ Deno.serve(async (req) => {
 
     // Return verification result
     const isMember = profileData.user_type === 'member'
+    const memberSince = profileData.created_at 
+      ? format(new Date(profileData.created_at), 'dd-MM-yyyy')
+      : null
     
     return new Response(JSON.stringify({
       valid: isMember,
-      user_id: profileData.id,
       user_type: profileData.user_type,
+      member_name: profileData.full_name || null,
+      member_since: memberSince,
       message: isMember ? 'Valid member' : 'User is not a member'
     }), {
       status: 200, 
