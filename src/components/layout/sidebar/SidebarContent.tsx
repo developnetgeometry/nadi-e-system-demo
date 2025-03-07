@@ -101,10 +101,16 @@ export const SidebarContent = () => {
   const visibleMenuGroups = menuGroups.map(group => {
     // First check if user has access to the main menu group
     const groupVisibility = menuVisibility.find(v => v.menu_key === group.label);
+    
+    // If this is a super_admin, show everything
+    if (userType === 'super_admin') {
+      return group;
+    }
+    
+    // Check if group is visible to the current user type
     const isGroupVisible = !groupVisibility || 
                            !userType ||
-                           groupVisibility.visible_to.includes(userType) ||
-                           groupVisibility.visible_to.includes('super_admin');
+                           (groupVisibility.visible_to && groupVisibility.visible_to.includes(userType));
 
     if (!isGroupVisible) {
       return { ...group, items: [] };
@@ -125,8 +131,7 @@ export const SidebarContent = () => {
         }
 
         // Check if user type is in the visible_to array
-        const isVisible = itemVisibility.visible_to.includes(userType) || 
-                          itemVisibility.visible_to.includes('super_admin');
+        const isVisible = itemVisibility.visible_to && itemVisibility.visible_to.includes(userType);
         
         return isVisible;
       })

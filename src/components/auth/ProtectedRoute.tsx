@@ -43,8 +43,9 @@ export const ProtectedRoute = ({
           .single();
 
         if (profile?.user_type) {
-          setUserType(profile.user_type);
+          setUserType(profile.user_type as UserType);
           setIsSuperAdmin(profile.user_type === 'super_admin');
+          console.log('Profile data:', profile);
         } else {
           // Fallback to roles if profile doesn't contain user_type
           const { data: roleData, error: roleError } = await supabase
