@@ -24,6 +24,7 @@ export const ProtectedRoute = ({
   const [userType, setUserType] = useState<UserType | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null);
   const [accessChecked, setAccessChecked] = useState(false);
+  const [hasRouteAccess, setHasRouteAccess] = useState<boolean | null>(null);
   const { data: permissions = [], isLoading, error } = usePermissions();
 
   // Check if user is authenticated and get user type
@@ -90,6 +91,80 @@ export const ProtectedRoute = ({
     checkUserAccess();
   }, [user]);
 
+  // Check route-level access based on menu visibility settings
+  useEffect(() => {
+    const checkRouteAccess = async () => {
+      if (!userType || userType === 'super_admin' || !accessChecked) {
+        // Super admins always have access, and we need userType before checking
+        setHasRouteAccess(true);
+        return;
+      }
+
+      try {
+        // Extract the first part of the path (e.g., /dashboard/users -> dashboard)
+        const pathParts = location.pathname.split('/').filter(Boolean);
+        if (pathParts.length === 0) {
+          setHasRouteAccess(true);
+          return;
+        }
+
+        const mainPath = pathParts[0];
+        const subPath = pathParts.length > 1 ? pathParts[1] : null;
+
+        console.log(`Checking route access for ${userType} to path: ${mainPath}/${subPath}`);
+
+        // Check main menu access
+        const { data: menuData } = await supabase
+          .from('menu_visibility')
+          .select('*')
+          .eq('menu_key', mainPath)
+          .maybeSingle();
+
+        // If there's no menu visibility record, allow access by default
+        if (!menuData) {
+          console.log(`No menu visibility record for ${mainPath}, allowing access`);
+          setHasRouteAccess(true);
+          return;
+        }
+
+        // Check if user type is allowed to access this menu
+        if (!menuData.visible_to.includes(userType)) {
+          console.log(`User ${userType} denied access to ${mainPath} menu`);
+          setHasRouteAccess(false);
+          return;
+        }
+
+        // Check submodule access if applicable
+        if (subPath) {
+          const { data: submoduleData } = await supabase
+            .from('submodule_visibility')
+            .select('*')
+            .eq('parent_module', mainPath)
+            .eq('submodule_key', subPath)
+            .maybeSingle();
+
+          // If there's a submodule record and user isn't allowed
+          if (submoduleData && !submoduleData.visible_to.includes(userType)) {
+            console.log(`User ${userType} denied access to ${mainPath}/${subPath} submodule`);
+            setHasRouteAccess(false);
+            return;
+          }
+        }
+
+        // If we got here, user has access
+        setHasRouteAccess(true);
+      } catch (err) {
+        console.error("Error checking route access:", err);
+        // Default to allowing access if there's an error checking
+        setHasRouteAccess(true);
+      }
+    };
+
+    if (accessChecked) {
+      checkRouteAccess();
+    }
+  }, [location.pathname, userType, accessChecked]);
+
   useEffect(() => {
     if (error) {
       console.error('Error loading permissions:', error);
@@ -101,80 +176,25 @@ export const ProtectedRoute = ({
     }
   }, [error, toast]);
 
-  // Check if the current route is accessible based on menu visibility settings
-  useEffect(() => {
-    const checkRouteAccess = async () => {
-      if (!userType || userType === 'super_admin' || !accessChecked) {
-        return;
-      }
-
-      try {
-        // Extract the first part of the path (e.g., /dashboard/users -> dashboard)
-        const pathParts = location.pathname.split('/').filter(Boolean);
-        if (pathParts.length === 0) return;
-
-        const mainPath = pathParts[0];
-        const subPath = pathParts.length > 1 ? pathParts[1] : null;
-
-        console.log(`Checking access for path: ${mainPath}/${subPath}`);
-
-        // Check if the main menu is accessible
-        const { data: menuData } = await supabase
-          .from('menu_visibility')
-          .select('*')
-          .eq('menu_key', mainPath)
-          .single();
-
-        if (menuData && !menuData.visible_to.includes(userType)) {
-          console.log(`User ${userType} does not have access to ${mainPath}`);
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access this section.",
-            variant: "destructive",
-          });
-          // Will redirect in the return statement
-          return;
-        }
-
-        // Check if the submodule is accessible
-        if (subPath) {
-          const { data: submoduleData } = await supabase
-            .from('submodule_visibility')
-            .select('*')
-            .eq('parent_module', mainPath)
-            .eq('submodule_key', subPath)
-            .single();
-
-          if (submoduleData && !submoduleData.visible_to.includes(userType)) {
-            console.log(`User ${userType} does not have access to ${mainPath}/${subPath}`);
-            toast({
-              title: "Access Denied",
-              description: "You don't have permission to access this submodule.",
-              variant: "destructive",
-            });
-            // Will redirect in the return statement
-            return;
-          }
-        }
-
-      } catch (err) {
-        console.error("Error checking route access:", err);
-      }
-    };
-
-    if (accessChecked) {
-      checkRouteAccess();
-    }
-  }, [location.pathname, userType, accessChecked, toast]);
-
   // Show loading while checking authentication
-  if (isLoading || !accessChecked) {
+  if (isLoading || !accessChecked || hasRouteAccess === null) {
     return <div>Loading permissions...</div>;
   }
 
   // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Redirect if user doesn't have access to this route based on menu visibility
+  if (!hasRouteAccess) {
+    console.log('Access denied based on menu visibility');
+    toast({
+      title: "Access Denied",
+      description: "You don't have permission to access this page.",
+      variant: "destructive",
+    });
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Check if user has required permissions or is of an allowed user type

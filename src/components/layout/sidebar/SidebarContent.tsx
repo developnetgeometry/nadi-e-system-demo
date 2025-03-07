@@ -135,7 +135,7 @@ export const SidebarContent = () => {
     const groupVisibility = menuVisibility.find(v => v.menu_key === group.label);
     
     // If no visibility setting exists or user type is not in visible_to array, don't show this group
-    if (groupVisibility && !groupVisibility.visible_to.includes(userType)) {
+    if (!groupVisibility || !groupVisibility.visible_to.includes(userType)) {
       console.log(`Menu ${group.label} not visible to ${userType}`);
       return false;
     }
@@ -146,7 +146,7 @@ export const SidebarContent = () => {
         v => v.parent_module === group.label && v.submodule_key === item.title
       );
 
-      // If no visibility setting exists for this item, it's visible by default
+      // If no visibility setting exists for this item, it's visible by default if the parent is visible
       if (!itemVisibility) {
         return true;
       }
@@ -171,7 +171,7 @@ export const SidebarContent = () => {
           v => v.parent_module === group.label && v.submodule_key === item.title
         );
 
-        // If no visibility setting exists, it's visible by default
+        // If no visibility setting exists, it's visible by default if the parent is visible
         if (!itemVisibility) {
           return true;
         }
