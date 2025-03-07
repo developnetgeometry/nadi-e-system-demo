@@ -14,6 +14,7 @@ import {
   communityItems,
   financialItems,
   complianceItems,
+  siteItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups: MenuGroup[] = [
@@ -86,5 +87,10 @@ export const menuGroups: MenuGroup[] = [
     label: "Compliance",
     route: "/compliance",
     items: complianceItems,
+  },
+  {
+    label: "Site Management",
+    route: "/site-management",
+    items: siteItems,
   },
 ];

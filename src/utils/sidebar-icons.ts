@@ -28,6 +28,7 @@ export const getAccordionIcon = (label: string): LucideIcon => {
     "Finance Management": DollarSign,
     "Programmes Management": List,
     "Report Management": ChartBar,
+    "Site Management": Box,
   };
   return iconMap[label] || LayoutDashboard;
 };

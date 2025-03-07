@@ -51,7 +51,7 @@ export const SidebarContent = () => {
         .single();
 
       if (!profileError && profileData?.user_type) {
-        console.log('Setting user type from profile:', profileData.user_type);
+        // console.log('Setting user type from profile:', profileData.user_type);
         setUserType(profileData.user_type as UserType);
         return;
       }
@@ -75,7 +75,7 @@ export const SidebarContent = () => {
 
       const roleData = data as UserRoleResponse;
       if (roleData?.roles?.[0]?.name) {
-        console.log('Setting user type from roles:', roleData.roles[0].name);
+        // console.log('Setting user type from roles:', roleData.roles[0].name);
         setUserType(roleData.roles[0].name as UserType);
       }
     };
@@ -95,13 +95,13 @@ export const SidebarContent = () => {
 
       // If no visibility setting found or no user type, hide item
       if (!visibility || !userType) {
-        console.log(`No visibility setting found for ${item.path} or no user type`);
+        // console.log(`No visibility setting found for ${item.path} or no user type`);
         return false;
       }
 
       // Check if user type is in the visible_to array
       const isVisible = visibility.visible_to.includes(userType);
-      console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
+      // console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
       return isVisible;
     })
   })).filter(group => group.items.length > 0); // Remove empty groups

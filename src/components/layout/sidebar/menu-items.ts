@@ -117,3 +117,7 @@ export const complianceItems = [
   { title: "Audit Logs", icon: FileCheck, path: "/compliance/audit" },
   { title: "System Reports", icon: Gauge, path: "/compliance/reports" },
 ];
+
+export const siteItems = [
+  { title: "Site Dashboard", icon: FileCheck, path: "/site-dashboard" },
+];
