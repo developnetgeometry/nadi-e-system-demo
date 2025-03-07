@@ -5,6 +5,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Permission, UserType } from "@/types/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -18,6 +19,7 @@ export const ProtectedRoute = ({
   allowedUserTypes 
 }: ProtectedRouteProps) => {
   const location = useLocation();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [userType, setUserType] = useState<UserType | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null);
@@ -28,7 +30,6 @@ export const ProtectedRoute = ({
   useEffect(() => {
     const checkUserAccess = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           setUserType(null);
           setIsSuperAdmin(false);
@@ -36,16 +37,18 @@ export const ProtectedRoute = ({
           return;
         }
 
-        const { data: profile } = await supabase
+        // First try to get the user profile to check the user_type
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('user_type')
           .eq('id', user.id)
           .single();
 
-        if (profile?.user_type) {
-          setUserType(profile.user_type as UserType);
-          setIsSuperAdmin(profile.user_type === 'super_admin');
-          console.log('Profile data:', profile);
+        if (!profileError && profile?.user_type) {
+          const userTypeValue = profile.user_type as UserType;
+          setUserType(userTypeValue);
+          setIsSuperAdmin(userTypeValue === 'super_admin');
+          console.log('User type from profile:', userTypeValue);
         } else {
           // Fallback to roles if profile doesn't contain user_type
           const { data: roleData, error: roleError } = await supabase
@@ -67,8 +70,10 @@ export const ProtectedRoute = ({
             }
             
             if (roleName) {
-              setUserType(roleName as UserType);
-              setIsSuperAdmin(roleName === 'super_admin');
+              const userTypeValue = roleName as UserType;
+              setUserType(userTypeValue);
+              setIsSuperAdmin(userTypeValue === 'super_admin');
+              console.log('User type from roles:', userTypeValue);
             }
           }
         }
@@ -83,7 +88,7 @@ export const ProtectedRoute = ({
     };
 
     checkUserAccess();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (error) {
@@ -96,28 +101,71 @@ export const ProtectedRoute = ({
     }
   }, [error, toast]);
 
+  // Check if the current route is accessible based on menu visibility settings
   useEffect(() => {
-    const checkAccess = async () => {
-      if (!isLoading && requiredPermission && !isSuperAdmin) {
-        const hasPermission = permissions.some(
-          (permission: Permission) => permission.name === requiredPermission
-        );
-        
-        if (!hasPermission) {
-          console.log('Access denied: Missing required permission:', requiredPermission);
+    const checkRouteAccess = async () => {
+      if (!userType || userType === 'super_admin' || !accessChecked) {
+        return;
+      }
+
+      try {
+        // Extract the first part of the path (e.g., /dashboard/users -> dashboard)
+        const pathParts = location.pathname.split('/').filter(Boolean);
+        if (pathParts.length === 0) return;
+
+        const mainPath = pathParts[0];
+        const subPath = pathParts.length > 1 ? pathParts[1] : null;
+
+        console.log(`Checking access for path: ${mainPath}/${subPath}`);
+
+        // Check if the main menu is accessible
+        const { data: menuData } = await supabase
+          .from('menu_visibility')
+          .select('*')
+          .eq('menu_key', mainPath)
+          .single();
+
+        if (menuData && !menuData.visible_to.includes(userType)) {
+          console.log(`User ${userType} does not have access to ${mainPath}`);
           toast({
             title: "Access Denied",
-            description: "You don't have permission to access this page.",
+            description: "You don't have permission to access this section.",
             variant: "destructive",
           });
+          // Will redirect in the return statement
+          return;
         }
+
+        // Check if the submodule is accessible
+        if (subPath) {
+          const { data: submoduleData } = await supabase
+            .from('submodule_visibility')
+            .select('*')
+            .eq('parent_module', mainPath)
+            .eq('submodule_key', subPath)
+            .single();
+
+          if (submoduleData && !submoduleData.visible_to.includes(userType)) {
+            console.log(`User ${userType} does not have access to ${mainPath}/${subPath}`);
+            toast({
+              title: "Access Denied",
+              description: "You don't have permission to access this submodule.",
+              variant: "destructive",
+            });
+            // Will redirect in the return statement
+            return;
+          }
+        }
+
+      } catch (err) {
+        console.error("Error checking route access:", err);
       }
     };
 
     if (accessChecked) {
-      checkAccess();
+      checkRouteAccess();
     }
-  }, [isLoading, permissions, requiredPermission, toast, isSuperAdmin, accessChecked]);
+  }, [location.pathname, userType, accessChecked, toast]);
 
   // Show loading while checking authentication
   if (isLoading || !accessChecked) {
@@ -125,7 +173,7 @@ export const ProtectedRoute = ({
   }
 
   // Redirect to login if not authenticated
-  if (error || !userType) {
+  if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -134,9 +182,10 @@ export const ProtectedRoute = ({
     (requiredPermission ? permissions.some((permission: Permission) => permission.name === requiredPermission) : true);
 
   const hasUserTypeAccess = isSuperAdmin || 
-    (allowedUserTypes ? allowedUserTypes.includes(userType) : true);
+    (allowedUserTypes ? allowedUserTypes.includes(userType as UserType) : true);
 
   if (!hasPermissionAccess || !hasUserTypeAccess) {
+    console.log('Access denied based on permissions or user type');
     return <Navigate to="/dashboard" replace />;
   }
 
