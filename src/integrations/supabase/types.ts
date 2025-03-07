@@ -556,7 +556,7 @@ export type Database = {
           name: string
         }
         Insert: {
-          id: number
+          id?: number
           name: string
         }
         Update: {
@@ -674,7 +674,7 @@ export type Database = {
           remark: string
         }
         Insert: {
-          id: number
+          id?: number
           name?: string | null
           remark: string
         }
@@ -2168,7 +2168,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -2189,7 +2189,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          id: number
+          id?: number
           name?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -2213,7 +2213,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -2811,7 +2811,7 @@ export type Database = {
         Insert: {
           date?: string | null
           desc?: string | null
-          id: number
+          id?: number
           status: boolean
         }
         Update: {
@@ -4763,6 +4763,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_site_profile_nd_duns_fk"
+            columns: ["dun_rfid"]
+            isOneToOne: false
+            referencedRelation: "nd_duns"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_site_profile_parliament_rfid_fkey"
             columns: ["parliament_rfid"]
             isOneToOne: false
@@ -4896,7 +4903,7 @@ export type Database = {
           name: string | null
         }
         Insert: {
-          id: number
+          id?: number
           max_day?: number | null
           min_day?: number | null
           name?: string | null
@@ -6100,7 +6107,7 @@ export type Database = {
         }
         Insert: {
           description?: string | null
-          id: number
+          id?: number
           name?: string | null
         }
         Update: {
@@ -7803,14 +7810,28 @@ export type Database = {
       user_type:
         | "member"
         | "vendor"
-        | "tp"
+        | "tp_management"
         | "sso"
-        | "dusp"
+        | "dusp_admin"
         | "super_admin"
-        | "medical_office"
-        | "staff_internal"
-        | "staff_external"
+        | "tp_region"
+        | "tp_hr"
+        | "tp_finance"
         | "tp_admin"
+        | "tp_operation"
+        | "mcmc_admin"
+        | "mcmc_operation"
+        | "mcmc_management"
+        | "sso_admin"
+        | "sso_pillar"
+        | "sso_management"
+        | "sso_operation"
+        | "dusp_management"
+        | "dusp_operation"
+        | "staff_assistant_manager"
+        | "staff_manager"
+        | "vendor_admin"
+        | "vendor_staff"
       workflow_status: "draft" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {

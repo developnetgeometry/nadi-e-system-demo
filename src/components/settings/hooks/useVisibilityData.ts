@@ -39,14 +39,8 @@ export const useVisibilityData = () => {
 
         if (rolesError) throw rolesError;
         
-        // Map role names to user types and filter out any invalid ones
-        const validUserTypes = rolesData
-          .map(role => role.name)
-          .filter((name): name is UserType => 
-            // Cast to UserType after validation (TypeScript needs this)
-            ['super_admin', 'admin', 'user', 'manager', 'vendor'].includes(name) || true
-          );
-
+        // Map role names to user types
+        const validUserTypes = rolesData.map(role => role.name as UserType);
         setUserTypes(validUserTypes);
 
       } catch (error) {
