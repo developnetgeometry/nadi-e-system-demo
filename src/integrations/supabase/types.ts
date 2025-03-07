@@ -5605,7 +5605,29 @@ export type Database = {
           updated_by?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_profile_nd_genders_fk"
+            columns: ["gender_id"]
+            isOneToOne: false
+            referencedRelation: "nd_genders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_nd_marital_status_fk"
+            columns: ["marital_status"]
+            isOneToOne: false
+            referencedRelation: "nd_marital_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_nd_nationalities_fk"
+            columns: ["nationality_id"]
+            isOneToOne: false
+            referencedRelation: "nd_nationalities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_taining_attachment: {
         Row: {
