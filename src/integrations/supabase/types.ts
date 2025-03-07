@@ -2763,7 +2763,7 @@ export type Database = {
           status: boolean
         }
         Insert: {
-          id: number
+          id?: number
           name?: string | null
           status: boolean
         }
@@ -2786,7 +2786,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string | null
-          id: number
+          id?: number
           name?: string | null
           position?: number | null
           updated_at?: string | null
@@ -2806,19 +2806,22 @@ export type Database = {
           date: string | null
           desc: string | null
           id: number
-          status: boolean
+          status: number
+          year: number | null
         }
         Insert: {
           date?: string | null
           desc?: string | null
           id?: number
-          status: boolean
+          status: number
+          year?: number | null
         }
         Update: {
           date?: string | null
           desc?: string | null
           id?: number
-          status?: boolean
+          status?: number
+          year?: number | null
         }
         Relationships: []
       }
@@ -3083,7 +3086,7 @@ export type Database = {
           color_code?: string | null
           created_at?: string | null
           desc?: string | null
-          id: number
+          id?: number
           name?: string | null
           updated_at?: string | null
         }
@@ -3114,7 +3117,7 @@ export type Database = {
           code?: string | null
           color_code?: string | null
           created_at?: string | null
-          id: number
+          id?: number
           name?: string | null
           total?: number | null
           updated_at?: string | null
@@ -4388,7 +4391,7 @@ export type Database = {
           id: number
           refid_mcmc: number | null
           refid_tp: number | null
-          site_profile_id: number | null
+          standard_code: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -4398,7 +4401,7 @@ export type Database = {
           id: number
           refid_mcmc?: number | null
           refid_tp?: number | null
-          site_profile_id?: number | null
+          standard_code?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4408,7 +4411,7 @@ export type Database = {
           id?: number
           refid_mcmc?: number | null
           refid_tp?: number | null
-          site_profile_id?: number | null
+          standard_code?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4661,6 +4664,7 @@ export type Database = {
           ref_id: string | null
           region_id: number | null
           remark: string | null
+          site_code_id: number | null
           sitename: string | null
           socioeconomic_id: number | null
           space_id: number | null
@@ -4698,6 +4702,7 @@ export type Database = {
           ref_id?: string | null
           region_id?: number | null
           remark?: string | null
+          site_code_id?: number | null
           sitename?: string | null
           socioeconomic_id?: number | null
           space_id?: number | null
@@ -4735,6 +4740,7 @@ export type Database = {
           ref_id?: string | null
           region_id?: number | null
           remark?: string | null
+          site_code_id?: number | null
           sitename?: string | null
           socioeconomic_id?: number | null
           space_id?: number | null
@@ -4767,6 +4773,13 @@ export type Database = {
             columns: ["dun_rfid"]
             isOneToOne: false
             referencedRelation: "nd_duns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_nd_site_fk"
+            columns: ["site_code_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site"
             referencedColumns: ["id"]
           },
           {
