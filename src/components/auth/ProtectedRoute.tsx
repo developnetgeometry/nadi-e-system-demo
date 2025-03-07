@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useToast } from "@/hooks/use-toast";
@@ -14,21 +14,38 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteProps) => {
   const location = useLocation();
   const { toast } = useToast();
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean | null>(null);
+  const [accessChecked, setAccessChecked] = useState(false);
   const { data: permissions = [], isLoading, error } = usePermissions();
 
   // Check if user is super_admin
-  const checkSuperAdmin = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+  useEffect(() => {
+    const checkSuperAdmin = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsSuperAdmin(false);
+          setAccessChecked(true);
+          return;
+        }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('user_type')
-      .eq('id', user.id)
-      .single();
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
 
-    return profile?.user_type === 'super_admin';
-  };
+        setIsSuperAdmin(profile?.user_type === 'super_admin');
+        setAccessChecked(true);
+      } catch (err) {
+        console.error("Error checking super admin status:", err);
+        setIsSuperAdmin(false);
+        setAccessChecked(true);
+      }
+    };
+
+    checkSuperAdmin();
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -44,8 +61,6 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
   useEffect(() => {
     const checkAccess = async () => {
       if (!isLoading && requiredPermission) {
-        const isSuperAdmin = await checkSuperAdmin();
-        
         if (!isSuperAdmin && !permissions.some((permission: Permission) => permission.name === requiredPermission)) {
           console.log('Access denied: Missing required permission:', requiredPermission);
           toast({
@@ -57,26 +72,27 @@ export const ProtectedRoute = ({ children, requiredPermission }: ProtectedRouteP
       }
     };
 
-    checkAccess();
-  }, [isLoading, permissions, requiredPermission, toast]);
+    if (accessChecked) {
+      checkAccess();
+    }
+  }, [isLoading, permissions, requiredPermission, toast, isSuperAdmin, accessChecked]);
 
-  if (isLoading) {
+  // Show loading while checking authentication
+  if (isLoading || !accessChecked) {
     return <div>Loading permissions...</div>;
   }
 
+  // Redirect to login if not authenticated
   if (error) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const hasAccess = async () => {
-    const isSuperAdmin = await checkSuperAdmin();
-    return isSuperAdmin || (requiredPermission 
-      ? permissions.some((permission: Permission) => permission.name === requiredPermission)
-      : true);
-  };
+  // Check if user has required permissions
+  const hasAccess = isSuperAdmin || 
+    (requiredPermission ? permissions.some((permission: Permission) => permission.name === requiredPermission) : true);
 
-  if (!hasAccess()) {
-    return <Navigate to="/admin/dashboard" replace />;
+  if (!hasAccess) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
