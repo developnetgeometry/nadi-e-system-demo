@@ -556,7 +556,7 @@ export type Database = {
           name: string
         }
         Insert: {
-          id: number
+          id?: number
           name: string
         }
         Update: {
@@ -674,7 +674,7 @@ export type Database = {
           remark: string
         }
         Insert: {
-          id: number
+          id?: number
           name?: string | null
           remark: string
         }
@@ -751,7 +751,7 @@ export type Database = {
           name: string | null
         }
         Insert: {
-          id: number
+          id?: number
           name?: string | null
         }
         Update: {
@@ -859,7 +859,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -1482,8 +1482,8 @@ export type Database = {
           is_active: boolean | null
           name: string | null
           no_of_duns: number | null
-          parliment_id: number | null
           refid: string | null
+          rfid_parliament: string | null
           states_id: number | null
           updated_at: string | null
           updated_by: string | null
@@ -1492,12 +1492,12 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           full_name?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           name?: string | null
           no_of_duns?: number | null
-          parliment_id?: number | null
           refid?: string | null
+          rfid_parliament?: string | null
           states_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -1510,13 +1510,21 @@ export type Database = {
           is_active?: boolean | null
           name?: string | null
           no_of_duns?: number | null
-          parliment_id?: number | null
           refid?: string | null
+          rfid_parliament?: string | null
           states_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_duns_nd_state_fk"
+            columns: ["states_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_dusp: {
         Row: {
@@ -1638,7 +1646,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -1680,7 +1688,7 @@ export type Database = {
           description?: string | null
           duration?: number | null
           end_datetime?: string | null
-          id: number
+          id?: number
           location_event?: string | null
           module_id?: number | null
           program_id?: number | null
@@ -2160,7 +2168,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -2181,7 +2189,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          id: number
+          id?: number
           name?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -2205,7 +2213,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -2803,7 +2811,7 @@ export type Database = {
         Insert: {
           date?: string | null
           desc?: string | null
-          id: number
+          id?: number
           status: boolean
         }
         Update: {
@@ -3168,7 +3176,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -3280,7 +3288,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           district_id?: number | null
-          id: number
+          id?: number
           member_id?: number | null
           postcode?: string | null
           state_id?: number | null
@@ -3407,6 +3415,7 @@ export type Database = {
           type_sector: number | null
           updated_at: string | null
           updated_by: string | null
+          user_id: string | null
         }
         Insert: {
           age?: number | null
@@ -3422,7 +3431,7 @@ export type Database = {
           fullname?: string | null
           gender: number
           ict_knowledge?: number | null
-          id: number
+          id?: number
           identity_no?: string | null
           income_range?: number | null
           join_date?: string | null
@@ -3442,6 +3451,7 @@ export type Database = {
           type_sector?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_id?: string | null
         }
         Update: {
           age?: number | null
@@ -3477,6 +3487,7 @@ export type Database = {
           type_sector?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -4139,30 +4150,30 @@ export type Database = {
       nd_races: {
         Row: {
           bm: string | null
+          created_at: string | null
           eng: string | null
           id: number
           registered_by: string | null
-          registered_date: string | null
           status: number | null
-          updated_epochmillis: number | null
+          updated_at: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
           eng?: string | null
           id: number
           registered_by?: string | null
-          registered_date?: string | null
           status?: number | null
-          updated_epochmillis?: number | null
+          updated_at?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
           eng?: string | null
           id?: number
           registered_by?: string | null
-          registered_date?: string | null
           status?: number | null
-          updated_epochmillis?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -4428,7 +4439,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           district_id?: number | null
-          id: number
+          id?: number
           postcode?: string | null
           remark?: string | null
           site_id?: number | null
@@ -4452,7 +4463,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_address_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_site_attachment: {
         Row: {
@@ -4728,7 +4747,57 @@ export type Database = {
           website?: string | null
           zone_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_profile_active_status_fkey"
+            columns: ["active_status"]
+            isOneToOne: false
+            referencedRelation: "nd_site_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_mukim_id_fkey"
+            columns: ["mukim_id"]
+            isOneToOne: false
+            referencedRelation: "nd_mukims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_nd_duns_fk"
+            columns: ["dun_rfid"]
+            isOneToOne: false
+            referencedRelation: "nd_duns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_parliament_rfid_fkey"
+            columns: ["parliament_rfid"]
+            isOneToOne: false
+            referencedRelation: "nd_parliaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "nd_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "nd_region"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_site_remark: {
         Row: {
@@ -4798,26 +4867,29 @@ export type Database = {
       }
       nd_site_status: {
         Row: {
+          bm: string | null
           created_at: string | null
           created_by: string | null
+          eng: string | null
           id: number
-          status: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          bm?: string | null
           created_at?: string | null
           created_by?: string | null
+          eng?: string | null
           id: number
-          status?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          bm?: string | null
           created_at?: string | null
           created_by?: string | null
+          eng?: string | null
           id?: number
-          status?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4831,7 +4903,7 @@ export type Database = {
           name: string | null
         }
         Insert: {
-          id: number
+          id?: number
           max_day?: number | null
           min_day?: number | null
           name?: string | null
@@ -4882,7 +4954,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -5141,7 +5213,7 @@ export type Database = {
           staff_id: number | null
           updated_at: string | null
           updated_by: string | null
-          user_id: number | null
+          user_id: string | null
         }
         Insert: {
           contract_end?: string | null
@@ -5150,7 +5222,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           duration?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           phase_id?: number | null
           remark?: string | null
@@ -5158,7 +5230,7 @@ export type Database = {
           staff_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
         }
         Update: {
           contract_end?: string | null
@@ -5175,7 +5247,7 @@ export type Database = {
           staff_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5470,7 +5542,7 @@ export type Database = {
           fullname?: string | null
           gender_id?: number | null
           ic_no?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           job_id?: number | null
           marital_status?: number | null
@@ -5901,7 +5973,7 @@ export type Database = {
           name: string | null
         }
         Insert: {
-          id: number
+          id?: number
           name?: string | null
         }
         Update: {
@@ -6035,7 +6107,7 @@ export type Database = {
         }
         Insert: {
           description?: string | null
-          id: number
+          id?: number
           name?: string | null
         }
         Update: {
@@ -6054,7 +6126,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -6863,7 +6935,7 @@ export type Database = {
         }
         Insert: {
           area?: string | null
-          id: number
+          id?: number
           zone?: string | null
         }
         Update: {
@@ -7738,14 +7810,28 @@ export type Database = {
       user_type:
         | "member"
         | "vendor"
-        | "tp"
+        | "tp_management"
         | "sso"
-        | "dusp"
+        | "dusp_admin"
         | "super_admin"
-        | "medical_office"
-        | "staff_internal"
-        | "staff_external"
+        | "tp_region"
+        | "tp_hr"
+        | "tp_finance"
         | "tp_admin"
+        | "tp_operation"
+        | "mcmc_admin"
+        | "mcmc_operation"
+        | "mcmc_management"
+        | "sso_admin"
+        | "sso_pillar"
+        | "sso_management"
+        | "sso_operation"
+        | "dusp_management"
+        | "dusp_operation"
+        | "staff_assistant_manager"
+        | "staff_manager"
+        | "vendor_admin"
+        | "vendor_staff"
       workflow_status: "draft" | "active" | "completed" | "cancelled"
     }
     CompositeTypes: {

@@ -9,7 +9,8 @@ export type UserType =
   | "super_admin"
   | "medical_office"
   | "staff_internal"
-  | "staff_external";
+  | "staff_external"
+  | string; // Allow any string to support dynamic roles
 
 export type NotificationType = "info" | "warning" | "success" | "error";
 
