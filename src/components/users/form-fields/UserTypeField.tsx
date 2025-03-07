@@ -25,7 +25,7 @@ interface UserTypeFieldProps {
 }
 
 export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
-  const { data: roles = [] } = useQuery({
+  const { data: roles = [], isLoading: rolesLoading } = useQuery({
     queryKey: ['roles'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,7 +52,7 @@ export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
           <Select
             onValueChange={field.onChange}
             defaultValue={field.value}
-            disabled={isLoading}
+            disabled={isLoading || rolesLoading}
           >
             <FormControl>
               <SelectTrigger>
