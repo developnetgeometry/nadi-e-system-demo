@@ -4,7 +4,7 @@ import { menuGroups } from "@/utils/menu-groups";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { MenuVisibility } from "@/components/settings/types/menu-visibility.types";
+import { MenuVisibility, SubmoduleVisibility } from "@/components/settings/types/menu-visibility.types";
 import { UserType } from "@/types/auth";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -18,24 +18,38 @@ export const SidebarContent = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
+  const [submoduleVisibility, setSubmoduleVisibility] = useState<SubmoduleVisibility[]>([]);
   const [userType, setUserType] = useState<UserType | null>(null);
 
   // Fetch menu visibility settings
   useEffect(() => {
-    const fetchMenuVisibility = async () => {
-      const { data, error } = await supabase
+    const fetchVisibilitySettings = async () => {
+      // Fetch menu visibility
+      const { data: menuData, error: menuError } = await supabase
         .from('menu_visibility')
         .select('*');
       
-      if (error) {
-        console.error('Error fetching menu visibility:', error);
+      if (menuError) {
+        console.error('Error fetching menu visibility:', menuError);
         return;
       }
       
-      setMenuVisibility(data || []);
+      setMenuVisibility(menuData || []);
+
+      // Fetch submodule visibility
+      const { data: submoduleData, error: submoduleError } = await supabase
+        .from('submodule_visibility')
+        .select('*');
+      
+      if (submoduleError) {
+        console.error('Error fetching submodule visibility:', submoduleError);
+        return;
+      }
+      
+      setSubmoduleVisibility(submoduleData || []);
     };
 
-    fetchMenuVisibility();
+    fetchVisibilitySettings();
   }, []);
 
   // Fetch user's role/type
@@ -83,25 +97,37 @@ export const SidebarContent = () => {
     fetchUserType();
   }, [user, toast]);
 
-  // Filter menu groups based on visibility settings
-  const visibleMenuGroups = menuGroups.map(group => ({
-    ...group,
-    items: group.items.filter(item => {
-      // Find visibility setting for this menu item
-      const visibility = menuVisibility.find(v => 
-        v.menu_key === item.title || 
-        v.menu_path === `/${item.path.split('/')[1]}`  // Check main route
-      );
+  // Filter menu groups based on visibility settings and user role
+  const visibleMenuGroups = menuGroups.map(group => {
+    // First check if user has access to the main menu group
+    const groupVisibility = menuVisibility.find(v => v.menu_key === group.label);
+    const isGroupVisible = !groupVisibility || 
+                           !userType ||
+                           groupVisibility.visible_to.includes(userType) ||
+                           groupVisibility.visible_to.includes('super_admin');
+
+    if (!isGroupVisible) {
+      return { ...group, items: [] };
+    }
+
+    // If group is visible, filter its items
+    return {
+      ...group,
+      items: group.items.filter(item => {
+        // Find visibility setting for this menu item
+        const itemVisibility = submoduleVisibility.find(v => 
+          v.parent_module === group.label && v.submodule_key === item.title
+        );
 
       // If no visibility setting found or no user type, hide item
       if (!visibility || !userType) {
-        // console.log(`No visibility setting found for ${item.path} or no user type`);
+        console.log(`No visibility setting found for ${item.path} or no user type`);
         return false;
       }
 
       // Check if user type is in the visible_to array
       const isVisible = visibility.visible_to.includes(userType);
-      // console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
+      console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
       return isVisible;
     })
   })).filter(group => group.items.length > 0); // Remove empty groups
