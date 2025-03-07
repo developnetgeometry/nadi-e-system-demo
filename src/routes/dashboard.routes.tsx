@@ -1,3 +1,4 @@
+import UserProfile from "@/pages/dashboard/profile/UserProfile";
 import { lazy } from "react";
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
 const Users = lazy(() => import("@/pages/dashboard/Users"));
@@ -56,4 +57,8 @@ export const dashboardRoutes = [
     path: "/admin/settings",
     element: <Settings />,
   },
+  // {
+  //   path: "/dashboard/profile",
+  //   element: <UserProfile />,
+  // },
 ];

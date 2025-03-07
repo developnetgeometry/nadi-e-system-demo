@@ -95,13 +95,13 @@ export const SidebarContent = () => {
 
       // If no visibility setting found or no user type, hide item
       if (!visibility || !userType) {
-        console.log(`No visibility setting found for ${item.path} or no user type`);
+        // console.log(`No visibility setting found for ${item.path} or no user type`);
         return false;
       }
 
       // Check if user type is in the visible_to array
       const isVisible = visibility.visible_to.includes(userType);
-      console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
+      // console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
       return isVisible;
     })
   })).filter(group => group.items.length > 0); // Remove empty groups
