@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -25,28 +24,54 @@ export const MenuVisibilitySettings = () => {
   } = useVisibilityData();
 
   const handleUpdateMenuVisibility = async (menuKey: string, userType: UserType, checked: boolean) => {
-    const currentMenu = menuVisibility.find(m => m.menu_key === menuKey) || {
-      menu_key: menuKey,
-      visible_to: []
-    };
-
-    const updatedVisibleTo = checked
-      ? [...new Set([...currentMenu.visible_to, userType])]
-      : currentMenu.visible_to.filter(t => t !== userType);
+    const existingMenu = menuVisibility.find(m => m.menu_key === menuKey);
+    
+    let updatedVisibleTo = [];
+    
+    if (existingMenu) {
+      updatedVisibleTo = checked
+        ? [...new Set([...existingMenu.visible_to, userType])]
+        : existingMenu.visible_to.filter(t => t !== userType);
+    } else {
+      if (checked) {
+        updatedVisibleTo = [userType];
+      } else {
+        return;
+      }
+    }
 
     try {
-      const { error } = await supabase
+      const { data: existingData, error: lookupError } = await supabase
         .from('menu_visibility')
-        .upsert({
-          menu_key: menuKey,
-          visible_to: updatedVisibleTo
-        });
+        .select('*')
+        .eq('menu_key', menuKey)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (lookupError) throw lookupError;
 
-      setMenuVisibility(prev => 
-        prev.map(m => m.menu_key === menuKey ? { ...m, visible_to: updatedVisibleTo } : m)
-      );
+      let saveError;
+      
+      if (existingData) {
+        const { error } = await supabase
+          .from('menu_visibility')
+          .update({ visible_to: updatedVisibleTo })
+          .eq('menu_key', menuKey);
+        saveError = error;
+      } else {
+        const { error } = await supabase
+          .from('menu_visibility')
+          .insert({ menu_key: menuKey, visible_to: updatedVisibleTo });
+        saveError = error;
+      }
+
+      if (saveError) throw saveError;
+
+      setMenuVisibility(prev => {
+        if (prev.some(m => m.menu_key === menuKey)) {
+          return prev.map(m => m.menu_key === menuKey ? { ...m, visible_to: updatedVisibleTo } : m);
+        } 
+        return [...prev, { menu_key: menuKey, visible_to: updatedVisibleTo }];
+      });
 
       toast({
         title: "Success",
@@ -68,36 +93,73 @@ export const MenuVisibilitySettings = () => {
     userType: UserType,
     checked: boolean
   ) => {
-    const currentSubmodule = submoduleVisibility.find(
+    const existingSubmodule = submoduleVisibility.find(
       s => s.parent_module === parentModule && s.submodule_key === submoduleKey
-    ) || {
-      parent_module: parentModule,
-      submodule_key: submoduleKey,
-      visible_to: []
-    };
-
-    const updatedVisibleTo = checked
-      ? [...new Set([...currentSubmodule.visible_to, userType])]
-      : currentSubmodule.visible_to.filter(t => t !== userType);
+    );
+    
+    let updatedVisibleTo = [];
+    
+    if (existingSubmodule) {
+      updatedVisibleTo = checked
+        ? [...new Set([...existingSubmodule.visible_to, userType])]
+        : existingSubmodule.visible_to.filter(t => t !== userType);
+    } else {
+      if (checked) {
+        updatedVisibleTo = [userType];
+      } else {
+        return;
+      }
+    }
 
     try {
-      const { error } = await supabase
+      const { data: existingData, error: lookupError } = await supabase
         .from('submodule_visibility')
-        .upsert({
-          parent_module: parentModule,
-          submodule_key: submoduleKey,
-          visible_to: updatedVisibleTo
-        });
+        .select('*')
+        .eq('parent_module', parentModule)
+        .eq('submodule_key', submoduleKey)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (lookupError) throw lookupError;
 
-      setSubmoduleVisibility(prev => 
-        prev.map(s => 
-          s.parent_module === parentModule && s.submodule_key === submoduleKey
-            ? { ...s, visible_to: updatedVisibleTo }
-            : s
-        )
-      );
+      let saveError;
+      
+      if (existingData) {
+        const { error } = await supabase
+          .from('submodule_visibility')
+          .update({ visible_to: updatedVisibleTo })
+          .eq('parent_module', parentModule)
+          .eq('submodule_key', submoduleKey);
+        saveError = error;
+      } else {
+        const { error } = await supabase
+          .from('submodule_visibility')
+          .insert({
+            parent_module: parentModule,
+            submodule_key: submoduleKey,
+            visible_to: updatedVisibleTo
+          });
+        saveError = error;
+      }
+
+      if (saveError) throw saveError;
+
+      setSubmoduleVisibility(prev => {
+        const existingIndex = prev.findIndex(
+          s => s.parent_module === parentModule && s.submodule_key === submoduleKey
+        );
+        
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = { ...updated[existingIndex], visible_to: updatedVisibleTo };
+          return updated;
+        } else {
+          return [...prev, {
+            parent_module: parentModule,
+            submodule_key: submoduleKey,
+            visible_to: updatedVisibleTo
+          }];
+        }
+      });
 
       toast({
         title: "Success",
@@ -139,7 +201,6 @@ export const MenuVisibilitySettings = () => {
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-6 pl-4">
-                  {/* Main menu visibility */}
                   <VisibilityControls
                     label="Main Menu Visibility"
                     userTypes={userTypes}
@@ -150,7 +211,6 @@ export const MenuVisibilitySettings = () => {
                     }
                   />
 
-                  {/* Submodules visibility */}
                   {group.items.map((item) => (
                     <div key={item.title} className="border-l-2 border-gray-200 pl-4">
                       <VisibilityControls
