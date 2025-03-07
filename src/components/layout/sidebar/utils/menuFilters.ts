@@ -18,10 +18,21 @@ export const filterMenuGroups = (
     return menuGroups;
   }
 
+  // For debugging: log all the visibility settings
+  console.log(`Filtering menu groups for user type: ${userType}`);
+  console.log('Available menu visibility settings:', menuVisibility);
+  console.log('Available submodule visibility settings:', submoduleVisibility);
+
   return menuGroups
     .filter(group => {
       // Find visibility setting for this menu group
       const groupVisibility = menuVisibility.find(v => v.menu_key === group.label);
+      
+      // Log for debugging
+      console.log(`Checking menu ${group.label}:`, 
+        groupVisibility ? 
+        `visible to: [${groupVisibility.visible_to.join(', ')}]` : 
+        'no visibility settings');
       
       // If no visibility setting exists or user type is not in visible_to array, don't show this group
       if (!groupVisibility || !groupVisibility.visible_to.includes(userType)) {
@@ -35,6 +46,12 @@ export const filterMenuGroups = (
           v => v.parent_module === group.label && v.submodule_key === item.title
         );
 
+        // Log submodule visibility for debugging
+        console.log(`  Checking submodule ${item.title}:`, 
+          itemVisibility ? 
+          `visible to: [${itemVisibility.visible_to.join(', ')}]` : 
+          'no visibility settings (defaulting to visible)');
+
         // If no visibility setting exists for this item, it's visible by default if the parent is visible
         if (!itemVisibility) {
           return true;
@@ -44,6 +61,7 @@ export const filterMenuGroups = (
         return itemVisibility.visible_to.includes(userType);
       });
 
+      console.log(`Menu ${group.label} has visible items: ${hasVisibleItems}`);
       return hasVisibleItems;
     })
     .map(group => {
