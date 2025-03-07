@@ -119,18 +119,19 @@ export const SidebarContent = () => {
           v.parent_module === group.label && v.submodule_key === item.title
         );
 
-      // If no visibility setting found or no user type, hide item
-      if (!visibility || !userType) {
-        console.log(`No visibility setting found for ${item.path} or no user type`);
-        return false;
-      }
+        // If no visibility setting found or no user type, show the item by default
+        if (!itemVisibility || !userType) {
+          return true;
+        }
 
-      // Check if user type is in the visible_to array
-      const isVisible = visibility.visible_to.includes(userType);
-      console.log(`Menu item ${item.path} visibility for ${userType}:`, isVisible);
-      return isVisible;
-    })
-  })).filter(group => group.items.length > 0); // Remove empty groups
+        // Check if user type is in the visible_to array
+        const isVisible = itemVisibility.visible_to.includes(userType) || 
+                          itemVisibility.visible_to.includes('super_admin');
+        
+        return isVisible;
+      })
+    };
+  }).filter(group => group.items.length > 0); // Remove empty groups
 
   return (
     <>
