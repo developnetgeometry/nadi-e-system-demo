@@ -1,5 +1,5 @@
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +7,7 @@ import { Permission, UserType } from "@/types/auth";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserAccess } from "@/hooks/use-user-access";
 import { useMenuPathVisibility } from "@/hooks/use-menu-visibility";
+import { AuthLoading } from "./AuthLoading";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -23,8 +24,7 @@ export const ProtectedRoute = ({
   const { toast } = useToast();
   const { user } = useAuth();
   const { userType, isSuperAdmin, accessChecked } = useUserAccess();
-  const [hasRouteAccess, setHasRouteAccess] = useState<boolean | null>(null);
-  const { data: permissions = [], isLoading, error } = usePermissions();
+  const { data: permissions = [], isLoading: permissionsLoading, error } = usePermissions();
   
   // Extract path parts for route checking
   const pathParts = location.pathname.split('/').filter(Boolean);
@@ -38,13 +38,6 @@ export const ProtectedRoute = ({
     userType
   );
 
-  // Set route access when menu visibility check is complete
-  useEffect(() => {
-    if (!menuAccessLoading && hasAccess !== null) {
-      setHasRouteAccess(hasAccess);
-    }
-  }, [hasAccess, menuAccessLoading]);
-
   // Log any errors with permissions
   useEffect(() => {
     if (error) {
@@ -57,9 +50,9 @@ export const ProtectedRoute = ({
     }
   }, [error, toast]);
 
-  // Show loading while checking authentication or menu access
-  if (isLoading || !accessChecked || hasRouteAccess === null || menuAccessLoading) {
-    return <div>Loading permissions...</div>;
+  // Show loading component while checking authentication or menu access
+  if (permissionsLoading || !accessChecked || menuAccessLoading) {
+    return <AuthLoading />;
   }
 
   // Redirect to login if not authenticated
@@ -68,7 +61,7 @@ export const ProtectedRoute = ({
   }
 
   // Redirect if user doesn't have access to this route based on menu visibility
-  if (!hasRouteAccess) {
+  if (!hasAccess) {
     console.log('Access denied based on menu visibility');
     toast({
       title: "Access Denied",
