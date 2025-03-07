@@ -19,6 +19,7 @@ const Profile = lazy(() => import("@/pages/dashboard/Profile"));
 const UsageSessions = lazy(() => import("@/pages/dashboard/UsageSessions"));
 const Organizations = lazy(() => import("@/pages/dashboard/Organizations"));
 const OrganizationDetails = lazy(() => import("@/pages/dashboard/OrganizationDetails"));
+const ParameterSettings = lazy(() => import("@/pages/dashboard/OrganizationDetails"));
 
 export const dashboardRoutes = [
   {
