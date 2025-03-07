@@ -46,6 +46,7 @@ export const menuItems = [
   { title: "Reports", icon: FileBarChart, path: "/admin/reports" },
   { title: "Calendar", icon: Calendar, path: "/admin/calendar" },
   { title: "Notifications", icon: Bell, path: "/admin/notifications" },
+  { title: "Organizations", icon: Users, path: "/admin/organizations" },
   { title: "Site Management", icon: Settings, path: "/admin/siteManagement" },
   { title: "Settings", icon: Settings, path: "/admin/settings" },
 ];
