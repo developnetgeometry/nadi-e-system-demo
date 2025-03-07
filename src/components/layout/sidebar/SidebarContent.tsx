@@ -4,7 +4,7 @@ import { menuGroups } from "@/utils/menu-groups";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { MenuVisibility } from "@/components/settings/types/menu-visibility.types";
+import { MenuVisibility, SubmoduleVisibility } from "@/components/settings/types/menu-visibility.types";
 import { UserType } from "@/types/auth";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -18,7 +18,7 @@ export const SidebarContent = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [menuVisibility, setMenuVisibility] = useState<MenuVisibility[]>([]);
-  const [submoduleVisibility, setSubmoduleVisibility] = useState<MenuVisibility[]>([]);
+  const [submoduleVisibility, setSubmoduleVisibility] = useState<SubmoduleVisibility[]>([]);
   const [userType, setUserType] = useState<UserType | null>(null);
 
   // Fetch menu visibility settings
