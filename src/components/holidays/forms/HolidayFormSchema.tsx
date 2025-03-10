@@ -6,7 +6,7 @@ export const holidayFormSchema = z.object({
   date: z.date({
     required_error: "Date is required",
   }),
-  states: z.array(z.number()).optional(),
+  states: z.array(z.number()).default([]),
   status: z.number().default(1)
 });
 
