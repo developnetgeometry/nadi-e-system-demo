@@ -31,11 +31,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       <div className="relative min-h-screen flex w-full bg-background">
         {/* Overlay for mobile */}
         {isMobile && openMobile && (
-          <div className="fixed inset-0 bg-black/50 z-40" />
+          <div 
+            className="fixed inset-0 bg-black/50 z-40" 
+            onClick={() => useSidebar().setOpenMobile(false)}
+          />
         )}
         
         {/* Sidebar */}
-        <div className="z-50">
+        <div className={cn(
+          "z-50",
+          isMobile && "fixed"
+        )}>
           <DashboardSidebar />
         </div>
         
@@ -45,7 +51,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             "flex-1 flex flex-col transition-all duration-300",
             !isMobile && isCollapsed ? "ml-[72px]" : "",
             !isMobile && !isCollapsed ? "ml-[280px]" : "",
-            isMobile ? "ml-0" : ""
+            isMobile ? "ml-0 w-full" : ""
           )}
         >
           <DashboardNavbar />

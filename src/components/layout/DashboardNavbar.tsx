@@ -41,7 +41,6 @@ export const DashboardNavbar = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      console.log("Fetching profile for user:", user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('full_name, user_type')
@@ -53,7 +52,6 @@ export const DashboardNavbar = () => {
         throw error;
       }
       
-      console.log("Profile data:", data);
       return data;
     },
     enabled: !!user?.id,

@@ -1,8 +1,27 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, createContext, useContext } from 'react';
 import { useIsMobile } from './use-mobile';
 
-export const useSidebar = () => {
+interface SidebarContextType {
+  isMobile: boolean;
+  openMobile: boolean;
+  setOpenMobile: (open: boolean) => void;
+  state: 'expanded' | 'collapsed';
+  setState: (state: 'expanded' | 'collapsed') => void;
+  toggleSidebar: () => void;
+}
+
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+
+export const useSidebarContext = () => {
+  const context = useContext(SidebarContext);
+  if (context === undefined) {
+    throw new Error('useSidebarContext must be used within a SidebarProvider');
+  }
+  return context;
+};
+
+export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = useState(false);
   const [state, setState] = useState<'expanded' | 'collapsed'>('expanded');
@@ -39,11 +58,47 @@ export const useSidebar = () => {
     }
   }, [isMobile]);
 
-  return {
-    isMobile,
-    state,
-    openMobile,
-    setOpenMobile,
-    toggleSidebar
-  };
+  return (
+    <SidebarContext.Provider
+      value={{
+        isMobile,
+        openMobile,
+        setOpenMobile,
+        state,
+        setState,
+        toggleSidebar
+      }}
+    >
+      {children}
+    </SidebarContext.Provider>
+  );
+};
+
+// Backward compatibility
+export const useSidebar = () => {
+  try {
+    return useSidebarContext();
+  } catch (error) {
+    // Fallback to standalone hook behavior if no provider
+    const isMobile = useIsMobile();
+    const [openMobile, setOpenMobile] = useState(false);
+    const [state, setState] = useState<'expanded' | 'collapsed'>('expanded');
+
+    const toggleSidebar = useCallback(() => {
+      if (isMobile) {
+        setOpenMobile(prev => !prev);
+      } else {
+        setState(prev => prev === 'expanded' ? 'collapsed' : 'expanded');
+      }
+    }, [isMobile]);
+
+    return {
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      state,
+      setState,
+      toggleSidebar
+    };
+  }
 };
