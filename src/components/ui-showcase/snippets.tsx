@@ -1,187 +1,186 @@
 
-import { ReactNode } from "react";
-import { ButtonExamples, buttonCode } from "./ButtonExamples";
-import { InputExamples, inputCode } from "./InputExamples";
-import { SelectExamples, selectCode } from "./SelectExamples";
-import { TextareaExamples, textareaCode } from "./TextareaExamples";
-import { CheckboxExamples, checkboxCode } from "./CheckboxExamples";
-import { SwitchExamples, switchCode } from "./SwitchExamples";
-import { FormExamples, formCode } from "./FormExamples";
-import { CardExamples, cardCode } from "./CardExamples";
-import { InputGroupExamples, inputGroupCode } from "./InputGroupExamples";
-import { HeadingsExamples, headingsCode } from "./HeadingsExamples";
-import { DescriptionListExamples, descriptionListCode } from "./DescriptionListExamples";
-import { StatsExamples, statsCode } from "./StatsExamples";
-import { DatePickerExamples, datePickerCode } from "./DatePickerExamples";
-import { StackedListExamples, stackedListCode } from "./StackedListExamples";
-import { TableExamples, tableCode } from "./TableExamples";
-import { GridListExamples, gridListCode } from "./GridListExamples";
-import { FeedExamples, feedCode } from "./FeedExamples";
-import { FeedbackAlertsExamples, feedbackAlertsCode } from "./FeedbackAlertsExamples";
-import { NavigationExamples, navigationCode } from "./NavigationExamples";
-import { ProgressExamples, progressCode } from "./ProgressExamples";
-import { CommandPaletteExamples, commandPaletteCode } from "./CommandPaletteExamples";
-import { ElementsExamples, elementsCode } from "./ElementsExamples";
-import { LayoutExamples, layoutCode } from "./LayoutExamples";
-import { OverlaysExamples, overlaysCode } from "./OverlaysExamples";
-import { PaginatedSelectExamples, paginatedSelectCode } from "./PaginatedSelectExamples";
+import { buttonCode, ButtonExamples } from "./ButtonExamples";
+import { cardCode, CardExamples } from "./CardExamples";
+import { checkboxCode, CheckboxExamples } from "./CheckboxExamples";
+import { commandPaletteCode, CommandPaletteExamples } from "./CommandPaletteExamples";
+import { datePickerCode, DatePickerExamples } from "./DatePickerExamples";
+import { descriptionListCode, DescriptionListExamples } from "./DescriptionListExamples";
+import { elementsCode, ElementsExamples } from "./ElementsExamples";
+import { feedbackAlertsCode, FeedbackAlertsExamples } from "./FeedbackAlertsExamples";
+import { feedCode, FeedExamples } from "./FeedExamples";
+import { fileUploadCode, infiniteScrollSelectCode, FileUploadAndScrollSelectExamples } from "./FileUploadAndScrollSelectExamples";
+import { formCode, FormExamples } from "./FormExamples";
+import { gridListCode, GridListExamples } from "./GridListExamples";
+import { headingsCode, HeadingsExamples } from "./HeadingsExamples";
+import { inputCode, InputExamples } from "./InputExamples";
+import { inputGroupCode, InputGroupExamples } from "./InputGroupExamples";
+import { layoutCode, LayoutExamples } from "./LayoutExamples";
+import { navigationCode, NavigationExamples } from "./NavigationExamples";
+import { overlaysCode, OverlaysExamples } from "./OverlaysExamples";
+import { paginatedSelectCode, PaginatedSelectExamples } from "./PaginatedSelectExamples";
+import { progressCode, ProgressExamples } from "./ProgressExamples";
+import { selectCode, SelectExamples } from "./SelectExamples";
+import { stackedListCode, StackedListExamples } from "./StackedListExamples";
+import { statsCode, StatsExamples } from "./StatsExamples";
+import { switchCode, SwitchExamples } from "./SwitchExamples";
+import { tableCode, TableExamples } from "./TableExamples";
+import { textareaCode, TextareaExamples } from "./TextareaExamples";
 
-export type CodeSnippet = {
-  title: string;
-  component: ReactNode;
-  code: string;
-  description: string;
-};
-
-export const codeSnippets: CodeSnippet[] = [
+export const codeSnippets = [
   {
-    title: "Button",
-    description: "Various button styles for different actions",
-    component: <ButtonExamples />,
+    title: "Buttons",
+    description: "Standard buttons for user actions and form submissions",
+    component: ButtonExamples,
     code: buttonCode,
   },
   {
-    title: "Elements (Avatars, Badges, Dropdowns, Button Groups)",
-    description: "Essential UI elements for user interaction and display",
-    component: <ElementsExamples />,
-    code: elementsCode,
-  },
-  {
-    title: "Layout (Containers, Cards, Lists, Media Objects, Dividers)",
-    description: "Building blocks for page structure and content organization",
-    component: <LayoutExamples />,
-    code: layoutCode,
-  },
-  {
-    title: "Overlays (Modals, Notifications)",
-    description: "Dialog windows, notifications and other overlaying components",
-    component: <OverlaysExamples />,
-    code: overlaysCode,
-  },
-  {
-    title: "Paginated Select Dropdown",
-    description: "Dropdown select with pagination for large datasets",
-    component: <PaginatedSelectExamples />,
-    code: paginatedSelectCode,
-  },
-  {
-    title: "Input",
-    description: "Text input fields for user data entry",
-    component: <InputExamples />,
-    code: inputCode,
-  },
-  {
-    title: "Select",
-    description: "Dropdown selection menus for choosing options",
-    component: <SelectExamples />,
-    code: selectCode,
-  },
-  {
-    title: "Textarea",
-    description: "Multi-line text input for longer content",
-    component: <TextareaExamples />,
-    code: textareaCode,
-  },
-  {
-    title: "Checkbox",
-    description: "Checkboxes for multiple selections and toggles",
-    component: <CheckboxExamples />,
-    code: checkboxCode,
-  },
-  {
-    title: "Switch",
-    description: "Toggle switches for binary options",
-    component: <SwitchExamples />,
-    code: switchCode,
-  },
-  {
-    title: "Form with Validation",
-    description: "Complete form with validation using React Hook Form and Zod",
-    component: <FormExamples />,
+    title: "Form Elements",
+    description: "Input fields, labels, and form controls",
+    component: FormExamples,
     code: formCode,
   },
   {
-    title: "Card",
-    description: "Card components for content organization",
-    component: <CardExamples />,
+    title: "Cards",
+    description: "Versatile content containers with various configurations",
+    component: CardExamples,
     code: cardCode,
   },
   {
+    title: "Tables",
+    description: "Data tables for displaying structured information",
+    component: TableExamples,
+    code: tableCode,
+  },
+  {
+    title: "File Upload & Scrollable Select",
+    description: "File upload component and infinite scrolling dropdown with filtering",
+    component: FileUploadAndScrollSelectExamples, 
+    code: `${fileUploadCode}\n\n${infiniteScrollSelectCode}`,
+  },
+  {
+    title: "UI Elements",
+    description: "Small reusable interface components like avatars, badges, tooltips",
+    component: ElementsExamples,
+    code: elementsCode,
+  },
+  {
+    title: "Navigation",
+    description: "Navigation bars, tabs, and menus for application structure",
+    component: NavigationExamples,
+    code: navigationCode,
+  },
+  {
+    title: "Select Dropdowns",
+    description: "Standard select and dropdown menus",
+    component: SelectExamples,
+    code: selectCode,
+  },
+  {
+    title: "Paginated Select Dropdown",
+    description: "Select dropdown with pagination features",
+    component: PaginatedSelectExamples,
+    code: paginatedSelectCode,
+  },
+  {
+    title: "Inputs",
+    description: "Text inputs for collecting user information",
+    component: InputExamples,
+    code: inputCode,
+  },
+  {
     title: "Input Groups",
-    description: "Grouped input fields for related information",
-    component: <InputGroupExamples />,
+    description: "Grouped input fields with labels and actions",
+    component: InputGroupExamples,
     code: inputGroupCode,
   },
   {
-    title: "Headings",
-    description: "Page headings, section headings, and card headings",
-    component: <HeadingsExamples />,
-    code: headingsCode,
+    title: "Feedback & Alerts",
+    description: "Notifications, alerts, and status indicators",
+    component: FeedbackAlertsExamples,
+    code: feedbackAlertsCode,
+  },
+  {
+    title: "Checkboxes & Toggles",
+    description: "Binary selection controls for forms",
+    component: CheckboxExamples,
+    code: checkboxCode,
+  },
+  {
+    title: "Switches",
+    description: "Toggle switches for boolean settings",
+    component: SwitchExamples,
+    code: switchCode,
+  },
+  {
+    title: "Date Pickers",
+    description: "Calendar and date selection components",
+    component: DatePickerExamples,
+    code: datePickerCode,
+  },
+  {
+    title: "Textareas",
+    description: "Multi-line text input fields",
+    component: TextareaExamples,
+    code: textareaCode,
+  },
+  {
+    title: "Command Palette",
+    description: "Command menus for quick actions and navigation",
+    component: CommandPaletteExamples,
+    code: commandPaletteCode,
+  },
+  {
+    title: "Progress Indicators",
+    description: "Progress bars, spinners, and loading states",
+    component: ProgressExamples,
+    code: progressCode,
+  },
+  {
+    title: "Overlays",
+    description: "Modals, dialogs, and popover elements",
+    component: OverlaysExamples,
+    code: overlaysCode,
+  },
+  {
+    title: "Layouts",
+    description: "Page layouts and content organization patterns",
+    component: LayoutExamples,
+    code: layoutCode,
   },
   {
     title: "Description Lists",
-    description: "Various ways to display key-value data",
-    component: <DescriptionListExamples />,
+    description: "Term-description pairs for displaying metadata",
+    component: DescriptionListExamples,
     code: descriptionListCode,
   },
   {
     title: "Stats",
-    description: "Numerical data displays with trends and indicators",
-    component: <StatsExamples />,
+    description: "Numerical data visualizations and statistics",
+    component: StatsExamples,
     code: statsCode,
   },
   {
-    title: "Calendar & Schedule",
-    description: "Date picker and calendar with scheduling components",
-    component: <DatePickerExamples />,
-    code: datePickerCode,
-  },
-  {
-    title: "Stacked Lists",
-    description: "Vertically stacked content lists for notifications and tasks",
-    component: <StackedListExamples />,
-    code: stackedListCode,
-  },
-  {
-    title: "Tables",
-    description: "Data tables with various features and styling options",
-    component: <TableExamples />,
-    code: tableCode,
-  },
-  {
-    title: "Grid Lists",
-    description: "Card grids for displaying collections of content",
-    component: <GridListExamples />,
-    code: gridListCode,
+    title: "Headings",
+    description: "Page and section titles with various styles",
+    component: HeadingsExamples,
+    code: headingsCode,
   },
   {
     title: "Feeds",
-    description: "Social media style content feeds and activity streams",
-    component: <FeedExamples />,
+    description: "Activity feeds and timeline displays",
+    component: FeedExamples,
     code: feedCode,
   },
   {
-    title: "Feedback & Alerts",
-    description: "Alert messages, notifications, and empty states",
-    component: <FeedbackAlertsExamples />,
-    code: feedbackAlertsCode,
+    title: "Stacked Lists",
+    description: "Vertical lists with consistent styling",
+    component: StackedListExamples,
+    code: stackedListCode,
   },
   {
-    title: "Navigation",
-    description: "Breadcrumbs, tabs, and pagination components",
-    component: <NavigationExamples />,
-    code: navigationCode,
-  },
-  {
-    title: "Progress Indicators",
-    description: "Progress bars and loading indicators",
-    component: <ProgressExamples />,
-    code: progressCode,
-  },
-  {
-    title: "Command Palette",
-    description: "Command menus for quick navigation and actions",
-    component: <CommandPaletteExamples />,
-    code: commandPaletteCode,
+    title: "Grid Lists",
+    description: "Grid-based content layouts for cards and items",
+    component: GridListExamples,
+    code: gridListCode,
   },
 ];
