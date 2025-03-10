@@ -21,6 +21,10 @@ import { FeedbackAlertsExamples, feedbackAlertsCode } from "./FeedbackAlertsExam
 import { NavigationExamples, navigationCode } from "./NavigationExamples";
 import { ProgressExamples, progressCode } from "./ProgressExamples";
 import { CommandPaletteExamples, commandPaletteCode } from "./CommandPaletteExamples";
+import { ElementsExamples, elementsCode } from "./ElementsExamples";
+import { LayoutExamples, layoutCode } from "./LayoutExamples";
+import { OverlaysExamples, overlaysCode } from "./OverlaysExamples";
+import { PaginatedSelectExamples, paginatedSelectCode } from "./PaginatedSelectExamples";
 
 export type CodeSnippet = {
   title: string;
@@ -35,6 +39,30 @@ export const codeSnippets: CodeSnippet[] = [
     description: "Various button styles for different actions",
     component: <ButtonExamples />,
     code: buttonCode,
+  },
+  {
+    title: "Elements (Avatars, Badges, Dropdowns, Button Groups)",
+    description: "Essential UI elements for user interaction and display",
+    component: <ElementsExamples />,
+    code: elementsCode,
+  },
+  {
+    title: "Layout (Containers, Cards, Lists, Media Objects, Dividers)",
+    description: "Building blocks for page structure and content organization",
+    component: <LayoutExamples />,
+    code: layoutCode,
+  },
+  {
+    title: "Overlays (Modals, Notifications)",
+    description: "Dialog windows, notifications and other overlaying components",
+    component: <OverlaysExamples />,
+    code: overlaysCode,
+  },
+  {
+    title: "Paginated Select Dropdown",
+    description: "Dropdown select with pagination for large datasets",
+    component: <PaginatedSelectExamples />,
+    code: paginatedSelectCode,
   },
   {
     title: "Input",

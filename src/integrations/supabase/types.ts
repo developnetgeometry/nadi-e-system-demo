@@ -723,7 +723,7 @@ export type Database = {
           id: number
           name: string | null
           updated_at: string | null
-          updated_id: string | null
+          updated_by: string | null
         }
         Insert: {
           category_id?: number | null
@@ -732,7 +732,7 @@ export type Database = {
           id: number
           name?: string | null
           updated_at?: string | null
-          updated_id?: string | null
+          updated_by?: string | null
         }
         Update: {
           category_id?: number | null
@@ -741,7 +741,7 @@ export type Database = {
           id?: number
           name?: string | null
           updated_at?: string | null
-          updated_id?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
