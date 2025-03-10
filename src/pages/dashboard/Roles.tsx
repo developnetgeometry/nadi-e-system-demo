@@ -1,8 +1,6 @@
 
 import { useState } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RoleFormDialog } from "@/components/roles/RoleFormDialog";
 import { RoleHeader } from "@/components/roles/RoleHeader";
 import { RoleTable } from "@/components/roles/RoleTable";
@@ -34,35 +32,29 @@ const Roles = () => {
 
   if (error) {
     return (
-      <div className="p-4 text-red-500">
-        Error loading roles. Please try again later.
-      </div>
+      <DashboardLayout>
+        <div className="p-4 text-red-500">
+          Error loading roles. Please try again later.
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <DashboardSidebar />
-        <div className="flex-1 flex flex-col ml-[240px]">
-          <DashboardNavbar />
-          <main className="flex-1 p-8 overflow-auto">
-            <div className="container mx-auto max-w-6xl space-y-8">
-              <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
-              
-              {isLoading ? (
-                <div className="flex items-center justify-center p-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <RoleTable 
-                  roles={roles || []}
-                  onEdit={setEditingRole}
-                />
-              )}
-            </div>
-          </main>
-        </div>
+    <DashboardLayout>
+      <div className="container mx-auto max-w-6xl space-y-8">
+        <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
+        
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <RoleTable 
+            roles={roles || []}
+            onEdit={setEditingRole}
+          />
+        )}
       </div>
 
       <RoleFormDialog
@@ -77,7 +69,7 @@ const Roles = () => {
         initialData={editingRole || undefined}
         onSubmit={handleUpdateRole}
       />
-    </SidebarProvider>
+    </DashboardLayout>
   );
 };
 

@@ -22,7 +22,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+    const { isMobile, state, openMobile } = useSidebar();
     const sidebarRef = useRef<HTMLDivElement>(null);
     const [resizeObserver] = React.useState(() => {
       if (typeof ResizeObserver === "undefined") return null;
@@ -49,22 +49,6 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       };
     }, [resizeObserver]);
 
-    // Handle clicks outside the sidebar to close it on mobile
-    useEffect(() => {
-      if (!isMobile) return;
-      
-      const handleOutsideClick = (event: MouseEvent) => {
-        if (openMobile && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-          setOpenMobile(false);
-        }
-      };
-      
-      document.addEventListener('click', handleOutsideClick);
-      return () => {
-        document.removeEventListener('click', handleOutsideClick);
-      };
-    }, [isMobile, openMobile, setOpenMobile]);
-
     return (
       <div
         ref={(node) => {
@@ -81,7 +65,7 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
           "sidebar fixed top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-md",
           sidebarStyles.sidebarBackground,
           side === "left" ? "left-0" : "right-0",
-          state === "collapsed" ? "w-[72px]" : "w-[280px]",
+          state === "collapsed" && !isMobile ? "w-[72px]" : "w-[280px]",
           isMobile && "transform",
           isMobile && !openMobile && "-translate-x-full",
           isMobile && openMobile && "translate-x-0",

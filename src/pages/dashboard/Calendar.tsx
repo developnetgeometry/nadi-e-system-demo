@@ -1,18 +1,12 @@
+
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 
@@ -41,76 +35,68 @@ const CalendarPage = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <DashboardSidebar />
-        <div className="flex-1 flex flex-col ml-[240px]">
-          <DashboardNavbar />
-          <main className="flex-1 p-8 overflow-auto">
-            <div className="container mx-auto max-w-6xl">
-              <div className="flex items-center gap-4 mb-8">
-                <CalendarIcon className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold">Calendar</h1>
-              </div>
+    <DashboardLayout>
+      <div className="container mx-auto max-w-6xl">
+        <div className="flex items-center gap-4 mb-8">
+          <CalendarIcon className="h-8 w-8 text-primary" />
+          <h1 className="text-3xl font-bold">Calendar</h1>
+        </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card className="p-4">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CalendarIcon className="h-5 w-5" />
-                      Select Date
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={handleDateSelect}
-                      className="rounded-md border shadow"
-                      disabled={(date) => date < new Date()}
-                    />
-                  </CardContent>
-                </Card>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="p-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5" />
+                Select Date
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleDateSelect}
+                className="rounded-md border shadow"
+                disabled={(date) => date < new Date()}
+              />
+            </CardContent>
+          </Card>
 
-                <Card className="p-4">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Clock className="h-5 w-5" />
-                      Available Time Slots
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
-                      {timeSlots.map((slot) => (
-                        <Button
-                          key={slot}
-                          variant={selectedSlot === slot ? "default" : "outline"}
-                          onClick={() => handleSlotSelect(slot)}
-                          className={cn(
-                            "w-full justify-center",
-                            selectedSlot === slot && "bg-primary text-primary-foreground"
-                          )}
-                        >
-                          {slot}
-                        </Button>
-                      ))}
-                    </div>
-                    {date && selectedSlot && (
-                      <div className="mt-6">
-                        <h3 className="text-sm font-medium mb-2">Selected Time:</h3>
-                        <Badge variant="outline" className="text-sm">
-                          {format(date, "PPP")} at {selectedSlot}
-                        </Badge>
-                      </div>
+          <Card className="p-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Available Time Slots
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                {timeSlots.map((slot) => (
+                  <Button
+                    key={slot}
+                    variant={selectedSlot === slot ? "default" : "outline"}
+                    onClick={() => handleSlotSelect(slot)}
+                    className={cn(
+                      "w-full justify-center",
+                      selectedSlot === slot && "bg-primary text-primary-foreground"
                     )}
-                  </CardContent>
-                </Card>
+                  >
+                    {slot}
+                  </Button>
+                ))}
               </div>
-            </div>
-          </main>
+              {date && selectedSlot && (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium mb-2">Selected Time:</h3>
+                  <Badge variant="outline" className="text-sm">
+                    {format(date, "PPP")} at {selectedSlot}
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </SidebarProvider>
+    </DashboardLayout>
   );
 };
 

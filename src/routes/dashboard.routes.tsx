@@ -1,4 +1,3 @@
-
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
@@ -18,8 +17,13 @@ const SiteManagement = lazy(() => import("@/pages/dashboard/SiteManagement"));
 const Profile = lazy(() => import("@/pages/dashboard/Profile"));
 const UsageSessions = lazy(() => import("@/pages/dashboard/UsageSessions"));
 const Organizations = lazy(() => import("@/pages/dashboard/Organizations"));
-const OrganizationDetails = lazy(() => import("@/pages/dashboard/OrganizationDetails"));
-const ParameterSettings = lazy(() => import("@/pages/dashboard/OrganizationDetails"));
+const OrganizationDetails = lazy(
+  () => import("@/pages/dashboard/OrganizationDetails")
+);
+const ParameterSettings = lazy(
+  () => import("@/pages/dashboard/OrganizationDetails")
+);
+const StateHolidays = lazy(() => import("@/pages/dashboard/StateHolidays"));
 
 export const dashboardRoutes = [
   {
@@ -131,6 +135,14 @@ export const dashboardRoutes = [
     element: (
       <ProtectedRoute>
         <OrganizationDetails />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/state-holidays",
+    element: (
+      <ProtectedRoute>
+        <StateHolidays />
       </ProtectedRoute>
     ),
   },
