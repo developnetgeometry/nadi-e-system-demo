@@ -44,7 +44,7 @@ export const DashboardNavbar = () => {
       console.log("Fetching profile for user:", user.id);
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, user_type, avatar_url')
+        .select('full_name, user_type')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -135,13 +135,9 @@ export const DashboardNavbar = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8 border border-white/20">
-                    {profile?.avatar_url ? (
-                      <AvatarImage src={profile.avatar_url} alt={profile?.full_name || 'User'} />
-                    ) : (
-                      <AvatarFallback className="bg-white/10 text-white">
-                        {profile?.full_name?.charAt(0) || 'U'}
-                      </AvatarFallback>
-                    )}
+                    <AvatarFallback className="bg-white/10 text-white">
+                      {profile?.full_name?.charAt(0) || 'U'}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

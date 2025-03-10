@@ -79,7 +79,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
             <span className="truncate flex-1 text-left">{label}</span>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="pb-1 pl-11">
+        <AccordionContent className={cn("pb-1 pl-11", sidebarStyles.menuContentBackground, "rounded-md my-1")}>
           <SidebarMenu>
             {items.map((item) => (
               <SidebarItem
@@ -88,6 +88,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                 path={item.path}
                 icon={item.icon}
                 isCollapsed={false}
+                isInWhiteBackground={true}
               />
             ))}
           </SidebarMenu>

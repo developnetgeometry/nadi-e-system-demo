@@ -11,9 +11,16 @@ interface SidebarItemProps {
   path: string;
   icon: LucideIcon;
   isCollapsed?: boolean;
+  isInWhiteBackground?: boolean;
 }
 
-export const SidebarItem = ({ title, path, icon: Icon, isCollapsed }: SidebarItemProps) => {
+export const SidebarItem = ({ 
+  title, 
+  path, 
+  icon: Icon, 
+  isCollapsed,
+  isInWhiteBackground 
+}: SidebarItemProps) => {
   const location = useLocation();
   const { isMobile } = useSidebar();
   const isActive = location.pathname === path;
@@ -26,11 +33,15 @@ export const SidebarItem = ({ title, path, icon: Icon, isCollapsed }: SidebarIte
           className={cn(
             sidebarStyles.menuItem,
             isActive && sidebarStyles.menuItemActive,
-            isCollapsed && !isMobile && "justify-center px-2"
+            isCollapsed && !isMobile && "justify-center px-2",
+            isInWhiteBackground && "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
         >
-          <Icon className={sidebarStyles.iconWrapper} />
+          <Icon className={cn(
+            sidebarStyles.iconWrapper,
+            isInWhiteBackground && "text-gray-700"
+          )} />
           {(!isCollapsed || isMobile) && <span className="break-words leading-tight truncate">{title}</span>}
         </Link>
       </SidebarMenuButton>

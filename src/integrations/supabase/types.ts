@@ -1569,6 +1569,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "nd_duns_nd_parliaments_fk"
+            columns: ["rfid_parliament"]
+            isOneToOne: false
+            referencedRelation: "nd_parliaments"
+            referencedColumns: ["refid"]
+          },
+          {
             foreignKeyName: "nd_duns_nd_state_fk"
             columns: ["states_id"]
             isOneToOne: false

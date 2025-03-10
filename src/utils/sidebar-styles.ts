@@ -7,4 +7,5 @@ export const sidebarStyles = {
   iconWrapper: "h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110",
   sidebarBackground: "bg-[#000033]", // Dark navy blue for sidebar
   navbarBackground: "bg-[#000033]",   // Dark navy blue for navbar
+  menuContentBackground: "bg-white border border-[#E4E4E7]", // White background with specified border color
 };
