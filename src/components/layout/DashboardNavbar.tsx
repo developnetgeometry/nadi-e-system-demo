@@ -1,5 +1,5 @@
 
-import { Bell, Settings, User } from "lucide-react";
+import { Bell, Settings, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +23,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAppSettings } from "@/hooks/use-app-settings";
+import { useSidebar } from "@/hooks/use-sidebar";
+import { sidebarStyles } from "@/utils/sidebar-styles";
+import { cn } from "@/lib/utils";
 
 export const DashboardNavbar = () => {
   const { logout, user } = useAuth();
   const { settings } = useAppSettings();
+  const { isMobile, toggleSidebar } = useSidebar();
 
   // Get navbar title from settings
   const navbarTitle = settings.find(s => s.key === 'navbar_title')?.value || '';
@@ -56,18 +60,28 @@ export const DashboardNavbar = () => {
   });
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-[#000080] backdrop-blur supports-[backdrop-filter]:bg-[#000080]/60">
-      <div className="container flex h-14 items-center px-4 sm:px-8">
+    <header className={cn("sticky top-0 z-30 w-full border-b border-border/10 backdrop-blur supports-[backdrop-filter]:bg-[#000033]/90", sidebarStyles.navbarBackground)}>
+      <div className="flex h-14 items-center px-4">
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 text-white">
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         <div className="mr-4 hidden md:flex">
           <h2 className="text-lg font-semibold text-white">
             {navbarTitle}
           </h2>
         </div>
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        {isMobile && (
+          <h2 className="text-lg font-semibold text-white flex-1">
+            {navbarTitle}
+          </h2>
+        )}
+        <div className={isMobile ? "flex items-center space-x-2" : "flex flex-1 items-center justify-end space-x-4"}>
           <nav className="flex items-center space-x-2">
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-white">
                   <Bell className="h-5 w-5" />
                   <span className="sr-only">Notifications</span>
                 </Button>
@@ -82,7 +96,7 @@ export const DashboardNavbar = () => {
 
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="text-white">
                   <Settings className="h-5 w-5" />
                   <span className="sr-only">Settings</span>
                 </Button>
@@ -119,10 +133,10 @@ export const DashboardNavbar = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback>
-                      {profile?.full_name?.charAt(0) || <User className="h-5 w-5" />}
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8 border border-white/20">
+                    <AvatarFallback className="bg-white/10 text-white">
+                      {profile?.full_name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>

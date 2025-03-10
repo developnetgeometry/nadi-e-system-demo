@@ -723,7 +723,7 @@ export type Database = {
           id: number
           name: string | null
           updated_at: string | null
-          updated_id: string | null
+          updated_by: string | null
         }
         Insert: {
           category_id?: number | null
@@ -732,7 +732,7 @@ export type Database = {
           id: number
           name?: string | null
           updated_at?: string | null
-          updated_id?: string | null
+          updated_by?: string | null
         }
         Update: {
           category_id?: number | null
@@ -741,7 +741,7 @@ export type Database = {
           id?: number
           name?: string | null
           updated_at?: string | null
-          updated_id?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1004,7 +1004,22 @@ export type Database = {
           updated_by?: string | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_claim_application_app_settings_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_application_app_settings_fk_1"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_attachment: {
         Row: {
@@ -1037,7 +1052,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_claim_attachment_app_settings_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_attachment_app_settings_fk_1"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_categories: {
         Row: {
@@ -1070,7 +1100,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_claim_categories_app_settings_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_categories_app_settings_fk_1"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_items: {
         Row: {
@@ -1447,21 +1492,27 @@ export type Database = {
       nd_district: {
         Row: {
           code: number | null
+          created_at: string | null
           id: number
           name: string | null
-          state_id: number
+          state_id: number | null
+          updated_at: string | null
         }
         Insert: {
           code?: number | null
-          id?: never
+          created_at?: string | null
+          id?: number
           name?: string | null
-          state_id: number
+          state_id?: number | null
+          updated_at?: string | null
         }
         Update: {
           code?: number | null
-          id?: never
+          created_at?: string | null
+          id?: number
           name?: string | null
-          state_id?: number
+          state_id?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1518,6 +1569,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "nd_duns_nd_parliaments_fk"
+            columns: ["rfid_parliament"]
+            isOneToOne: false
+            referencedRelation: "nd_parliaments"
+            referencedColumns: ["refid"]
+          },
+          {
             foreignKeyName: "nd_duns_nd_state_fk"
             columns: ["states_id"]
             isOneToOne: false
@@ -1561,7 +1619,7 @@ export type Database = {
       }
       nd_dusp_profile: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           dob: string | null
           dusp_id: number | null
@@ -1574,32 +1632,13 @@ export type Database = {
           position_id: number | null
           resign_date: string | null
           site_id: number | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
           user_id: number | null
           work_email: string | null
         }
         Insert: {
-          created_at: string
-          created_by?: string | null
-          dob?: string | null
-          dusp_id?: number | null
-          fullname?: string | null
-          ic_no?: string | null
-          id: number
-          is_active?: boolean | null
-          join_date?: string | null
-          mobile_no?: string | null
-          position_id?: number | null
-          resign_date?: string | null
-          site_id?: number | null
-          updated_at: string
-          updated_by?: string | null
-          user_id?: number | null
-          work_email?: string | null
-        }
-        Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           dob?: string | null
           dusp_id?: number | null
@@ -1612,7 +1651,26 @@ export type Database = {
           position_id?: number | null
           resign_date?: string | null
           site_id?: number | null
-          updated_at?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: number | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          dob?: string | null
+          dusp_id?: number | null
+          fullname?: string | null
+          ic_no?: string | null
+          id?: number
+          is_active?: boolean | null
+          join_date?: string | null
+          mobile_no?: string | null
+          position_id?: number | null
+          resign_date?: string | null
+          site_id?: number | null
+          updated_at?: string | null
           updated_by?: string | null
           user_id?: number | null
           work_email?: string | null
@@ -3531,7 +3589,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_mukims_nd_district_fk"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_mukims_nd_state_fk"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_nationalities: {
         Row: {
@@ -4154,27 +4227,27 @@ export type Database = {
         Row: {
           bm: string | null
           created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
-          registered_by: string | null
           status: number | null
           updated_at: string | null
         }
         Insert: {
           bm?: string | null
           created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
-          registered_by?: string | null
           status?: number | null
           updated_at?: string | null
         }
         Update: {
           bm?: string | null
           created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
-          registered_by?: string | null
           status?: number | null
           updated_at?: string | null
         }
@@ -4478,6 +4551,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "nd_site_address_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "nd_site_address_site_id_fkey"
             columns: ["site_id"]
@@ -4979,7 +5059,7 @@ export type Database = {
       }
       nd_sso_profile: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           fullname: string | null
           ic_no: string | null
@@ -4989,29 +5069,13 @@ export type Database = {
           mobile_no: string | null
           position_id: number | null
           resign_date: string | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
-          user_id: number | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
-          created_at: string
-          created_by?: string | null
-          fullname?: string | null
-          ic_no?: string | null
-          id: number
-          is_active?: boolean | null
-          join_date?: string | null
-          mobile_no?: string | null
-          position_id?: number | null
-          resign_date?: string | null
-          updated_at: string
-          updated_by?: string | null
-          user_id?: number | null
-          work_email?: string | null
-        }
-        Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           fullname?: string | null
           ic_no?: string | null
@@ -5021,9 +5085,25 @@ export type Database = {
           mobile_no?: string | null
           position_id?: number | null
           resign_date?: string | null
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          fullname?: string | null
+          ic_no?: string | null
+          id?: number
+          is_active?: boolean | null
+          join_date?: string | null
+          mobile_no?: string | null
+          position_id?: number | null
+          resign_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: []
@@ -5627,6 +5707,20 @@ export type Database = {
             referencedRelation: "nd_nationalities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_staff_profile_nd_position_fk"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_nd_races_fk"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "nd_races"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_staff_taining_attachment: {
@@ -5934,13 +6028,13 @@ export type Database = {
           join_date: string | null
           marital_status: number | null
           mobile_no: string | null
-          nationality: string | null
+          nationality_id: number | null
           personal_email: string | null
           place_of_birth: string | null
           position_id: number | null
           qualification: string | null
-          race: string | null
-          religion: string | null
+          race_id: number | null
+          religion_id: number | null
           resign_date: string | null
           site_id: number | null
           tech_partner_id: number | null
@@ -5960,13 +6054,13 @@ export type Database = {
           join_date?: string | null
           marital_status?: number | null
           mobile_no?: string | null
-          nationality?: string | null
+          nationality_id?: number | null
           personal_email?: string | null
           place_of_birth?: string | null
           position_id?: number | null
           qualification?: string | null
-          race?: string | null
-          religion?: string | null
+          race_id?: number | null
+          religion_id?: number | null
           resign_date?: string | null
           site_id?: number | null
           tech_partner_id?: number | null
@@ -5986,13 +6080,13 @@ export type Database = {
           join_date?: string | null
           marital_status?: number | null
           mobile_no?: string | null
-          nationality?: string | null
+          nationality_id?: number | null
           personal_email?: string | null
           place_of_birth?: string | null
           position_id?: number | null
           qualification?: string | null
-          race?: string | null
-          religion?: string | null
+          race_id?: number | null
+          religion_id?: number | null
           resign_date?: string | null
           site_id?: number | null
           tech_partner_id?: number | null

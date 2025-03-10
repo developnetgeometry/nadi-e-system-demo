@@ -1,6 +1,8 @@
+
 import React, { useRef, useEffect } from "react";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
+import { sidebarStyles } from "@/utils/sidebar-styles";
 
 interface SidebarProps extends React.ComponentProps<"div"> {
   side?: "left" | "right";
@@ -47,6 +49,22 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
       };
     }, [resizeObserver]);
 
+    // Handle clicks outside the sidebar to close it on mobile
+    useEffect(() => {
+      if (!isMobile) return;
+      
+      const handleOutsideClick = (event: MouseEvent) => {
+        if (openMobile && sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+          setOpenMobile(false);
+        }
+      };
+      
+      document.addEventListener('click', handleOutsideClick);
+      return () => {
+        document.removeEventListener('click', handleOutsideClick);
+      };
+    }, [isMobile, openMobile, setOpenMobile]);
+
     return (
       <div
         ref={(node) => {
@@ -60,10 +78,13 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
           }
         }}
         className={cn(
-          "sidebar fixed top-0 bottom-0 z-40 flex flex-col transition-all duration-300",
+          "sidebar fixed top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-md",
+          sidebarStyles.sidebarBackground,
+          side === "left" ? "left-0" : "right-0",
           state === "collapsed" ? "w-[72px]" : "w-[280px]",
           isMobile && "transform",
           isMobile && !openMobile && "-translate-x-full",
+          isMobile && openMobile && "translate-x-0",
           className
         )}
         {...props}

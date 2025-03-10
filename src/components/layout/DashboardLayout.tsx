@@ -1,36 +1,56 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardNavbar } from "./DashboardNavbar";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { state } = useSidebar();
+  const { state, isMobile, openMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
+
+  // Add body overflow class when mobile sidebar is open to prevent scrolling
+  useEffect(() => {
+    if (isMobile && openMobile) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isMobile, openMobile]);
 
   return (
     <SidebarProvider>
       <div className="relative min-h-screen flex w-full bg-background">
-        <div className="fixed inset-y-0 z-50">
+        {/* Overlay for mobile */}
+        {isMobile && openMobile && (
+          <div className="fixed inset-0 bg-black/50 z-40" />
+        )}
+        
+        {/* Sidebar */}
+        <div className="z-50">
           <DashboardSidebar />
         </div>
+        
+        {/* Main content */}
         <div 
           className={cn(
             "flex-1 flex flex-col transition-all duration-300",
-            isCollapsed ? "ml-[72px]" : "ml-[280px]",
-            "lg:ml-[280px]"
+            !isMobile && isCollapsed ? "ml-[72px]" : "",
+            !isMobile && !isCollapsed ? "ml-[280px]" : "",
+            isMobile ? "ml-0" : ""
           )}
         >
           <DashboardNavbar />
           <main className="flex-1 p-4 md:p-8 overflow-auto">
             <div className="container mx-auto max-w-7xl">
-              <div className="lg:hidden mb-4">
-                <SidebarTrigger />
-              </div>
               {children}
             </div>
           </main>
