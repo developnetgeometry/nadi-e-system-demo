@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar as CalendarIcon, Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
@@ -96,10 +94,18 @@ const StateHolidays = () => {
 
           // Get state details for each assignment
           const stateIds = stateAssignments?.map(assignment => assignment.state_id) || [];
+          
+          if (stateIds.length === 0) {
+            return {
+              ...holiday,
+              states: []
+            };
+          }
+          
           const { data: stateDetails, error: detailsError } = await supabase
             .from('nd_state')
             .select('id, name')
-            .in('id', stateIds.length > 0 ? stateIds : [0]);
+            .in('id', stateIds);
 
           if (detailsError) throw detailsError;
 
@@ -307,6 +313,16 @@ const StateHolidays = () => {
     return holidays.some(holiday => holiday.date === formattedDate);
   };
 
+  const renderStatesBadges = (holiday: Holiday) => {
+    if (!holiday.states || holiday.states.length === 0) {
+      return <Badge variant="outline">None</Badge>;
+    }
+    
+    return holiday.states.map((state) => (
+      <Badge key={state.id} variant="outline">{state.name}</Badge>
+    ));
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -390,13 +406,7 @@ const StateHolidays = () => {
                               <p className="text-sm text-muted-foreground">{format(new Date(holiday.date), 'PPP')}</p>
                               
                               <div className="mt-2 flex flex-wrap gap-2">
-                                {holiday.states && holiday.states.map((state) => (
-                                  <Badge key={state.id} variant="outline">{state.name}</Badge>
-                                ))}
-                                
-                                {(!holiday.states || holiday.states.length === 0) && (
-                                  <Badge variant="outline">All States</Badge>
-                                )}
+                                {renderStatesBadges(holiday)}
                               </div>
                             </div>
                             
@@ -446,13 +456,7 @@ const StateHolidays = () => {
                               <p className="text-sm text-muted-foreground">{format(new Date(holiday.date), 'PPP')}</p>
                               
                               <div className="mt-2 flex flex-wrap gap-2">
-                                {holiday.states && holiday.states.map((state) => (
-                                  <Badge key={state.id} variant="outline">{state.name}</Badge>
-                                ))}
-                                
-                                {(!holiday.states || holiday.states.length === 0) && (
-                                  <Badge variant="outline">All States</Badge>
-                                )}
+                                {renderStatesBadges(holiday)}
                               </div>
                             </div>
                             
