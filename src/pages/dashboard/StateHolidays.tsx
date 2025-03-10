@@ -11,7 +11,7 @@ import { HolidayList } from "@/components/holidays/HolidayList";
 import { HolidayCalendar } from "@/components/holidays/HolidayCalendar";
 import { getHolidaysForDate } from "@/utils/holidayUtils";
 import { useHolidays } from "@/hooks/use-holidays";
-import { useHolidayOperations, holidayFormSchema } from "@/hooks/use-holiday-operations";
+import { useHolidayOperations } from "@/hooks/use-holiday-operations";
 
 const StateHolidays = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
