@@ -1,28 +1,18 @@
+
 import { useState, useEffect } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar as CalendarIcon, Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { toast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
+import { Plus, ChevronDown } from "lucide-react";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserAccess } from "@/hooks/use-user-access";
+import { HolidayFormDialog } from "@/components/holidays/HolidayFormDialog";
+import { HolidayList } from "@/components/holidays/HolidayList";
+import { HolidayCalendar } from "@/components/holidays/HolidayCalendar";
+import * as z from "zod";
 
 interface Holiday {
   id: number;
@@ -60,15 +50,6 @@ const StateHolidays = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { user } = useAuth();
   const { isSuperAdmin } = useUserAccess();
-
-  const form = useForm<z.infer<typeof holidayFormSchema>>({
-    resolver: zodResolver(holidayFormSchema),
-    defaultValues: {
-      desc: "",
-      states: [],
-      status: 1
-    },
-  });
 
   // Function to fetch holidays for the selected year
   const fetchHolidays = async (year: number) => {
@@ -159,26 +140,11 @@ const StateHolidays = () => {
   };
 
   const handleAddHoliday = () => {
-    form.reset({
-      desc: "",
-      date: new Date(),
-      states: [],
-      status: 1
-    });
     setSelectedHoliday(null);
     setIsDialogOpen(true);
   };
 
   const handleEditHoliday = (holiday: Holiday) => {
-    const stateIds = holiday.states?.map(state => state.id) || [];
-    
-    form.reset({
-      desc: holiday.desc,
-      date: new Date(holiday.date),
-      states: stateIds,
-      status: holiday.status
-    });
-    
     setSelectedHoliday(holiday);
     setIsDialogOpen(true);
   };
@@ -306,325 +272,78 @@ const StateHolidays = () => {
     return holidays.filter(holiday => holiday.date === formattedDate);
   };
 
-  // Check if a date is a holiday
-  const isHoliday = (date: Date | undefined) => {
-    if (!date) return false;
-    const formattedDate = format(date, 'yyyy-MM-dd');
-    return holidays.some(holiday => holiday.date === formattedDate);
-  };
-
-  const renderStatesBadges = (holiday: Holiday) => {
-    if (!holiday.states || holiday.states.length === 0) {
-      return <Badge variant="outline">None</Badge>;
-    }
-    
-    return holiday.states.map((state) => (
-      <Badge key={state.id} variant="outline">{state.name}</Badge>
-    ));
-  };
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <DashboardSidebar />
-        <div className="flex-1 flex flex-col ml-[240px]">
-          <DashboardNavbar />
-          <main className="flex-1 p-8 overflow-auto">
-            <div className="container mx-auto max-w-6xl">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-4">
-                  <CalendarIcon className="h-8 w-8 text-primary" />
-                  <h1 className="text-3xl font-bold">State Holidays Management</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="gap-2">
-                        {currentYear} <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
-                        <DropdownMenuItem key={year} onClick={() => handleYearChange(year)}>
-                          {year}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  
-                  {isSuperAdmin && (
-                    <Button onClick={handleAddHoliday} className="gap-2">
-                      <Plus className="h-4 w-4" /> Add Holiday
-                    </Button>
-                  )}
-                </div>
-              </div>
+    <DashboardLayout>
+      <div className="container mx-auto max-w-6xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">State Holidays Management</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  {currentYear} <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
+                  <DropdownMenuItem key={year} onClick={() => handleYearChange(year)}>
+                    {year}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {isSuperAdmin && (
+              <Button onClick={handleAddHoliday} className="gap-2">
+                <Plus className="h-4 w-4" /> Add Holiday
+              </Button>
+            )}
+          </div>
+        </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card className="p-4">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CalendarIcon className="h-5 w-5" />
-                      Holiday Calendar
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border bg-white pointer-events-auto"
-                      modifiers={{
-                        holiday: (date) => isHoliday(date)
-                      }}
-                      modifiersClassNames={{
-                        holiday: "bg-red-100 text-red-600 font-bold"
-                      }}
-                    />
-                  </CardContent>
-                </Card>
+        <div className="grid gap-6 md:grid-cols-2">
+          <HolidayCalendar 
+            holidays={holidays}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
 
-                <Card className="p-4">
-                  <CardHeader>
-                    <CardTitle>
-                      {selectedDate 
-                        ? `Holidays for ${format(selectedDate, 'PPP')}` 
-                        : 'Select a date to view holidays'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {selectedDate && getHolidaysForDate(selectedDate).length === 0 && (
-                        <p className="text-muted-foreground">No holidays found for this date.</p>
-                      )}
-                      
-                      {selectedDate && getHolidaysForDate(selectedDate).map((holiday) => (
-                        <div key={holiday.id} className="border rounded-md p-4 relative">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">{holiday.desc}</h3>
-                              <p className="text-sm text-muted-foreground">{format(new Date(holiday.date), 'PPP')}</p>
-                              
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {renderStatesBadges(holiday)}
-                              </div>
-                            </div>
-                            
-                            {isSuperAdmin && (
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  onClick={() => handleEditHoliday(holiday)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="text-destructive" 
-                                  onClick={() => handleDeleteHoliday(holiday.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+          <HolidayList
+            title={selectedDate 
+              ? `Holidays for ${format(selectedDate, 'PPP')}` 
+              : 'Select a date to view holidays'}
+            holidays={getHolidaysForDate(selectedDate)}
+            isLoading={isLoading}
+            onEdit={handleEditHoliday}
+            onDelete={handleDeleteHoliday}
+            isSuperAdmin={isSuperAdmin}
+            emptyMessage="No holidays found for this date."
+          />
+        </div>
 
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>All Holidays in {currentYear}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <p>Loading holidays...</p>
-                  ) : holidays.length === 0 ? (
-                    <p className="text-muted-foreground">No holidays found for {currentYear}.</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {holidays.map((holiday) => (
-                        <div key={holiday.id} className="border rounded-md p-4 relative">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">{holiday.desc}</h3>
-                              <p className="text-sm text-muted-foreground">{format(new Date(holiday.date), 'PPP')}</p>
-                              
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {renderStatesBadges(holiday)}
-                              </div>
-                            </div>
-                            
-                            {isSuperAdmin && (
-                              <div className="flex gap-2">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  onClick={() => handleEditHoliday(holiday)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="text-destructive" 
-                                  onClick={() => handleDeleteHoliday(holiday.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </main>
+        <div className="mt-6">
+          <HolidayList
+            title={`All Holidays in ${currentYear}`}
+            holidays={holidays}
+            isLoading={isLoading}
+            onEdit={handleEditHoliday}
+            onDelete={handleDeleteHoliday}
+            isSuperAdmin={isSuperAdmin}
+            emptyMessage={`No holidays found for ${currentYear}.`}
+          />
         </div>
       </div>
 
-      {/* Holiday form dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{selectedHoliday ? 'Edit Holiday' : 'Add New Holiday'}</DialogTitle>
-          </DialogHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="desc"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Holiday Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter holiday name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
-                    <div className="grid gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="states"
-                render={() => (
-                  <FormItem>
-                    <div className="mb-4">
-                      <FormLabel>Apply to States</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Select the states this holiday applies to. If none selected, it applies to all states.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto border rounded p-2">
-                      {states.map((state) => (
-                        <FormField
-                          key={state.id}
-                          control={form.control}
-                          name="states"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={state.id}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(state.id)}
-                                    onCheckedChange={(checked) => {
-                                      const currentValue = field.value || [];
-                                      if (checked) {
-                                        field.onChange([...currentValue, state.id]);
-                                      } else {
-                                        field.onChange(
-                                          currentValue.filter((id) => id !== state.id)
-                                        );
-                                      }
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  {state.name}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex justify-end gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {selectedHoliday ? 'Update' : 'Create'} Holiday
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-    </SidebarProvider>
+      <HolidayFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        selectedHoliday={selectedHoliday}
+        states={states}
+        onSubmit={onSubmit}
+      />
+    </DashboardLayout>
   );
 };
 
