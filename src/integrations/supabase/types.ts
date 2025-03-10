@@ -1285,7 +1285,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -1303,7 +1303,7 @@ export type Database = {
         Insert: {
           bm?: string | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -1319,7 +1319,7 @@ export type Database = {
           remark: string | null
         }
         Insert: {
-          id: number
+          id?: number
           name?: string | null
           remark?: string | null
         }
@@ -1341,7 +1341,7 @@ export type Database = {
           bm?: string | null
           category_id?: number | null
           eng?: string | null
-          id: number
+          id?: number
         }
         Update: {
           bm?: string | null
@@ -3503,7 +3503,7 @@ export type Database = {
           id: number
           is_active: boolean | null
           name: string | null
-          states_id: number | null
+          state_id: number | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -3512,10 +3512,10 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           district_id?: number | null
-          id: number
+          id?: number
           is_active?: boolean | null
           name?: string | null
-          states_id?: number | null
+          state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -3527,7 +3527,7 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           name?: string | null
-          states_id?: number | null
+          state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4164,7 +4164,7 @@ export type Database = {
           bm?: string | null
           created_at?: string | null
           eng?: string | null
-          id: number
+          id?: number
           registered_by?: string | null
           status?: number | null
           updated_at?: string | null
@@ -4391,6 +4391,7 @@ export type Database = {
           id: number
           refid_mcmc: number | null
           refid_tp: number | null
+          site_profile_id: number | null
           standard_code: string | null
           updated_at: string | null
           updated_by: string | null
@@ -4398,9 +4399,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          id: number
+          id?: number
           refid_mcmc?: number | null
           refid_tp?: number | null
+          site_profile_id?: number | null
           standard_code?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -4411,11 +4413,20 @@ export type Database = {
           id?: number
           refid_mcmc?: number | null
           refid_tp?: number | null
+          site_profile_id?: number | null
           standard_code?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_site_address: {
         Row: {
@@ -4664,7 +4675,6 @@ export type Database = {
           ref_id: string | null
           region_id: number | null
           remark: string | null
-          site_code_id: number | null
           sitename: string | null
           socioeconomic_id: number | null
           space_id: number | null
@@ -4702,7 +4712,6 @@ export type Database = {
           ref_id?: string | null
           region_id?: number | null
           remark?: string | null
-          site_code_id?: number | null
           sitename?: string | null
           socioeconomic_id?: number | null
           space_id?: number | null
@@ -4740,7 +4749,6 @@ export type Database = {
           ref_id?: string | null
           region_id?: number | null
           remark?: string | null
-          site_code_id?: number | null
           sitename?: string | null
           socioeconomic_id?: number | null
           space_id?: number | null
@@ -4773,13 +4781,6 @@ export type Database = {
             columns: ["dun_rfid"]
             isOneToOne: false
             referencedRelation: "nd_duns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_site_profile_nd_site_fk"
-            columns: ["site_code_id"]
-            isOneToOne: false
-            referencedRelation: "nd_site"
             referencedColumns: ["id"]
           },
           {
@@ -5604,7 +5605,29 @@ export type Database = {
           updated_by?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_profile_nd_genders_fk"
+            columns: ["gender_id"]
+            isOneToOne: false
+            referencedRelation: "nd_genders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_nd_marital_status_fk"
+            columns: ["marital_status"]
+            isOneToOne: false
+            referencedRelation: "nd_marital_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_nd_nationalities_fk"
+            columns: ["nationality_id"]
+            isOneToOne: false
+            referencedRelation: "nd_nationalities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_taining_attachment: {
         Row: {
@@ -5901,7 +5924,7 @@ export type Database = {
       }
       nd_tech_partner_profile: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           dob: string | null
           fullname: string | null
@@ -5921,39 +5944,13 @@ export type Database = {
           resign_date: string | null
           site_id: number | null
           tech_partner_id: number | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
-          user_id: number | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
-          created_at: string
-          created_by?: string | null
-          dob?: string | null
-          fullname?: string | null
-          ic_no?: string | null
-          id: number
-          is_active?: boolean | null
-          join_date?: string | null
-          marital_status?: number | null
-          mobile_no?: string | null
-          nationality?: string | null
-          personal_email?: string | null
-          place_of_birth?: string | null
-          position_id?: number | null
-          qualification?: string | null
-          race?: string | null
-          religion?: string | null
-          resign_date?: string | null
-          site_id?: number | null
-          tech_partner_id?: number | null
-          updated_at: string
-          updated_by?: string | null
-          user_id?: number | null
-          work_email?: string | null
-        }
-        Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           dob?: string | null
           fullname?: string | null
@@ -5973,9 +5970,35 @@ export type Database = {
           resign_date?: string | null
           site_id?: number | null
           tech_partner_id?: number | null
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          dob?: string | null
+          fullname?: string | null
+          ic_no?: string | null
+          id?: number
+          is_active?: boolean | null
+          join_date?: string | null
+          marital_status?: number | null
+          mobile_no?: string | null
+          nationality?: string | null
+          personal_email?: string | null
+          place_of_birth?: string | null
+          position_id?: number | null
+          qualification?: string | null
+          race?: string | null
+          religion?: string | null
+          resign_date?: string | null
+          site_id?: number | null
+          tech_partner_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: []
