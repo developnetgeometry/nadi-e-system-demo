@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
 import { Plus, ChevronDown } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -12,24 +11,13 @@ import { useUserAccess } from "@/hooks/use-user-access";
 import { HolidayFormDialog } from "@/components/holidays/HolidayFormDialog";
 import { HolidayList } from "@/components/holidays/HolidayList";
 import { HolidayCalendar } from "@/components/holidays/HolidayCalendar";
+import { 
+  type Holiday, 
+  type State, 
+  getHolidaysForDate, 
+  formatDateForDB 
+} from "@/utils/holidayUtils";
 import * as z from "zod";
-
-interface Holiday {
-  id: number;
-  desc: string;
-  date: string;
-  year: number;
-  status: number;
-  states?: { id: number; name: string }[];
-}
-
-interface State {
-  id: number;
-  name: string;
-  code?: string;
-  abbr?: string;
-  region_id?: number;
-}
 
 const holidayFormSchema = z.object({
   desc: z.string().min(1, "Holiday name is required"),
@@ -188,7 +176,7 @@ const StateHolidays = () => {
 
   const onSubmit = async (values: z.infer<typeof holidayFormSchema>) => {
     try {
-      const formattedDate = format(values.date, 'yyyy-MM-dd');
+      const formattedDate = formatDateForDB(values.date);
       const year = values.date.getFullYear();
       
       let holidayId;
@@ -265,13 +253,6 @@ const StateHolidays = () => {
     }
   };
 
-  // Get holidays for the selected date
-  const getHolidaysForDate = (date: Date | undefined) => {
-    if (!date) return [];
-    const formattedDate = format(date, 'yyyy-MM-dd');
-    return holidays.filter(holiday => holiday.date === formattedDate);
-  };
-
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
@@ -312,9 +293,9 @@ const StateHolidays = () => {
 
           <HolidayList
             title={selectedDate 
-              ? `Holidays for ${format(selectedDate, 'PPP')}` 
+              ? `Holidays for ${selectedDate.toLocaleDateString()}` 
               : 'Select a date to view holidays'}
-            holidays={getHolidaysForDate(selectedDate)}
+            holidays={getHolidaysForDate(selectedDate, holidays)}
             isLoading={isLoading}
             onEdit={handleEditHoliday}
             onDelete={handleDeleteHoliday}

@@ -4,20 +4,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface State {
-  id: number;
-  name: string;
-}
-
-interface Holiday {
-  id: number;
-  desc: string;
-  date: string;
-  year: number;
-  status: number;
-  states?: State[];
-}
+import { type Holiday, type State } from "@/utils/holidayUtils";
 
 interface HolidayListProps {
   title: string;

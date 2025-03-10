@@ -16,23 +16,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-
-interface State {
-  id: number;
-  name: string;
-  code?: string;
-  abbr?: string;
-  region_id?: number;
-}
-
-interface Holiday {
-  id: number;
-  desc: string;
-  date: string;
-  year: number;
-  status: number;
-  states?: { id: number; name: string }[];
-}
+import { type Holiday, type State, formatHolidayForForm, isStateAssociatedWithHoliday } from "@/utils/holidayUtils";
 
 const holidayFormSchema = z.object({
   desc: z.string().min(1, "Holiday name is required"),
@@ -73,14 +57,7 @@ export function HolidayFormDialog({
   useEffect(() => {
     if (open) {
       if (selectedHoliday) {
-        const stateIds = selectedHoliday.states?.map(state => state.id) || [];
-        
-        form.reset({
-          desc: selectedHoliday.desc,
-          date: new Date(selectedHoliday.date),
-          states: stateIds,
-          status: selectedHoliday.status
-        });
+        form.reset(formatHolidayForForm(selectedHoliday));
       } else {
         form.reset({
           desc: "",
