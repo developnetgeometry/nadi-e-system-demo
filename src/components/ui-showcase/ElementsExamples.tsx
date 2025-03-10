@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronDown, Info, Plus, Tooltip as TooltipIcon, User } from "lucide-react";
+import { Check, ChevronDown, Info, Plus, HelpCircle, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -129,7 +129,7 @@ export const ElementsExamples = () => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon">
-                  <TooltipIcon className="h-4 w-4" />
+                  <HelpCircle className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -245,7 +245,7 @@ export const elementsCode = `{/* Avatars */}
   <Tooltip>
     <TooltipTrigger asChild>
       <Button variant="outline" size="icon">
-        <TooltipIcon className="h-4 w-4" />
+        <HelpCircle className="h-4 w-4" />
       </Button>
     </TooltipTrigger>
     <TooltipContent>
