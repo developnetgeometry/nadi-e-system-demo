@@ -1,5 +1,5 @@
 
-import { Bell, Settings, User, Menu } from "lucide-react";
+import { Bell, Settings, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useSidebar } from "@/hooks/use-sidebar";
+import { sidebarStyles } from "@/utils/sidebar-styles";
+import { cn } from "@/lib/utils";
 
 export const DashboardNavbar = () => {
   const { logout, user } = useAuth();
@@ -42,7 +44,7 @@ export const DashboardNavbar = () => {
       console.log("Fetching profile for user:", user.id);
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, user_type')
+        .select('full_name, user_type, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -58,7 +60,7 @@ export const DashboardNavbar = () => {
   });
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border/10 bg-[#000033] backdrop-blur supports-[backdrop-filter]:bg-[#000033]/90">
+    <header className={cn("sticky top-0 z-30 w-full border-b border-border/10 backdrop-blur supports-[backdrop-filter]:bg-[#000033]/90", sidebarStyles.navbarBackground)}>
       <div className="flex h-14 items-center px-4">
         {isMobile && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2 text-white">
@@ -132,10 +134,14 @@ export const DashboardNavbar = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-white text-[#000033]">
-                      {profile?.full_name?.charAt(0) || <User className="h-4 w-4" />}
-                    </AvatarFallback>
+                  <Avatar className="h-8 w-8 border border-white/20">
+                    {profile?.avatar_url ? (
+                      <AvatarImage src={profile.avatar_url} alt={profile?.full_name || 'User'} />
+                    ) : (
+                      <AvatarFallback className="bg-white/10 text-white">
+                        {profile?.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

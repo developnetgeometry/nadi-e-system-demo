@@ -1,5 +1,5 @@
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardNavbar } from "./DashboardNavbar";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -51,11 +51,6 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <DashboardNavbar />
           <main className="flex-1 p-4 md:p-8 overflow-auto">
             <div className="container mx-auto max-w-7xl">
-              {isMobile && (
-                <div className="mb-4">
-                  <SidebarTrigger />
-                </div>
-              )}
               {children}
             </div>
           </main>

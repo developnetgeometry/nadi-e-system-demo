@@ -7,8 +7,9 @@ import { SidebarContent as CustomSidebarContent } from "./sidebar/SidebarContent
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
-import { X, Menu } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { sidebarStyles } from "@/utils/sidebar-styles";
 
 export const DashboardSidebar = () => {
   const { settings } = useAppSettings();
@@ -17,13 +18,13 @@ export const DashboardSidebar = () => {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className="border-r border-border/10 bg-[#000033] h-screen flex flex-col">
+    <Sidebar className={cn("border-r border-border/10 h-screen flex flex-col", sidebarStyles.sidebarBackground)}>
       <div className={cn(
         "p-4 border-b border-border/20 flex items-center",
         isCollapsed && !isMobile ? "justify-center" : "justify-between"
       )}>
         {(!isCollapsed || isMobile) && (
-          <h1 className="nadi-gradient-text">{sidebarTitle}</h1>
+          <h1 className="text-2xl font-bold text-white">{sidebarTitle}</h1>
         )}
         {isCollapsed && !isMobile && (
           <h1 className="text-xl font-bold text-white">N</h1>

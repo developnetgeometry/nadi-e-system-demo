@@ -12,7 +12,7 @@ export const SidebarTrigger: React.FC = () => {
       variant="outline"
       size="icon"
       onClick={toggleSidebar}
-      className="mb-4"
+      className="mb-4 border-white/20 text-white hover:bg-white/10 hover:text-white"
       aria-label="Toggle Sidebar"
     >
       <Menu className="h-5 w-5" />

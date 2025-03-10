@@ -1492,21 +1492,27 @@ export type Database = {
       nd_district: {
         Row: {
           code: number | null
+          created_at: string | null
           id: number
           name: string | null
-          state_id: number
+          state_id: number | null
+          updated_at: string | null
         }
         Insert: {
           code?: number | null
-          id?: never
+          created_at?: string | null
+          id?: number
           name?: string | null
-          state_id: number
+          state_id?: number | null
+          updated_at?: string | null
         }
         Update: {
           code?: number | null
-          id?: never
+          created_at?: string | null
+          id?: number
           name?: string | null
-          state_id?: number
+          state_id?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -3576,7 +3582,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_mukims_nd_district_fk"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_mukims_nd_state_fk"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_nationalities: {
         Row: {
@@ -4523,6 +4544,13 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "nd_site_address_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "nd_site_address_site_id_fkey"
             columns: ["site_id"]
