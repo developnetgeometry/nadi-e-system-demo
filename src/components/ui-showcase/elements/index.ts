@@ -6,3 +6,4 @@ export { ButtonGroupsExample, buttonGroupsCode } from "./ButtonGroupsExample";
 export { TooltipsExample, tooltipsCode } from "./TooltipsExample";
 export { HoverCardsExample, hoverCardsCode } from "./HoverCardsExample";
 export { ScrollAreaExample, scrollAreaCode } from "./ScrollAreaExample";
+export { TabsExample, tabsCode } from "./TabsExample";

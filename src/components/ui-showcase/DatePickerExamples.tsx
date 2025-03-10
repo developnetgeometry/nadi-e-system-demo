@@ -59,41 +59,39 @@ export const DatePickerExamples = () => {
               {date ? format(date, "MMM d, yyyy") : "Today"}
             </Button>
           </div>
-          <Tabs defaultValue="day" value={schedule} onValueChange={(v) => setSchedule(v as any)}>
+          <Tabs value={schedule} onValueChange={(v) => setSchedule(v as any)}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="day">Day</TabsTrigger>
               <TabsTrigger value="week">Week</TabsTrigger>
               <TabsTrigger value="month">Month</TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
-        <div className="p-3">
-          <TabsContent value="day" className="m-0">
-            <div className="space-y-2">
-              {events.map((event, i) => (
-                <div key={i} className="flex justify-between p-2 text-sm rounded-md hover:bg-muted">
-                  <div>
-                    <div>{event.title}</div>
-                    <div className="text-muted-foreground">{event.time}</div>
-                  </div>
-                  <div>
-                    <div className={cn(
-                      "px-2 py-1 rounded-full text-xs",
-                      event.type === "work" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-                    )}>
-                      {event.type}
+            <TabsContent value="day" className="mt-4">
+              <div className="space-y-2">
+                {events.map((event, i) => (
+                  <div key={i} className="flex justify-between p-2 text-sm rounded-md hover:bg-muted">
+                    <div>
+                      <div>{event.title}</div>
+                      <div className="text-muted-foreground">{event.time}</div>
+                    </div>
+                    <div>
+                      <div className={cn(
+                        "px-2 py-1 rounded-full text-xs",
+                        event.type === "work" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                      )}>
+                        {event.type}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="week" className="m-0">
-            <div className="text-sm text-muted-foreground">Week view calendar</div>
-          </TabsContent>
-          <TabsContent value="month" className="m-0">
-            <div className="text-sm text-muted-foreground">Month view calendar</div>
-          </TabsContent>
+                ))}
+              </div>
+            </TabsContent>
+            <TabsContent value="week" className="mt-4">
+              <div className="text-sm text-muted-foreground">Week view calendar</div>
+            </TabsContent>
+            <TabsContent value="month" className="mt-4">
+              <div className="text-sm text-muted-foreground">Month view calendar</div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

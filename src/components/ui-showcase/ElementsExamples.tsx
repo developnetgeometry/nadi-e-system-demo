@@ -7,6 +7,7 @@ import {
   DropdownsExample,
   HoverCardsExample,
   ScrollAreaExample,
+  TabsExample,
   TooltipsExample,
   avatarsCode,
   badgesCode,
@@ -14,6 +15,7 @@ import {
   dropdownsCode,
   hoverCardsCode,
   scrollAreaCode,
+  tabsCode,
   tooltipsCode,
 } from "./elements";
 
@@ -27,6 +29,7 @@ export const ElementsExamples = () => {
       <TooltipsExample />
       <HoverCardsExample />
       <ScrollAreaExample />
+      <TabsExample />
     </div>
   );
 };
@@ -46,5 +49,11 @@ ${buttonGroupsCode}
 {/* Tooltips */}
 ${tooltipsCode}
 
+{/* Hover Cards */}
+${hoverCardsCode}
+
 {/* Scroll Area */}
-${scrollAreaCode}`;
+${scrollAreaCode}
+
+{/* Tabs */}
+${tabsCode}`;
