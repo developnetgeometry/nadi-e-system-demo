@@ -4979,7 +4979,7 @@ export type Database = {
       }
       nd_sso_profile: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           fullname: string | null
           ic_no: string | null
@@ -4989,29 +4989,13 @@ export type Database = {
           mobile_no: string | null
           position_id: number | null
           resign_date: string | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
-          user_id: number | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
-          created_at: string
-          created_by?: string | null
-          fullname?: string | null
-          ic_no?: string | null
-          id: number
-          is_active?: boolean | null
-          join_date?: string | null
-          mobile_no?: string | null
-          position_id?: number | null
-          resign_date?: string | null
-          updated_at: string
-          updated_by?: string | null
-          user_id?: number | null
-          work_email?: string | null
-        }
-        Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           fullname?: string | null
           ic_no?: string | null
@@ -5021,9 +5005,25 @@ export type Database = {
           mobile_no?: string | null
           position_id?: number | null
           resign_date?: string | null
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          fullname?: string | null
+          ic_no?: string | null
+          id?: number
+          is_active?: boolean | null
+          join_date?: string | null
+          mobile_no?: string | null
+          position_id?: number | null
+          resign_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: []
