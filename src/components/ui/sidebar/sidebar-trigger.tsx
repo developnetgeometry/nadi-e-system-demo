@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { Menu } from "lucide-react"; 
@@ -8,7 +9,7 @@ export const SidebarTrigger: React.FC = () => {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={toggleSidebar}
       className="mb-4"
