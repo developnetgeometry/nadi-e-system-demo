@@ -26,16 +26,20 @@ const UIComponents = () => {
         </div>
 
         <div className="grid gap-8">
-          {codeSnippets.map((snippet, index) => (
-            <CodeSnippet
-              key={index}
-              title={snippet.title}
-              description={snippet.description}
-              component={snippet.component}
-              code={snippet.code}
-              index={index}
-            />
-          ))}
+          {codeSnippets.map((snippet, index) => {
+            // Render the component by invoking it, not passing the component itself
+            const ComponentToRender = snippet.component;
+            return (
+              <CodeSnippet
+                key={index}
+                title={snippet.title}
+                description={snippet.description}
+                component={<ComponentToRender />}
+                code={snippet.code}
+                index={index}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
