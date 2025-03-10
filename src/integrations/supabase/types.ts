@@ -635,22 +635,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "nd_asset_app_settings_fk"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "app_settings"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_asset_app_settings_fk_1"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "app_settings"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       nd_asset_attachment: {
         Row: {
@@ -1019,7 +1004,22 @@ export type Database = {
           updated_by?: string | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_claim_application_app_settings_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_application_app_settings_fk_1"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_attachment: {
         Row: {
@@ -1052,7 +1052,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_claim_attachment_app_settings_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_attachment_app_settings_fk_1"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_categories: {
         Row: {
@@ -1085,7 +1100,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_claim_categories_app_settings_fk"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_categories_app_settings_fk_1"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "app_settings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_items: {
         Row: {

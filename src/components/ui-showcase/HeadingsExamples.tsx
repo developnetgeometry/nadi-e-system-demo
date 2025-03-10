@@ -2,6 +2,8 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export const HeadingsExamples = () => {
   return (
@@ -36,7 +38,7 @@ export const HeadingsExamples = () => {
         </CardContent>
       </Card>
 
-      {/* Alternative Section Heading */}
+      {/* Alternative Section Heading with Actions */}
       <div className="flex items-center justify-between mb-4">
         <div className="space-y-1">
           <h3 className="text-xl font-medium tracking-tight">Alternative Section</h3>
@@ -45,7 +47,8 @@ export const HeadingsExamples = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">New</span>
+          <Badge variant="outline">New</Badge>
+          <Button variant="outline" size="sm">Action</Button>
         </div>
       </div>
     </div>
@@ -80,4 +83,17 @@ export const headingsCode = `{/* Page Heading */}
   <CardContent>
     <p>Card content goes here.</p>
   </CardContent>
-</Card>`;
+</Card>
+
+{/* Alternative Section with Actions */}
+<div className="flex items-center justify-between mb-4">
+  <div className="space-y-1">
+    <h3 className="text-xl font-medium tracking-tight">Alternative Section</h3>
+    <p className="text-sm text-muted-foreground">Section with actions</p>
+  </div>
+  <div className="flex items-center gap-2">
+    <Badge variant="outline">New</Badge>
+    <Button variant="outline" size="sm">Action</Button>
+  </div>
+</div>`;
+

@@ -1,154 +1,206 @@
 
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ThumbsUp, MessageSquare, Share, MoreHorizontal } from "lucide-react";
+import { Heart, MessageSquare, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const FeedExamples = () => {
-  const feedItems = [
-    {
-      id: 1,
-      user: {
-        name: "Alex Johnson",
-        avatar: "",
-        initials: "AJ",
-        role: "Product Manager"
-      },
-      content: "Just released our new feature! Check it out and let me know what you think.",
-      timeAgo: "10 minutes ago",
-      likes: 24,
-      comments: 5,
-      image: ""
-    },
-    {
-      id: 2,
-      user: {
-        name: "Sarah Williams",
-        avatar: "",
-        initials: "SW",
-        role: "UX Designer"
-      },
-      content: "I've been working on redesigning our dashboard interface. Here's a sneak peek at what's coming!",
-      timeAgo: "2 hours ago",
-      likes: 42,
-      comments: 11,
-      image: ""
-    },
-    {
-      id: 3,
-      user: {
-        name: "Mike Taylor",
-        avatar: "",
-        initials: "MT",
-        role: "Developer"
-      },
-      content: "Just fixed a major bug that was causing performance issues. The app should be running much smoother now!",
-      timeAgo: "1 day ago",
-      likes: 18,
-      comments: 3,
-      image: ""
-    }
-  ];
-
   return (
-    <div className="space-y-4">
-      {feedItems.map((item) => (
-        <Card key={item.id}>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start">
-              <div className="flex space-x-4">
-                <Avatar>
-                  {item.user.avatar ? (
-                    <AvatarImage src={item.user.avatar} alt={item.user.name} />
-                  ) : null}
-                  <AvatarFallback>{item.user.initials}</AvatarFallback>
+    <div className="grid gap-6">
+      {/* Social Media Feed */}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          {/* Post Header */}
+          <div className="flex items-center p-4">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="/placeholder.svg" alt="User" />
+              <AvatarFallback>JD</AvatarFallback>
+            </Avatar>
+            <div className="ml-3">
+              <div className="text-sm font-semibold">John Doe</div>
+              <div className="text-xs text-muted-foreground">Posted 2 hours ago</div>
+            </div>
+          </div>
+          
+          {/* Post Content */}
+          <div className="px-4 py-2">
+            <p className="text-sm">
+              Just launched my new portfolio website! Check it out and let me know what you think 🚀
+            </p>
+          </div>
+          
+          {/* Post Media */}
+          <div className="bg-muted aspect-video w-full">
+            <img 
+              src="/placeholder.svg" 
+              alt="Post image"
+              className="h-full w-full object-cover" 
+            />
+          </div>
+          
+          {/* Post Stats */}
+          <div className="flex items-center justify-between px-4 py-2 text-xs text-muted-foreground">
+            <span>24 likes</span>
+            <span>8 comments</span>
+          </div>
+          
+          <Separator />
+          
+          {/* Post Actions */}
+          <div className="flex p-2">
+            <Button variant="ghost" className="flex-1">
+              <Heart className="mr-2 h-4 w-4" />
+              Like
+            </Button>
+            <Button variant="ghost" className="flex-1">
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Comment
+            </Button>
+            <Button variant="ghost" className="flex-1">
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Activity Feed */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="p-4 font-medium">Recent Activity</div>
+          <Separator />
+          <div className="px-4 py-3">
+            <div className="flex items-start space-x-4">
+              <div className="relative mt-1">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src="/placeholder.svg" alt="User" />
+                  <AvatarFallback>JS</AvatarFallback>
                 </Avatar>
-                <div>
-                  <div className="font-semibold">{item.user.name}</div>
-                  <div className="text-sm text-muted-foreground flex items-center gap-2">
-                    <span>{item.user.role}</span>
-                    <span>•</span>
-                    <span>{item.timeAgo}</span>
-                  </div>
-                </div>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="mt-4">
-              <p className="text-sm">{item.content}</p>
-              {item.image && (
-                <div className="mt-3 rounded-md overflow-hidden">
-                  <img 
-                    src={item.image} 
-                    alt="Post attachment" 
-                    className="w-full h-auto" 
-                  />
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Jane Smith</div>
+                  <div className="text-xs text-muted-foreground">1h ago</div>
                 </div>
-              )}
+                <p className="text-sm text-muted-foreground">
+                  Completed the quarterly report and shared it with the team
+                </p>
+              </div>
             </div>
-            <Separator className="my-4" />
-            <div className="flex justify-between">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <ThumbsUp className="h-4 w-4 mr-2" />
-                {item.likes}
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                {item.comments}
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Share className="h-4 w-4 mr-2" />
-                Share
-              </Button>
+          </div>
+          <Separator />
+          <div className="px-4 py-3">
+            <div className="flex items-start space-x-4">
+              <div className="relative mt-1">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src="/placeholder.svg" alt="User" />
+                  <AvatarFallback>RJ</AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Robert Johnson</div>
+                  <div className="text-xs text-muted-foreground">2h ago</div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Created a new project and assigned team members
+                </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          </div>
+          <Separator />
+          <div className="px-4 py-3">
+            <div className="flex items-start space-x-4">
+              <div className="relative mt-1">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src="/placeholder.svg" alt="User" />
+                  <AvatarFallback>AL</AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">Amy Lee</div>
+                  <div className="text-xs text-muted-foreground">3h ago</div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Commented on the design proposal
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export const feedCode = `<Card>
-  <CardContent className="p-4">
-    <div className="flex justify-between items-start">
-      <div className="flex space-x-4">
-        <Avatar>
-          <AvatarFallback>AJ</AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="font-semibold">Alex Johnson</div>
-          <div className="text-sm text-muted-foreground flex items-center gap-2">
-            <span>Product Manager</span>
-            <span>•</span>
-            <span>10 minutes ago</span>
-          </div>
-        </div>
+export const feedCode = `{/* Social Media Feed Post */}
+<Card className="overflow-hidden">
+  <CardContent className="p-0">
+    {/* Post Header */}
+    <div className="flex items-center p-4">
+      <Avatar className="h-10 w-10">
+        <AvatarImage src="/placeholder.svg" alt="User" />
+        <AvatarFallback>JD</AvatarFallback>
+      </Avatar>
+      <div className="ml-3">
+        <div className="text-sm font-semibold">John Doe</div>
+        <div className="text-xs text-muted-foreground">Posted 2 hours ago</div>
       </div>
-      <Button variant="ghost" size="icon" className="h-8 w-8">
-        <MoreHorizontal className="h-4 w-4" />
-      </Button>
     </div>
-    <div className="mt-4">
-      <p className="text-sm">Just released our new feature! Check it out and let me know what you think.</p>
+    
+    {/* Post Content */}
+    <div className="px-4 py-2">
+      <p className="text-sm">
+        Just launched my new portfolio website! Check it out 🚀
+      </p>
     </div>
-    <Separator className="my-4" />
-    <div className="flex justify-between">
-      <Button variant="ghost" size="sm" className="text-muted-foreground">
-        <ThumbsUp className="h-4 w-4 mr-2" />
-        24
+    
+    {/* Post Media */}
+    <div className="bg-muted aspect-video w-full">
+      <img 
+        src="/placeholder.svg" 
+        alt="Post image"
+        className="h-full w-full object-cover" 
+      />
+    </div>
+    
+    {/* Post Actions */}
+    <div className="flex p-2">
+      <Button variant="ghost" className="flex-1">
+        <Heart className="mr-2 h-4 w-4" />
+        Like
       </Button>
-      <Button variant="ghost" size="sm" className="text-muted-foreground">
-        <MessageSquare className="h-4 w-4 mr-2" />
-        5
+      <Button variant="ghost" className="flex-1">
+        <MessageSquare className="mr-2 h-4 w-4" />
+        Comment
       </Button>
-      <Button variant="ghost" size="sm" className="text-muted-foreground">
-        <Share className="h-4 w-4 mr-2" />
+      <Button variant="ghost" className="flex-1">
+        <Share2 className="mr-2 h-4 w-4" />
         Share
       </Button>
     </div>
   </CardContent>
-</Card>`;
+</Card>
+
+{/* Activity Feed Item */}
+<div className="px-4 py-3">
+  <div className="flex items-start space-x-4">
+    <Avatar className="h-6 w-6">
+      <AvatarImage src="/placeholder.svg" alt="User" />
+      <AvatarFallback>JS</AvatarFallback>
+    </Avatar>
+    <div className="flex-1 space-y-1">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium">Jane Smith</div>
+        <div className="text-xs text-muted-foreground">1h ago</div>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Completed the quarterly report
+      </p>
+    </div>
+  </div>
+</div>`;
+

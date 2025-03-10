@@ -5,97 +5,131 @@ import { Separator } from "@/components/ui/separator";
 
 export const DescriptionListExamples = () => {
   return (
-    <div className="grid gap-4">
-      {/* Basic Description List */}
-      <div className="grid gap-1">
-        <h3 className="text-lg font-medium">Basic Description List</h3>
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <dt className="text-sm font-medium text-muted-foreground">Full Name</dt>
-            <dd className="text-sm font-semibold">Alex Johnson</dd>
+    <div className="grid gap-6">
+      {/* Simple Description List */}
+      <div>
+        <h3 className="text-lg font-medium mb-2">Basic Description List</h3>
+        <dl className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+          <div className="flex justify-between py-1">
+            <dt className="text-sm font-medium text-muted-foreground">Name</dt>
+            <dd className="text-sm font-semibold">Jane Smith</dd>
           </div>
-          <div className="space-y-1">
-            <dt className="text-sm font-medium text-muted-foreground">Email Address</dt>
-            <dd className="text-sm font-semibold">alex.johnson@example.com</dd>
+          <div className="flex justify-between py-1">
+            <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+            <dd className="text-sm font-semibold">jane@example.com</dd>
           </div>
-          <div className="space-y-1">
-            <dt className="text-sm font-medium text-muted-foreground">Position</dt>
-            <dd className="text-sm font-semibold">UI/UX Designer</dd>
+          <div className="flex justify-between py-1">
+            <dt className="text-sm font-medium text-muted-foreground">Phone</dt>
+            <dd className="text-sm font-semibold">+1 (555) 123-4567</dd>
           </div>
-          <div className="space-y-1">
-            <dt className="text-sm font-medium text-muted-foreground">Department</dt>
-            <dd className="text-sm font-semibold">Design Team</dd>
+          <div className="flex justify-between py-1">
+            <dt className="text-sm font-medium text-muted-foreground">Status</dt>
+            <dd className="text-sm font-semibold">Active</dd>
           </div>
         </dl>
       </div>
 
-      <Separator />
-
-      {/* Styled Description List */}
+      {/* Card Description List */}
       <Card>
         <CardHeader>
-          <CardTitle>Product Details</CardTitle>
+          <CardTitle>User Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="divide-y">
-            <div className="flex justify-between py-3">
-              <dt className="font-medium">Product Name</dt>
-              <dd className="text-muted-foreground">Premium Headphones</dd>
+          <dl className="grid grid-cols-1 gap-3 text-sm">
+            <div>
+              <dt className="font-medium text-muted-foreground">Full name</dt>
+              <dd className="mt-1">Jane Smith</dd>
+              <Separator className="mt-2" />
             </div>
-            <div className="flex justify-between py-3">
-              <dt className="font-medium">SKU</dt>
-              <dd className="text-muted-foreground">HDX-200</dd>
+            <div>
+              <dt className="font-medium text-muted-foreground">Email address</dt>
+              <dd className="mt-1">jane@example.com</dd>
+              <Separator className="mt-2" />
             </div>
-            <div className="flex justify-between py-3">
-              <dt className="font-medium">Price</dt>
-              <dd className="font-semibold text-green-600">$199.99</dd>
+            <div>
+              <dt className="font-medium text-muted-foreground">Role</dt>
+              <dd className="mt-1">Administrator</dd>
+              <Separator className="mt-2" />
             </div>
-            <div className="flex justify-between py-3">
-              <dt className="font-medium">Status</dt>
-              <dd>
-                <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
-                  In Stock
-                </span>
-              </dd>
+            <div>
+              <dt className="font-medium text-muted-foreground">Company</dt>
+              <dd className="mt-1">Acme Inc.</dd>
             </div>
           </dl>
         </CardContent>
       </Card>
+
+      {/* Inline Description List */}
+      <div className="p-4 border rounded-lg">
+        <h3 className="text-lg font-medium mb-3">Inline Description List</h3>
+        <dl className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-muted-foreground">Created by</dt>
+            <dd className="mt-1 text-sm">John Doe</dd>
+          </div>
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-muted-foreground">Created on</dt>
+            <dd className="mt-1 text-sm">Jan 10, 2023</dd>
+          </div>
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-muted-foreground">Last updated</dt>
+            <dd className="mt-1 text-sm">Mar 23, 2023</dd>
+          </div>
+          <div className="sm:col-span-1">
+            <dt className="text-sm font-medium text-muted-foreground">Status</dt>
+            <dd className="mt-1 text-sm">Published</dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 };
 
-export const descriptionListCode = `{/* Basic Description List */}
-<dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-  <div className="space-y-1">
-    <dt className="text-sm font-medium text-muted-foreground">Full Name</dt>
-    <dd className="text-sm font-semibold">Alex Johnson</dd>
+export const descriptionListCode = `{/* Simple Description List */}
+<dl className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+  <div className="flex justify-between py-1">
+    <dt className="text-sm font-medium text-muted-foreground">Name</dt>
+    <dd className="text-sm font-semibold">Jane Smith</dd>
   </div>
-  <div className="space-y-1">
+  <div className="flex justify-between py-1">
     <dt className="text-sm font-medium text-muted-foreground">Email</dt>
-    <dd className="text-sm font-semibold">alex.johnson@example.com</dd>
+    <dd className="text-sm font-semibold">jane@example.com</dd>
   </div>
 </dl>
 
-{/* Styled Description List */}
+{/* Card Description List */}
 <Card>
   <CardHeader>
-    <CardTitle>Product Details</CardTitle>
+    <CardTitle>User Information</CardTitle>
   </CardHeader>
   <CardContent>
-    <dl className="divide-y">
-      <div className="flex justify-between py-3">
-        <dt className="font-medium">Product Name</dt>
-        <dd className="text-muted-foreground">Premium Headphones</dd>
+    <dl className="grid grid-cols-1 gap-3 text-sm">
+      <div>
+        <dt className="font-medium text-muted-foreground">Full name</dt>
+        <dd className="mt-1">Jane Smith</dd>
+        <Separator className="mt-2" />
       </div>
-      <div className="flex justify-between py-3">
-        <dt className="font-medium">Status</dt>
-        <dd>
-          <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
-            In Stock
-          </span>
-        </dd>
+      <div>
+        <dt className="font-medium text-muted-foreground">Email address</dt>
+        <dd className="mt-1">jane@example.com</dd>
+        <Separator className="mt-2" />
       </div>
     </dl>
   </CardContent>
-</Card>`;
+</Card>
+
+{/* Inline Description List */}
+<div className="p-4 border rounded-lg">
+  <h3 className="text-lg font-medium mb-3">Inline Description List</h3>
+  <dl className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="sm:col-span-1">
+      <dt className="text-sm font-medium text-muted-foreground">Created by</dt>
+      <dd className="mt-1 text-sm">John Doe</dd>
+    </div>
+    <div className="sm:col-span-1">
+      <dt className="text-sm font-medium text-muted-foreground">Created on</dt>
+      <dd className="mt-1 text-sm">Jan 10, 2023</dd>
+    </div>
+  </dl>
+</div>`;
+
