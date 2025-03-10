@@ -952,6 +952,44 @@ export type Database = {
         }
         Relationships: []
       }
+      nd_city: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          name: string | null
+          state_id: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id: number
+          name?: string | null
+          state_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          state_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_city_nd_state_fk"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_claim_application: {
         Row: {
           claim_status: boolean | null
@@ -4163,6 +4201,21 @@ export type Database = {
         }
         Relationships: []
       }
+      nd_postcode: {
+        Row: {
+          id: number
+          number: string | null
+        }
+        Insert: {
+          id: number
+          number?: string | null
+        }
+        Update: {
+          id?: number
+          number?: string | null
+        }
+        Relationships: []
+      }
       nd_program_method: {
         Row: {
           created_at: string | null
@@ -4850,6 +4903,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_site_profile_bandwidth_fkey"
+            columns: ["bandwidth"]
+            isOneToOne: false
+            referencedRelation: "nd_bandwidth"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_building_type_id_fkey"
+            columns: ["building_type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_building_type"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_site_profile_mukim_id_fkey"
             columns: ["mukim_id"]
             isOneToOne: false
@@ -4885,10 +4952,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_site_profile_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "nd_space"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_site_profile_state_id_fkey"
             columns: ["state_id"]
             isOneToOne: false
             referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_technology_fkey"
+            columns: ["technology"]
+            isOneToOne: false
+            referencedRelation: "nd_technology"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "nd_zone"
             referencedColumns: ["id"]
           },
         ]
