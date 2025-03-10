@@ -4154,27 +4154,27 @@ export type Database = {
         Row: {
           bm: string | null
           created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
-          registered_by: string | null
           status: number | null
           updated_at: string | null
         }
         Insert: {
           bm?: string | null
           created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
-          registered_by?: string | null
           status?: number | null
           updated_at?: string | null
         }
         Update: {
           bm?: string | null
           created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
-          registered_by?: string | null
           status?: number | null
           updated_at?: string | null
         }
@@ -5627,6 +5627,20 @@ export type Database = {
             referencedRelation: "nd_nationalities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_staff_profile_nd_position_fk"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_nd_races_fk"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "nd_races"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_staff_taining_attachment: {
@@ -5934,13 +5948,13 @@ export type Database = {
           join_date: string | null
           marital_status: number | null
           mobile_no: string | null
-          nationality: string | null
+          nationality_id: number | null
           personal_email: string | null
           place_of_birth: string | null
           position_id: number | null
           qualification: string | null
-          race: string | null
-          religion: string | null
+          race_id: number | null
+          religion_id: number | null
           resign_date: string | null
           site_id: number | null
           tech_partner_id: number | null
@@ -5960,13 +5974,13 @@ export type Database = {
           join_date?: string | null
           marital_status?: number | null
           mobile_no?: string | null
-          nationality?: string | null
+          nationality_id?: number | null
           personal_email?: string | null
           place_of_birth?: string | null
           position_id?: number | null
           qualification?: string | null
-          race?: string | null
-          religion?: string | null
+          race_id?: number | null
+          religion_id?: number | null
           resign_date?: string | null
           site_id?: number | null
           tech_partner_id?: number | null
@@ -5986,13 +6000,13 @@ export type Database = {
           join_date?: string | null
           marital_status?: number | null
           mobile_no?: string | null
-          nationality?: string | null
+          nationality_id?: number | null
           personal_email?: string | null
           place_of_birth?: string | null
           position_id?: number | null
           qualification?: string | null
-          race?: string | null
-          religion?: string | null
+          race_id?: number | null
+          religion_id?: number | null
           resign_date?: string | null
           site_id?: number | null
           tech_partner_id?: number | null
