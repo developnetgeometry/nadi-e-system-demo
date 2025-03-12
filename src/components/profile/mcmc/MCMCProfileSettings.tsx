@@ -13,7 +13,6 @@ const MCMCProfileSettings = () => {
   const { positions, error: positionError } = usePositionData(); // Use the hook
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const profileImage = "/profilepictureexample.jpeg";
   const { toast } = useToast();
 
   useEffect(() => {
@@ -106,11 +105,6 @@ const MCMCProfileSettings = () => {
       </CardHeader>
 
       <CardContent className="p-6">
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 border-4 border-gray-300 rounded-full overflow-hidden shadow-lg">
-            <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-          </div>
-        </div>
         <PersonalInformation
           mcmcData={mcmcData}
           positions={positions} // Pass positions to the component

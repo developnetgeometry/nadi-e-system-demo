@@ -6,11 +6,11 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import StaffProfileSettings from "@/components/profile/staff/StaffProfileSettings";
 import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
 import MemberProfileSettings from "@/components/profile/member/MemberProfileSettings";
-import DummyProfileSettings from "@/components/profile/member/DummyProfileSettings";
 import TPProfileSettings from "@/components/profile/tp/TPProfileSettings";
 import SSOProfileSettings from "@/components/profile/sso/SSOProfileSettings";
 import DUSPProfileSettings from "@/components/profile/dusp/DUSPProfileSettings";
 import MCMCProfileSettings from "@/components/profile/mcmc/MCMCProfileSettings";
+import VendorProfileSettings from "@/components/profile/vendor/VendorProfileSettings";
 
 const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -52,10 +52,14 @@ const UserProfile = () => {
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-        <DummyProfileSettings />
-          <StaffProfileSettings />
-          <StaffJobSettings />
-          <MemberProfileSettings />
+          {/* <StaffProfileSettings /> */}
+          {/* <StaffJobSettings /> */}
+          {/* <MemberProfileSettings /> */}
+          {/* <TPProfileSettings/> */}
+          {/* <SSOProfileSettings/> */}
+          {/* <DUSPProfileSettings/> */}
+          <MCMCProfileSettings/>
+          {/* <VendorProfileSettings/> */}
         </div>
       </DashboardLayout>
     );
@@ -66,13 +70,14 @@ const UserProfile = () => {
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-          {/* <StaffProfileSettings />
-          <StaffJobSettings />
-          <MemberProfileSettings /> */}
+          {/* <StaffProfileSettings /> */}
+          {/* <StaffJobSettings /> */}
+          {/* <MemberProfileSettings /> */}
           {/* <TPProfileSettings/> */}
           {/* <SSOProfileSettings/> */}
           {/* <DUSPProfileSettings/> */}
-          <MCMCProfileSettings/>
+          {/* <MCMCProfileSettings/> */}
+          {/* <VendorProfileSettings/> */}
         </div>
       </DashboardLayout>
     );

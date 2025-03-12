@@ -135,8 +135,8 @@ export const moduleRoutes: RouteObject[] = [
     element: <ProtectedRoute requiredPermission="manage_workflows"><WorkflowDashboard /></ProtectedRoute>,
   },
   // Profile Routes
-  {
-    path: "/dashboard/profile",
-    element: <ProtectedRoute requiredPermission="manage_workflows"><UserProfile /></ProtectedRoute>,
-  },
+  // {
+  //   path: "/dashboard/profile",
+  //   element:<UserProfile />,
+  // },
 ];
