@@ -8,6 +8,7 @@ const PersonalInformation = ({
   races,
   religions,
   nationalities,
+  positions, // Add positions prop
   handleChange,
 }: {
   tpData: any;
@@ -15,8 +16,12 @@ const PersonalInformation = ({
   races: any[];
   religions: any[];
   nationalities: any[];
+  positions: any[]; // Add positions prop type
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }) => {
+  // Find the position name based on the position_id
+  const positionName = positions.find((position) => position.id === tpData.position_id)?.name || "";
+
   return (
     <div className="space-y-8 mt-8">
       <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
@@ -47,6 +52,13 @@ const PersonalInformation = ({
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
+            <Label htmlFor="position_id">Position</Label>
+            <Input id="position_id" type="text" value={positionName} readOnly />
+          </div>
+
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
             <Label htmlFor="work_email">Work Email</Label>
             <Input id="work_email" type="email" value={tpData.work_email || ""} readOnly />
           </div>
@@ -63,26 +75,6 @@ const PersonalInformation = ({
           <div>
             <Label htmlFor="place_of_birth">Place of Birth</Label>
             <Input id="place_of_birth" type="text" value={tpData.place_of_birth || ""} onChange={handleChange} />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="marital_status">Marital Status</Label>
-            <Select
-              onValueChange={(value) => handleChange({ target: { id: "marital_status", value } } as React.ChangeEvent<HTMLInputElement>)}
-              value={tpData.marital_status || ""}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select marital status" />
-              </SelectTrigger>
-              <SelectContent>
-                {maritalStatuses.map((status) => (
-                  <SelectItem key={status.id} value={status.id}>
-                    {status.eng}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -137,6 +129,24 @@ const PersonalInformation = ({
                 {nationalities.map((nationality) => (
                   <SelectItem key={nationality.id} value={nationality.id}>
                     {nationality.eng}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="marital_status">Marital Status</Label>
+            <Select
+              onValueChange={(value) => handleChange({ target: { id: "marital_status", value } } as React.ChangeEvent<HTMLInputElement>)}
+              value={tpData.marital_status || ""}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select marital status" />
+              </SelectTrigger>
+              <SelectContent>
+                {maritalStatuses.map((status) => (
+                  <SelectItem key={status.id} value={status.id}>
+                    {status.eng}
                   </SelectItem>
                 ))}
               </SelectContent>

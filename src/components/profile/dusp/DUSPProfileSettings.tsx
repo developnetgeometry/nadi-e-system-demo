@@ -4,14 +4,12 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import PersonalInformation from "./components/PersonalInformation";
-import useGeneralData from "@/hooks/use-general-data";
-import useTPID from "@/hooks/use-tp-id";
+import useDUSPID from "@/hooks/use-dusp-id";
 import usePositionData from "@/hooks/use-position-data"; // Import the hook
 
-const TPProfileSettings = () => {
-  const [tpData, setTPData] = useState<any>(null);
-  const { maritalStatuses, races, religions, nationalities, error: fetchError } = useGeneralData();
-  const { tpID, loading: tpIDLoading, error: tpIDError } = useTPID();
+const DUSPProfileSettings = () => {
+  const [duspData, setDUSPData] = useState<any>(null);
+  const { duspID, loading: duspIDLoading, error: duspIDError } = useDUSPID();
   const { positions, error: positionError } = usePositionData(); // Use the hook
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,25 +17,24 @@ const TPProfileSettings = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (tpIDLoading || !tpID) return;
+    if (duspIDLoading || !duspID) return;
 
     const fetchUserData = async () => {
       try {
-        const { data: tp, error: tpError } = await supabase
-          .from("nd_tech_partner_profile")
+        const { data: dusp, error: duspError } = await supabase
+          .from("nd_dusp_profile")
           .select(
-            `id, is_active, fullname, ic_no, mobile_no, work_email, 
-            personal_email, dob, place_of_birth,
-            marital_status, race_id, religion_id, nationality_id, position_id`
+            `id, position_id, ic_no, fullname, mobile_no, work_email, 
+            join_date, resign_date, is_active, user_id`
           )
-          .eq("id", tpID)
+          .eq("id", duspID)
           .single();
 
-        if (tpError) throw tpError;
-        if (!tp) {
-          throw new Error("No tech partner data found");
+        if (duspError) throw duspError;
+        if (!dusp) {
+          throw new Error("No DUSP data found");
         }
-        setTPData(tp);
+        setDUSPData(dusp);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError(error.message);
@@ -47,12 +44,12 @@ const TPProfileSettings = () => {
     };
 
     fetchUserData();
-  }, [tpID, tpIDLoading]);
+  }, [duspID, duspIDLoading]);
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
-    setTPData((prev: any) => ({
+    setDUSPData((prev: any) => ({
       ...prev,
       [id]: value,
     }));
@@ -61,35 +58,31 @@ const TPProfileSettings = () => {
   // Save Changes - Update the data in Supabase
   const handleSave = async () => {
     try {
-      const { data: tpDataResponse, error: tpDataError } = await supabase
-        .from("nd_tech_partner_profile")
+      const { data: duspDataResponse, error: duspDataError } = await supabase
+        .from("nd_dusp_profile")
         .update({
-          fullname: tpData.fullname,
-          ic_no: tpData.ic_no,
-          mobile_no: tpData.mobile_no,
-          work_email: tpData.work_email,
-          personal_email: tpData.personal_email,
-          dob: tpData.dob,
-          place_of_birth: tpData.place_of_birth,
-          marital_status: tpData.marital_status,
-          race_id: tpData.race_id,
-          religion_id: tpData.religion_id,
-          nationality_id: tpData.nationality_id,
+          fullname: duspData.fullname,
+          ic_no: duspData.ic_no,
+          mobile_no: duspData.mobile_no,
+          work_email: duspData.work_email,
+          join_date: duspData.join_date,
+          resign_date: duspData.resign_date,
+          is_active: duspData.is_active,
         })
-        .eq("id", tpData.id);
+        .eq("id", duspData.id);
 
-      if (tpDataError) {
-        console.error("Error updating tech partner data:", tpDataError);
-        setError(tpDataError.message);
+      if (duspDataError) {
+        console.error("Error updating DUSP data:", duspDataError);
+        setError(duspDataError.message);
         toast({
           title: "Error",
-          description: "Failed to update the tech partner data. Please try again.",
+          description: "Failed to update the DUSP data. Please try again.",
           variant: "destructive",
         });
         return;
       }
 
-      console.log("Updated Tech Partner Data:", tpDataResponse);
+      console.log("Updated DUSP Data:", duspDataResponse);
       toast({
         title: "Success",
         description: "Profile updated successfully.",
@@ -105,8 +98,8 @@ const TPProfileSettings = () => {
     }
   };
 
-  if (loading || tpIDLoading) return <div>Loading...</div>;
-  if (error || fetchError || tpIDError || positionError) return <div>Error: {error || fetchError || tpIDError || positionError}</div>;
+  if (loading || duspIDLoading) return <div>Loading...</div>;
+  if (error || duspIDError || positionError) return <div>Error: {error || duspIDError || positionError}</div>;
 
   return (
     <Card className="overflow-hidden border-none shadow-lg">
@@ -121,11 +114,7 @@ const TPProfileSettings = () => {
           </div>
         </div>
         <PersonalInformation
-          tpData={tpData}
-          maritalStatuses={maritalStatuses}
-          races={races}
-          religions={religions}
-          nationalities={nationalities}
+          duspData={duspData}
           positions={positions} // Pass positions to the component
           handleChange={handleChange}
         />
@@ -137,4 +126,4 @@ const TPProfileSettings = () => {
   );
 };
 
-export default TPProfileSettings;
+export default DUSPProfileSettings;

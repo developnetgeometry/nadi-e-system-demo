@@ -8,6 +8,9 @@ import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
 import MemberProfileSettings from "@/components/profile/member/MemberProfileSettings";
 import DummyProfileSettings from "@/components/profile/member/DummyProfileSettings";
 import TPProfileSettings from "@/components/profile/tp/TPProfileSettings";
+import SSOProfileSettings from "@/components/profile/sso/SSOProfileSettings";
+import DUSPProfileSettings from "@/components/profile/dusp/DUSPProfileSettings";
+import MCMCProfileSettings from "@/components/profile/mcmc/MCMCProfileSettings";
 
 const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +69,10 @@ const UserProfile = () => {
           {/* <StaffProfileSettings />
           <StaffJobSettings />
           <MemberProfileSettings /> */}
-          <TPProfileSettings/>
+          {/* <TPProfileSettings/> */}
+          {/* <SSOProfileSettings/> */}
+          {/* <DUSPProfileSettings/> */}
+          <MCMCProfileSettings/>
         </div>
       </DashboardLayout>
     );
