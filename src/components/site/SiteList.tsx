@@ -8,19 +8,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings, Trash2 } from "lucide-react";
+import { Settings, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MaintenanceFormDialog } from "./MaintenanceFormDialog";
-import { fetchSites, Site, deleteSite } from "./component/site-utils";
+import { fetchSites, Site, toggleSiteActiveStatus, deleteSite } from "./component/site-utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
 
 export const SiteList = () => {
-  const [selectedAsset, setSelectedAsset] = useState<Site | null>(null);
-  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -30,20 +32,40 @@ export const SiteList = () => {
     queryFn: fetchSites,
   });
 
+  const handleToggleStatus = async (site: Site) => {
+    try {
+      await toggleSiteActiveStatus(site.id, site.is_active);
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      queryClient.invalidateQueries({ queryKey: ['site-stats'] });
+      toast({
+        title: `Site visibility updated`,
+        description: `The ${site.sitename} visibility has been successfully updated.`,
+      });
+    } catch (error) {
+      console.error("Failed to update site visibility:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update the site visibility. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteClick = (siteId: string) => {
     setSiteToDelete(siteId);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
+    if (deleteConfirmation !== "DELETE") return;
     if (!siteToDelete) return;
     try {
       await deleteSite(siteToDelete);
       queryClient.invalidateQueries({ queryKey: ['sites'] });
-      queryClient.invalidateQueries({ queryKey: ['site-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['site-stats'] }); // Invalidate site-stats query
       toast({
         title: "Site deleted",
-        description: "The site has been successfully deleted.",
+        description: `The site has been successfully deleted.`,
       });
     } catch (error) {
       console.error("Failed to delete site:", error);
@@ -55,7 +77,23 @@ export const SiteList = () => {
     } finally {
       setIsDeleteDialogOpen(false);
       setSiteToDelete(null);
+      setDeleteConfirmation("");
     }
+  };
+
+  const handleDialogClose = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteConfirmation("");
+  };
+
+  const handleEditClick = (site: Site) => {
+    setSiteToEdit(site);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = () => {
+    setIsEditDialogOpen(false);
+    setSiteToEdit(null);
   };
 
   const getStatusBadge = (status: Site['nd_site_status']['eng']) => {
@@ -71,7 +109,7 @@ export const SiteList = () => {
   };
 
   if (isLoading) {
-    return <div>Loading assets...</div>;
+    return <div>Loading sites...</div>;
   }
 
   return (
@@ -104,6 +142,18 @@ export const SiteList = () => {
                       <Button
                         variant="outline"
                         size="icon"
+                        onClick={() => handleToggleStatus(site)}
+                      >
+                        {site.is_active ? (
+                          <Eye className="h-4 w-4" />
+                        ) : (
+                          <EyeOff className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleEditClick(site)}
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
@@ -124,28 +174,39 @@ export const SiteList = () => {
         </Table>
       </div>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <Dialog open={isDeleteDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to delete this site?</p>
+          <div>Are you sure you want to delete this site? Type "DELETE" to confirm.</div>
+          <input
+            type="text"
+            value={deleteConfirmation}
+            onChange={(e) => setDeleteConfirmation(e.target.value)}
+            className="mt-2 p-2 border rounded"
+            placeholder="DELETE"
+          />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={handleDialogClose}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteConfirmation !== "DELETE"}
+            >
               Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* <MaintenanceFormDialog
-        open={isMaintenanceDialogOpen}
-        onOpenChange={setIsMaintenanceDialogOpen}
-        asset={selectedAsset}
-      /> */}
+      <SiteFormDialog
+        open={isEditDialogOpen}
+        onOpenChange={handleEditDialogClose}
+        site={siteToEdit} // Pass the site to edit
+      />
     </div>
   );
 };
