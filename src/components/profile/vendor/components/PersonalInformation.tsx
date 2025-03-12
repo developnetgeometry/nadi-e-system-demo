@@ -1,58 +1,65 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const PersonalInformation = ({ vendorData, contractData, positions, handleChange }) => {
-  const getPositionName = (positionId: number) => {
-    const position = positions.find((pos) => pos.id === positionId);
-    return position ? position.name : "Unknown Position";
-  };
+const PersonalInformation = ({
+  vendorData,
+  contractData,
+  positions,
+  handleChange,
+}: {
+  vendorData: any;
+  contractData: any;
+  positions: any[];
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+}) => {
+  // Find the position name based on the position_id
+  const positionName = positions.find((position) => position.id === vendorData.position_id)?.name || "Unknown Position";
 
   return (
-    <div className="space-y-8 mt-6">
-      <h2 className="text-lg font-semibold text-gray-800">Personal Information</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          { id: "full_name", label: "Full Name", value: vendorData.full_name },
-          { id: "ic_no", label: "IC Number", value: vendorData.ic_no },
-          { id: "mobile_no", label: "Mobile Number", value: vendorData.mobile_no },
-          { id: "work_email", label: "Work Email", value: vendorData.work_email },
-          { id: "position_id", label: "Position", value: getPositionName(vendorData.position_id) },
-          { id: "is_active", label: "Status", value: vendorData.is_active ? "Active" : "Inactive" },
-        ].map((field) => (
-          <div key={field.id} className="col-span-2">
-            <Label htmlFor={field.id} className="block text-gray-700 font-medium mb-2">
-              {field.label}
-            </Label>
-            <Input
-              id={field.id}
-              type="text"
-              placeholder={`Enter ${field.label}`}
-              value={field.value || ""}
-              onChange={handleChange}
-              readOnly={field.id === "position_id" || field.id === "is_active" || field.id === "full_name" || field.id === "ic_no" || field.id === "work_email"}
-            />
+    <div className="space-y-8 mt-8">
+      <h2 className="text-lg font-semibold mb-4">Personal Information</h2>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="fullname">Full Name</Label>
+            <Input id="fullname" type="text" value={vendorData.fullname || ""} readOnly />
           </div>
-        ))}
+          <div>
+            <Label htmlFor="ic_no">IC Number</Label>
+            <Input id="ic_no" type="text" value={vendorData.ic_no || ""} readOnly />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="mobile_no">Mobile Number</Label>
+            <Input id="mobile_no" type="text" value={vendorData.mobile_no || ""} onChange={handleChange} />
+          </div>
+          <div>
+            <Label htmlFor="work_email">Work Email</Label>
+            <Input id="work_email" type="email" value={vendorData.work_email || ""} readOnly />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="position_id">Position</Label>
+            <Input id="position_id" type="text" value={positionName} readOnly />
+          </div>
+          <div>
+            <Label htmlFor="is_active">Status</Label>
+            <Input id="is_active" type="text" value={vendorData.is_active ? "Active" : "Inactive"} readOnly />
+          </div>
+        </div>
       </div>
       <h2 className="text-lg font-semibold text-gray-800 mt-6">Contract Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          { id: "contract_start", label: "Contract Start", value: contractData?.contract_start },
-          { id: "contract_end", label: "Contract End", value: contractData?.contract_end },
-        ].map((field) => (
-          <div key={field.id} className="col-span-2">
-            <Label htmlFor={field.id} className="block text-gray-700 font-medium mb-2">
-              {field.label}
-            </Label>
-            <Input
-              id={field.id}
-              type="text"
-              placeholder={`Enter ${field.label}`}
-              value={field.value || ""}
-              readOnly
-            />
-          </div>
-        ))}
+        <div>
+          <Label htmlFor="contract_start">Contract Start</Label>
+          <Input id="contract_start" type="text" value={contractData?.contract_start || ""} readOnly />
+        </div>
+        <div>
+          <Label htmlFor="contract_end">Contract End</Label>
+          <Input id="contract_end" type="text" value={contractData?.contract_end || ""} readOnly />
+        </div>
       </div>
     </div>
   );
