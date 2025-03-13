@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Box, Package, Settings, DollarSign, Plus } from "lucide-react";
+import { Box, Package, Settings, DollarSign, Plus, CheckCircle, Clock, PauseCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -51,7 +51,7 @@ const SiteDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 In Operation
               </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{siteStats?.filter(site => site.active_status === 1).length || 0}</div>
@@ -62,7 +62,7 @@ const SiteDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 In Progress
               </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{siteStats?.filter(site => site.active_status === 2).length || 0}</div>
@@ -73,7 +73,7 @@ const SiteDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Temporarily Close
               </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <PauseCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{siteStats?.filter(site => site.active_status === 3).length || 0}</div>
@@ -84,7 +84,7 @@ const SiteDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Permanently Close
               </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <XCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{siteStats?.filter(site => site.active_status === 4).length || 0}</div>

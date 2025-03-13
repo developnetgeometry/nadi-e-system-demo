@@ -25,6 +25,8 @@ export interface Site {
     };
     nd_site: {
         standard_code: string;
+        refid_tp: string;
+        refid_mcmc: string;
     }[];
     nd_phases: {
         name: string;
@@ -129,7 +131,7 @@ export const fetchSites = async (): Promise<Site[]> => {
             .select(`
                 *,
                 nd_site_status:nd_site_status(eng),
-                nd_site:nd_site(standard_code),
+                nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
                 nd_phases:nd_phases(name),
                 nd_region:nd_region(eng),
                 nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
@@ -137,8 +139,7 @@ export const fetchSites = async (): Promise<Site[]> => {
                 nd_dun:nd_duns(id),
                 nd_mukim:nd_mukims(id)
             `)
-            .order('created_at', { ascending: false });
-
+            .order('created_at', { ascending: false });      
         if (error) throw error;
         return data as Site[];
     } catch (error) {

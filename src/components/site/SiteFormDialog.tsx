@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site } from "@/components/site/component/site-utils";
 import { Textarea } from "../ui/textarea";
+import { format } from "path";
 
 interface SiteFormDialogProps {
   open: boolean;
@@ -27,33 +28,50 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for form fields
-  const [code, setCode] = useState('');
-  const [name, setName] = useState('');
-  const [phase, setPhase] = useState<any | undefined>(undefined);
-  const [region, setRegion] = useState<any | undefined>(undefined);
-  const [parliament, setParliament] = useState<any | undefined>(undefined);
-  const [dun, setDun] = useState<any | undefined>(undefined);
-  const [mukim, setMukim] = useState<any | undefined>(undefined);
-  const [email, setEmail] = useState('');
-  const [website, setWebsite] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [status, setStatus] = useState<any | undefined>(undefined);
-  const [address, setAddress] = useState('');
-  const [address2, setAddress2] = useState('');
-  const [district, setDistrict] = useState<any | undefined>(undefined);
-  const [city, setCity] = useState('');
-  const [postCode, setPostCode] = useState('');
-  const [state, setState] = useState<any | undefined>(undefined);
-  const [technology, setTechnology] = useState<any | undefined>(undefined);
-  const [bandwidth, setBandwidth] = useState<any | undefined>(undefined);
-  const [building_type, setBuildingType] = useState<any | undefined>(undefined);
-  const [building_area, setBuildingArea] = useState('');
-  const [building_rental, setBuildingRental] = useState<boolean | undefined>(undefined); //boolean should be here
-  const [zone, setZone] = useState<any | undefined>(undefined);
-  const [category_area, setCategoryArea] = useState<any | undefined>(undefined);
-  const [building_level, setBuildingLevel] = useState<any | undefined>(undefined);
-  const [oku, setOku] = useState<boolean | undefined>(undefined);
+  const [formState, setFormState] = useState({
+    code: '',
+    name: '',
+    phase: undefined,
+    region: undefined,
+    parliament: undefined,
+    dun: undefined,
+    mukim: undefined,
+    email: '',
+    website: '',
+    longitude: '',
+    latitude: '',
+    status: undefined,
+    address: '',
+    address2: '',
+    district: undefined,
+    city: '',
+    postCode: '',
+    state: undefined,
+    technology: undefined,
+    bandwidth: undefined,
+    building_type: undefined,
+    building_area: '',
+    building_rental: undefined,
+    zone: undefined,
+    category_area: undefined,
+    building_level: undefined,
+    oku: undefined,
+    coordinates: ''
+  });
+
+  const setField = (field: string, value: any) => {
+    if (field === 'coordinates') {
+      setFormState((prevState) => ({ ...prevState, coordinates: value }));
+      if (value.trim() === '') {
+        setFormState((prevState) => ({ ...prevState, longitude: '', latitude: '' }));
+      } else if (value.includes(',')) {
+        const [longitude, latitude] = value.split(',').map(coord => coord.trim());
+        setFormState((prevState) => ({ ...prevState, longitude, latitude }));
+      }
+    } else {
+      setFormState((prevState) => ({ ...prevState, [field]: value }));
+    }
+  };
 
   // Fetching START lookup data
   const { data: siteStatus = [], isLoading: isStatusLoading } = useQuery({
@@ -65,33 +83,33 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     queryFn: () => fetchPhase(),
   });
   const { data: siteState = [], isLoading: isStateLoading } = useQuery({
-    queryKey: ['site-state', region],
-    queryFn: () => fetchState(region),
-    enabled: !!region,
+    queryKey: ['site-state', formState.region],
+    queryFn: () => fetchState(formState.region),
+    enabled: !!formState.region,
   });
 
   const { data: siteDistrict = [], isLoading: isDistrictLoading } = useQuery({
-    queryKey: ['site-district', state],
-    queryFn: () => fetchDistrict(state),
-    enabled: !!state,
+    queryKey: ['site-district', formState.state],
+    queryFn: () => fetchDistrict(formState.state),
+    enabled: !!formState.state,
   });
 
   const { data: siteParliament = [], isLoading: isParliamentLoading } = useQuery({
-    queryKey: ['site-parliament', state],
-    queryFn: () => fetchParliament(state),
-    enabled: !!state,
+    queryKey: ['site-parliament', formState.state],
+    queryFn: () => fetchParliament(formState.state),
+    enabled: !!formState.state,
   });
 
   const { data: siteDun = [], isLoading: isDunLoading } = useQuery({
-    queryKey: ['site-dun', parliament],
-    queryFn: () => fetchDun(parliament),
-    enabled: !!parliament,
+    queryKey: ['site-dun', formState.parliament],
+    queryFn: () => fetchDun(formState.parliament),
+    enabled: !!formState.parliament,
   });
 
   const { data: siteMukim = [], isLoading: isMukimLoading } = useQuery({
-    queryKey: ['site-Mukim', district],
-    queryFn: () => fetchMukim(district),
-    enabled: !!district,
+    queryKey: ['site-Mukim', formState.district],
+    queryFn: () => fetchMukim(formState.district),
+    enabled: !!formState.district,
   });
 
   const { data: siteRegion = [], isLoading: isRegionLoading } = useQuery({
@@ -128,122 +146,126 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
   // Fetching dependent data based on selected value START
   useEffect(() => {
-    if (region === undefined) {
-      setState(undefined);
-      setDistrict(undefined);
-      setMukim(undefined);
-      setParliament(undefined);
-      setDun(undefined);
+    if (formState.region === undefined) {
+      setField('state', undefined);
+      setField('district', undefined);
+      setField('mukim', undefined);
+      setField('parliament', undefined);
+      setField('dun', undefined);
     } else {
-      queryClient.invalidateQueries({ queryKey: ['site-state', region] });
-      setState(undefined);
-      setDistrict(undefined);
-      setMukim(undefined);
-      setParliament(undefined);
-      setDun(undefined);
+      queryClient.invalidateQueries({ queryKey: ['site-state', formState.region] });
+      setField('state', undefined);
+      setField('district', undefined);
+      setField('mukim', undefined);
+      setField('parliament', undefined);
+      setField('dun', undefined);
     }
-  }, [region, queryClient, isStateLoading]);
+  }, [formState.region, queryClient]);
 
   useEffect(() => {
-    if (site && !isStateLoading && region !== undefined) {
-      setState(site.nd_site_address[0].state_id ?? undefined);
+    if (site && !isStateLoading && formState.region !== undefined) {
+      setField('state', site.nd_site_address[0].state_id ?? undefined);
     }
-  }, [isStateLoading, siteState, region]);
+  }, [isStateLoading, siteState, formState.region]);
 
   useEffect(() => {
-    if (state === undefined) {
-      setDistrict(undefined);
-      setMukim(undefined);
-      setParliament(undefined);
-      setDun(undefined);
+    if (formState.state === undefined) {
+      setField('district', undefined);
+      setField('mukim', undefined);
+      setField('parliament', undefined);
+      setField('dun', undefined);
     } else {
-      queryClient.invalidateQueries({ queryKey: ['site-district', state] });
-      queryClient.invalidateQueries({ queryKey: ['site-parliament', state] });
-      setDistrict(undefined);
-      setMukim(undefined);
-      setParliament(undefined);
-      setDun(undefined);
+      queryClient.invalidateQueries({ queryKey: ['site-district', formState.state] });
+      queryClient.invalidateQueries({ queryKey: ['site-parliament', formState.state] });
+      setField('district', undefined);
+      setField('mukim', undefined);
+      setField('parliament', undefined);
+      setField('dun', undefined);
+
     }
-  }, [state, queryClient, isDistrictLoading, isParliamentLoading]);
+  }, [formState.state, queryClient]);
 
   useEffect(() => {
-    if (site && !isDistrictLoading && state !== undefined) {
-      setDistrict(site.nd_site_address[0].district_id ?? undefined);
+    if (site && !isDistrictLoading && formState.state !== undefined) {
+      setField('district', site.nd_site_address[0].district_id ?? undefined);
     }
-  }, [isDistrictLoading, siteDistrict, state]);
+  }, [isDistrictLoading, siteDistrict, formState.state]);
 
   useEffect(() => {
-    if (site && !isParliamentLoading && state !== undefined) {
-      setParliament(site.nd_parliament?.id ?? undefined);
+    if (site && !isParliamentLoading && formState.state !== undefined) {
+      setField('parliament', site.nd_parliament?.id ?? undefined);
     }
-  }, [isParliamentLoading, siteParliament, state]);
+  }, [isParliamentLoading, siteParliament, formState.state]);
 
   useEffect(() => {
-    if (district === undefined) {
-      setMukim(undefined);
+    if (formState.district === undefined) {
+      setField('mukim', undefined);
     } else {
-      queryClient.invalidateQueries({ queryKey: ['site-mukim', district] });
-      setMukim(undefined);
+      queryClient.invalidateQueries({ queryKey: ['site-mukim', formState.district] });
+      setField('mukim', undefined);
     }
-  }, [district, queryClient, isMukimLoading]);
+  }, [formState.district, queryClient]);
 
   useEffect(() => {
-    if (site && !isMukimLoading && district !== undefined) {
-      setMukim(site.nd_mukim?.id ?? undefined);
+    if (site && !isMukimLoading && formState.district !== undefined) {
+      setField('mukim', site.nd_mukim?.id ?? undefined);
     }
-  }, [isMukimLoading, siteMukim, district]);
+  }, [isMukimLoading, siteMukim, formState.district]);
 
   useEffect(() => {
-    if (parliament === undefined) {
-      setDun(undefined);
+    if (formState.parliament === undefined) {
+      setField('dun', undefined);
     } else {
-      queryClient.invalidateQueries({ queryKey: ['site-dun', parliament] });
-      setDun(undefined);
+      queryClient.invalidateQueries({ queryKey: ['site-dun', formState.parliament] });
+      setField('dun', undefined);
     }
-  }, [parliament, queryClient, isDunLoading]);
+  }, [formState.parliament, queryClient]);
 
   useEffect(() => {
-    if (site && !isDunLoading && parliament !== undefined) {
-      setDun(site.nd_dun?.id);
+    if (site && !isDunLoading && formState.parliament !== undefined) {
+      setField('dun', site.nd_dun?.id);
     }
-  }, [isDunLoading, siteDun, parliament]);
+  }, [isDunLoading, siteDun, formState.parliament]);
   // Fetching dependent data based on selected value END
 
   //preset on 2nd value of status
   useEffect(() => {
-    if (siteStatus.length > 1 && !status) {
-      setStatus(String(siteStatus[1].id));
+    if (siteStatus.length > 1 && !formState.status) {
+      setField('status', String(siteStatus[1].id));
     }
-  }, [siteStatus, status]);
+  }, [siteStatus, formState.status]);
 
   const resetForm = () => {
-    setCode('');
-    setName('');
-    setPhase(undefined);
-    setRegion(undefined);
-    setParliament(undefined);
-    setDun(undefined);
-    setMukim(undefined);
-    setEmail('');
-    setWebsite('');
-    setLongitude('');
-    setLatitude('');
-    setStatus(undefined);
-    setAddress('');
-    setAddress2('');
-    setCity('');
-    setPostCode('');
-    setDistrict(undefined);
-    setState(undefined);
-    setTechnology(undefined);
-    setBandwidth(undefined);
-    setBuildingType(undefined);
-    setBuildingArea('');
-    setBuildingRental(undefined);
-    setZone(undefined);
-    setCategoryArea(undefined);
-    setBuildingLevel(undefined);
-    setOku(undefined);
+    setFormState({
+      code: '',
+      name: '',
+      phase: undefined,
+      region: undefined,
+      parliament: undefined,
+      dun: undefined,
+      mukim: undefined,
+      email: '',
+      website: '',
+      longitude: '',
+      latitude: '',
+      status: undefined,
+      address: '',
+      address2: '',
+      district: undefined,
+      city: '',
+      postCode: '',
+      state: undefined,
+      technology: undefined,
+      bandwidth: undefined,
+      building_type: undefined,
+      building_area: '',
+      building_rental: undefined,
+      zone: undefined,
+      category_area: undefined,
+      building_level: undefined,
+      oku: undefined,
+      coordinates: ''
+    });
   };
 
   useEffect(() => {
@@ -255,33 +277,36 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   useEffect(() => {
     if (site) {
       // Populate form fields with site data for editing
-      setCode(site.nd_site[0].standard_code || '');
-      setName(site.sitename || '');
-      setPhase(site.phase_id || undefined);
-      setRegion(site.region_id || undefined);
-      setParliament(site.nd_parliament?.id || undefined);
-      setDun(site.nd_dun?.id || undefined);
-      setMukim(site.nd_mukim?.id || undefined);
-      setEmail(site.email || '');
-      setWebsite(site.website || '');
-      setLongitude(site.longtitude || '');
-      setLatitude(site.latitude || '');
-      setStatus(site.active_status || undefined);
-      setAddress(site.nd_site_address[0].address1 || '');
-      setAddress2(site.nd_site_address[0].address2 || '');
-      setCity(site.nd_site_address[0].city || '');
-      setPostCode(site.nd_site_address[0].postcode || '');
-      setDistrict(site.nd_site_address[0].district_id || undefined);
-      setState(site.nd_site_address[0].state_id || undefined);
-      setTechnology(site.technology || undefined);
-      setBandwidth(site.bandwidth || undefined);
-      setBuildingType(site.building_type_id || undefined);
-      setBuildingArea(site.building_area_id || '');
-      setBuildingRental(site.building_rental_id || undefined);
-      setZone(site.zone_id || undefined);
-      setCategoryArea(site.area_id || undefined);
-      setBuildingLevel(site.level_id || undefined);
-      setOku(site.oku_friendly || undefined);
+      setFormState({
+        code: site.nd_site[0].standard_code || '',
+        name: site.sitename || '',
+        phase: site.phase_id || undefined,
+        region: site.region_id || undefined,
+        parliament: site.nd_parliament?.id || undefined,
+        dun: site.nd_dun?.id || undefined,
+        mukim: site.nd_mukim?.id || undefined,
+        email: site.email || '',
+        website: site.website || '',
+        longitude: site.longtitude || '',
+        latitude: site.latitude || '',
+        status: site.active_status || undefined,
+        address: site.nd_site_address[0].address1 || '',
+        address2: site.nd_site_address[0].address2 || '',
+        city: site.nd_site_address[0].city || '',
+        postCode: site.nd_site_address[0].postcode || '',
+        district: site.nd_site_address[0].district_id || undefined,
+        state: site.nd_site_address[0].state_id || undefined,
+        technology: site.technology || undefined,
+        bandwidth: site.bandwidth || undefined,
+        building_type: site.building_type_id || undefined,
+        building_area: site.building_area_id || '',
+        building_rental: site.building_rental_id ?? undefined,
+        zone: site.zone_id || undefined,
+        category_area: site.area_id || undefined,
+        building_level: site.level_id || undefined,
+        oku: site.oku_friendly ?? undefined,
+        coordinates: site.longtitude && site.latitude ? `${site.longtitude},${site.latitude}` : ''
+      });
 
       // Enable dependent fields
       if (site.region_id) {
@@ -306,47 +331,76 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     e.preventDefault();
     setIsSubmitting(true);
 
-    const site_profile = {
-      sitename: name || '',
-      fullname: 'NADI' + (name || ''),
-      phase_id: phase === '' ? null : phase,
-      region_id: region === '' ? null : region,
-      parliament_rfid: parliament === '' ? null : parliament,
-      dun_rfid: dun === '' ? null : dun,
-      mukim_id: mukim === '' ? null : mukim,
-      email: email || '',
-      website: website || '',
-      longtitude: longitude ? parseFloat(longitude) : null,
-      latitude: latitude ? parseFloat(latitude) : null,
-      state_id: state === '' ? null : state,
-      active_status: status === '' ? null : status,
-      technology: technology === '' ? null : technology,
-      building_area_id: building_area ? parseFloat(building_area) : null,
-      bandwidth: bandwidth === '' ? null : bandwidth,
-      building_type_id: building_type === '' ? null : building_type,
-      building_rental_id: building_rental === undefined ? null : building_rental,
-      zone_id: zone === '' ? null : zone,
-      area_id: category_area === '' ? null : category_area,
-      level_id: building_level === '' ? null : building_level,
-      oku_friendly: oku ?? null,
-    };
-
-    const site_address = {
-      address1: address || '',
-      address2: address2 || '',
-      city: city || '',
-      postcode: postCode || '',
-      district_id: district === '' ? null : district,
-      state_id: state === '' ? null : state,
-      active_status: status === '' ? null : status,
-    };
-
-    const standard_code = code;
-
-    console.log(site_profile);
-    console.log(site_address);
-
     try {
+
+      // Check if the site code already exists (case-insensitive)
+      const { data: existingSite, error: codeCheckError } = await supabase
+        .from('nd_site')
+        .select('id, site_profile_id')
+        .ilike('standard_code', formState.code);
+
+      if (codeCheckError && codeCheckError.code !== 'PGRST116') throw codeCheckError; // Ignore "No rows found" error
+
+      if (existingSite && existingSite.length > 0 && (!site || existingSite[0].site_profile_id !== site.id)) {
+        const codeInput = document.getElementById('code');
+        if (codeInput) {
+          codeInput.focus();
+        }
+        throw new Error('Site code already exists');
+      }
+      
+      // Check if coordinates are valid
+      if (formState.coordinates) {
+        const coordinates = formState.coordinates.split(',').map(coord => coord.trim());
+        if (coordinates.length !== 2 || !coordinates[0] || !coordinates[1] || isNaN(Number(coordinates[0])) || isNaN(Number(coordinates[1]))) {
+          const coorInput = document.getElementById('coordinates');
+          if (coorInput) {
+            coorInput.focus();
+          }
+          throw new Error('Invalid coordinate format. Please use "longitude, latitude" with valid numbers.');
+        }
+      }
+
+      const site_profile = {
+        sitename: formState.name || '',
+        fullname: 'NADI' + (formState.name || ''),
+        phase_id: formState.phase === '' ? null : formState.phase,
+        region_id: formState.region === '' ? null : formState.region,
+        parliament_rfid: formState.parliament === '' ? null : formState.parliament,
+        dun_rfid: formState.dun === '' ? null : formState.dun,
+        mukim_id: formState.mukim === '' ? null : formState.mukim,
+        email: formState.email || '',
+        website: formState.website || '',
+        longtitude: formState.longitude ? parseFloat(formState.longitude) : null,
+        latitude: formState.latitude ? parseFloat(formState.latitude) : null,
+        state_id: formState.state === '' ? null : formState.state,
+        active_status: formState.status === '' ? null : formState.status,
+        technology: formState.technology === '' ? null : formState.technology,
+        building_area_id: formState.building_area ? parseFloat(formState.building_area) : null,
+        bandwidth: formState.bandwidth === '' ? null : formState.bandwidth,
+        building_type_id: formState.building_type === '' ? null : formState.building_type,
+        building_rental_id: formState.building_rental === undefined ? null : formState.building_rental,
+        zone_id: formState.zone === '' ? null : formState.zone,
+        area_id: formState.category_area === '' ? null : formState.category_area,
+        level_id: formState.building_level === '' ? null : formState.building_level,
+        oku_friendly: formState.oku ?? null,
+      };
+
+      const site_address = {
+        address1: formState.address || '',
+        address2: formState.address2 || '',
+        city: formState.city || '',
+        postcode: formState.postCode || '',
+        district_id: formState.district === '' ? null : formState.district,
+        state_id: formState.state === '' ? null : formState.state,
+        active_status: formState.status === '' ? null : formState.status,
+      };
+
+      const standard_code = formState.code;
+
+      console.log(site_profile);
+      console.log(site_address);
+
       if (site) {
         // Update existing site
         const { error: profError } = await supabase
@@ -414,9 +468,10 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       console.error('Error adding/updating site:', error);
       toast({
         title: "Error",
-        description: "Failed to add/update the site. Please try again.",
+        description: error.message || "Failed to add/update the site. Please try again.",
         variant: "destructive",
       });
+
     } finally {
       setIsSubmitting(false);
     }
@@ -435,15 +490,15 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               <DialogTitle>Site Information</DialogTitle>
               <div className="space-y-2">
                 <Label htmlFor="name">Site Name</Label>
-                <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input id="name" name="name" value={formState.name} onChange={(e) => setField('name', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="code">Site Code</Label>
-                <Input id="code" name="code" value={code} onChange={(e) => setCode(e.target.value)} required />
+                <Input id="code" name="code" value={formState.code} onChange={(e) => setField('code', e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phase">Phase</Label>
-                <Select name="phase" value={phase ?? undefined} onValueChange={setPhase} disabled={isPhaseLoading}>
+                <Select name="phase" value={formState.phase ?? undefined} onValueChange={(value) => setField('phase', value)} disabled={isPhaseLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select phase" />
                   </SelectTrigger>
@@ -459,22 +514,25 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" value={email} type="email" onChange={(e) => setEmail(e.target.value)} />
+                <Input id="email" name="email" value={formState.email} type="email" onChange={(e) => setField('email', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
-                <Input id="website" name="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
+                <Input id="website" name="website" value={formState.website} onChange={(e) => setField('website', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="longitude">Longitude & Latitude</Label>
-                <div className="flex space-x-2">
-                  <Input id="longitude" name="longitude" placeholder="Longitude" value={longitude} onChange={(e) => setLongitude(e.target.value)} />
-                  <Input id="latitude" name="latitude" placeholder="Latitude" value={latitude} onChange={(e) => setLatitude(e.target.value)} />
-                </div>
+                <Label htmlFor="coordinates">Coordinates (Longitude, Latitude)</Label>
+                <Input
+                  id="coordinates"
+                  name="coordinates"
+                  placeholder="eg 3.2207, 101.439"
+                  value={formState.coordinates ?? (formState.longitude ? formState.longitude + (formState.latitude ? ',' + formState.latitude : '') : '')}
+                  onChange={(e) => setField('coordinates', e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="technology">Internet Technology</Label>
-                <Select name="technology" value={technology ?? undefined} onValueChange={setTechnology} disabled={isTechnologyLoading}>
+                <Select name="technology" value={formState.technology ?? undefined} onValueChange={(value) => setField('technology', value)} disabled={isTechnologyLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select technology" />
                   </SelectTrigger>
@@ -490,7 +548,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bandwidth">Internet Speed (Mbps)</Label>
-                <Select name="bandwidth" value={bandwidth ?? undefined} onValueChange={setBandwidth} disabled={isBandwidthLoading}>
+                <Select name="bandwidth" value={formState.bandwidth ?? undefined} onValueChange={(value) => setField('bandwidth', value)} disabled={isBandwidthLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select bandwidth" />
                   </SelectTrigger>
@@ -521,7 +579,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div> */}
               <div className="space-y-2">
                 <Label htmlFor="building_type">Building type</Label>
-                <Select name="building_type" value={building_type ?? undefined} onValueChange={setBuildingType} disabled={isBuildingTypeLoading}>
+                <Select name="building_type" value={formState.building_type ?? undefined} onValueChange={(value) => setField('building_type', value)} disabled={isBuildingTypeLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select building type" />
                   </SelectTrigger>
@@ -537,7 +595,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="building_area">Building Area (sqft)</Label>
-                <Input id="building_area" name="building_area" type="number" placeholder="0" value={building_area} onChange={(e) => setBuildingArea(e.target.value)} />
+                <Input id="building_area" name="building_area" type="number" placeholder="0" value={formState.building_area} onChange={(e) => setField('building_area', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="building_rental">Building rental</Label>
@@ -546,8 +604,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <input
                       type="radio"
                       name="building_rental"
-                      checked={building_rental === true}
-                      onChange={() => setBuildingRental(true)}
+                      checked={formState.building_rental === true}
+                      onChange={() => setField('building_rental', true)}
                     />
                     <span>Yes</span>
                   </label>
@@ -555,8 +613,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <input
                       type="radio"
                       name="building_rental"
-                      checked={building_rental === false}
-                      onChange={() => setBuildingRental(false)}
+                      checked={formState.building_rental === false}
+                      onChange={() => setField('building_rental', false)}
                     />
                     <span>No</span>
                   </label>
@@ -579,7 +637,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div> */}
               <div className="space-y-2">
                 <Label htmlFor="zone">Zone</Label>
-                <Select name="zone" value={zone ?? undefined} onValueChange={setZone} disabled={isZoneLoading}>
+                <Select name="zone" value={formState.zone ?? undefined} onValueChange={(value) => setField('zone', value)} disabled={isZoneLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select zone" />
                   </SelectTrigger>
@@ -595,7 +653,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="area">Category Area</Label>
-                <Select name="area" value={category_area ?? undefined} onValueChange={setCategoryArea} disabled={isCategoryAreaLoading}>
+                <Select name="area" value={formState.category_area ?? undefined} onValueChange={(value) => setField('category_area', value)} disabled={isCategoryAreaLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Category Area" />
                   </SelectTrigger>
@@ -611,7 +669,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="building_level">Building level</Label>
-                <Select name="building_level" value={building_level ?? undefined} onValueChange={setBuildingLevel} disabled={isBuildingLevelLoading}>
+                <Select name="building_level" value={formState.building_level ?? undefined} onValueChange={(value) => setField('building_level', value)} disabled={isBuildingLevelLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select building level" />
                   </SelectTrigger>
@@ -632,8 +690,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <input
                       type="radio"
                       name="oku"
-                      checked={oku === true}
-                      onChange={() => setOku(true)}
+                      checked={formState.oku === true}
+                      onChange={() => setField('oku', true)}
                     />
                     <span>Yes</span>
                   </label>
@@ -641,8 +699,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <input
                       type="radio"
                       name="oku"
-                      checked={oku === false}
-                      onChange={() => setOku(false)}
+                      checked={formState.oku === false}
+                      onChange={() => setField('oku', false)}
                     />
                     <span>No</span>
                   </label>
@@ -665,7 +723,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div> */}
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select name="status" value={status ?? undefined} onValueChange={setStatus} disabled={isStatusLoading}>
+                <Select name="status" value={formState.status ?? undefined} onValueChange={(value) => setField('status', value)} disabled={isStatusLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -685,23 +743,23 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               <DialogTitle>Address Information</DialogTitle>
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Textarea id="address" name="address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                <Textarea id="address" name="address" value={formState.address} onChange={(e) => setField('address', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address2">Address 2 (Optional)</Label>
-                <Textarea id="address2" name="address2" value={address2} onChange={(e) => setAddress2(e.target.value)} />
+                <Textarea id="address2" name="address2" value={formState.address2} onChange={(e) => setField('address2', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
-                <Input id="city" name="city" value={city} onChange={(e) => setCity(e.target.value)} />
+                <Input id="city" name="city" value={formState.city} onChange={(e) => setField('city', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="postCode">Postcode</Label>
-                <Input id="postCode" name="postCode" value={postCode} onChange={(e) => setPostCode(e.target.value)} />
+                <Input id="postCode" name="postCode" value={formState.postCode} onChange={(e) => setField('postCode', e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="region">Region</Label>
-                <Select name="region" value={region ?? undefined} onValueChange={setRegion} disabled={isRegionLoading}>
+                <Select name="region" value={formState.region ?? undefined} onValueChange={(value) => setField('region', value)} disabled={isRegionLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
@@ -717,7 +775,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
-                <Select name="state" value={state ?? ''} onValueChange={setState} disabled={isStateLoading || !region}>
+                <Select name="state" value={formState.state ?? ''} onValueChange={(value) => setField('state', value)} disabled={isStateLoading || !formState.region}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
@@ -733,7 +791,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="district">District</Label>
-                <Select name="district" value={district ?? ''} onValueChange={setDistrict} disabled={isDistrictLoading || !state}>
+                <Select name="district" value={formState.district ?? ''} onValueChange={(value) => setField('district', value)} disabled={isDistrictLoading || !formState.state}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select district" />
                   </SelectTrigger>
@@ -749,7 +807,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="mukim">Mukim</Label>
-                <Select name="mukim" value={mukim ?? ''} onValueChange={setMukim} disabled={isMukimLoading || !district}>
+                <Select name="mukim" value={formState.mukim ?? ''} onValueChange={(value) => setField('mukim', value)} disabled={isMukimLoading || !formState.district}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select mukim" />
                   </SelectTrigger>
@@ -765,7 +823,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="parliament">Parliament</Label>
-                <Select name="parliament" value={parliament ?? ''} onValueChange={setParliament} disabled={isParliamentLoading || !state}>
+                <Select name="parliament" value={formState.parliament ?? ''} onValueChange={(value) => setField('parliament', value)} disabled={isParliamentLoading || !formState.state}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select parliament" />
                   </SelectTrigger>
@@ -781,7 +839,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="dun">Dun</Label>
-                <Select name="dun" value={dun ?? ''} onValueChange={setDun} disabled={isDunLoading || !parliament}>
+                <Select name="dun" value={formState.dun ?? ''} onValueChange={(value) => setField('dun', value)} disabled={isDunLoading || !formState.parliament}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select dun" />
                   </SelectTrigger>

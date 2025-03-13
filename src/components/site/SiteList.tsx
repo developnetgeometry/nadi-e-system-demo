@@ -8,14 +8,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings, Eye, EyeOff, Trash2 } from "lucide-react";
+import { Settings, Eye, EyeOff, Trash2, Search } from "lucide-react"; // Import Search icon
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MaintenanceFormDialog } from "./MaintenanceFormDialog";
-import { fetchSites, Site, toggleSiteActiveStatus, deleteSite } from "./component/site-utils";
+import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus } from "./component/site-utils"; // Import fetchPhase, fetchRegion, and fetchStatus
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
+import { Input } from "@/components/ui/input"; // Import Input component
+import { PaginationComponent } from "../ui/PaginationComponent"; // Correct import path
 
 export const SiteList = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -23,6 +25,12 @@ export const SiteList = () => {
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
+  const [filter, setFilter] = useState(""); // Add filter state
+  const [phaseFilter, setPhaseFilter] = useState(""); // Add phase filter state
+  const [regionFilter, setRegionFilter] = useState(""); // Add region filter state
+  const [statusFilter, setStatusFilter] = useState(""); // Add status filter state
+  const [currentPage, setCurrentPage] = useState(1); // Add currentPage state
+  const itemsPerPage = 10; // Define items per page
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -30,6 +38,21 @@ export const SiteList = () => {
   const { data: sites = [], isLoading } = useQuery({
     queryKey: ['sites'],
     queryFn: fetchSites,
+  });
+
+  const { data: phases = [] } = useQuery({
+    queryKey: ['phases'],
+    queryFn: fetchPhase,
+  });
+
+  const { data: regions = [] } = useQuery({
+    queryKey: ['regions'],
+    queryFn: fetchRegion,
+  });
+
+  const { data: statuses = [] } = useQuery({
+    queryKey: ['statuses'],
+    queryFn: fetchSiteStatus,
   });
 
   const handleToggleStatus = async (site: Site) => {
@@ -108,12 +131,75 @@ export const SiteList = () => {
     return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
+  const filteredSites = sites.filter(site => 
+    site.sitename.toLowerCase().includes(filter.toLowerCase()) ||
+    site.nd_site[0]?.standard_code.toLowerCase().includes(filter.toLowerCase())
+  ).filter(site => 
+    (phaseFilter ? site.nd_phases?.name === phaseFilter : true) &&
+    (regionFilter ? site.nd_region?.eng === regionFilter : true) &&
+    (statusFilter ? site.nd_site_status?.eng === statusFilter : true)
+  );
+
+  const paginatedSites = filteredSites.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredSites.length / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, filteredSites.length);
+
   if (isLoading) {
     return <div>Loading sites...</div>;
   }
 
   return (
     <div className="space-y-4">
+      <div className="relative mb-4 flex space-x-4">
+        <Input 
+          placeholder="Search by site name or code" 
+          value={filter} 
+          onChange={(e) => setFilter(e.target.value)} 
+          className="pl-10" // Add padding to the left for the icon
+        />
+        <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <div className="relative">
+          <select 
+            value={phaseFilter} 
+            onChange={(e) => setPhaseFilter(e.target.value)} 
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <option  value="">All Phases</option>
+            {phases.map(phase => (
+              <option key={phase.id} value={phase.name}>{phase.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="relative">
+          <select 
+            value={regionFilter} 
+            onChange={(e) => setRegionFilter(e.target.value)} 
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <option value="">All Regions</option>
+            {regions.map(region => (
+              <option key={region.id} value={region.eng}>{region.eng}</option>
+            ))}
+          </select>
+        </div>
+        <div className="relative">
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)} 
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <option value="">All Statuses</option>
+            {statuses.map(status => (
+              <option key={status.id} value={status.eng}>{status.eng}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -128,10 +214,10 @@ export const SiteList = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sites.map((site, index) => {
+            {paginatedSites.map((site, index) => {
               return (
                 <TableRow key={site.id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                   <TableCell>{site?.nd_site[0]?.standard_code || ""}</TableCell>
                   <TableCell>{site?.sitename || ""}</TableCell>
                   <TableCell>{site?.nd_phases?.name || ""}</TableCell>
@@ -173,7 +259,16 @@ export const SiteList = () => {
           </TableBody>
         </Table>
       </div>
-
+      {totalPages > 1 && (
+        <PaginationComponent
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          startItem={startItem}
+          endItem={endItem}
+          totalItems={filteredSites.length}
+        />
+      )}
       <Dialog open={isDeleteDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
