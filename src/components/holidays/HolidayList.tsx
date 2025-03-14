@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,17 +22,24 @@ export function HolidayList({
   onEdit,
   onDelete,
   isSuperAdmin,
-  emptyMessage = "No holidays found."
+  emptyMessage = "No holidays found.",
 }: HolidayListProps) {
   const renderStatesBadges = (holiday: Holiday) => {
     if (!holiday.states || holiday.states.length === 0) {
       return <Badge variant="outline">None</Badge>;
     }
-    
+
     return holiday.states.map((state) => (
-      <Badge key={state.id} variant="outline">{state.name}</Badge>
+      <Badge key={state.id} variant="outline">
+        {state.name}
+      </Badge>
     ));
   };
+
+  // Sort holidays by date
+  const sortedHolidays = holidays
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
     <Card className="p-4">
@@ -43,35 +49,37 @@ export function HolidayList({
       <CardContent>
         {isLoading ? (
           <p>Loading holidays...</p>
-        ) : holidays.length === 0 ? (
+        ) : sortedHolidays.length === 0 ? (
           <p className="text-muted-foreground">{emptyMessage}</p>
         ) : (
           <div className="space-y-4">
-            {holidays.map((holiday) => (
+            {sortedHolidays.map((holiday) => (
               <div key={holiday.id} className="border rounded-md p-4 relative">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-medium">{holiday.desc}</h3>
-                    <p className="text-sm text-muted-foreground">{format(new Date(holiday.date), 'PPP')}</p>
-                    
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(holiday.date), "PPP")}
+                    </p>
+
                     <div className="mt-2 flex flex-wrap gap-2">
                       {renderStatesBadges(holiday)}
                     </div>
                   </div>
-                  
+
                   {isSuperAdmin && (
                     <div className="flex gap-2">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => onEdit(holiday)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-destructive" 
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-destructive"
                         onClick={() => onDelete(holiday.id)}
                       >
                         <Trash2 className="h-4 w-4" />
