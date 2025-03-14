@@ -71,7 +71,7 @@ const SiteManagement = () => {
             <div className="container mx-auto max-w-6xl">
               <SiteManagementHeader />
               <div className="space-y-8">
-                <SiteManagement />
+                {/* <SiteManagement /> */}
               </div>
             </div>
           </main>
