@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import UserProfile from "@/pages/dashboard/profile/UserProfile";
 
 // Lazy load dashboard components
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
@@ -137,6 +138,10 @@ export const dashboardRoutes = [
         <OrganizationDetails />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/dashboard/profile",
+    element: <UserProfile />,
   },
   {
     path: "/admin/state-holidays",
