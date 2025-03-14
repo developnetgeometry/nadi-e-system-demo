@@ -1,7 +1,17 @@
-
-import { 
-  LayoutDashboard, Users, FileCheck, Settings, MessageSquare, 
-  Wallet, Briefcase, ShoppingCart, Box, DollarSign, List, ChartBar
+import {
+  LayoutDashboard,
+  Users,
+  FileCheck,
+  Settings,
+  MessageSquare,
+  Wallet,
+  Briefcase,
+  ShoppingCart,
+  Box,
+  DollarSign,
+  List,
+  ChartBar,
+  Calendar,
 } from "lucide-react";
 import { MenuItem } from "@/types/menu";
 import { getAccordionIcon } from "./sidebar-icons";
@@ -21,7 +31,6 @@ import {
   financialItems,
   complianceItems,
 } from "@/components/layout/sidebar/menu-items";
-
 
 // // Create the menu items for each section
 // const createDashboardItems = (): MenuItem[] => [
@@ -176,4 +185,16 @@ export const menuGroups = [
     route: "/compliance",
     items: complianceItems,
   },
+  // TO-DO: Remove this section
+  // {
+  //   label: "Administration",
+  //   items: [
+  //     {
+  //       title: "State Holidays",
+  //       path: "/dashboard/state-holidays",
+  //       icon: Calendar,
+  //       visibleTo: ["super_admin"]
+  //     }
+  //   ]
+  // },
 ];
