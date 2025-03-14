@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { X, Upload, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase"; // Added the missing import
 
 const organizationSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -109,7 +110,8 @@ export function OrganizationForm({
     try {
       // If a new logo was selected, upload it
       if (logoFile) {
-        const userId = (await supabase.auth.getUser()).data.user?.id;
+        const userData = await supabase.auth.getUser();
+        const userId = userData.data.user?.id;
         const folder = userId || "anonymous";
         const logoUrl = await uploadFile(logoFile, "organization_logos", folder);
         
@@ -246,15 +248,15 @@ export function OrganizationForm({
                     onFilesSelected={handleLogoChange}
                     buttonText={
                       isUploading ? (
-                        <span className="flex items-center">
+                        <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           Uploading...
-                        </span>
+                        </>
                       ) : (
-                        <span className="flex items-center">
+                        <>
                           <Upload className="h-4 w-4 mr-2" />
                           Upload Logo
-                        </span>
+                        </>
                       )
                     }
                   />
