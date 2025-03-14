@@ -1,11 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
-import { DashboardNavbar } from "@/components/layout/DashboardNavbar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 interface Role {
   id: string;
@@ -76,55 +75,49 @@ const RoleConfig = () => {
 
   if (error) {
     return (
-      <div className="p-4 text-red-500">
-        Error loading role. Please try again later.
-      </div>
+      <DashboardLayout>
+        <div className="p-4 text-red-500">
+          Error loading role. Please try again later.
+        </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <DashboardSidebar />
-        <div className="flex-1 flex flex-col">
-          <DashboardNavbar />
-          <main className="flex-1 p-8">
-            {isLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : role ? (
-              <div>
-                <h1 className="text-3xl font-bold mb-8">Role Configuration</h1>
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="text-xl font-semibold">Role Details</h2>
-                    <div className="mt-4 space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Name</label>
-                        <div className="mt-1">{role.name}</div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <div className="mt-1">{role.description}</div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Users Count</label>
-                        <div className="mt-1">{role.users_count}</div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Created At</label>
-                        <div className="mt-1">{new Date(role.created_at).toLocaleDateString()}</div>
-                      </div>
-                    </div>
-                  </div>
+    <DashboardLayout>
+      {isLoading ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : role ? (
+        <div>
+          <h1 className="text-3xl font-bold mb-8">Role Configuration</h1>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold">Role Details</h2>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <div className="mt-1">{role.name}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <div className="mt-1">{role.description}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Users Count</label>
+                  <div className="mt-1">{role.users_count}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Created At</label>
+                  <div className="mt-1">{new Date(role.created_at).toLocaleDateString()}</div>
                 </div>
               </div>
-            ) : null}
-          </main>
+            </div>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      ) : null}
+    </DashboardLayout>
   );
 };
 
