@@ -58,8 +58,8 @@ export const OrganizationUserList = () => {
   const filteredAvailableUsers = availableUsers.filter(
     (user) => {
       const matchesSearch = 
-        user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        (user.full_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase());
       
       const matchesType = 
         filterUserType === "all" || 
@@ -75,8 +75,12 @@ export const OrganizationUserList = () => {
 
   // Add user to organization
   const handleAddUser = (userId: string) => {
+    if (!id) return;
+    
+    console.log("Adding user:", userId, "to org:", id, "with role:", selectedRole);
+    
     addUserMutation.mutate({ 
-      organization_id: id!, 
+      organization_id: id, 
       user_id: userId,
       role: selectedRole 
     });
@@ -84,8 +88,12 @@ export const OrganizationUserList = () => {
 
   // Remove user from organization
   const handleRemoveUser = (userId: string) => {
+    if (!id) return;
+    
+    console.log("Removing user:", userId, "from org:", id);
+    
     removeUserMutation.mutate({ 
-      organizationId: id!, 
+      organizationId: id, 
       userId 
     });
   };

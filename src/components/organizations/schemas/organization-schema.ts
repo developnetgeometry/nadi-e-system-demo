@@ -9,7 +9,7 @@ export const organizationSchema = z.object({
   type: z.enum(["dusp", "tp"] as const),
   description: z.string().optional(),
   logo_url: z.string().optional(),
-  parent_id: z.string().optional().nullable().transform(val => val === "" ? null : val),
+  parent_id: z.string().optional().nullable().transform(val => val === "null" ? null : val),
 });
 
 export type OrganizationFormValues = z.infer<typeof organizationSchema>;

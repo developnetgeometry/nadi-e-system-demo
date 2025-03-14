@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { OrganizationUser, OrganizationUserFormData } from "@/types/organization";
 import { UserType } from "@/types/auth";
@@ -33,13 +32,42 @@ export const organizationUsersClient = {
    * Add a user to an organization
    */
   addUserToOrganization: async (formData: OrganizationUserFormData): Promise<OrganizationUser> => {
+    console.log("Adding user to organization:", formData);
+    
+    // First, check if the relationship already exists
+    const { data: existingData } = await supabase
+      .from("organization_users")
+      .select("id")
+      .eq("organization_id", formData.organization_id)
+      .eq("user_id", formData.user_id)
+      .single();
+    
+    if (existingData) {
+      console.log("User already exists in organization, updating role instead");
+      // If exists, update the role
+      const { data, error } = await supabase
+        .from("organization_users")
+        .update({ role: formData.role })
+        .eq("id", existingData.id)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data as OrganizationUser;
+    }
+    
+    // Otherwise, create a new relationship
     const { data, error } = await supabase
       .from("organization_users")
       .insert([formData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error adding user to organization:", error);
+      throw error;
+    }
+    
     return data as OrganizationUser;
   },
 
@@ -47,13 +75,18 @@ export const organizationUsersClient = {
    * Remove a user from an organization
    */
   removeUserFromOrganization: async (organizationId: string, userId: string): Promise<void> => {
+    console.log("Removing user from organization:", { organizationId, userId });
+    
     const { error } = await supabase
       .from("organization_users")
       .delete()
       .eq("organization_id", organizationId)
       .eq("user_id", userId);
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error removing user:", error);
+      throw error;
+    }
   },
 
   /**

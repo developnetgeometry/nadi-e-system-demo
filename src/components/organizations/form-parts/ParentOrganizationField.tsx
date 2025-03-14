@@ -23,7 +23,7 @@ export function ParentOrganizationField({
           <FormLabel>Parent Organization</FormLabel>
           <Select
             onValueChange={field.onChange}
-            value={field.value || ""}
+            value={field.value || "null"} // Using "null" as a string value instead of empty string
             disabled={filteredParentOrgs.length === 0}
           >
             <FormControl>
@@ -32,7 +32,7 @@ export function ParentOrganizationField({
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="null">None</SelectItem> {/* Use "null" instead of empty string */}
               {filteredParentOrgs.map((org) => (
                 <SelectItem key={org.id} value={org.id}>
                   {org.name}

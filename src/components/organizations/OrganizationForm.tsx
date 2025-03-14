@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,6 +83,11 @@ export function OrganizationForm({
       // If logo was removed, clear the URL
       else if (!previewUrl) {
         values.logo_url = "";
+      }
+      
+      // Handle "null" string value for parent_id
+      if (values.parent_id === "null") {
+        values.parent_id = null;
       }
       
       onSubmit(values);
