@@ -24,10 +24,10 @@ Deno.serve(async (req) => {
   try {
     // Get request body
     const body = await req.json()
-    const { ic_number, api_key } = body
+    const { identity_no, api_key } = body
 
     // Validate request parameters
-    if (!ic_number) {
+    if (!identity_no) {
       return new Response(JSON.stringify({ error: 'IC number is required' }), { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -54,13 +54,13 @@ Deno.serve(async (req) => {
       }
     })
 
-    console.log(`Attempting to validate user with IC number: ${ic_number}`)
+    console.log(`Attempting to validate user with IC number: ${identity_no}`)
     
     // Query the profile to check if a user with the provided IC number exists and is a member
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('id, user_type, full_name, created_at')
-      .eq('ic_number', ic_number)
+      .eq('ic_number', identity_no)
       .single()
 
     if (profileError) {
@@ -69,8 +69,7 @@ Deno.serve(async (req) => {
       // Check if error is "No rows found"
       if (profileError.code === 'PGRST116') {
         return new Response(JSON.stringify({ 
-          valid: false,
-          message: 'User with this IC number not found'
+          message: 'Member not found'
         }), {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -90,11 +89,9 @@ Deno.serve(async (req) => {
       : null
     
     return new Response(JSON.stringify({
-      valid: isMember,
-      user_type: profileData.user_type,
+      status: isMember ? '1' : '0',
+      identity_no: identity_no,
       member_name: profileData.full_name || null,
-      member_since: memberSince,
-      message: isMember ? 'Valid member' : 'User is not a member'
     }), {
       status: 200, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

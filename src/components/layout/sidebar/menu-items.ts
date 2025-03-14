@@ -1,9 +1,8 @@
-
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Users, 
-  Shield, 
+import {
+  LayoutDashboard,
+  Settings,
+  Users,
+  Shield,
   UserCog,
   Activity,
   FileBarChart,
@@ -33,7 +32,7 @@ import {
   Gauge,
   FileCheck,
   Eye,
-  Layout
+  Layout,
 } from "lucide-react";
 
 export const menuItems = [
@@ -45,6 +44,12 @@ export const menuItems = [
   { title: "Activity Log", icon: Activity, path: "/admin/activity" },
   { title: "Reports", icon: FileBarChart, path: "/admin/reports" },
   { title: "Calendar", icon: Calendar, path: "/admin/calendar" },
+  {
+    title: "State Holidays",
+    icon: Calendar,
+    path: "/admin/state-holidays",
+    visibleTo: ["super_admin"],
+  },
   { title: "Notifications", icon: Bell, path: "/admin/notifications" },
   { title: "Organizations", icon: Users, path: "/admin/organizations" },
   { title: "Site Management", icon: Settings, path: "/admin/siteManagement" },
