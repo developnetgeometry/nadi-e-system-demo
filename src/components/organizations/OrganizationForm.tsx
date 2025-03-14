@@ -2,41 +2,16 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Organization, OrganizationType } from "@/types/organization";
+import { Organization } from "@/types/organization";
 import { useOrganizations } from "@/hooks/use-organizations";
-import { useFileUpload } from "@/hooks/use-file-upload";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FileUpload } from "@/components/ui/file-upload";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { X, Upload, Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // Added the missing import
-
-const organizationSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  type: z.enum(["dusp", "tp"] as const),
-  description: z.string().optional(),
-  logo_url: z.string().optional(),
-  parent_id: z.string().optional().nullable().transform(val => val === "" ? null : val),
-});
-
-type OrganizationFormValues = z.infer<typeof organizationSchema>;
+import { Form } from "@/components/ui/form";
+import { useOrganizationLogo } from "./hooks/use-organization-logo";
+import { organizationSchema, OrganizationFormValues } from "./schemas/organization-schema";
+import { BasicInfoFields } from "./form-parts/BasicInfoFields";
+import { OrganizationTypeField } from "./form-parts/OrganizationTypeField";
+import { ParentOrganizationField } from "./form-parts/ParentOrganizationField";
+import { LogoUploadField } from "./form-parts/LogoUploadField";
+import { FormActions } from "./form-parts/FormActions";
 
 interface OrganizationFormProps {
   organization?: Organization;
@@ -52,9 +27,15 @@ export function OrganizationForm({
   const { useOrganizationsQuery } = useOrganizations();
   const { data: organizations = [] } = useOrganizationsQuery();
   const [filteredParentOrgs, setFilteredParentOrgs] = useState<Organization[]>([]);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>(organization?.logo_url || "");
-  const { isUploading, uploadFile } = useFileUpload();
+  
+  const {
+    logoFile,
+    previewUrl,
+    isUploading,
+    handleLogoChange,
+    handleRemoveLogo,
+    uploadLogo
+  } = useOrganizationLogo(organization?.logo_url);
 
   const form = useForm<OrganizationFormValues>({
     resolver: zodResolver(organizationSchema),
@@ -84,36 +65,11 @@ export function OrganizationForm({
     }
   }, [form.watch("type"), organizations, organization?.id]);
 
-  // Handle logo file selection
-  const handleLogoChange = (files: File[]) => {
-    if (files.length > 0) {
-      const file = files[0];
-      setLogoFile(file);
-      
-      // Create a preview URL
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
-      
-      // Clean up the preview URL when component unmounts
-      return () => URL.revokeObjectURL(objectUrl);
-    }
-  };
-
-  // Remove the selected logo
-  const handleRemoveLogo = () => {
-    setLogoFile(null);
-    setPreviewUrl("");
-    form.setValue("logo_url", "");
-  };
-
-  const handleSubmit = async (values: OrganizationFormValues) => {
+  const handleFormSubmit = async (values: OrganizationFormValues) => {
     try {
       // If a new logo was selected, upload it
       if (logoFile) {
-        const userData = await supabase.auth.getUser();
-        const userId = userData.data.user?.id;
-        const folder = userId || "anonymous";
-        const logoUrl = await uploadFile(logoFile, "organization_logos", folder);
+        const logoUrl = await uploadLogo();
         
         if (logoUrl) {
           values.logo_url = logoUrl;
@@ -128,168 +84,32 @@ export function OrganizationForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter organization name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+        <BasicInfoFields form={form} />
+        
+        <OrganizationTypeField 
+          form={form}
+          organization={organization}
         />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization Type</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={!!organization} // Disable if editing
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="dusp">DUSP</SelectItem>
-                  <SelectItem value="tp">Technology Partner (TP)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        
+        <ParentOrganizationField 
+          form={form}
+          filteredParentOrgs={filteredParentOrgs}
         />
-
-        <FormField
-          control={form.control}
-          name="parent_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Parent Organization</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value || ""}
-                disabled={filteredParentOrgs.length === 0}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parent organization" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  {filteredParentOrgs.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        
+        <LogoUploadField 
+          form={form}
+          previewUrl={previewUrl}
+          isUploading={isUploading}
+          onLogoChange={handleLogoChange}
+          onRemoveLogo={handleRemoveLogo}
         />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Organization description"
-                  className="resize-none"
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        
+        <FormActions 
+          isUploading={isUploading}
+          isEditing={!!organization}
+          onCancel={onCancel}
         />
-
-        <FormField
-          control={form.control}
-          name="logo_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Logo</FormLabel>
-              <div className="space-y-4">
-                {previewUrl ? (
-                  <div className="relative w-40 h-40 border rounded-md overflow-hidden bg-muted/30 flex items-center justify-center group">
-                    <img 
-                      src={previewUrl}
-                      alt="Logo preview"
-                      className="object-contain w-full h-full p-2"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemoveLogo}
-                      className="absolute top-2 right-2 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <FileUpload
-                    acceptedFileTypes="image/png,image/jpeg,image/webp,image/svg+xml"
-                    maxFiles={1}
-                    maxSizeInMB={2}
-                    onFilesSelected={handleLogoChange}
-                    buttonText={
-                      isUploading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload Logo
-                        </>
-                      )
-                    }
-                  />
-                )}
-                <input 
-                  type="hidden" 
-                  {...field}
-                  value={field.value || ""} 
-                />
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button 
-            type="submit"
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>{organization ? "Update" : "Create"} Organization</>
-            )}
-          </Button>
-        </div>
       </form>
     </Form>
   );
