@@ -33,6 +33,42 @@ export type Database = {
         }
         Relationships: []
       }
+      application_history: {
+        Row: {
+          application_history_id: string | null
+          application_name: string | null
+          asset_id: number | null
+          company_id: string | null
+          id: number
+          original_log: string | null
+          pc_ip: string | null
+          registered_date: string | null
+          status: number | null
+        }
+        Insert: {
+          application_history_id?: string | null
+          application_name?: string | null
+          asset_id?: number | null
+          company_id?: string | null
+          id?: number
+          original_log?: string | null
+          pc_ip?: string | null
+          registered_date?: string | null
+          status?: number | null
+        }
+        Update: {
+          application_history_id?: string | null
+          application_name?: string | null
+          asset_id?: number | null
+          company_id?: string | null
+          id?: number
+          original_log?: string | null
+          pc_ip?: string | null
+          registered_date?: string | null
+          status?: number | null
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           assigned_to: string | null
@@ -440,6 +476,42 @@ export type Database = {
         }
         Relationships: []
       }
+      internet_history: {
+        Row: {
+          asset_id: number | null
+          company_id: string | null
+          connecting_ip: string | null
+          domain_name: string | null
+          id: number
+          internet_history_id: string | null
+          pc_ip: string | null
+          registered_date: string | null
+          status: number | null
+        }
+        Insert: {
+          asset_id?: number | null
+          company_id?: string | null
+          connecting_ip?: string | null
+          domain_name?: string | null
+          id?: number
+          internet_history_id?: string | null
+          pc_ip?: string | null
+          registered_date?: string | null
+          status?: number | null
+        }
+        Update: {
+          asset_id?: number | null
+          company_id?: string | null
+          connecting_ip?: string | null
+          domain_name?: string | null
+          id?: number
+          internet_history_id?: string | null
+          pc_ip?: string | null
+          registered_date?: string | null
+          status?: number | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
@@ -552,16 +624,28 @@ export type Database = {
       }
       nd_age_group: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -669,19 +753,31 @@ export type Database = {
       }
       nd_asset_categories: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           remark: string
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           remark: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           remark?: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -745,18 +841,57 @@ export type Database = {
         }
         Relationships: []
       }
-      nd_bandwidth: {
+      nd_attendance_category: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
-          id?: number
+          created_at?: string | null
+          created_by?: string | null
+          id: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      nd_bandwidth: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          name: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -764,17 +899,29 @@ export type Database = {
         Row: {
           bank_code: string | null
           bank_name: string | null
+          created_at: string | null
+          created_by: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bank_code?: string | null
           bank_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bank_code?: string | null
           bank_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -835,122 +982,235 @@ export type Database = {
       nd_building_level: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
-          id: number
+          id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_building_type: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_candidate: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           email: string | null
           fullname: string | null
           id: number
           mobile_no: string | null
           recuitment_id: number | null
           resume_path: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           email?: string | null
           fullname?: string | null
           id: number
           mobile_no?: string | null
           recuitment_id?: number | null
           resume_path?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           email?: string | null
           fullname?: string | null
           id?: number
           mobile_no?: string | null
           recuitment_id?: number | null
           resume_path?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_carry_forward_setting: {
         Row: {
           allow_carry_forward: boolean | null
+          created_at: string | null
+          created_by: string | null
           expiry_month: number | null
           id: number
           last_updated: string | null
           max_carry_days: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           allow_carry_forward?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
           expiry_month?: number | null
           id: number
           last_updated?: string | null
           max_carry_days?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           allow_carry_forward?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
           expiry_month?: number | null
           id?: number
           last_updated?: string | null
           max_carry_days?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_category_area: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
-          id: number
-          name?: string | null
-        }
-        Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_category_service: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
+      }
+      nd_city: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          name: string | null
+          state: string | null
+          state_id: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          state?: string | null
+          state_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          state?: string | null
+          state_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_city_nd_state_fk"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_claim_application: {
         Row: {
@@ -1324,54 +1584,90 @@ export type Database = {
       nd_closure_affect_areas: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_closure_categories: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_closure_status: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           remark: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           remark?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           remark?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1379,20 +1675,32 @@ export type Database = {
         Row: {
           bm: string | null
           category_id: number | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
           category_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
           category_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1476,43 +1784,99 @@ export type Database = {
       }
       nd_contract_type: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
+      }
+      nd_device: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          imei: string | null
+          staff_id: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id: number
+          imei?: string | null
+          staff_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          imei?: string | null
+          staff_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_device_nd_staff_profile_fk"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_district: {
         Row: {
           code: number | null
           created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           state_id: number | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           code?: number | null
           created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           state_id?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           code?: number | null
           created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           state_id?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -1634,7 +1998,7 @@ export type Database = {
           site_id: number | null
           updated_at: string | null
           updated_by: string | null
-          user_id: number | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
@@ -1653,7 +2017,7 @@ export type Database = {
           site_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
           work_email?: string | null
         }
         Update: {
@@ -1672,7 +2036,7 @@ export type Database = {
           site_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: []
@@ -1680,36 +2044,60 @@ export type Database = {
       nd_education: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_ethnics: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2142,18 +2530,30 @@ export type Database = {
       nd_genders: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2193,45 +2593,63 @@ export type Database = {
       nd_group_role_permission: {
         Row: {
           created_at: string
+          created_by: string | null
           group_id: number | null
           id: number
           permission_id: number | null
           role_id: number | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           created_at: string
+          created_by?: string | null
           group_id?: number | null
           id: number
           permission_id?: number | null
           role_id?: number | null
           updated_at: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           group_id?: number | null
           id?: number
           permission_id?: number | null
           role_id?: number | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_ict_knowledge: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2265,18 +2683,30 @@ export type Database = {
       nd_income_levels: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2342,19 +2772,31 @@ export type Database = {
       }
       nd_interview_panel: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           recuitment_id: number | null
           staff_id: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id: number
           recuitment_id?: number | null
           staff_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           recuitment_id?: number | null
           staff_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2559,66 +3001,102 @@ export type Database = {
       nd_kpi_audit_score: {
         Row: {
           audit_date: string | null
+          created_at: string | null
+          created_by: string | null
           id: number
           kpi_id: number | null
           score: number | null
           site_id: number | null
+          updated_at: string | null
+          updated_by: string | null
           user_id: string | null
         }
         Insert: {
           audit_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id: number
           kpi_id?: number | null
           score?: number | null
           site_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
           user_id?: string | null
         }
         Update: {
           audit_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           kpi_id?: number | null
           score?: number | null
           site_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
           user_id?: string | null
         }
         Relationships: []
       }
       nd_kpi_categories: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_kpi_criteria: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           description: string | null
           id: number
           kpi_id: number | null
           max_score: number | null
           min_score: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id: number
           kpi_id?: number | null
           max_score?: number | null
           min_score?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: number
           kpi_id?: number | null
           max_score?: number | null
           min_score?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2741,27 +3219,39 @@ export type Database = {
       }
       nd_leave_balance: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           leave_remainng: number | null
           leave_token: number | null
           staff_id: number | null
           total_leave_day: number | null
+          updated_at: string | null
+          updated_by: string | null
           year: number | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id: number
           leave_remainng?: number | null
           leave_token?: number | null
           staff_id?: number | null
           total_leave_day?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
           year?: number | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           leave_remainng?: number | null
           leave_token?: number | null
           staff_id?: number | null
           total_leave_day?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
           year?: number | null
         }
         Relationships: []
@@ -2769,27 +3259,39 @@ export type Database = {
       nd_leave_carry_forward: {
         Row: {
           carrieed_days: number | null
+          created_at: string | null
+          created_by: string | null
           expiry_date: string | null
           id: number
           leave_type_id: number | null
           processed_date: string | null
           staff_id: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           carrieed_days?: number | null
+          created_at?: string | null
+          created_by?: string | null
           expiry_date?: string | null
           id: number
           leave_type_id?: number | null
           processed_date?: string | null
           staff_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           carrieed_days?: number | null
+          created_at?: string | null
+          created_by?: string | null
           expiry_date?: string | null
           id?: number
           leave_type_id?: number | null
           processed_date?: string | null
           staff_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2797,38 +3299,62 @@ export type Database = {
         Row: {
           annual_leave_day: number | null
           contract_type_id: number | null
+          created_at: string | null
+          created_by: string | null
           id: number
           pro_rate_formula: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           annual_leave_day?: number | null
           contract_type_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           id: number
           pro_rate_formula?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           annual_leave_day?: number | null
           contract_type_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           pro_rate_formula?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_leave_off_group: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           status: boolean
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           status: boolean
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           status?: boolean
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -2836,49 +3362,67 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           position: number | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           color?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           position?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           color?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           position?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_leave_public_holiday: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           date: string | null
           desc: string | null
           id: number
           status: number
+          updated_at: string | null
+          updated_by: string | null
           year: number | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           date?: string | null
           desc?: string | null
           id?: number
           status: number
+          updated_at?: string | null
+          updated_by?: string | null
           year?: number | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           date?: string | null
           desc?: string | null
           id?: number
           status?: number
+          updated_at?: string | null
+          updated_by?: string | null
           year?: number | null
         }
         Relationships: []
@@ -2896,7 +3440,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          id: number
+          id?: number
           public_holiday_id?: number | null
           state_id?: number | null
           updated_at?: string | null
@@ -2911,7 +3455,22 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_leave_public_holiday_state_nd_leave_public_holiday_fk"
+            columns: ["public_holiday_id"]
+            isOneToOne: false
+            referencedRelation: "nd_leave_public_holiday"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_leave_public_holiday_state_nd_state_fk"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_leave_rep_application: {
         Row: {
@@ -2982,30 +3541,42 @@ export type Database = {
       nd_leave_rep_approval: {
         Row: {
           action_by: string | null
+          created_at: string | null
+          created_by: string | null
           date_action: string | null
           flag: number | null
           id: number
           leave_rep_id: number | null
           staff_id: number | null
           total_day: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           action_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
           date_action?: string | null
           flag?: number | null
           id: number
           leave_rep_id?: number | null
           staff_id?: number | null
           total_day?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           action_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
           date_action?: string | null
           flag?: number | null
           id?: number
           leave_rep_id?: number | null
           staff_id?: number | null
           total_day?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -3134,28 +3705,34 @@ export type Database = {
           color: string | null
           color_code: string | null
           created_at: string | null
+          created_by: string | null
           desc: string | null
           id: number
           name: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           color?: string | null
           color_code?: string | null
           created_at?: string | null
+          created_by?: string | null
           desc?: string | null
           id?: number
           name?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           color?: string | null
           color_code?: string | null
           created_at?: string | null
+          created_by?: string | null
           desc?: string | null
           id?: number
           name?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -3165,30 +3742,36 @@ export type Database = {
           code: string | null
           color_code: string | null
           created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           total: number | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           attachment: boolean
           code?: string | null
           color_code?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           total?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           attachment?: boolean
           code?: string | null
           color_code?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
           total?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -3231,18 +3814,30 @@ export type Database = {
       nd_marital_status: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -3284,7 +3879,7 @@ export type Database = {
       }
       nd_mcmc_profile: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           fullname: string | null
           ic_no: string | null
@@ -3292,27 +3887,13 @@ export type Database = {
           is_active: boolean | null
           mobile_no: string | null
           position_id: number | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
-          user_id: number | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
-          created_at: string
-          created_by?: string | null
-          fullname?: string | null
-          ic_no?: string | null
-          id: number
-          is_active?: boolean | null
-          mobile_no?: string | null
-          position_id?: number | null
-          updated_at: string
-          updated_by?: string | null
-          user_id?: number | null
-          work_email?: string | null
-        }
-        Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           fullname?: string | null
           ic_no?: string | null
@@ -3320,9 +3901,23 @@ export type Database = {
           is_active?: boolean | null
           mobile_no?: string | null
           position_id?: number | null
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
-          user_id?: number | null
+          user_id?: string | null
+          work_email?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          fullname?: string | null
+          ic_no?: string | null
+          id?: number
+          is_active?: boolean | null
+          mobile_no?: string | null
+          position_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: []
@@ -3438,6 +4033,51 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           weight?: number | null
+        }
+        Relationships: []
+      }
+      nd_member_photo: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          ext: string | null
+          id: number
+          is_active: boolean | null
+          member_id: number | null
+          photo: string | null
+          photo_thumb: string | null
+          size: string | null
+          updated_at: string
+          updated_by: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at: string
+          created_by?: string | null
+          ext?: string | null
+          id?: number
+          is_active?: boolean | null
+          member_id?: number | null
+          photo?: string | null
+          photo_thumb?: string | null
+          size?: string | null
+          updated_at: string
+          updated_by?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          ext?: string | null
+          id?: number
+          is_active?: boolean | null
+          member_id?: number | null
+          photo?: string | null
+          photo_thumb?: string | null
+          size?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3609,49 +4249,70 @@ export type Database = {
       nd_nationalities: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_nms: {
         Row: {
+          created_at: string | null
           created_by: string | null
           date_time: string | null
           id: number
           pilm_refid: string | null
           service_provider: number | null
           throughput: number | null
+          updated_at: string | null
+          updated_by: string | null
           uptime: number | null
           utilization: number | null
         }
         Insert: {
+          created_at?: string | null
           created_by?: string | null
           date_time?: string | null
           id: number
           pilm_refid?: string | null
           service_provider?: number | null
           throughput?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
           uptime?: number | null
           utilization?: number | null
         }
         Update: {
+          created_at?: string | null
           created_by?: string | null
           date_time?: string | null
           id?: number
           pilm_refid?: string | null
           service_provider?: number | null
           throughput?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
           uptime?: number | null
           utilization?: number | null
         }
@@ -3660,18 +4321,30 @@ export type Database = {
       nd_occupation: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -3913,16 +4586,28 @@ export type Database = {
       }
       nd_phases: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4039,16 +4724,28 @@ export type Database = {
       }
       nd_position: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4163,6 +4860,33 @@ export type Database = {
         }
         Relationships: []
       }
+      nd_postcode: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          postcode: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id: number
+          postcode?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          postcode?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       nd_program_method: {
         Row: {
           created_at: string | null
@@ -4232,6 +4956,7 @@ export type Database = {
           id: number
           status: number | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
@@ -4241,6 +4966,7 @@ export type Database = {
           id?: number
           status?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
@@ -4250,12 +4976,15 @@ export type Database = {
           id?: number
           status?: number | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_recruitment_appointment: {
         Row: {
           candidate_id: number | null
+          created_at: string | null
+          created_by: string | null
           hire_start_date: string | null
           id: number
           interview_date: string | null
@@ -4264,9 +4993,13 @@ export type Database = {
           site_id: number | null
           state_id: number | null
           status_id: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           candidate_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           hire_start_date?: string | null
           id: number
           interview_date?: string | null
@@ -4275,9 +5008,13 @@ export type Database = {
           site_id?: number | null
           state_id?: number | null
           status_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           candidate_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           hire_start_date?: string | null
           id?: number
           interview_date?: string | null
@@ -4286,21 +5023,35 @@ export type Database = {
           site_id?: number | null
           state_id?: number | null
           status_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_recruitment_status: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           status_name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id: number
           status_name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           status_name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4325,60 +5076,90 @@ export type Database = {
       nd_religion: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_roles: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_sensor_type: {
         Row: {
           created_at: string | null
+          created_by: string | null
           deleted_at: string | null
           id: number
           name: string | null
           unit: string | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           deleted_at?: string | null
           id: number
           name?: string | null
           unit?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           deleted_at?: string | null
           id?: number
           name?: string | null
           unit?: string | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4418,42 +5199,66 @@ export type Database = {
       nd_service_charge: {
         Row: {
           category_id: number | null
+          created_at: string | null
+          created_by: string | null
           description: string | null
           fee: number | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           category_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           fee?: number | null
           id: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           category_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           fee?: number | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_service_provider: {
         Row: {
           code: string | null
+          created_at: string | null
+          created_by: string | null
           id: number
           logo: string | null
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           code?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           logo?: string | null
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           code?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           logo?: string | null
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -4649,7 +5454,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_closure_nd_closure_status_fk"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_site_contracts: {
         Row: {
@@ -4734,7 +5547,8 @@ export type Database = {
           active_status: number | null
           area_id: number | null
           bandwidth: number | null
-          building_rental_id: number | null
+          building_area_id: number | null
+          building_rental_id: boolean | null
           building_type_id: number | null
           cluster_id: number | null
           created_at: string | null
@@ -4744,6 +5558,7 @@ export type Database = {
           email: string | null
           fullname: string | null
           id: number
+          is_active: boolean
           latitude: string | null
           level_id: number | null
           longtitude: string | null
@@ -4771,7 +5586,8 @@ export type Database = {
           active_status?: number | null
           area_id?: number | null
           bandwidth?: number | null
-          building_rental_id?: number | null
+          building_area_id?: number | null
+          building_rental_id?: boolean | null
           building_type_id?: number | null
           cluster_id?: number | null
           created_at?: string | null
@@ -4781,6 +5597,7 @@ export type Database = {
           email?: string | null
           fullname?: string | null
           id?: number
+          is_active?: boolean
           latitude?: string | null
           level_id?: number | null
           longtitude?: string | null
@@ -4808,7 +5625,8 @@ export type Database = {
           active_status?: number | null
           area_id?: number | null
           bandwidth?: number | null
-          building_rental_id?: number | null
+          building_area_id?: number | null
+          building_rental_id?: boolean | null
           building_type_id?: number | null
           cluster_id?: number | null
           created_at?: string | null
@@ -4818,6 +5636,7 @@ export type Database = {
           email?: string | null
           fullname?: string | null
           id?: number
+          is_active?: boolean
           latitude?: string | null
           level_id?: number | null
           longtitude?: string | null
@@ -4847,6 +5666,34 @@ export type Database = {
             columns: ["active_status"]
             isOneToOne: false
             referencedRelation: "nd_site_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "nd_category_area"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_bandwidth_fkey"
+            columns: ["bandwidth"]
+            isOneToOne: false
+            referencedRelation: "nd_bandwidth"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_building_type_id_fkey"
+            columns: ["building_type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_building_type"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "nd_building_level"
             referencedColumns: ["id"]
           },
           {
@@ -4885,10 +5732,31 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_site_profile_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "nd_space"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_site_profile_state_id_fkey"
             columns: ["state_id"]
             isOneToOne: false
             referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_technology_fkey"
+            columns: ["technology"]
+            isOneToOne: false
+            referencedRelation: "nd_technology"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "nd_zone"
             referencedColumns: ["id"]
           },
         ]
@@ -4928,19 +5796,31 @@ export type Database = {
       }
       nd_site_socioeconomic: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           site_id: number | null
           socioeconomic_id: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           site_id?: number | null
           socioeconomic_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           site_id?: number | null
           socioeconomic_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -4991,43 +5871,67 @@ export type Database = {
       }
       nd_sla_categories: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           max_day: number | null
           min_day: number | null
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           max_day?: number | null
           min_day?: number | null
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           max_day?: number | null
           min_day?: number | null
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_socioeconomics: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
           sector_id: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
           sector_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
           sector_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -5042,18 +5946,30 @@ export type Database = {
       nd_space: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -5157,7 +6073,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_address_nd_staff_profile_fk"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_attachment: {
         Row: {
@@ -5261,6 +6185,7 @@ export type Database = {
           id: number
           mobile_no: string | null
           relationship_id: number | null
+          staff_id: number | null
           total_children: number | null
           updated_at: string | null
           updated_by: string | null
@@ -5273,6 +6198,7 @@ export type Database = {
           id: number
           mobile_no?: string | null
           relationship_id?: number | null
+          staff_id?: number | null
           total_children?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -5285,11 +6211,20 @@ export type Database = {
           id?: number
           mobile_no?: string | null
           relationship_id?: number | null
+          staff_id?: number | null
           total_children?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_contact_nd_staff_profile_fk"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_contract: {
         Row: {
@@ -5390,30 +6325,36 @@ export type Database = {
       nd_staff_leave: {
         Row: {
           created_at: string | null
+          created_by: string | null
           date: string | null
           id: number
           leave_type_id: number | null
           staff_id: number | null
           status: boolean | null
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           date?: string | null
           id: number
           leave_type_id?: number | null
           staff_id?: number | null
           status?: boolean | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           date?: string | null
           id?: number
           leave_type_id?: number | null
           staff_id?: number | null
           status?: boolean | null
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -5564,6 +6505,7 @@ export type Database = {
       nd_staff_photo: {
         Row: {
           created_at: string
+          created_by: string | null
           ext: string | null
           id: number
           is_active: boolean | null
@@ -5572,22 +6514,26 @@ export type Database = {
           size: string | null
           staff_id: number | null
           updated_at: string
-          user_id: number | null
+          updated_by: string | null
+          user_id: string | null
         }
         Insert: {
           created_at: string
+          created_by?: string | null
           ext?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           photo?: string | null
           photo_thumb?: string | null
           size?: string | null
           staff_id?: number | null
           updated_at: string
-          user_id?: number | null
+          updated_by?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           ext?: string | null
           id?: number
           is_active?: boolean | null
@@ -5596,7 +6542,8 @@ export type Database = {
           size?: string | null
           staff_id?: number | null
           updated_at?: string
-          user_id?: number | null
+          updated_by?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5829,23 +6776,35 @@ export type Database = {
         Row: {
           abbr: string | null
           code: string | null
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
           region_id: number | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           abbr?: string | null
           code?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
           region_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           abbr?: string | null
           code?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: never
           name?: string | null
           region_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
@@ -6099,16 +7058,28 @@ export type Database = {
       }
       nd_technology: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -6231,55 +7202,91 @@ export type Database = {
       }
       nd_type_maintenance: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           description: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_type_relationship: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_type_sector: {
         Row: {
           bm: string | null
+          created_at: string | null
+          created_by: string | null
           eng: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           bm?: string | null
+          created_at?: string | null
+          created_by?: string | null
           eng?: string | null
           id?: never
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -6349,48 +7356,60 @@ export type Database = {
       nd_user_group: {
         Row: {
           created_at: string
+          created_by: string | null
           description: string | null
           group_name: string | null
           id: number
           updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
           created_at: string
+          created_by?: string | null
           description?: string | null
           group_name?: string | null
           id: number
           updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           group_name?: string | null
           id?: number
           updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
       nd_user_permission: {
         Row: {
           created_at: string
+          created_by: string | null
           descritpion: string | null
           id: number
           permission_name: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           created_at: string
+          created_by?: string | null
           descritpion?: string | null
           id: number
           permission_name?: string | null
           updated_at: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           descritpion?: string | null
           id?: number
           permission_name?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -6445,24 +7464,30 @@ export type Database = {
       nd_user_role: {
         Row: {
           created_at: string
+          created_by: string | null
           description: string | null
           id: number
           role_name: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           created_at: string
+          created_by?: string | null
           description?: string | null
           id: number
           role_name?: string | null
           updated_at: string
+          updated_by?: string | null
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           description?: string | null
           id?: number
           role_name?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -6666,40 +7691,43 @@ export type Database = {
           contract_end: string | null
           contract_start: string | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           duration: number | null
           id: number
           is_active: boolean | null
           registration_number: string | null
           updated_at: string | null
           updated_by: string | null
-          user_id: number
+          user_id: string | null
+          vendor_staff_id: number | null
         }
         Insert: {
           contract_end?: string | null
           contract_start?: string | null
           created_at?: string | null
-          created_by: string
-          duration?: number | null
-          id: number
-          is_active?: boolean | null
-          registration_number?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-          user_id: number
-        }
-        Update: {
-          contract_end?: string | null
-          contract_start?: string | null
-          created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           duration?: number | null
           id?: number
           is_active?: boolean | null
           registration_number?: string | null
           updated_at?: string | null
           updated_by?: string | null
-          user_id?: number
+          user_id?: string | null
+          vendor_staff_id?: number | null
+        }
+        Update: {
+          contract_end?: string | null
+          contract_start?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          duration?: number | null
+          id?: number
+          is_active?: boolean | null
+          registration_number?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          vendor_staff_id?: number | null
         }
         Relationships: []
       }
@@ -6789,10 +7817,10 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           fullname: string | null
-          ic_no: number | null
+          ic_no: string | null
           id: number
           is_active: boolean | null
-          mobile_no: number | null
+          mobile_no: string | null
           position_id: number | null
           registration_number: number | null
           updated_at: string | null
@@ -6803,10 +7831,10 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           fullname?: string | null
-          ic_no?: number | null
-          id: number
+          ic_no?: string | null
+          id?: number
           is_active?: boolean | null
-          mobile_no?: number | null
+          mobile_no?: string | null
           position_id?: number | null
           registration_number?: number | null
           updated_at?: string | null
@@ -6817,10 +7845,10 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           fullname?: string | null
-          ic_no?: number | null
+          ic_no?: string | null
           id?: number
           is_active?: boolean | null
-          mobile_no?: number | null
+          mobile_no?: string | null
           position_id?: number | null
           registration_number?: number | null
           updated_at?: string | null
@@ -6921,16 +7949,28 @@ export type Database = {
       }
       nd_vote_type: {
         Row: {
+          created_at: string | null
+          created_by: string | null
           id: number
           name: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
+          created_at?: string | null
+          created_by?: string | null
           id: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
+          created_at?: string | null
+          created_by?: string | null
           id?: number
           name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -7060,17 +8100,29 @@ export type Database = {
       nd_zone: {
         Row: {
           area: string | null
+          created_at: string | null
+          created_by: string | null
           id: number
+          updated_at: string | null
+          updated_by: string | null
           zone: string | null
         }
         Insert: {
           area?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
           zone?: string | null
         }
         Update: {
           area?: string | null
+          created_at?: string | null
+          created_by?: string | null
           id?: number
+          updated_at?: string | null
+          updated_by?: string | null
           zone?: string | null
         }
         Relationships: []
