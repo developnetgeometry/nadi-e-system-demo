@@ -50,20 +50,14 @@ export function LogoUploadField({
                 maxFiles={1}
                 maxSizeInMB={2}
                 onFilesSelected={onLogoChange}
-                buttonText={
-                  isUploading ? (
-                    <React.Fragment>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Uploading...
-                    </React.Fragment>
-                  ) : (
-                    <React.Fragment>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Logo
-                    </React.Fragment>
-                  )
-                }
-              />
+                buttonText={isUploading ? "Uploading..." : "Upload Logo"}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
+              </FileUpload>
             )}
             <input 
               type="hidden" 

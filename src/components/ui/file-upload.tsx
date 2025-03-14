@@ -12,6 +12,7 @@ interface FileUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
   maxSizeInMB?: number;
   buttonText?: string;
   showPreview?: boolean;
+  children?: React.ReactNode;
 }
 
 export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
@@ -24,6 +25,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       maxSizeInMB = 5,
       buttonText = "Upload File",
       showPreview = true,
+      children,
       ...props
     },
     ref
@@ -145,6 +147,15 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
             </div>
           </div>
         )}
+
+        <Button 
+          type="button" 
+          onClick={triggerFileInput}
+          className="mt-2"
+        >
+          {children}
+          {!children && buttonText}
+        </Button>
       </div>
     );
   }
