@@ -12,7 +12,6 @@ import { OrganizationTypeField } from "./form-parts/OrganizationTypeField";
 import { ParentOrganizationField } from "./form-parts/ParentOrganizationField";
 import { LogoUploadField } from "./form-parts/LogoUploadField";
 import { FormActions } from "./form-parts/FormActions";
-import { supabase } from "@/lib/supabase";
 
 interface OrganizationFormProps {
   organization?: Organization;
@@ -28,6 +27,7 @@ export function OrganizationForm({
   const { useOrganizationsQuery } = useOrganizations();
   const { data: organizations = [] } = useOrganizationsQuery();
   const [filteredParentOrgs, setFilteredParentOrgs] = useState<Organization[]>([]);
+  const [selectedType, setSelectedType] = useState<string>(organization?.type || "dusp");
   
   const {
     logoFile,
@@ -48,6 +48,16 @@ export function OrganizationForm({
       parent_id: organization?.parent_id || null,
     },
   });
+
+  // Listen for type changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "type") {
+        setSelectedType(value.type as string);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   // Filter parent organizations based on selected type
   useEffect(() => {
@@ -90,6 +100,11 @@ export function OrganizationForm({
         values.parent_id = null;
       }
       
+      // If organization type is DUSP and no parent_id is selected, ensure it's null
+      if (values.type === "dusp" && !values.parent_id) {
+        values.parent_id = null;
+      }
+      
       onSubmit(values);
     } catch (error) {
       console.error("Error handling form submission:", error);
@@ -106,10 +121,13 @@ export function OrganizationForm({
           organization={organization}
         />
         
-        <ParentOrganizationField 
-          form={form}
-          filteredParentOrgs={filteredParentOrgs}
-        />
+        {/* Only show ParentOrganizationField for TP type */}
+        {selectedType === "tp" && (
+          <ParentOrganizationField 
+            form={form}
+            filteredParentOrgs={filteredParentOrgs}
+          />
+        )}
         
         <LogoUploadField 
           form={form}
