@@ -7,7 +7,6 @@ import StaffProfileSettings from "@/components/profile/staff/StaffProfileSetting
 import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
 import MemberProfileSettings from "@/components/profile/member/MemberProfileSettings";
 import SuperAdminProfileSettings from "@/components/profile/super_admin/SuperAdminProfileSettings";
-import ProfileSettings from "@/components/profile/ProfileSettings";
 import McmcProfileSettings from "@/components/profile/McmcProfileSettings";
 import DuspProfileSettings from "@/components/profile/DuspProfileSettings";
 import SsoProfileSettings from "@/components/profile/SsoProfileSettings";
