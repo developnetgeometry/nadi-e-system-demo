@@ -33,6 +33,7 @@ import {
   FileCheck,
   Eye,
   Layout,
+  Building,
 } from "lucide-react";
 
 export const menuItems = [
@@ -52,7 +53,7 @@ export const menuItems = [
   },
   { title: "Notifications", icon: Bell, path: "/admin/notifications" },
   { title: "Organizations", icon: Users, path: "/admin/organizations" },
-  { title: "Site Management", icon: Settings, path: "/admin/siteManagement" },
+  // { title: "Site Management", icon: Settings, path: "/admin/siteManagement" },
   { title: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
@@ -120,10 +121,10 @@ export const financialItems = [
 ];
 
 export const complianceItems = [
-  { title: "Audit Logs", icon: FileCheck, path: "/compliance/audit" },
+  { title: "Audit Logs", icon: FileCheck, path: "/siteMManagement" },
   { title: "System Reports", icon: Gauge, path: "/compliance/reports" },
 ];
 
-export const siteItems = [
-  { title: "Site Dashboard", icon: FileCheck, path: "/site-dashboard" },
+export const siteManagementItems = [
+  { title: "Site Management", icon: Building, path: "/site-management/main" },
 ];

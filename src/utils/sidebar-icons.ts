@@ -1,6 +1,6 @@
-import { 
-  LayoutDashboard, 
-  Users, 
+import {
+  LayoutDashboard,
+  Users,
   Settings,
   MessageSquare,
   Wallet,
@@ -11,7 +11,8 @@ import {
   DollarSign,
   List,
   ChartBar,
-  LucideIcon 
+  LucideIcon,
+  Building2,
 } from "lucide-react";
 
 export const getAccordionIcon = (label: string): LucideIcon => {
@@ -19,16 +20,16 @@ export const getAccordionIcon = (label: string): LucideIcon => {
     "Admin Console": LayoutDashboard,
     "Member Management": Users,
     "Service Module": Settings,
-    "Community": MessageSquare,
-    "Financial": Wallet,
-    "Compliance": FileCheck,
+    Community: MessageSquare,
+    Financial: Wallet,
+    Compliance: FileCheck,
     "HR Management": Briefcase,
     "POS Management": ShoppingCart,
     "Asset Management": Box,
     "Finance Management": DollarSign,
     "Programmes Management": List,
     "Report Management": ChartBar,
-    "Site Management": Box,
+    "Site Management": Building2,
   };
   return iconMap[label] || LayoutDashboard;
 };
