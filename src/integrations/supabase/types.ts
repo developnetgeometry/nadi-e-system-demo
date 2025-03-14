@@ -3465,8 +3465,8 @@ export type Database = {
           },
           {
             foreignKeyName: "nd_leave_public_holiday_state_nd_state_fk"
-            columns: ["id"]
-            isOneToOne: true
+            columns: ["state_id"]
+            isOneToOne: false
             referencedRelation: "nd_state"
             referencedColumns: ["id"]
           },

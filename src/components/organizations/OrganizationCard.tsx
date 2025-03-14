@@ -2,6 +2,7 @@
 import { Organization } from "@/types/organization";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Users, Pencil, Trash2, Building } from "lucide-react";
 
 interface OrganizationCardProps {
@@ -24,13 +25,17 @@ export function OrganizationCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader className="p-0">
-        <div className="h-20 bg-gradient-to-r from-primary/80 to-primary flex items-center justify-center">
+        <div className="h-24 bg-gradient-to-r from-primary/80 to-primary flex items-center justify-center">
           {organization.logo_url ? (
-            <img
-              src={organization.logo_url}
-              alt={organization.name}
-              className="h-16 w-16 object-contain rounded-full bg-white p-1"
-            />
+            <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center overflow-hidden p-1">
+              <AspectRatio ratio={1} className="w-full h-full">
+                <img
+                  src={organization.logo_url}
+                  alt={organization.name}
+                  className="object-contain w-full h-full"
+                />
+              </AspectRatio>
+            </div>
           ) : (
             <Building className="h-12 w-12 text-white" />
           )}

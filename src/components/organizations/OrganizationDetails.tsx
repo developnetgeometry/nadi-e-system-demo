@@ -5,6 +5,7 @@ import { useOrganizations } from "@/hooks/use-organizations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { OrganizationFormDialog } from "./OrganizationFormDialog";
 import { OrganizationUserList } from "./OrganizationUserList";
 import { Building, ArrowLeft, Users, Info, Pencil } from "lucide-react";
@@ -87,14 +88,18 @@ export function OrganizationDetails() {
       <Card>
         <CardHeader className="flex flex-row items-center gap-4 pb-2">
           {organization.logo_url ? (
-            <img
-              src={organization.logo_url}
-              alt={organization.name}
-              className="h-16 w-16 rounded-md object-contain bg-muted p-1"
-            />
+            <div className="h-20 w-20 rounded-md overflow-hidden bg-muted p-1">
+              <AspectRatio ratio={1} className="w-full h-full">
+                <img
+                  src={organization.logo_url}
+                  alt={organization.name}
+                  className="object-contain w-full h-full"
+                />
+              </AspectRatio>
+            </div>
           ) : (
-            <div className="h-16 w-16 rounded-md bg-muted flex items-center justify-center">
-              <Building className="h-8 w-8 text-muted-foreground" />
+            <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center">
+              <Building className="h-10 w-10 text-muted-foreground" />
             </div>
           )}
           <div>
@@ -149,7 +154,6 @@ export function OrganizationDetails() {
               </div>
             </TabsContent>
             <TabsContent value="users">
-              {/* Fixed: Using the component without any props, as it now reads the id from useParams internally */}
               <OrganizationUserList />
             </TabsContent>
           </Tabs>
