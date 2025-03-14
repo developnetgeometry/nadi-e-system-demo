@@ -42,6 +42,7 @@ export function useOrganizationLogo(initialLogoUrl: string = "") {
       const userId = userData.data.user?.id;
       const folder = userId || "anonymous";
       
+      // Pass the file directly to the uploadFile function which now correctly handles content type
       return await uploadFile(logoFile, "organization_logos", folder);
     } catch (error) {
       console.error("Error uploading logo:", error);

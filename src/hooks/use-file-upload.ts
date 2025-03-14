@@ -28,6 +28,8 @@ export function useFileUpload() {
         ? `${folder}/${fileName}` 
         : fileName;
       
+      console.log(`Uploading file of type: ${file.type}`);
+      
       // Upload the file to Supabase storage with correct content type
       const { error, data } = await supabase.storage
         .from(bucket)

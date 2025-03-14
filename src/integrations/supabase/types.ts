@@ -6504,7 +6504,7 @@ export type Database = {
       }
       nd_staff_photo: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           ext: string | null
           id: number
@@ -6513,12 +6513,12 @@ export type Database = {
           photo_thumb: string | null
           size: string | null
           staff_id: number | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
           user_id: string | null
         }
         Insert: {
-          created_at: string
+          created_at?: string | null
           created_by?: string | null
           ext?: string | null
           id?: number
@@ -6527,12 +6527,12 @@ export type Database = {
           photo_thumb?: string | null
           size?: string | null
           staff_id?: number | null
-          updated_at: string
+          updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           ext?: string | null
           id?: number
@@ -6541,7 +6541,7 @@ export type Database = {
           photo_thumb?: string | null
           size?: string | null
           staff_id?: number | null
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
         }
