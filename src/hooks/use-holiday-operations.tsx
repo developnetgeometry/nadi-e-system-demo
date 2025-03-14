@@ -62,6 +62,19 @@ export function useHolidayOperations(onSuccess: () => void) {
       const formattedDate = formatDateForDB(values.date);
       const year = values.date.getFullYear();
       
+      // First, fetch valid state IDs to validate against
+      const { data: allValidStates, error: statesQueryError } = await supabase
+        .from('nd_state')
+        .select('id');
+        
+      if (statesQueryError) {
+        console.error('Error fetching valid states:', statesQueryError);
+        throw statesQueryError;
+      }
+      
+      // Create a set of valid state IDs for faster lookup
+      const validStateIds = new Set(allValidStates.map(state => state.id));
+      
       let holidayId;
       
       if (selectedHoliday) {
@@ -104,25 +117,16 @@ export function useHolidayOperations(onSuccess: () => void) {
 
       // Add state assignments if states were selected
       if (values.states && values.states.length > 0) {
-        // First get all valid states from the database
-        const { data: allValidStates, error: statesError } = await supabase
-          .from('nd_state')
-          .select('id');
-          
-        if (statesError) throw statesError;
-        
-        // Create a set of valid state IDs for faster lookup
-        const validStateIds = new Set(allValidStates.map(state => state.id));
-        
-        // Filter out any invalid state IDs
+        // Filter out any invalid state IDs before attempting to insert
         const filteredStates = values.states.filter(stateId => validStateIds.has(stateId));
         
         if (filteredStates.length !== values.states.length) {
-          console.warn(`Some selected states (${values.states.filter(id => !validStateIds.has(id)).join(', ')}) do not exist in the database and were ignored.`);
+          const invalidStates = values.states.filter(id => !validStateIds.has(id));
+          console.warn(`Some selected states (${invalidStates.join(', ')}) do not exist in the database and were ignored.`);
           toast({
             variant: "default", // Changed from "warning" to "default" since "warning" is not a valid variant
             title: "Warning",
-            description: "Some selected states were invalid and have been ignored.",
+            description: `Some selected states (${invalidStates.join(', ')}) were invalid and have been ignored.`,
           });
         }
         
