@@ -62,8 +62,8 @@ export function useHolidayOperations(onSuccess: () => void) {
       const formattedDate = formatDateForDB(values.date);
       const year = values.date.getFullYear();
       
-      // First, fetch valid state IDs to validate against
-      const { data: allValidStates, error: statesQueryError } = await supabase
+      // Fetch valid state IDs to validate against
+      const { data: validStates, error: statesQueryError } = await supabase
         .from('nd_state')
         .select('id');
         
@@ -72,8 +72,15 @@ export function useHolidayOperations(onSuccess: () => void) {
         throw statesQueryError;
       }
       
+      // For debugging
+      console.log('Valid states from database:', validStates);
+      
       // Create a set of valid state IDs for faster lookup
-      const validStateIds = new Set(allValidStates.map(state => state.id));
+      const validStateIds = new Set(validStates.map(state => state.id));
+      
+      // For debugging
+      console.log('Valid state IDs set:', Array.from(validStateIds));
+      console.log('States being submitted:', values.states);
       
       let holidayId;
       
@@ -117,14 +124,22 @@ export function useHolidayOperations(onSuccess: () => void) {
 
       // Add state assignments if states were selected
       if (values.states && values.states.length > 0) {
-        // Filter out any invalid state IDs before attempting to insert
-        const filteredStates = values.states.filter(stateId => validStateIds.has(stateId));
+        // Strictly filter out any invalid state IDs
+        const filteredStates = values.states.filter(stateId => {
+          const isValid = validStateIds.has(stateId);
+          if (!isValid) {
+            console.warn(`State ID ${stateId} is not valid and will be ignored`);
+          }
+          return isValid;
+        });
+        
+        console.log('Filtered states after validation:', filteredStates);
         
         if (filteredStates.length !== values.states.length) {
           const invalidStates = values.states.filter(id => !validStateIds.has(id));
           console.warn(`Some selected states (${invalidStates.join(', ')}) do not exist in the database and were ignored.`);
           toast({
-            variant: "default", // Changed from "warning" to "default" since "warning" is not a valid variant
+            variant: "default",
             title: "Warning",
             description: `Some selected states (${invalidStates.join(', ')}) were invalid and have been ignored.`,
           });
@@ -139,15 +154,20 @@ export function useHolidayOperations(onSuccess: () => void) {
             created_at: new Date()
           }));
 
+          console.log('State assignments to be inserted:', stateAssignments);
+
           // Insert the state assignments
-          const { error: insertError } = await supabase
+          const { error: insertError, data: insertResult } = await supabase
             .from('nd_leave_public_holiday_state')
             .insert(stateAssignments);
 
           if (insertError) {
             console.error('Error inserting state assignments:', insertError);
+            console.error('Attempted to insert:', stateAssignments);
             throw insertError;
           }
+          
+          console.log('Insert result:', insertResult);
         }
       }
 
