@@ -64,6 +64,7 @@ export const AvailableUsersList = ({
             variant="ghost" 
             size="sm"
             onClick={() => onAddUser(user.id)}
+            type="button"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Add
@@ -72,4 +73,4 @@ export const AvailableUsersList = ({
       ))}
     </div>
   );
-};
+}

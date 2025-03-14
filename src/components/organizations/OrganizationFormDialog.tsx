@@ -8,12 +8,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { OrganizationForm } from "./OrganizationForm";
+import { OrganizationFormValues } from "./schemas/organization-schema";
 
 interface OrganizationFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   organization?: Organization;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: OrganizationFormValues) => void;
 }
 
 export function OrganizationFormDialog({
