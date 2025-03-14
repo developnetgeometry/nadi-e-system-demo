@@ -120,7 +120,7 @@ export function useHolidayOperations(onSuccess: () => void) {
         if (filteredStates.length !== values.states.length) {
           console.warn(`Some selected states (${values.states.filter(id => !validStateIds.has(id)).join(', ')}) do not exist in the database and were ignored.`);
           toast({
-            variant: "warning",
+            variant: "default", // Changed from "warning" to "default" since "warning" is not a valid variant
             title: "Warning",
             description: "Some selected states were invalid and have been ignored.",
           });
