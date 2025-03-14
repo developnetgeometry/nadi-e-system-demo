@@ -32,7 +32,9 @@ const PersonalInformation = ({
   religions?: any[];
   nationalities?: any[];
 }) => {
-  const positionName = positions.find((position) => position.id === profileData.position_id)?.name || "";
+  const positionName = profileData?.position_id
+    ? positions.find((position) => position.id === profileData.position_id)?.name || ""
+    : "";
 
   const formatDate = (timestamp: string | null) => {
     if (!timestamp) return "";
@@ -57,25 +59,25 @@ const PersonalInformation = ({
                 ? "Vendor ID"
                 : "DUSP ID"}
             </Label>
-            <ViewOnlyField>{profileData.id}</ViewOnlyField>
+            <ViewOnlyField>{profileData?.id || ""}</ViewOnlyField>
           </div>
           <div>
             <Label htmlFor="is_active">Status</Label>
-            <ViewOnlyField>{profileData.is_active ? "Active" : "Inactive"}</ViewOnlyField>
+            <ViewOnlyField>{profileData?.is_active ? "Active" : "Inactive"}</ViewOnlyField>
           </div>
         </div>
         <div>
           <Label htmlFor="fullname">Full Name</Label>
-          <ViewOnlyField>{profileData.fullname || ""}</ViewOnlyField>
+          <ViewOnlyField>{profileData?.fullname || ""}</ViewOnlyField>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="ic_no">IC No</Label>
-            <ViewOnlyField>{profileData.ic_no || ""}</ViewOnlyField>
+            <ViewOnlyField>{profileData?.ic_no || ""}</ViewOnlyField>
           </div>
           <div>
             <Label htmlFor="mobile_no">Mobile No</Label>
-            <Input id="mobile_no" type="text" value={profileData.mobile_no || ""} onChange={handleChange} />
+            <Input id="mobile_no" type="text" value={profileData?.mobile_no || ""} onChange={handleChange} />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -85,18 +87,18 @@ const PersonalInformation = ({
           </div>
           <div>
             <Label htmlFor="work_email">Work Email</Label>
-            <ViewOnlyField>{profileData.work_email || ""}</ViewOnlyField>
+            <ViewOnlyField>{profileData?.work_email || ""}</ViewOnlyField>
           </div>
         </div>
         {userType?.startsWith("dusp") || userType?.startsWith("sso") ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="join_date">Join Date</Label>
-              <ViewOnlyField>{formatDate(profileData.join_date)}</ViewOnlyField>
+              <ViewOnlyField>{formatDate(profileData?.join_date)}</ViewOnlyField>
             </div>
             <div>
               <Label htmlFor="resign_date">Resign Date</Label>
-              <ViewOnlyField>{formatDate(profileData.resign_date)}</ViewOnlyField>
+              <ViewOnlyField>{formatDate(profileData?.resign_date)}</ViewOnlyField>
             </div>
           </div>
         ) : null}
@@ -105,23 +107,23 @@ const PersonalInformation = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="personal_email">Personal Email</Label>
-                <Input id="personal_email" type="email" value={profileData.personal_email || ""} onChange={handleChange} />
+                <Input id="personal_email" type="email" value={profileData?.personal_email || ""} onChange={handleChange} />
               </div>
               <div>
                 <Label htmlFor="dob">Date of Birth</Label>
-                <Input id="dob" type="date" value={formatDate(profileData.dob)} onChange={handleChange} />
+                <Input id="dob" type="date" value={formatDate(profileData?.dob)} onChange={handleChange} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="place_of_birth">Place of Birth</Label>
-                <Input id="place_of_birth" type="text" value={profileData.place_of_birth || ""} onChange={handleChange} />
+                <Input id="place_of_birth" type="text" value={profileData?.place_of_birth || ""} onChange={handleChange} />
               </div>
               <div>
                 <Label htmlFor="marital_status">Marital Status</Label>
                 <Select
                   onValueChange={(value) => handleChange({ target: { id: "marital_status", value } } as React.ChangeEvent<HTMLInputElement>)}
-                  value={profileData.marital_status || ""}
+                  value={profileData?.marital_status || ""}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select marital status" />
@@ -141,7 +143,7 @@ const PersonalInformation = ({
                 <Label htmlFor="race_id">Race</Label>
                 <Select
                   onValueChange={(value) => handleChange({ target: { id: "race_id", value } } as React.ChangeEvent<HTMLInputElement>)}
-                  value={profileData.race_id || ""}
+                  value={profileData?.race_id || ""}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select race" />
@@ -159,7 +161,7 @@ const PersonalInformation = ({
                 <Label htmlFor="religion_id">Religion</Label>
                 <Select
                   onValueChange={(value) => handleChange({ target: { id: "religion_id", value } } as React.ChangeEvent<HTMLInputElement>)}
-                  value={profileData.religion_id || ""}
+                  value={profileData?.religion_id || ""}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select religion" />
@@ -179,7 +181,7 @@ const PersonalInformation = ({
                 <Label htmlFor="nationality_id">Nationality</Label>
                 <Select
                   onValueChange={(value) => handleChange({ target: { id: "nationality_id", value } } as React.ChangeEvent<HTMLInputElement>)}
-                  value={profileData.nationality_id || ""}
+                  value={profileData?.nationality_id || ""}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select nationality" />
@@ -196,6 +198,40 @@ const PersonalInformation = ({
             </div>
           </>
         ) : null}
+        {userType?.startsWith("vendor") && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="fullname">Full Name</Label>
+                <ViewOnlyField>{profileData?.fullname || ""}</ViewOnlyField>
+              </div>
+              <div>
+                <Label htmlFor="ic_no">IC Number</Label>
+                <ViewOnlyField>{profileData?.ic_no || ""}</ViewOnlyField>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="mobile_no">Mobile Number</Label>
+                <Input id="mobile_no" type="text" value={profileData?.mobile_no || ""} onChange={handleChange} />
+              </div>
+              <div>
+                <Label htmlFor="work_email">Work Email</Label>
+                <ViewOnlyField>{profileData?.work_email || ""}</ViewOnlyField>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="position_id">Position</Label>
+                <ViewOnlyField>{positionName}</ViewOnlyField>
+              </div>
+              <div>
+                <Label htmlFor="is_active">Status</Label>
+                <ViewOnlyField>{profileData?.is_active ? "Active" : "Inactive"}</ViewOnlyField>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

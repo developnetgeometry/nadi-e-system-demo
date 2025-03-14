@@ -8,6 +8,11 @@ import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
 import MemberProfileSettings from "@/components/profile/member/MemberProfileSettings";
 import SuperAdminProfileSettings from "@/components/profile/super_admin/SuperAdminProfileSettings";
 import ProfileSettings from "@/components/profile/ProfileSettings";
+import McmcProfileSettings from "@/components/profile/McmcProfileSettings";
+import DuspProfileSettings from "@/components/profile/DuspProfileSettings";
+import SsoProfileSettings from "@/components/profile/SsoProfileSettings";
+import TpProfileSettings from "@/components/profile/TpProfileSettings";
+import VendorProfileSettings from "@/components/profile/VendorProfileSettings";
 
 const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -76,18 +81,55 @@ const UserProfile = () => {
     );
   }
 
-  if (
-    userType?.startsWith("mcmc") ||
-    userType?.startsWith("dusp") ||
-    userType?.startsWith("sso") ||
-    userType?.startsWith("tp") ||
-    userType?.startsWith("vendor")
-  ) {
+  if (userType?.startsWith("mcmc")){
     return (
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-          <ProfileSettings />
+          <McmcProfileSettings/>
+        </div>
+      </DashboardLayout>
+    );
+  }
+  if (userType?.startsWith("dusp")){
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <DuspProfileSettings/>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (userType?.startsWith("sso")){
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <SsoProfileSettings/>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (userType?.startsWith("tp")){
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <TpProfileSettings/>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (userType?.startsWith("vendor")){
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <VendorProfileSettings/>
         </div>
       </DashboardLayout>
     );
