@@ -24,11 +24,7 @@ import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
-<<<<<<< HEAD
 import SiteDashboard from "@/pages/dashboard/SiteManagement";
-=======
-import UserProfile from "@/pages/dashboard/profile/UserProfile";
->>>>>>> origin/main
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
