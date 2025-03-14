@@ -104,25 +104,30 @@ export function useHolidayOperations(onSuccess: () => void) {
 
       // Add state assignments if states were selected
       if (values.states && values.states.length > 0) {
-        // First validate that all state IDs exist in the nd_state table
-        const { data: validStates, error: validationError } = await supabase
+        // First get all valid states from the database
+        const { data: allValidStates, error: statesError } = await supabase
           .from('nd_state')
-          .select('id')
-          .in('id', values.states);
+          .select('id');
           
-        if (validationError) throw validationError;
+        if (statesError) throw statesError;
         
-        // Filter out any state IDs that don't exist in the database
-        const validStateIds = validStates.map(state => state.id);
-        const filteredStates = values.states.filter(stateId => 
-          validStateIds.includes(stateId)
-        );
+        // Create a set of valid state IDs for faster lookup
+        const validStateIds = new Set(allValidStates.map(state => state.id));
+        
+        // Filter out any invalid state IDs
+        const filteredStates = values.states.filter(stateId => validStateIds.has(stateId));
         
         if (filteredStates.length !== values.states.length) {
-          console.warn(`Some selected states do not exist in the database and were ignored.`);
+          console.warn(`Some selected states (${values.states.filter(id => !validStateIds.has(id)).join(', ')}) do not exist in the database and were ignored.`);
+          toast({
+            variant: "warning",
+            title: "Warning",
+            description: "Some selected states were invalid and have been ignored.",
+          });
         }
         
         if (filteredStates.length > 0) {
+          // Create state assignments for valid states only
           const stateAssignments = filteredStates.map(stateId => ({
             public_holiday_id: holidayId,
             state_id: stateId,
@@ -130,11 +135,15 @@ export function useHolidayOperations(onSuccess: () => void) {
             created_at: new Date()
           }));
 
-          const { error: statesError } = await supabase
+          // Insert the state assignments
+          const { error: insertError } = await supabase
             .from('nd_leave_public_holiday_state')
             .insert(stateAssignments);
 
-          if (statesError) throw statesError;
+          if (insertError) {
+            console.error('Error inserting state assignments:', insertError);
+            throw insertError;
+          }
         }
       }
 
