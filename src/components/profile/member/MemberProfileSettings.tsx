@@ -8,6 +8,7 @@ import AddressInformation from "./components/AddressInformation";
 import useGeneralData from "@/hooks/use-general-data";
 import useGeoData from "@/hooks/use-geo-data";
 import useMemberID from "@/hooks/use-member-id";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MemberProfileSettings = () => {
   const [memberData, setMemberData] = useState<any>(null);
@@ -207,8 +208,7 @@ const MemberProfileSettings = () => {
       });
     }
   };
-
-  if (loading || memberIDLoading) return <div>Loading...</div>;
+  if (loading || memberIDLoading) return <Skeleton>Loading Data...</Skeleton>;
   if (error || fetchError || geoError || memberIDError) return <div>Error: {error || fetchError || geoError || memberIDError}</div>;
 
   return (

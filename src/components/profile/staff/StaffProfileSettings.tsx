@@ -10,6 +10,7 @@ import useGeneralData from "@/hooks/use-general-data";
 import useGeoData from "@/hooks/use-geo-data";
 import useBankData from "@/hooks/use-bank-data";
 import useStaffID from "@/hooks/use-staff-id";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const StaffProfileSettings = () => {
   const [staffData, setStaffData] = useState<any>(null);
@@ -301,7 +302,7 @@ const StaffProfileSettings = () => {
     }
   };
 
-  if (loading || staffIDLoading) return <div>Loading...</div>;
+  if (loading || staffIDLoading) return <Skeleton>Loading Data...</Skeleton>;
   if (error || fetchError || geoError || bankError || staffIDError) return <div>Error: {error || fetchError || geoError || bankError || staffIDError}</div>;
 
   return (

@@ -6,11 +6,8 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import StaffProfileSettings from "@/components/profile/staff/StaffProfileSettings";
 import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
 import MemberProfileSettings from "@/components/profile/member/MemberProfileSettings";
-import TPProfileSettings from "@/components/profile/tp/TPProfileSettings";
-import SSOProfileSettings from "@/components/profile/sso/SSOProfileSettings";
-import DUSPProfileSettings from "@/components/profile/dusp/DUSPProfileSettings";
-import MCMCProfileSettings from "@/components/profile/mcmc/MCMCProfileSettings";
-import VendorProfileSettings from "@/components/profile/vendor/VendorProfileSettings";
+import SuperAdminProfileSettings from "@/components/profile/super_admin/SuperAdminProfileSettings";
+import ProfileSettings from "@/components/profile/ProfileSettings";
 
 const UserProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -45,92 +42,16 @@ const UserProfile = () => {
     return <SettingsLoading />;
   }
 
-
   if (userType === "super_admin") {
     return (
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-
-          {/* <StaffProfileSettings />
-          <StaffJobSettings />
-          <MemberProfileSettings />
-          <TPProfileSettings />
-          <SSOProfileSettings />
-          <DUSPProfileSettings />
-          <MCMCProfileSettings />
-          <VendorProfileSettings /> */}
+          <SuperAdminProfileSettings />
         </div>
       </DashboardLayout>
     );
   }
-
-  if (userType === "mcmc_admin" || userType === "mcmc_operation" || userType === "mcmc_management") {
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <MCMCProfileSettings />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (userType === "dusp_operation" || userType === "dusp_management") {
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <DUSPProfileSettings />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (userType === "sso_admin" || userType === "sso_operation" || userType === "sso_management" || userType === "sso_pillar" || userType === "sso") {
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <SSOProfileSettings />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (userType === "tp_management" || userType === "tp_region" || userType === "tp_hr" || userType === "tp_finance" || userType === "tp_admin" || userType === "tp_operation") {
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <TPProfileSettings />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (userType === "staff_manager" || userType === "staff_assistant_manager") {
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <StaffProfileSettings />
-          <StaffJobSettings />
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  if (userType === "vendor" || userType === "vendor_admin" || userType === "vendor_staff") {
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <VendorProfileSettings />
-        </div>
-      </DashboardLayout>
-    );
-  }  
 
   if (userType === "member") {
     return (
@@ -143,6 +64,34 @@ const UserProfile = () => {
     );
   }
 
+  if (userType?.startsWith("staff")) {
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <StaffProfileSettings />
+          <StaffJobSettings />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (
+    userType?.startsWith("mcmc") ||
+    userType?.startsWith("dusp") ||
+    userType?.startsWith("sso") ||
+    userType?.startsWith("tp") ||
+    userType?.startsWith("vendor")
+  ) {
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <ProfileSettings />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

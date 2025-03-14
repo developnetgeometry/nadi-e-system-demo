@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import usePositionData from "@/hooks/use-position-data";
 import useStaffID from "@/hooks/use-staff-id";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const StaffJobSettings = () => {
   const [staffJob, setStaffJob] = useState<any>(null);
@@ -35,7 +36,7 @@ export const StaffJobSettings = () => {
   }, [staffID, staffIDLoading]);
 
   if (loading || staffIDLoading) {
-    return <div>Loading staff job data...</div>;
+    return <Skeleton>Loading Data...</Skeleton>;
   }
 
   if (!staffJob) {
