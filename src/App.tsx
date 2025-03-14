@@ -11,6 +11,12 @@ import MemberLogin from "@/pages/auth/MemberLogin";
 import { dashboardRoutes } from "@/routes/dashboard.routes";
 import { memberRoutes } from "@/routes/member.routes";
 import { moduleRoutes } from "@/routes/module.routes";
+import UIComponents from "@/pages/UIComponents";
+
+// Import example pages
+import HomeExample from "@/pages/examples/HomeExample";
+import DetailExample from "@/pages/examples/DetailExample";
+import SettingsExample from "@/pages/examples/SettingsExample";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +38,12 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/member-login" element={<MemberLogin />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/ui-components" element={<UIComponents />} />
+              
+              {/* Example Pages */}
+              <Route path="/examples/home" element={<HomeExample />} />
+              <Route path="/examples/detail" element={<DetailExample />} />
+              <Route path="/examples/settings" element={<SettingsExample />} />
               
               {/* Dashboard routes */}
               {dashboardRoutes.map((route) => (
