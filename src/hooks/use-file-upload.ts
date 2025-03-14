@@ -28,16 +28,22 @@ export function useFileUpload() {
         ? `${folder}/${fileName}` 
         : fileName;
       
-      console.log(`Uploading file of type: ${file.type}`);
+      // Log the MIME type for debugging
+      console.log(`Uploading file: ${file.name} with MIME type: ${file.type}`);
+      
+      // Ensure content type is explicitly set from the file's MIME type
+      const options = {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: file.type // Use the file's MIME type
+      };
+
+      console.log('Upload options:', options);
       
       // Upload the file to Supabase storage with correct content type
       const { error, data } = await supabase.storage
         .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type // Explicitly set the content type based on the file
-        });
+        .upload(filePath, file, options);
 
       if (error) {
         console.error('Error uploading file:', error);
@@ -49,11 +55,14 @@ export function useFileUpload() {
         return null;
       }
 
+      console.log('Upload successful, getting public URL');
+
       // Get the public URL of the uploaded file
       const { data: publicUrlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path);
 
+      console.log('Public URL:', publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
     } catch (error) {
       console.error('Unexpected error during upload:', error);
