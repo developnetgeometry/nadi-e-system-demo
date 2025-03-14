@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +11,7 @@ import { OrganizationTypeField } from "./form-parts/OrganizationTypeField";
 import { ParentOrganizationField } from "./form-parts/ParentOrganizationField";
 import { LogoUploadField } from "./form-parts/LogoUploadField";
 import { FormActions } from "./form-parts/FormActions";
+import { supabase } from "@/lib/supabase";
 
 interface OrganizationFormProps {
   organization?: Organization;
@@ -67,13 +67,21 @@ export function OrganizationForm({
 
   const handleFormSubmit = async (values: OrganizationFormValues) => {
     try {
+      // If there is an existing logo that isn't being changed, keep it
+      if (!logoFile && previewUrl && organization?.logo_url) {
+        values.logo_url = organization.logo_url;
+      }
       // If a new logo was selected, upload it
-      if (logoFile) {
+      else if (logoFile) {
         const logoUrl = await uploadLogo();
         
         if (logoUrl) {
           values.logo_url = logoUrl;
         }
+      }
+      // If logo was removed, clear the URL
+      else if (!previewUrl) {
+        values.logo_url = "";
       }
       
       onSubmit(values);

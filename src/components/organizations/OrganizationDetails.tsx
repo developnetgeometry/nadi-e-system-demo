@@ -10,6 +10,7 @@ import { OrganizationFormDialog } from "./OrganizationFormDialog";
 import { OrganizationUserList } from "./OrganizationUserList";
 import { Building, ArrowLeft, Users, Info, Pencil } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 export function OrganizationDetails() {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ export function OrganizationDetails() {
     useUpdateOrganizationMutation,
     useDeleteOrganizationMutation
   } = useOrganizations();
+  const { deleteFile } = useFileUpload();
 
   const { data: organization, isLoading, error } = useOrganizationQuery(id!);
   const { data: organizationUsers = [] } = useOrganizationUsersQuery(id!);
@@ -43,11 +45,34 @@ export function OrganizationDetails() {
     );
   }
 
-  const handleUpdateOrganization = (values: any) => {
+  const handleUpdateOrganization = async (values: any) => {
+    // If logo has changed and there was an old one, delete it
+    if (organization.logo_url && 
+        values.logo_url && 
+        values.logo_url !== organization.logo_url) {
+      // Delete the old logo file
+      try {
+        await deleteFile('organization_logos', organization.logo_url);
+      } catch (error) {
+        console.error('Error deleting old logo:', error);
+        // Continue with update even if deletion fails
+      }
+    }
+    
     updateOrganizationMutation.mutate({ ...organization, ...values });
   };
 
-  const handleDeleteOrganization = () => {
+  const handleDeleteOrganization = async () => {
+    // If the organization has a logo, try to delete it first
+    if (organization.logo_url) {
+      try {
+        await deleteFile('organization_logos', organization.logo_url);
+      } catch (error) {
+        console.error('Error deleting organization logo:', error);
+        // Continue with deletion even if logo deletion fails
+      }
+    }
+    
     deleteOrganizationMutation.mutate(organization.id, {
       onSuccess: () => {
         navigate("/dashboard/organizations");

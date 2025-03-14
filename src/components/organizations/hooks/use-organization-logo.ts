@@ -8,6 +8,13 @@ export function useOrganizationLogo(initialLogoUrl: string = "") {
   const [previewUrl, setPreviewUrl] = useState<string>(initialLogoUrl || "");
   const { isUploading, uploadFile } = useFileUpload();
 
+  // Update previewUrl when initialLogoUrl changes (when editing an organization)
+  useEffect(() => {
+    if (initialLogoUrl && initialLogoUrl !== previewUrl) {
+      setPreviewUrl(initialLogoUrl);
+    }
+  }, [initialLogoUrl]);
+
   // Handle logo file selection
   const handleLogoChange = (files: File[]) => {
     if (files.length > 0) {
@@ -17,9 +24,6 @@ export function useOrganizationLogo(initialLogoUrl: string = "") {
       // Create a preview URL
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
-      
-      // Return cleanup function
-      return () => URL.revokeObjectURL(objectUrl);
     }
   };
 
@@ -31,7 +35,7 @@ export function useOrganizationLogo(initialLogoUrl: string = "") {
 
   // Upload logo and get URL
   const uploadLogo = async () => {
-    if (!logoFile) return null;
+    if (!logoFile) return previewUrl || null;
 
     try {
       const userData = await supabase.auth.getUser();
