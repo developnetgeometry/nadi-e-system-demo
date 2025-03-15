@@ -11,6 +11,7 @@ import useGeoData from "@/hooks/use-geo-data";
 import useBankData from "@/hooks/use-bank-data";
 import useStaffID from "@/hooks/use-staff-id";
 import { Skeleton } from "@/components/ui/skeleton";
+import StaffProfilePicture from "./components/StaffProfilePicture";
 
 const StaffProfileSettings = () => {
   const [staffData, setStaffData] = useState<any>(null);
@@ -22,7 +23,7 @@ const StaffProfileSettings = () => {
   const { staffID, loading: staffIDLoading, error: staffIDError } = useStaffID();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const profileImage = "/profilepictureexample.jpeg";
+  const profileImage = "/user-solid.svg";
   const { toast } = useToast();
 
   useEffect(() => {
@@ -312,11 +313,7 @@ const StaffProfileSettings = () => {
       </CardHeader>
 
       <CardContent className="p-6">
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 border-4 border-gray-300 rounded-full overflow-hidden shadow-lg">
-            <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-          </div>
-        </div>
+        <StaffProfilePicture/>
         <PersonalInformation
           staffData={staffData}
           genders={genders}
