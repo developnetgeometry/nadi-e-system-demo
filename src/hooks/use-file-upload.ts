@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from "uuid";
@@ -20,33 +19,37 @@ export function useFileUpload() {
 
     try {
       setIsUploading(true);
-      
+
       // Create a unique file name to prevent conflicts
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = folder 
-        ? `${folder}/${fileName}` 
-        : fileName;
-      
+      const filePath = folder ? `${folder}/${fileName}` : fileName;
+
       // Log the MIME type for debugging
       console.log(`Uploading file: ${file.name} with MIME type: ${file.type}`);
-      
+
       // Ensure content type is explicitly set from the file's MIME type
       const options = {
-        cacheControl: '3600',
+        cacheControl: "3600",
         upsert: true,
-        contentType: file.type // Use the file's MIME type
+        contentType: file.type, // Use the file's MIME type
       };
 
-      console.log('Upload options:', options);
-      
+      console.log("Upload options:", options);
+
+      const blob = new Blob([file], { type: file.type });
+      console.log("Blob:", blob);
       // Upload the file to Supabase storage with correct content type
       const { error, data } = await supabase.storage
         .from(bucket)
-        .upload(filePath, file, options);
+        .upload(filePath, blob, {
+          cacheControl: "3600",
+          upsert: true,
+          contentType: file.type || "application/octet-stream",
+        });
 
       if (error) {
-        console.error('Error uploading file:', error);
+        console.error("Error uploading file:", error);
         toast({
           title: "Upload Error",
           description: error.message || "Failed to upload file",
@@ -55,17 +58,17 @@ export function useFileUpload() {
         return null;
       }
 
-      console.log('Upload successful, getting public URL');
+      console.log("Upload successful, getting public URL");
 
       // Get the public URL of the uploaded file
       const { data: publicUrlData } = supabase.storage
         .from(bucket)
-        .getPublicUrl(data.path);
+        .getPublicUrl(filePath);
 
-      console.log('Public URL:', publicUrlData.publicUrl);
+      console.log("Public URL:", publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
     } catch (error) {
-      console.error('Unexpected error during upload:', error);
+      console.error("Unexpected error during upload:", error);
       toast({
         title: "Upload Error",
         description: "An unexpected error occurred during upload",
@@ -94,13 +97,13 @@ export function useFileUpload() {
         .remove([filePathInBucket]);
 
       if (error) {
-        console.error('Error deleting file:', error);
+        console.error("Error deleting file:", error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Unexpected error during file deletion:', error);
+      console.error("Unexpected error during file deletion:", error);
       return false;
     }
   };
@@ -108,6 +111,6 @@ export function useFileUpload() {
   return {
     isUploading,
     uploadFile,
-    deleteFile
+    deleteFile,
   };
 }

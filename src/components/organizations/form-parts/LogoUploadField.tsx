@@ -1,5 +1,10 @@
-
-import { FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormControl,
+} from "@/components/ui/form";
 import { FileUpload } from "@/components/ui/file-upload";
 import { X, Upload, Loader2 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
@@ -19,7 +24,7 @@ export function LogoUploadField({
   previewUrl,
   isUploading,
   onLogoChange,
-  onRemoveLogo
+  onRemoveLogo,
 }: LogoUploadFieldProps) {
   return (
     <FormField
@@ -31,7 +36,7 @@ export function LogoUploadField({
           <div className="space-y-4">
             {previewUrl ? (
               <div className="relative w-40 h-40 border rounded-md overflow-hidden bg-muted/30 flex items-center justify-center group">
-                <img 
+                <img
                   src={previewUrl}
                   alt="Logo preview"
                   className="object-contain w-full h-full p-2"
@@ -59,11 +64,7 @@ export function LogoUploadField({
                 )}
               </FileUpload>
             )}
-            <input 
-              type="hidden" 
-              {...field}
-              value={field.value || ""} 
-            />
+            <input type="hidden" {...field} value={field.value || ""} />
           </div>
           <FormMessage />
         </FormItem>
