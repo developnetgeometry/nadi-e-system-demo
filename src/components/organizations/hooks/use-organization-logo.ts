@@ -23,6 +23,7 @@ export function useOrganizationLogo(initialLogoUrl: string = "") {
       // Verify we have an image file with proper MIME type
       if (!file.type.startsWith('image/')) {
         console.warn(`File does not have an image MIME type: ${file.type}`);
+        return; // Don't allow non-image files
       }
       
       console.log(`Selected logo file: ${file.name}, type: ${file.type}, size: ${file.size}`);
@@ -46,6 +47,12 @@ export function useOrganizationLogo(initialLogoUrl: string = "") {
 
     try {
       console.log(`Uploading logo file: ${logoFile.name}, type: ${logoFile.type}`);
+      
+      // Verify one more time that it's an image type
+      if (!logoFile.type.startsWith('image/')) {
+        console.error(`Cannot upload non-image file: ${logoFile.type}`);
+        return null;
+      }
       
       const userData = await supabase.auth.getUser();
       const userId = userData.data.user?.id;
