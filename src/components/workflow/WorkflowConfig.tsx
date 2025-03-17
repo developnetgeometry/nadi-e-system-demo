@@ -36,11 +36,20 @@ import { Badge } from "@/components/ui/badge";
 
 interface WorkflowConfigProps {
   initialConfig?: WorkflowConfigType;
-  onSave: (config: WorkflowConfigType) => void;
+  initialSteps?: WorkflowConfigStep[];
+  modules?: { id: string, name: string }[];
+  isSaving?: boolean;
+  onSave: (config: WorkflowConfigType, steps: WorkflowConfigStep[]) => void;
 }
 
-export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
-  const [steps, setSteps] = useState<WorkflowConfigStep[]>(initialConfig?.steps || []);
+export function WorkflowConfig({ 
+  initialConfig, 
+  initialSteps = [],
+  modules = [],
+  isSaving = false,
+  onSave 
+}: WorkflowConfigProps) {
+  const [steps, setSteps] = useState<WorkflowConfigStep[]>(initialSteps);
   const [editingStep, setEditingStep] = useState<WorkflowConfigStep | null>(null);
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   
@@ -149,7 +158,7 @@ export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
       steps,
       updatedAt: new Date().toISOString()
     };
-    onSave(updatedConfig);
+    onSave(updatedConfig, steps);
   };
   
   return (
@@ -362,9 +371,9 @@ export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
               </div>
               
               <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={steps.length === 0}>
+                <Button type="submit" disabled={steps.length === 0 || isSaving}>
                   <Save className="mr-2 h-4 w-4" />
-                  Save Workflow Configuration
+                  {isSaving ? 'Saving...' : 'Save Workflow Configuration'}
                 </Button>
               </div>
             </form>
