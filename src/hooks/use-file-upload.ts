@@ -25,10 +25,15 @@ export function useFileUpload() {
       const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = folder ? `${folder}/${fileName}` : fileName;
 
-      // Log the MIME type for debugging
-      console.log(`Uploading file: ${file.name} with MIME type: ${file.type}`);
+      // Check and log the file's actual MIME type
+      console.log(`Preparing to upload file: ${file.name}`);
+      console.log(`File MIME type from browser: ${file.type}`);
 
-      // Ensure content type is explicitly set from the file's MIME type
+      // Create a blob with explicit type to ensure the MIME type is preserved
+      const blob = file.slice(0, file.size, file.type);
+      console.log(`Created blob with MIME type: ${blob.type}`);
+
+      // Use the explicit file options with the correct content type
       const options = {
         cacheControl: "3600",
         upsert: true,
@@ -37,16 +42,10 @@ export function useFileUpload() {
 
       console.log("Upload options:", options);
 
-      const blob = new Blob([file], { type: file.type });
-      console.log("Blob:", blob);
-      // Upload the file to Supabase storage with correct content type
+      // Upload the file to Supabase storage with the blob that has the correct MIME type
       const { error, data } = await supabase.storage
         .from(bucket)
-        .upload(filePath, blob, {
-          cacheControl: "3600",
-          upsert: true,
-          contentType: file.type || "application/octet-stream",
-        });
+        .upload(filePath, blob, options);
 
       if (error) {
         console.error("Error uploading file:", error);
@@ -63,7 +62,7 @@ export function useFileUpload() {
       // Get the public URL of the uploaded file
       const { data: publicUrlData } = supabase.storage
         .from(bucket)
-        .getPublicUrl(filePath);
+        .getPublicUrl(data.path);
 
       console.log("Public URL:", publicUrlData.publicUrl);
       return publicUrlData.publicUrl;

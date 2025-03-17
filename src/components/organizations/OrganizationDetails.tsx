@@ -41,12 +41,44 @@ export function OrganizationDetails() {
     );
   }
 
+  const handleUpdateOrganization = (values: any) => {
+    updateOrganizationMutation.mutate({ ...organization, ...values });
+  };
+
+  const handleDeleteOrganization = () => {
+    deleteOrganizationMutation.mutate(organization.id, {
+      onSuccess: () => {
+        navigate("/admin/organizations");
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <OrganizationHeader
-        onEditClick={() => setIsEditDialogOpen(true)}
-        onDeleteClick={() => setIsDeleteDialogOpen(true)}
-      />
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate("/admin/organizations")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Organization Details</h1>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Organization
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setIsDeleteDialogOpen(true)}
+          >
+            Delete Organization
+          </Button>
+        </div>
+      </div>
 
       <OrganizationInfo organization={organization} />
 
