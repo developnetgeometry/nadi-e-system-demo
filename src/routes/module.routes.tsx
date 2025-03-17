@@ -240,26 +240,10 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/workflow/approvals",
+    path: "/workflow/configuration/:id",
     element: (
-      <ProtectedRoute requiredPermission="approve_workflows">
-        <WorkflowDashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/workflows",
-    element: (
-      <ProtectedRoute requiredPermission="view_workflows">
-        <WorkflowDashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/analytics",
-    element: (
-      <ProtectedRoute requiredPermission="view_workflow_analytics">
-        <WorkflowDashboard />
+      <ProtectedRoute requiredPermission="manage_workflow_configuration">
+        <WorkflowConfiguration />
       </ProtectedRoute>
     ),
   },
