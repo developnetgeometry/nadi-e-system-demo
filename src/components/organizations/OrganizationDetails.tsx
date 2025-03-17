@@ -1,9 +1,11 @@
+
 import { OrganizationFormDialog } from "./OrganizationFormDialog";
 import { OrganizationHeader } from "./details/OrganizationHeader";
 import { OrganizationInfo } from "./details/OrganizationInfo";
 import { DeleteOrganizationDialog } from "./details/DeleteOrganizationDialog";
 import { useOrganizationDetails } from "./details/useOrganizationDetails";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, Pencil } from "lucide-react";
 
 export function OrganizationDetails() {
   const {
@@ -40,18 +42,6 @@ export function OrganizationDetails() {
       </div>
     );
   }
-
-  const handleUpdateOrganization = (values: any) => {
-    updateOrganizationMutation.mutate({ ...organization, ...values });
-  };
-
-  const handleDeleteOrganization = () => {
-    deleteOrganizationMutation.mutate(organization.id, {
-      onSuccess: () => {
-        navigate("/admin/organizations");
-      },
-    });
-  };
 
   return (
     <div className="space-y-6">
