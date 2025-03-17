@@ -1,4 +1,3 @@
-
 export type WorkflowType = 'work_order' | 'training_report' | 'center_management';
 
 export type WorkOrderStatus = 'draft' | 'pending_approval' | 'in_progress' | 'incomplete' | 'complete' | 'cancelled' | 'rejected' | 'approved';
@@ -76,7 +75,7 @@ export type WorkflowApprovalStep = {
 };
 
 // New condition types for approvals
-export type ApprovalConditionType = 'amount' | 'field_value' | 'user_role' | 'department';
+export type ApprovalConditionType = 'amount' | 'field_value' | 'user_role' | 'department' | 'sla';
 export type ApprovalOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'not_contains';
 
 export interface ApprovalCondition {
@@ -157,6 +156,7 @@ export interface WorkflowConfig {
   startStepId: string;
   endStepId?: string;
   steps: WorkflowConfigStep[];
+  slaHours?: number; // Adding SLA in hours
 }
 
 export interface WorkflowConfigStep {
@@ -169,4 +169,5 @@ export interface WorkflowConfigStep {
   nextStepId?: string;
   isStartStep: boolean;
   isEndStep: boolean;
+  slaHours?: number; // SLA hours for this specific step
 }
