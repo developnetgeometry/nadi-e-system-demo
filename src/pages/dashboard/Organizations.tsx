@@ -127,17 +127,17 @@ const Organizations = () => {
                 key={organization.id}
                 organization={organization}
                 parentName={getParentName(organization.parent_id)}
-                onEdit={() => navigate(`/dashboard/organizations/${organization.id}`)}
+                onEdit={() => navigate(`/admin/organizations/${organization.id}`)}
                 onDelete={() => setOrganizationToDelete(organization)}
-                onManageUsers={() => navigate(`/dashboard/organizations/${organization.id}?tab=users`)}
-                onViewDetails={() => navigate(`/dashboard/organizations/${organization.id}`)}
+                onManageUsers={() => navigate(`/admin/organizations/${organization.id}?tab=users`)}
+                onViewDetails={() => navigate(`/admin/organizations/${organization.id}`)}
               />
             ))}
           </div>
         ) : (
           <OrganizationTree
             organizations={filteredOrganizations}
-            onSelect={(org) => navigate(`/dashboard/organizations/${org.id}`)}
+            onSelect={(org) => navigate(`/admin/organizations/${org.id}`)}
           />
         )}
       </div>

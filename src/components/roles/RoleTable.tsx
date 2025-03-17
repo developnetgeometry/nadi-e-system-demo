@@ -73,7 +73,7 @@ export const RoleTable = ({ roles, onEdit }: RoleTableProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/dashboard/roles/${role.id}`)}
+                  onClick={() => navigate(`/admin/roles/${role.id}`)}
                   className="hover:bg-muted"
                 >
                   Permissions

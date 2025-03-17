@@ -1,11 +1,18 @@
 import { Profile } from "@/types/auth";
 import { supabase } from "@/lib/supabase";
 
-export const fetchUsers = async () => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: false });
+export const fetchUsers = async (searchQuery: string, userTypeFilter: string) => {
+  let query = supabase.from("profiles").select("*").order("created_at", { ascending: false });
+
+  if (searchQuery) {
+    query = query.or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+  }
+
+  if (userTypeFilter && userTypeFilter !== "all") {
+    query = query.eq("user_type", userTypeFilter);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
   return data as Profile[];

@@ -1,5 +1,5 @@
-
 import { useState } from "react";
+import CryptoJS from "crypto-js";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,14 +68,15 @@ export const LoginForm = () => {
       }
 
       // Store session data
-      localStorage.setItem('session', JSON.stringify({
+      const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify({
         user: authData.user,
         profile: profile || {
           id: authData.user.id,
           email: authData.user.email,
           user_type: 'member'
         }
-      }));
+      }), 'secret-key').toString();
+      localStorage.setItem('session', encryptedSession);
 
       console.log('Login successful');
 
@@ -84,7 +85,7 @@ export const LoginForm = () => {
         description: "Logged in successfully",
       });
       
-      navigate("/dashboard");
+      navigate("/admin/dashboard");
     } catch (error: any) {
       console.error('Login error:', error);
       

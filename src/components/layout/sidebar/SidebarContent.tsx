@@ -1,4 +1,3 @@
-
 import { SidebarAccordion } from "./SidebarAccordion";
 import { menuGroups } from "@/utils/menu-groups";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,14 +8,15 @@ import { SidebarLoading } from "./SidebarLoading";
 
 export const SidebarContent = () => {
   const { user } = useAuth();
-  const { menuVisibility, submoduleVisibility, userType, loading } = useMenuVisibility(user?.id);
+  const { menuVisibility, submoduleVisibility, userType, loading } =
+    useMenuVisibility(user?.id);
 
   // Debug logging to check what's being applied
   useEffect(() => {
     if (userType) {
-      console.log('Current user type:', userType);
-      console.log('Menu visibility settings:', menuVisibility);
-      console.log('Submodule visibility settings:', submoduleVisibility);
+      console.log("Current user type:", userType);
+      console.log("Menu visibility settings:", menuVisibility);
+      console.log("Submodule visibility settings:", submoduleVisibility);
     }
   }, [userType, menuVisibility, submoduleVisibility]);
 

@@ -1,4 +1,3 @@
-
 import { OrganizationFormDialog } from "./OrganizationFormDialog";
 import { OrganizationHeader } from "./details/OrganizationHeader";
 import { OrganizationInfo } from "./details/OrganizationInfo";
@@ -17,30 +16,69 @@ export function OrganizationDetails() {
     setIsDeleteDialogOpen,
     handleUpdateOrganization,
     handleDeleteOrganization,
-    navigate
+    navigate,
   } = useOrganizationDetails();
 
   if (isLoading) {
-    return <div className="flex justify-center p-8">Loading organization details...</div>;
+    return (
+      <div className="flex justify-center p-8">
+        Loading organization details...
+      </div>
+    );
   }
 
   if (error || !organization) {
     return (
       <div className="flex flex-col items-center p-8">
         <p className="text-destructive">Error loading organization details</p>
-        <Button variant="outline" onClick={() => navigate("/dashboard/organizations")}>
+        <Button
+          variant="outline"
+          onClick={() => navigate("/admin/organizations")}
+        >
           Back to Organizations
         </Button>
       </div>
     );
   }
 
+  const handleUpdateOrganization = (values: any) => {
+    updateOrganizationMutation.mutate({ ...organization, ...values });
+  };
+
+  const handleDeleteOrganization = () => {
+    deleteOrganizationMutation.mutate(organization.id, {
+      onSuccess: () => {
+        navigate("/admin/organizations");
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <OrganizationHeader 
-        onEditClick={() => setIsEditDialogOpen(true)}
-        onDeleteClick={() => setIsDeleteDialogOpen(true)}
-      />
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate("/admin/organizations")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Organization Details</h1>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Organization
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setIsDeleteDialogOpen(true)}
+          >
+            Delete Organization
+          </Button>
+        </div>
+      </div>
 
       <OrganizationInfo organization={organization} />
 
@@ -51,7 +89,7 @@ export function OrganizationDetails() {
         onSubmit={handleUpdateOrganization}
       />
 
-      <DeleteOrganizationDialog 
+      <DeleteOrganizationDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         organization={organization}

@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import CryptoJS from "crypto-js";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,8 @@ const Registration = () => {
     setIsLoading(true);
     
     // Store current session
-    const currentSession = localStorage.getItem('session');
+    const encryptedSession = localStorage.getItem('session');
+    const currentSession = encryptedSession ? CryptoJS.AES.decrypt(encryptedSession, 'secret-key').toString(CryptoJS.enc.Utf8) : null;
     
     try {
       // Generate a random password for the new user
