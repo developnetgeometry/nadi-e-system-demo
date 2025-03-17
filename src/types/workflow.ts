@@ -18,7 +18,30 @@ export interface WorkflowStep {
     id: string;
     name: string;
     avatar?: string;
+    userType?: string;
   }[];
+  nextStepId?: string;
+  onRejectStepId?: string;
+}
+
+export interface FormSubmission {
+  id: string;
+  formId: string;
+  workflowId: string;
+  submittedBy: string;
+  submittedAt: string;
+  status: WorkOrderStatus;
+  data: Record<string, any>;
+  currentStepId: string;
+  approvalHistory: ApprovalHistoryItem[];
+}
+
+export interface ApprovalHistoryItem {
+  stepId: string;
+  approverId: string;
+  action: ApprovalAction;
+  timestamp: string;
+  notes?: string;
 }
 
 export interface Workflow {
@@ -36,6 +59,7 @@ export interface Workflow {
   }[];
   completedInstances: number;
   activeInstances: number;
+  formId?: string;
 }
 
 export type WorkflowApprovalStep = {
@@ -78,4 +102,30 @@ export interface WorkOrderData {
     reason?: string;
     timestamp: string;
   }[];
+}
+
+export interface WorkflowFormConfig {
+  id: string;
+  name: string;
+  description?: string;
+  fields: FormField[];
+  workflowId?: string;
+}
+
+export interface FormField {
+  id: string;
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'number' | 'select' | 'radio' | 'checkbox' | 'date';
+  required: boolean;
+  options?: { label: string; value: string }[];
+  defaultValue?: any;
+  placeholder?: string;
+  validation?: {
+    pattern?: string;
+    min?: number;
+    max?: number;
+    minLength?: number;
+    maxLength?: number;
+  };
 }
