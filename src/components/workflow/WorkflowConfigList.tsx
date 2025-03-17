@@ -83,7 +83,6 @@ export function WorkflowConfigList({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[250px]">Title</TableHead>
-              <TableHead>Module</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>SLA (Hours)</TableHead>
               <TableHead>Created At</TableHead>
@@ -93,7 +92,7 @@ export function WorkflowConfigList({
           <TableBody>
             {configurations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No workflow configurations found
                 </TableCell>
               </TableRow>
@@ -101,7 +100,6 @@ export function WorkflowConfigList({
               configurations.map((config) => (
                 <TableRow key={config.id}>
                   <TableCell className="font-medium">{config.title}</TableCell>
-                  <TableCell>{config.moduleName}</TableCell>
                   <TableCell>
                     {config.isActive ? (
                       <Badge variant="default" className="bg-green-500">Active</Badge>
