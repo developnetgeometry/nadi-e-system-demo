@@ -23,6 +23,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface WorkflowConfigStepFormProps {
   step: WorkflowConfigStep;
@@ -31,16 +33,6 @@ interface WorkflowConfigStepFormProps {
   availableSteps?: WorkflowConfigStep[];
   isFirstStep?: boolean;
 }
-
-const USER_TYPES = [
-  "admin", 
-  "manager", 
-  "supervisor", 
-  "staff", 
-  "member", 
-  "tp", 
-  "vendor"
-];
 
 const CONDITION_TYPES = [
   { label: "Amount", value: "amount" },
@@ -75,6 +67,26 @@ export function WorkflowConfigStepForm({
     value: ""
   });
   const [showConditionDialog, setShowConditionDialog] = useState(false);
+  
+  // Fetch roles from the database
+  const { data: roles = [], isLoading } = useQuery({
+    queryKey: ['roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('roles')
+        .select('name, description')
+        .order('name');
+      
+      if (error) {
+        console.error('Error fetching roles:', error);
+        throw error;
+      }
+      
+      return data;
+    }
+  });
+  
+  const roleNames = roles.map(role => role.name);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -159,6 +171,23 @@ export function WorkflowConfigStepForm({
       [e.target.name]: e.target.value
     });
   };
+
+  const handleConditionTypeChange = (value: string) => {
+    setNewCondition({
+      ...newCondition,
+      type: value as any,
+      // Reset field and value when switching types
+      field: value === "user_role" ? undefined : "",
+      value: ""
+    });
+  };
+
+  const handleConditionValueChange = (value: string) => {
+    setNewCondition({
+      ...newCondition, 
+      value
+    });
+  };
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,7 +242,7 @@ export function WorkflowConfigStepForm({
       </div>
       
       <div className="space-y-4">
-        <Label>Approver User Types</Label>
+        <Label>Approver Roles</Label>
         <div className="flex flex-wrap gap-2">
           {formData.approverUserTypes.map(type => (
             <Badge key={type} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
@@ -233,22 +262,31 @@ export function WorkflowConfigStepForm({
           <Select 
             value={selectedUserType} 
             onValueChange={setSelectedUserType}
+            disabled={isLoading}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a user type" />
+              <SelectValue placeholder="Select a role" />
             </SelectTrigger>
             <SelectContent>
-              {USER_TYPES.filter(type => !formData.approverUserTypes.includes(type)).map(type => (
-                <SelectItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </SelectItem>
-              ))}
+              {isLoading ? (
+                <SelectItem value="" disabled>Loading roles...</SelectItem>
+              ) : (
+                roleNames
+                  .filter(role => !formData.approverUserTypes.includes(role))
+                  .map(role => (
+                    <SelectItem key={role} value={role}>
+                      {role.split('_').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
+                    </SelectItem>
+                  ))
+              )}
             </SelectContent>
           </Select>
           <Button 
             type="button" 
             variant="outline" 
-            disabled={!selectedUserType}
+            disabled={!selectedUserType || isLoading}
             onClick={handleAddUserType}
           >
             Add
@@ -319,7 +357,7 @@ export function WorkflowConfigStepForm({
                   <Label htmlFor="condition-type">Condition Type</Label>
                   <Select 
                     value={newCondition.type} 
-                    onValueChange={(value) => setNewCondition({...newCondition, type: value as any})}
+                    onValueChange={handleConditionTypeChange}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select condition type" />
@@ -368,13 +406,37 @@ export function WorkflowConfigStepForm({
                 
                 <div>
                   <Label htmlFor="value">Value</Label>
-                  <Input
-                    id="value"
-                    name="value"
-                    value={newCondition.value?.toString() || ''}
-                    onChange={handleConditionInputChange}
-                    placeholder="Comparison value"
-                  />
+                  {newCondition.type === 'user_role' ? (
+                    <Select
+                      value={newCondition.value?.toString() || ''}
+                      onValueChange={handleConditionValueChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {isLoading ? (
+                          <SelectItem value="" disabled>Loading roles...</SelectItem>
+                        ) : (
+                          roleNames.map(role => (
+                            <SelectItem key={role} value={role}>
+                              {role.split('_').map(word => 
+                                word.charAt(0).toUpperCase() + word.slice(1)
+                              ).join(' ')}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="value"
+                      name="value"
+                      value={newCondition.value?.toString() || ''}
+                      onChange={handleConditionInputChange}
+                      placeholder="Comparison value"
+                    />
+                  )}
                 </div>
                 
                 <div className="flex justify-end space-x-2 pt-4">

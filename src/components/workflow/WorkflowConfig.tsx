@@ -33,15 +33,13 @@ import {
 import { Plus, Save, Trash2, GripVertical, ArrowRight } from "lucide-react";
 import { WorkflowConfigStepForm } from "./WorkflowConfigStepForm";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface WorkflowConfigProps {
   initialConfig?: WorkflowConfigType;
   onSave: (config: WorkflowConfigType) => void;
-  availableModules: { id: string; name: string }[];
 }
 
-export function WorkflowConfig({ initialConfig, onSave, availableModules }: WorkflowConfigProps) {
+export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
   const [steps, setSteps] = useState<WorkflowConfigStep[]>(initialConfig?.steps || []);
   const [editingStep, setEditingStep] = useState<WorkflowConfigStep | null>(null);
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
@@ -51,8 +49,6 @@ export function WorkflowConfig({ initialConfig, onSave, availableModules }: Work
       id: crypto.randomUUID(),
       title: '',
       description: '',
-      moduleId: '',
-      moduleName: '',
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -145,14 +141,6 @@ export function WorkflowConfig({ initialConfig, onSave, availableModules }: Work
     setSteps(updatedSteps);
   };
   
-  const handleModuleChange = (moduleId: string) => {
-    const selectedModule = availableModules.find(m => m.id === moduleId);
-    if (selectedModule) {
-      form.setValue('moduleName', selectedModule.name);
-    }
-    form.setValue('moduleId', moduleId);
-  };
-  
   const onSubmit = (data: WorkflowConfigType) => {
     const updatedConfig: WorkflowConfigType = {
       ...data,
@@ -183,34 +171,6 @@ export function WorkflowConfig({ initialConfig, onSave, availableModules }: Work
                       <FormControl>
                         <Input {...field} placeholder="Enter workflow title" />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="moduleId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Associated Module</FormLabel>
-                      <Select 
-                        onValueChange={(value) => handleModuleChange(value)}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a module" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableModules.map((module) => (
-                            <SelectItem key={module.id} value={module.id}>
-                              {module.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -275,6 +235,7 @@ export function WorkflowConfig({ initialConfig, onSave, availableModules }: Work
                           setEditingStepIndex(null);
                         }}
                         isFirstStep={steps.length === 0 || (editingStepIndex !== null && steps[editingStepIndex].isStartStep)}
+                        availableSteps={steps}
                       />
                     </CardContent>
                   </Card>
