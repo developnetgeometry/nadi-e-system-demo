@@ -222,7 +222,7 @@ export const moduleRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
-  // Workflow Routes
+  // Workflow Routes - Keep only configuration related routes
   {
     path: "/workflow",
     element: (
@@ -247,6 +247,7 @@ export const moduleRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
+  
   // Site Management Routes
   {
     path: "/site-management/main",

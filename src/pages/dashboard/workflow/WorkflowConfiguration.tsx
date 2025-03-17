@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { WorkflowConfig } from "@/components/workflow/WorkflowConfig";
 import { useWorkflowConfig } from "@/hooks/use-workflow-config";
