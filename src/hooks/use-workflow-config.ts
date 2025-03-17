@@ -85,8 +85,37 @@ export function useWorkflowConfig() {
           throw stepsError;
         }
 
-        setConfig(configData as WorkflowConfig);
-        setSteps(stepsData as WorkflowConfigStep[]);
+        // Map database fields (snake_case) to our model fields (camelCase)
+        const mappedConfig: WorkflowConfig = {
+          id: configData.id,
+          title: configData.title,
+          description: configData.description || "",
+          moduleId: configData.module_id || "",
+          moduleName: configData.module_name || "",
+          isActive: configData.is_active || false,
+          createdAt: configData.created_at || new Date().toISOString(),
+          updatedAt: configData.updated_at || new Date().toISOString(),
+          startStepId: configData.start_step_id || "",
+          steps: [],
+          slaHours: configData.sla_hours || 48,
+        };
+
+        // Map database fields (snake_case) to our model fields (camelCase)
+        const mappedSteps: WorkflowConfigStep[] = stepsData.map((step: any) => ({
+          id: step.id,
+          name: step.name,
+          description: step.description || "",
+          order: step.order_index,
+          approverUserTypes: step.approver_user_types || [],
+          conditions: step.conditions || [],
+          nextStepId: step.next_step_id,
+          isStartStep: step.is_start_step || false,
+          isEndStep: step.is_end_step || false,
+          slaHours: step.sla_hours || 24,
+        }));
+
+        setConfig(mappedConfig);
+        setSteps(mappedSteps);
 
       } catch (error) {
         console.error("Error fetching workflow configuration:", error);
@@ -113,12 +142,16 @@ export function useWorkflowConfig() {
       // If it's a new config, create it first
       if (isNew) {
         const newConfig = {
-          ...updatedConfig,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          title: updatedConfig.title,
+          description: updatedConfig.description,
+          module_id: updatedConfig.moduleId,
+          module_name: updatedConfig.moduleName,
+          is_active: updatedConfig.isActive,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          start_step_id: updatedConfig.startStepId,
+          sla_hours: updatedConfig.slaHours,
         };
-        
-        delete newConfig.id; // Remove empty ID so PostgreSQL generates one
         
         const { data: insertedConfig, error: configError } = await supabase
           .from("workflow_configurations")
@@ -136,8 +169,14 @@ export function useWorkflowConfig() {
         const { error: configError } = await supabase
           .from("workflow_configurations")
           .update({
-            ...updatedConfig,
-            updatedAt: new Date().toISOString(),
+            title: updatedConfig.title,
+            description: updatedConfig.description,
+            module_id: updatedConfig.moduleId,
+            module_name: updatedConfig.moduleName,
+            is_active: updatedConfig.isActive,
+            updated_at: new Date().toISOString(),
+            start_step_id: updatedConfig.startStepId,
+            sla_hours: updatedConfig.slaHours,
           })
           .eq("id", configId);
         
@@ -159,9 +198,16 @@ export function useWorkflowConfig() {
       // Insert updated steps
       if (updatedSteps.length > 0) {
         const stepsToInsert = updatedSteps.map((step, index) => ({
-          ...step,
+          name: step.name,
+          description: step.description,
           workflow_config_id: configId,
           order_index: index,
+          approver_user_types: step.approverUserTypes,
+          conditions: step.conditions,
+          next_step_id: step.nextStepId,
+          is_start_step: step.isStartStep,
+          is_end_step: step.isEndStep,
+          sla_hours: step.slaHours,
         }));
         
         const { error: stepsError } = await supabase
