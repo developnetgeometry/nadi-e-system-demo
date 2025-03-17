@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { WorkflowFormConfig, WorkflowStep } from "@/types/workflow";
+import { WorkflowFormConfig, FormField as WorkflowFormField, WorkflowStep } from "@/types/workflow";
 import { AlertCircle } from "lucide-react";
 
 interface WorkflowFormSubmitterProps {
@@ -77,7 +77,7 @@ export function WorkflowFormSubmitter({
     }
   };
 
-  const renderField = (field: FormField) => {
+  const renderField = (field: WorkflowFormField) => {
     switch (field.type) {
       case "text":
         return (
@@ -216,7 +216,7 @@ export function WorkflowFormSubmitter({
       
       <CardContent>
         {error && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -229,8 +229,8 @@ export function WorkflowFormSubmitter({
             
             <CardFooter className="px-0 pt-4">
               <Button type="submit" disabled={isSubmitting} className="ml-auto">
-                {isSubmitting && <LoadingSpinner className="mr-2" />}
-                Submit for Approval
+                {isSubmitting ? <LoadingSpinner /> : null}
+                <span className="ml-2">Submit for Approval</span>
               </Button>
             </CardFooter>
           </form>

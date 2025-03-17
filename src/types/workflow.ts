@@ -72,7 +72,20 @@ export type WorkflowApprovalStep = {
   statusOnApprove?: WorkOrderStatus;
   statusOnReject?: WorkOrderStatus;
   requireReason: boolean;
+  conditions?: ApprovalCondition[];
 };
+
+// New condition types for approvals
+export type ApprovalConditionType = 'amount' | 'field_value' | 'user_role' | 'department';
+export type ApprovalOperator = 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'not_contains';
+
+export interface ApprovalCondition {
+  id: string;
+  type: ApprovalConditionType;
+  field?: string;
+  operator: ApprovalOperator;
+  value: string | number | boolean;
+}
 
 export type WorkflowDefinition = {
   id: string;
@@ -81,6 +94,8 @@ export type WorkflowDefinition = {
   description: string;
   steps: WorkflowApprovalStep[];
   initialStep: string;
+  isActive: boolean;
+  moduleId?: string; // Reference to the module this workflow applies to
 };
 
 export interface WorkOrderData {
@@ -128,4 +143,30 @@ export interface FormField {
     minLength?: number;
     maxLength?: number;
   };
+}
+
+export interface WorkflowConfig {
+  id: string;
+  title: string;
+  description?: string;
+  moduleId: string; // The module this workflow is for
+  moduleName: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  startStepId: string;
+  endStepId?: string;
+  steps: WorkflowConfigStep[];
+}
+
+export interface WorkflowConfigStep {
+  id: string;
+  name: string;
+  description?: string;
+  order: number;
+  approverUserTypes: string[]; // The user types that can approve this step
+  conditions: ApprovalCondition[];
+  nextStepId?: string;
+  isStartStep: boolean;
+  isEndStep: boolean;
 }
