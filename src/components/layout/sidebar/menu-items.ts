@@ -44,7 +44,7 @@ export const menuItems = [
   { title: "Menu Visibility", icon: Eye, path: "/admin/menu-visibility" },
   { title: "Activity Log", icon: Activity, path: "/admin/activity" },
   { title: "Reports", icon: FileBarChart, path: "/admin/reports" },
-  { title: "Calendar", icon: Calendar, path: "/admin/calendar" },
+  // { title: "Calendar", icon: Calendar, path: "/admin/calendar" },
   {
     title: "State Holidays",
     icon: Calendar,

@@ -91,14 +91,14 @@ export const dashboardRoutes = [
       </ProtectedRoute>
     ),
   },
-  {
-    path: "/admin/calendar",
-    element: (
-      <ProtectedRoute>
-        <Calendar />
-      </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/admin/calendar",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Calendar />
+  //     </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/admin/notifications",
     element: (
