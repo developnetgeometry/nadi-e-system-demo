@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Users,
@@ -13,6 +14,9 @@ import {
   ChartBar,
   LucideIcon,
   Building2,
+  GitBranch,
+  CheckSquare,
+  BarChart,
 } from "lucide-react";
 
 export const getAccordionIcon = (label: string): LucideIcon => {
@@ -30,6 +34,7 @@ export const getAccordionIcon = (label: string): LucideIcon => {
     "Programmes Management": List,
     "Report Management": ChartBar,
     "Site Management": Building2,
+    "Workflow Management": GitBranch,
   };
   return iconMap[label] || LayoutDashboard;
 };

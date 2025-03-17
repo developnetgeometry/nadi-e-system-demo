@@ -34,6 +34,9 @@ import {
   Eye,
   Layout,
   Building,
+  GitBranch,
+  CheckSquare,
+  BarChart,
 } from "lucide-react";
 
 export const menuItems = [
@@ -95,8 +98,32 @@ export const reportItems = [
   { title: "Usage Sessions", icon: Timer, path: "/usage-sessions" },
 ];
 
-export const workflowItems = [
-  { title: "Workflow Dashboard", icon: List, path: "/workflow" },
+export const workflowItems: MenuItem[] = [
+  {
+    title: "Dashboard",
+    path: "/workflow",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Workflows",
+    path: "/workflow/workflows",
+    icon: GitBranch,
+  },
+  {
+    title: "Approvals",
+    path: "/workflow/approvals",
+    icon: CheckSquare,
+  },
+  {
+    title: "Configuration",
+    path: "/workflow/configuration",
+    icon: Settings,
+  },
+  {
+    title: "Analytics",
+    path: "/workflow/analytics",
+    icon: BarChart,
+  },
 ];
 
 export const memberManagementItems = [
