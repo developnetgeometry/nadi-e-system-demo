@@ -7,9 +7,18 @@ import { WorkflowList } from "@/components/workflow/WorkflowList";
 import { WorkflowFormDialog } from "@/components/workflow/WorkflowFormDialog";
 import { WorkflowManagementDashboard } from "@/components/workflow/WorkflowManagementDashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useWorkflows } from "@/hooks/use-workflows";
 
 const WorkflowDashboard = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const {
+    workflows,
+    isLoading,
+    selectedWorkflow,
+    setSelectedWorkflow,
+    handleDeleteWorkflow,
+    handleDuplicateWorkflow,
+  } = useWorkflows();
 
   return (
     <DashboardLayout>
@@ -31,7 +40,13 @@ const WorkflowDashboard = () => {
                 Create Workflow
               </Button>
             </div>
-            <WorkflowList />
+            <WorkflowList 
+              workflows={workflows} 
+              isLoading={isLoading} 
+              onSelect={setSelectedWorkflow}
+              onDelete={handleDeleteWorkflow}
+              onDuplicate={handleDuplicateWorkflow}
+            />
           </TabsContent>
           
           <TabsContent value="approvals">
