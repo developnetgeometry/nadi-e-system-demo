@@ -1,7 +1,7 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { WorkflowConfig } from "@/components/workflow/WorkflowConfig";
-import { useWorkflowConfig } from "@/hooks/use-workflow-config";
+import { useWorkflowConfig } from "@/hooks/workflow-config";
 import { WorkflowConfigStep, WorkflowConfig as WorkflowConfigType } from "@/types/workflow";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
