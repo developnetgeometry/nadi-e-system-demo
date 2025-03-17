@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Settings,
@@ -102,29 +101,9 @@ export const reportItems = [
 
 export const workflowItems: MenuItem[] = [
   {
-    title: "Dashboard",
+    title: "Workflow Configurations",
     path: "/workflow",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Workflows",
-    path: "/workflow/workflows",
-    icon: GitBranch,
-  },
-  {
-    title: "Approvals",
-    path: "/workflow/approvals",
-    icon: CheckSquare,
-  },
-  {
-    title: "Configuration",
-    path: "/workflow/configuration",
     icon: Settings,
-  },
-  {
-    title: "Analytics",
-    path: "/workflow/analytics",
-    icon: BarChart,
   },
 ];
 

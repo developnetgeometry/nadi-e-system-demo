@@ -222,7 +222,7 @@ export const moduleRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
-  // Workflow Routes
+  // Workflow Routes - Keep only configuration related routes
   {
     path: "/workflow",
     element: (
@@ -240,29 +240,14 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/workflow/approvals",
+    path: "/workflow/configuration/:id",
     element: (
-      <ProtectedRoute requiredPermission="approve_workflows">
-        <WorkflowDashboard />
+      <ProtectedRoute requiredPermission="manage_workflow_configuration">
+        <WorkflowConfiguration />
       </ProtectedRoute>
     ),
   },
-  {
-    path: "/workflow/workflows",
-    element: (
-      <ProtectedRoute requiredPermission="view_workflows">
-        <WorkflowDashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/analytics",
-    element: (
-      <ProtectedRoute requiredPermission="view_workflow_analytics">
-        <WorkflowDashboard />
-      </ProtectedRoute>
-    ),
-  },
+  
   // Site Management Routes
   {
     path: "/site-management/main",
