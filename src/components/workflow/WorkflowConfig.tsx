@@ -30,7 +30,7 @@ import {
   Droppable, 
   Draggable 
 } from "react-beautiful-dnd";
-import { Plus, Save, Trash2, GripVertical, ArrowRight } from "lucide-react";
+import { Plus, Save, Trash2, GripVertical, ArrowRight, Clock } from "lucide-react";
 import { WorkflowConfigStepForm } from "./WorkflowConfigStepForm";
 import { Badge } from "@/components/ui/badge";
 
@@ -54,6 +54,7 @@ export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
       updatedAt: new Date().toISOString(),
       startStepId: '',
       steps: [],
+      slaHours: 48, // Default 48 hours SLA
     }
   });
   
@@ -66,7 +67,8 @@ export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
       approverUserTypes: [],
       conditions: [],
       isStartStep: steps.length === 0,
-      isEndStep: false
+      isEndStep: false,
+      slaHours: 24 // Default 24 hours SLA per step
     });
     setEditingStepIndex(null);
   };
@@ -175,6 +177,29 @@ export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
                     </FormItem>
                   )}
                 />
+                
+                <FormField
+                  control={form.control}
+                  name="slaHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Overall SLA (Hours)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          placeholder="Enter SLA in hours"
+                          min="1"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Maximum time to complete the entire workflow
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               
               <FormField
@@ -270,6 +295,12 @@ export function WorkflowConfig({ initialConfig, onSave }: WorkflowConfigProps) {
                                             )}
                                             {step.isEndStep && (
                                               <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">End</Badge>
+                                            )}
+                                            {step.slaHours && (
+                                              <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 flex items-center gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                {step.slaHours}h
+                                              </Badge>
                                             )}
                                           </div>
                                         </div>
