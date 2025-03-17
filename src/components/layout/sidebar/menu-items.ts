@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Settings,
@@ -38,6 +39,7 @@ import {
   CheckSquare,
   BarChart,
 } from "lucide-react";
+import { MenuItem } from "@/types/menu";
 
 export const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
