@@ -28,7 +28,7 @@ const WorkflowConfiguration = () => {
           </TabsList>
           
           <TabsContent value="active" className="space-y-4">
-            <WorkflowConfig isCreating={isCreating} onCancel={() => setIsCreating(false)} />
+            <WorkflowConfig />
           </TabsContent>
           
           <TabsContent value="draft">

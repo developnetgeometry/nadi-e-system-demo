@@ -25,7 +25,6 @@ import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import UserProfile from "@/pages/dashboard/profile/UserProfile";
 import SiteManagement from "@/pages/dashboard/SiteManagement";
 
 export const moduleRoutes: RouteObject[] = [
@@ -273,9 +272,4 @@ export const moduleRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
-  // Profile Routes
-  // {
-  //   path: "/dashboard/profile",
-  //   element:<UserProfile />,
-  // },
 ];
