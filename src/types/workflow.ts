@@ -1,7 +1,7 @@
 
 export type WorkflowType = 'work_order' | 'training_report' | 'center_management';
 
-export type WorkOrderStatus = 'draft' | 'pending_approval' | 'in_progress' | 'incomplete' | 'complete' | 'cancelled';
+export type WorkOrderStatus = 'draft' | 'pending_approval' | 'in_progress' | 'incomplete' | 'complete' | 'cancelled' | 'rejected' | 'approved';
 
 export type ApprovalAction = 'approve' | 'reject';
 

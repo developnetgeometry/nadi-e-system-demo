@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from "react";
-import { useUser } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useHasPermission } from "@/hooks/use-has-permission";
 import { PendingApprovals } from "./PendingApprovals";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function WorkflowManagementDashboard() {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [userRoles, setUserRoles] = useState<string[]>([]);
   
   // Get user's roles

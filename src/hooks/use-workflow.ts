@@ -3,12 +3,12 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WorkflowService } from "@/services/workflow-service";
 import { ApprovalAction, WorkOrderStatus } from "@/types/workflow";
-import { useUser } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useWorkflow() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user } = useAuth();
 
   const startWorkOrderWorkflow = async (workOrderId: string) => {
     if (!user?.id) {
