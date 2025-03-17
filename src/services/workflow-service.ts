@@ -9,6 +9,8 @@ const workOrderApprovalFlow: WorkflowDefinition = {
   name: "Work Order Approval Flow",
   description: "Approval process for work orders completion",
   initialStep: "completion-approval",
+  isActive: true,  // Added the required isActive property
+  moduleId: "work-orders", // Added optional moduleId property
   steps: [
     {
       id: "completion-approval",
@@ -41,6 +43,8 @@ const trainingReportApprovalFlow: WorkflowDefinition = {
   name: "Staff Training Report Approval",
   description: "Approval process for staff training reports",
   initialStep: "tp-approval",
+  isActive: true,  // Added the required isActive property
+  moduleId: "training", // Added optional moduleId property
   steps: [
     {
       id: "tp-approval",
@@ -62,6 +66,8 @@ const centerManagementApprovalFlow: WorkflowDefinition = {
   name: "Center Management Approval",
   description: "Approval process for center relocation or temporary closure",
   initialStep: "admin-review",
+  isActive: true,  // Added the required isActive property
+  moduleId: "center-management", // Added optional moduleId property
   steps: [
     {
       id: "admin-review",
