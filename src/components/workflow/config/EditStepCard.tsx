@@ -6,7 +6,7 @@ import {
   CardContent
 } from "@/components/ui/card";
 import { WorkflowConfigStep } from "@/types/workflow";
-import { WorkflowConfigStepForm } from "../WorkflowConfigStepForm";
+import { WorkflowConfigStepForm } from "./form/WorkflowConfigStepForm";
 
 interface EditStepCardProps {
   step: WorkflowConfigStep | null;
