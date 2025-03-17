@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WorkflowStep } from "@/types/workflow";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, GripVertical, Clock, User, FileText } from "lucide-react";
+import { Edit, Trash2, GripVertical, Clock, User, FileText, Bell } from "lucide-react";
 import { formatDuration } from "@/utils/date-utils";
 
 interface WorkflowStepCardProps {
@@ -52,7 +52,7 @@ export const WorkflowStepCard = ({
                     {step.type.charAt(0).toUpperCase() + step.type.slice(1)}
                   </Badge>
                   
-                  {step.estimatedDuration && (
+                  {step.estimatedDuration > 0 && (
                     <Badge variant="secondary" className="flex items-center">
                       <Clock className="h-3 w-3 mr-1" />
                       {formatDuration(step.estimatedDuration)}

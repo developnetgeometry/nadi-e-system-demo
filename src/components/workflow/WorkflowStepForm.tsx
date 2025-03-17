@@ -46,6 +46,16 @@ export const WorkflowStepForm = ({
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleNumberChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormState((prev) => ({ 
+      ...prev, 
+      [name]: parseFloat(value) || 0
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formState);
@@ -114,14 +124,7 @@ export const WorkflowStepForm = ({
           min="0"
           step="0.5"
           value={formState.estimatedDuration}
-          onChange={(e) => handleChange({
-            ...e,
-            target: {
-              ...e.target,
-              value: parseFloat(e.target.value) || 0,
-              name: "estimatedDuration"
-            }
-          })}
+          onChange={handleNumberChange}
         />
       </div>
 

@@ -5,6 +5,39 @@ export type WorkOrderStatus = 'draft' | 'pending_approval' | 'in_progress' | 'in
 
 export type ApprovalAction = 'approve' | 'reject';
 
+export type WorkflowStepType = 'approval' | 'form' | 'notification' | 'delay';
+
+export interface WorkflowStep {
+  id: string;
+  name: string;
+  description: string;
+  type: WorkflowStepType;
+  estimatedDuration: number;
+  requiredFields: string[];
+  assignedTo: {
+    id: string;
+    name: string;
+    avatar?: string;
+  }[];
+}
+
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  status: 'draft' | 'active' | 'archived';
+  steps: WorkflowStep[];
+  createdAt: string;
+  updatedAt: string;
+  assignedUsers: {
+    id: string;
+    name: string;
+    avatar?: string;
+  }[];
+  completedInstances: number;
+  activeInstances: number;
+}
+
 export type WorkflowApprovalStep = {
   id: string;
   name: string;
