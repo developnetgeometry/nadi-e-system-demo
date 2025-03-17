@@ -9,13 +9,6 @@ import { Plus } from "lucide-react";
 const WorkflowConfiguration = () => {
   const [isCreating, setIsCreating] = useState(false);
 
-  // Mock data for WorkflowConfig props
-  const availableModules = [
-    { id: "1", name: "HR Module" },
-    { id: "2", name: "Finance Module" },
-    { id: "3", name: "Inventory Module" }
-  ];
-
   const handleSave = (data: any) => {
     console.log("Saving workflow configuration:", data);
     setIsCreating(false);
@@ -40,10 +33,7 @@ const WorkflowConfiguration = () => {
           </TabsList>
           
           <TabsContent value="active" className="space-y-4">
-            <WorkflowConfig 
-              onSave={handleSave} 
-              availableModules={availableModules}
-            />
+            <WorkflowConfig onSave={handleSave} />
           </TabsContent>
           
           <TabsContent value="draft">
