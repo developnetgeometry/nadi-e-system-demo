@@ -111,7 +111,7 @@ export function WorkflowConfigList({
                   </TableCell>
                   <TableCell>{config.slaHours || "-"}</TableCell>
                   <TableCell>
-                    {new Date(config.createdAt).toLocaleDateString()}
+                    {config.createdAt ? new Date(config.createdAt).toLocaleDateString() : "-"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">

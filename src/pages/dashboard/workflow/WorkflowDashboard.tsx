@@ -27,8 +27,23 @@ const WorkflowDashboard = () => {
       if (error) {
         throw error;
       }
+
+      // Map database fields (snake_case) to our model fields (camelCase)
+      const mappedConfigurations: WorkflowConfig[] = data.map((config: any) => ({
+        id: config.id,
+        title: config.title,
+        description: config.description || "",
+        moduleId: config.module_id || "",
+        moduleName: config.module_name || "",
+        isActive: config.is_active || false,
+        createdAt: config.created_at || new Date().toISOString(),
+        updatedAt: config.updated_at || new Date().toISOString(),
+        startStepId: config.start_step_id || "",
+        steps: [],
+        slaHours: config.sla_hours || 48,
+      }));
       
-      setConfigurations(data as WorkflowConfig[]);
+      setConfigurations(mappedConfigurations);
     } catch (error) {
       console.error("Error fetching configurations:", error);
       toast({
