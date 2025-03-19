@@ -1,45 +1,29 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { UserGroupFormData } from "../types";
 import { toast } from "sonner";
+import { UserGroup, UserGroupFormData } from "../types";
 
 export const useUserGroupMutations = () => {
   const queryClient = useQueryClient();
 
+  // Create user group mutation
   const createUserGroup = useMutation({
-    mutationFn: async (values: UserGroupFormData) => {
-      const currentUser = (await supabase.auth.getUser()).data.user?.id;
-      
-      // First get the maximum ID to generate the next one
-      const { data: maxIdData, error: maxIdError } = await supabase
+    mutationFn: async (formData: UserGroupFormData) => {
+      // First, create the user group
+      const { data, error } = await supabase
         .from("nd_user_group")
-        .select("id")
-        .order("id", { ascending: false })
-        .limit(1);
-
-      if (maxIdError) throw maxIdError;
-      
-      // Generate new ID (max + 1) or start with 1 if no records exist
-      const newId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
-      
-      // Get current timestamp for created_at
-      const now = new Date().toISOString();
-      
-      // Insert with the new ID and created_at
-      const { data, error } = await supabase.from("nd_user_group").insert([
-        {
-          id: newId,
-          group_name: values.group_name,
-          description: values.description,
-          created_by: currentUser,
-          created_at: now,
-          updated_at: now
-        },
-      ]);
+        .insert({
+          group_name: formData.group_name,
+          description: formData.description,
+          user_types: formData.user_types, // Store user types as JSON array
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select();
 
       if (error) throw error;
-      return data;
+      return data[0] as UserGroup;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-groups"] });
@@ -51,20 +35,28 @@ export const useUserGroupMutations = () => {
     },
   });
 
+  // Update user group mutation
   const updateUserGroup = useMutation({
-    mutationFn: async ({ values, id }: { values: UserGroupFormData; id: number }) => {
-      // For updates, we'll use the existing bigint ID
+    mutationFn: async ({
+      values,
+      id,
+    }: {
+      values: UserGroupFormData;
+      id: number;
+    }) => {
       const { data, error } = await supabase
         .from("nd_user_group")
         .update({
           group_name: values.group_name,
           description: values.description,
-          updated_by: (await supabase.auth.getUser()).data.user?.id,
+          user_types: values.user_types, // Store user types as JSON array
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
       if (error) throw error;
-      return data;
+      return data[0] as UserGroup;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-groups"] });
@@ -76,8 +68,5 @@ export const useUserGroupMutations = () => {
     },
   });
 
-  return {
-    createUserGroup,
-    updateUserGroup,
-  };
+  return { createUserGroup, updateUserGroup };
 };
