@@ -71,9 +71,6 @@ export function OrganizationDetails() {
       </div>
 
       <OrganizationInfo organization={organization} />
-      
-      {/* Add the organization user list component */}
-      <OrganizationUserList />
 
       <OrganizationFormDialog
         open={isEditDialogOpen}
