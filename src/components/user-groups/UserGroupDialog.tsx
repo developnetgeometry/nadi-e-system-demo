@@ -30,7 +30,7 @@ export const UserGroupDialog = ({
     setIsSubmitting(true);
     
     if (isEditing && userGroup) {
-      updateUserGroup(
+      updateUserGroup.mutate(
         { values, id: userGroup.id },
         {
           onSettled: () => {
@@ -40,7 +40,7 @@ export const UserGroupDialog = ({
         }
       );
     } else {
-      createUserGroup(values, {
+      createUserGroup.mutate(values, {
         onSettled: () => {
           setIsSubmitting(false);
           onOpenChange(false);
