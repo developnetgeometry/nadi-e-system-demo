@@ -15,6 +15,9 @@ import { LookupClosureSubcategory } from "@/components/lookup/LookupClosureSubca
 import { LookupDistrict } from "@/components/lookup/LookupDistrict";
 import { LookupDUN } from "@/components/lookup/LookupDUN";
 import { LookupEducation } from "@/components/lookup/LookupEducation";
+import { LookupEthnics } from "@/components/lookup/LookupEthnics";
+import { LookupGenders } from "@/components/lookup/LookupGenders";
+import { LookupICTKnowledge } from "@/components/lookup/LookupICTKnowledge";
 
 const LookupSettingsPage = () => {
   return (
@@ -43,6 +46,9 @@ const LookupSettingsPage = () => {
             <TabsTrigger value="district">District</TabsTrigger>
             <TabsTrigger value="dun">DUN</TabsTrigger>
             <TabsTrigger value="education">Education</TabsTrigger>
+            <TabsTrigger value="ethnics">Ethnics</TabsTrigger>
+            <TabsTrigger value="genders">Genders</TabsTrigger>
+            <TabsTrigger value="ict-knowledge">ICT Knowledge</TabsTrigger>
           </TabsList>
           
           <TabsContent value="age-group">
@@ -99,6 +105,18 @@ const LookupSettingsPage = () => {
 
           <TabsContent value="education">
             <LookupEducation />
+          </TabsContent>
+
+          <TabsContent value="ethnics">
+            <LookupEthnics />
+          </TabsContent>
+          
+          <TabsContent value="genders">
+            <LookupGenders />
+          </TabsContent>
+          
+          <TabsContent value="ict-knowledge">
+            <LookupICTKnowledge />
           </TabsContent>
         </Tabs>
       </div>
