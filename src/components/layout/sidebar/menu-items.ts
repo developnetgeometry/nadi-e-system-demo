@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Settings,
@@ -47,7 +46,6 @@ export const menuItems = [
   { title: "User Management", icon: Users, path: "/admin/users" },
   { title: "User Groups", icon: Users2, path: "/admin/user-groups" },
   { title: "Roles & Permissions", icon: Shield, path: "/admin/roles" },
-  { title: "Access Control", icon: UserCog, path: "/admin/access-control" },
   { title: "Menu Visibility", icon: Eye, path: "/admin/menu-visibility" },
   { title: "Activity Log", icon: Activity, path: "/admin/activity" },
   { title: "Reports", icon: FileBarChart, path: "/admin/reports" },
@@ -60,7 +58,6 @@ export const menuItems = [
   },
   { title: "Notifications", icon: Bell, path: "/admin/notifications" },
   { title: "Organizations", icon: Users, path: "/admin/organizations" },
-  // { title: "Site Management", icon: Settings, path: "/admin/siteManagement" },
   { title: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 

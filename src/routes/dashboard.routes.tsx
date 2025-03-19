@@ -5,7 +5,7 @@ import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import DashboardPage from '@/pages/dashboard/Dashboard';
 import UsersPage from '@/pages/dashboard/Users';
 import RolesPage from '@/pages/dashboard/Roles';
-import AccessControlPage from '@/pages/dashboard/AccessControl';
+import PermissionsPage from '@/pages/dashboard/Permissions';
 import MenuVisibilityPage from '@/pages/dashboard/MenuVisibility';
 import ActivityLogPage from '@/pages/dashboard/Activity';
 import ReportsPage from '@/pages/dashboard/Reports';
@@ -40,9 +40,9 @@ export const dashboardRoutes = [
     </Suspense>
   },
   {
-    path: '/admin/access-control',
+    path: '/admin/permissions',
     element: <Suspense fallback={<LoadingSpinner />}>
-      <AccessControlPage />
+      <PermissionsPage />
     </Suspense>
   },
   {
