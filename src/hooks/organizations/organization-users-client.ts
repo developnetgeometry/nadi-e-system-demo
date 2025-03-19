@@ -18,8 +18,7 @@ export const organizationUsersClient = {
           id, 
           full_name, 
           email, 
-          user_type,
-          avatar_url
+          user_type
         )
       `)
       .eq("organization_id", organizationId);

@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus } from "lucide-react";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -10,7 +10,7 @@ interface UserProfile {
   full_name?: string;
   email?: string;
   user_type: string;
-  avatar_url?: string;
+  user_group?: number;
 }
 
 interface AvailableUsersListProps {
@@ -37,7 +37,7 @@ export const AvailableUsersList = ({
       <div className="text-center py-4 text-muted-foreground border rounded-md">
         {searchTerm || filterUserType !== "all" 
           ? "No users match your search criteria." 
-          : "No users available to add."}
+          : "No users available to add with the appropriate user group."}
       </div>
     );
   }
@@ -48,7 +48,6 @@ export const AvailableUsersList = ({
         <div key={user.id} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md transition-colors">
           <div className="flex items-center space-x-3">
             <Avatar>
-              <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
               <AvatarFallback>{user.full_name?.substring(0, 2) || "U"}</AvatarFallback>
             </Avatar>
             <div>

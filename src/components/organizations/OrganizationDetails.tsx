@@ -1,9 +1,9 @@
-
 import { OrganizationFormDialog } from "./OrganizationFormDialog";
 import { OrganizationHeader } from "./details/OrganizationHeader";
 import { OrganizationInfo } from "./details/OrganizationInfo";
 import { DeleteOrganizationDialog } from "./details/DeleteOrganizationDialog";
 import { useOrganizationDetails } from "./details/useOrganizationDetails";
+import { OrganizationUserList } from "./OrganizationUserList";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pencil } from "lucide-react";
 

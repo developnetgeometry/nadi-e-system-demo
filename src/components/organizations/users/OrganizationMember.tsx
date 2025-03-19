@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { X } from "lucide-react";
 import { EnhancedOrgUser } from "@/types/organization";
 
@@ -17,7 +17,6 @@ export const OrganizationMember = ({ orgUser, onRemove }: OrganizationMemberProp
     <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors">
       <div className="flex items-center space-x-3">
         <Avatar>
-          <AvatarImage src={userProfile?.avatar_url || "/placeholder.svg"} />
           <AvatarFallback>{userProfile?.full_name?.substring(0, 2) || "U"}</AvatarFallback>
         </Avatar>
         <div>
