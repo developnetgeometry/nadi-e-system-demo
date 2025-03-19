@@ -19,7 +19,8 @@ export const OrganizationUserList = () => {
     filteredAvailableUsers,
     loadingEligibleUsers,
     handleAddUser,
-    handleRemoveUser
+    handleRemoveUser,
+    organizationType
   } = useOrganizationUserManagement();
 
   // Cast to EnhancedOrgUser to ensure correct typing
@@ -45,6 +46,7 @@ export const OrganizationUserList = () => {
         users={filteredAvailableUsers}
         isLoading={loadingEligibleUsers}
         onAddUser={handleAddUser}
+        organizationType={organizationType}
       />
     </div>
   );
