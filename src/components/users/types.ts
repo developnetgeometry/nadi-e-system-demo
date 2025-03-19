@@ -1,3 +1,4 @@
+
 import { UserType } from "@/types/auth";
 
 export interface UserFormData {
@@ -5,6 +6,9 @@ export interface UserFormData {
   full_name: string;
   user_type: UserType;
   phone_number?: string;
+  ic_number: string;
+  password?: string;
+  confirm_password?: string;
 }
 
 export interface Profile {
@@ -13,4 +17,5 @@ export interface Profile {
   full_name: string;
   user_type: UserType;
   phone_number?: string;
+  ic_number?: string;
 }
