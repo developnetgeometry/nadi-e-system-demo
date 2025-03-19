@@ -11,7 +11,10 @@ interface CreateUserRequest {
   email: string;
   fullName: string;
   userType: string;
+  userGroup?: string;
   phoneNumber?: string;
+  icNumber: string;
+  password: string;
   createdBy: string;
 }
 
@@ -29,10 +32,7 @@ serve(async (req) => {
     );
 
     // Parse the request body
-    const { email, fullName, userType, phoneNumber, createdBy } = await req.json() as CreateUserRequest;
-
-    // Generate a random password
-    const password = crypto.randomUUID();
+    const { email, fullName, userType, userGroup, phoneNumber, icNumber, password, createdBy } = await req.json() as CreateUserRequest;
 
     // 1. Create the user in Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -42,6 +42,7 @@ serve(async (req) => {
       user_metadata: {
         full_name: fullName,
         user_type: userType,
+        user_group: userGroup,
       }
     });
 
@@ -67,6 +68,8 @@ serve(async (req) => {
       .update({
         phone_number: phoneNumber,
         user_type: userType, // Ensure user_type is set correctly
+        user_group: userGroup, // Add user_group
+        ic_number: icNumber,
       })
       .eq("id", authData.user.id);
 
@@ -94,9 +97,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // 4. Optionally send a password reset email
-    // For production, you would typically send a welcome email with a password reset link
     
     console.log("User created successfully:", authData.user.id);
 

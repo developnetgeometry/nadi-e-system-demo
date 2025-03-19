@@ -37,17 +37,17 @@ import {
   GitBranch,
   CheckSquare,
   BarChart,
+  Users2,
 } from "lucide-react";
 import { MenuItem } from "@/types/menu";
 
 export const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   { title: "User Management", icon: Users, path: "/admin/users" },
+  { title: "User Groups", icon: Users2, path: "/admin/user-groups" },
   { title: "Roles & Permissions", icon: Shield, path: "/admin/roles" },
-  { title: "Access Control", icon: UserCog, path: "/admin/access-control" },
   { title: "Menu Visibility", icon: Eye, path: "/admin/menu-visibility" },
   { title: "Activity Log", icon: Activity, path: "/admin/activity" },
-  { title: "Reports", icon: FileBarChart, path: "/admin/reports" },
   // { title: "Calendar", icon: Calendar, path: "/admin/calendar" },
   {
     title: "State Holidays",
@@ -57,7 +57,6 @@ export const menuItems = [
   },
   { title: "Notifications", icon: Bell, path: "/admin/notifications" },
   { title: "Organizations", icon: Users, path: "/admin/organizations" },
-  // { title: "Site Management", icon: Settings, path: "/admin/siteManagement" },
   { title: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
@@ -95,8 +94,9 @@ export const programmesItems = [
 ];
 
 export const reportItems = [
-  { title: "Reports Dashboard", icon: ChartBar, path: "/reports" },
-  { title: "Usage Sessions", icon: Timer, path: "/usage-sessions" },
+  { title: "Reports Dashboard", icon: ChartBar, path: "/report/dashboard" },
+  { title: "Usage Sessions", icon: Timer, path: "/report/usage-sessions" },
+  { title: "Internet Access", icon: Timer, path: "/report/internet-access" },
 ];
 
 export const workflowItems: MenuItem[] = [
@@ -129,7 +129,7 @@ export const financialItems = [
 ];
 
 export const complianceItems = [
-  { title: "Audit Logs", icon: FileCheck, path: "/siteMManagement" },
+  { title: "Audit Logs", icon: FileCheck, path: "/compliance/audit" },
   { title: "System Reports", icon: Gauge, path: "/compliance/reports" },
 ];
 

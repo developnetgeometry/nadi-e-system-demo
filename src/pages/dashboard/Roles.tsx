@@ -5,6 +5,9 @@ import { RoleFormDialog } from "@/components/roles/RoleFormDialog";
 import { RoleHeader } from "@/components/roles/RoleHeader";
 import { RoleTable } from "@/components/roles/RoleTable";
 import { useRoles } from "@/hooks/use-roles";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
 
 interface Role {
   id: string;
@@ -15,6 +18,7 @@ interface Role {
 }
 
 const Roles = () => {
+  const navigate = useNavigate();
   const { roles, isLoading, error, createRole, updateRole } = useRoles();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
@@ -30,6 +34,10 @@ const Roles = () => {
     setEditingRole(null);
   };
 
+  const handleViewPermissions = () => {
+    navigate("/admin/permissions");
+  };
+
   if (error) {
     return (
       <DashboardLayout>
@@ -43,7 +51,17 @@ const Roles = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl space-y-8">
-        <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
+        <div className="flex justify-between items-center">
+          <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
+          <Button 
+            variant="outline" 
+            onClick={handleViewPermissions}
+            className="flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Permissions
+          </Button>
+        </div>
         
         {isLoading ? (
           <div className="flex items-center justify-center p-8">

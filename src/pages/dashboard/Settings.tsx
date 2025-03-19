@@ -6,8 +6,12 @@ import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { SystemSettings } from "@/components/settings/SystemSettings";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Database, Settings as SettingsIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const { data: permissions = [] } = usePermissions();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +40,10 @@ const Settings = () => {
     checkSuperAdmin();
   }, []);
 
+  const handleNavigateToLookup = () => {
+    navigate('/admin/lookup-settings');
+  };
+
   if (isLoading) {
     return <SettingsLoading />;
   }
@@ -57,6 +65,17 @@ const Settings = () => {
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
         <SettingsHeader />
+        
+        <div className="flex items-center justify-end mb-6 gap-4">
+          <Button 
+            onClick={handleNavigateToLookup}
+            className="flex items-center gap-2"
+          >
+            <Database className="h-4 w-4" />
+            Manage Lookup Data
+          </Button>
+        </div>
+        
         <div className="space-y-8">
           <SystemSettings />
         </div>

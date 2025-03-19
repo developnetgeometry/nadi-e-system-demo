@@ -40,16 +40,70 @@ export const useRoles = () => {
 
         console.log('Roles data fetched:', rolesData);
 
+        // Get counts directly from profiles table based on user_type
         const rolesWithCounts = await Promise.all(
           rolesData.map(async (role) => {
-            const { count } = await supabase
-              .from('user_roles')
-              .select('*', { count: 'exact', head: true })
-              .eq('role_id', role.id);
-
+            let count = 0;
+            
+            // Map role names to corresponding user_types in profiles
+            if (role.name === 'super_admin') {
+              // For super_admin role, count profiles with user_type 'super_admin'
+              const { count: adminCount, error: adminError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_type', 'super_admin');
+              
+              if (adminError) {
+                console.error('Error counting super_admin users:', adminError);
+              } else {
+                count = adminCount || 0;
+              }
+            } 
+            else if (role.name === 'admin') {
+              // For admin role, count profiles with admin-like user_types
+              const adminTypes = ['sso', 'dusp', 'tp', 'staff_internal', 'staff_external', 'medical_office'];
+              
+              const { count: adminCount, error: adminError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .in('user_type', adminTypes);
+              
+              if (adminError) {
+                console.error('Error counting admin users:', adminError);
+              } else {
+                count = adminCount || 0;
+              }
+            }
+            else if (role.name === 'user') {
+              // For user role, count profiles with user_type 'member'
+              const { count: userCount, error: userError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_type', 'member');
+              
+              if (userError) {
+                console.error('Error counting member users:', userError);
+              } else {
+                count = userCount || 0;
+              }
+            }
+            else {
+              // For other roles, use the role name directly as the user_type
+              const { count: otherCount, error: otherError } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_type', role.name.toLowerCase());
+              
+              if (otherError) {
+                console.error(`Error counting ${role.name} users:`, otherError);
+              } else {
+                count = otherCount || 0;
+              }
+            }
+            
             return {
               ...role,
-              users_count: count || 0
+              users_count: count
             };
           })
         );
