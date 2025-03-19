@@ -12,6 +12,7 @@ import { dashboardRoutes, DashboardRoutes } from "@/routes/dashboard.routes";
 import { memberRoutes } from "@/routes/member.routes";
 import { moduleRoutes } from "@/routes/module.routes";
 import UIComponents from "@/pages/UIComponents";
+import OrganizationDetails from "@/pages/dashboard/OrganizationDetails";
 
 // Import example pages
 import HomeExample from "@/pages/examples/HomeExample";
@@ -44,6 +45,9 @@ function App() {
               <Route path="/examples/home" element={<HomeExample />} />
               <Route path="/examples/detail" element={<DetailExample />} />
               <Route path="/examples/settings" element={<SettingsExample />} />
+              
+              {/* Add organization details route */}
+              <Route path="/admin/organizations/:id" element={<OrganizationDetails />} />
               
               {/* Dashboard routes */}
               {dashboardRoutes.map((route) => (
