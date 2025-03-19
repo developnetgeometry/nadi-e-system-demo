@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
 import { Input } from "@/components/ui/input"; // Import Input component
 import { PaginationComponent } from "../ui/PaginationComponent"; // Correct import path
-
+import { useNavigate } from 'react-router-dom';
 export const SiteList = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
@@ -34,6 +34,8 @@ export const SiteList = () => {
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const navigate = useNavigate(); // Initialize useNavigate
+
 
   const { data: sites = [], isLoading } = useQuery({
     queryKey: ['sites'],
@@ -119,6 +121,10 @@ export const SiteList = () => {
     setSiteToEdit(null);
   };
 
+  const handleViewDetailsClick = (siteId: string) => {
+    navigate(`/site/${siteId}`);
+  };
+
   const getStatusBadge = (status: Site['nd_site_status']['eng']) => {
     if (!status) return "Unknown"; // Handle null or undefined status
     const variants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
@@ -131,10 +137,10 @@ export const SiteList = () => {
     return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
-  const filteredSites = sites.filter(site => 
+  const filteredSites = sites.filter(site =>
     site.sitename.toLowerCase().includes(filter.toLowerCase()) ||
     site.nd_site[0]?.standard_code.toLowerCase().includes(filter.toLowerCase())
-  ).filter(site => 
+  ).filter(site =>
     (phaseFilter ? site.nd_phases?.name === phaseFilter : true) &&
     (regionFilter ? site.nd_region?.eng === regionFilter : true) &&
     (statusFilter ? site.nd_site_status?.eng === statusFilter : true)
@@ -156,29 +162,29 @@ export const SiteList = () => {
   return (
     <div className="space-y-4">
       <div className="relative mb-4 flex space-x-4">
-        <Input 
-          placeholder="Search by site name or code" 
-          value={filter} 
-          onChange={(e) => setFilter(e.target.value)} 
+        <Input
+          placeholder="Search by site name or code"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
           className="pl-10" // Add padding to the left for the icon
         />
         <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         <div className="relative">
-          <select 
-            value={phaseFilter} 
-            onChange={(e) => setPhaseFilter(e.target.value)} 
+          <select
+            value={phaseFilter}
+            onChange={(e) => setPhaseFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
-            <option  value="">All Phases</option>
+            <option value="">All Phases</option>
             {phases.map(phase => (
               <option key={phase.id} value={phase.name}>{phase.name}</option>
             ))}
           </select>
         </div>
         <div className="relative">
-          <select 
-            value={regionFilter} 
-            onChange={(e) => setRegionFilter(e.target.value)} 
+          <select
+            value={regionFilter}
+            onChange={(e) => setRegionFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             <option value="">All Regions</option>
@@ -188,9 +194,9 @@ export const SiteList = () => {
           </select>
         </div>
         <div className="relative">
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)} 
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             <option value="">All Statuses</option>
@@ -250,6 +256,13 @@ export const SiteList = () => {
                         onClick={() => handleDeleteClick(site.id)}
                       >
                         <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleViewDetailsClick(site.id)} // Add view details button
+                      >
+                        <Search className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
