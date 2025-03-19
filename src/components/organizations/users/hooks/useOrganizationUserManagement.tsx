@@ -16,7 +16,6 @@ export const useOrganizationUserManagement = () => {
   const { 
     useOrganizationQuery,
     useOrganizationUsersQuery, 
-    useEligibleUsersQuery,
     useAddUserToOrganizationMutation,
     useRemoveUserFromOrganizationMutation 
   } = useOrganizations();
@@ -33,6 +32,8 @@ export const useOrganizationUserManagement = () => {
   const { data: userGroups = [], isLoading: loadingUserGroups } = useQuery({
     queryKey: ["user-groups", organization?.type],
     queryFn: async () => {
+      if (!organization?.type) return [];
+      
       // Get appropriate user group for the organization type
       const { data, error } = await supabase
         .from("nd_user_group")

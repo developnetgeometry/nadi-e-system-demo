@@ -8358,6 +8358,7 @@ export type Database = {
           id: string
           phone_number: string | null
           updated_at: string
+          user_group: number | null
           user_type: Database["public"]["Enums"]["user_type"]
         }
         Insert: {
@@ -8368,6 +8369,7 @@ export type Database = {
           id: string
           phone_number?: string | null
           updated_at?: string
+          user_group?: number | null
           user_type: Database["public"]["Enums"]["user_type"]
         }
         Update: {
@@ -8378,6 +8380,7 @@ export type Database = {
           id?: string
           phone_number?: string | null
           updated_at?: string
+          user_group?: number | null
           user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
