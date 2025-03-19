@@ -1,36 +1,15 @@
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { UserGroup, UserGroupFormData } from "./types";
-import { toast } from "sonner";
-
-const formSchema = z.object({
-  group_name: z.string().min(1, "Group name is required"),
-  description: z.string().optional(),
-});
+import { UserGroupForm } from "./UserGroupForm";
+import { useUserGroupMutations } from "./hooks/useUserGroupMutations";
 
 interface UserGroupDialogProps {
   open: boolean;
@@ -43,99 +22,31 @@ export const UserGroupDialog = ({
   onOpenChange,
   userGroup,
 }: UserGroupDialogProps) => {
-  const queryClient = useQueryClient();
   const isEditing = !!userGroup;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createUserGroup, updateUserGroup } = useUserGroupMutations();
 
-  const form = useForm<UserGroupFormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      group_name: userGroup?.group_name || "",
-      description: userGroup?.description || "",
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (values: UserGroupFormData) => {
-      const currentUser = (await supabase.auth.getUser()).data.user?.id;
-      
-      // First get the maximum ID to generate the next one
-      const { data: maxIdData, error: maxIdError } = await supabase
-        .from("nd_user_group")
-        .select("id")
-        .order("id", { ascending: false })
-        .limit(1);
-
-      if (maxIdError) throw maxIdError;
-      
-      // Generate new ID (max + 1) or start with 1 if no records exist
-      const newId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
-      
-      // Get current timestamp for created_at
-      const now = new Date().toISOString();
-      
-      // Insert with the new ID and created_at
-      const { data, error } = await supabase.from("nd_user_group").insert([
-        {
-          id: newId,
-          group_name: values.group_name,
-          description: values.description,
-          created_by: currentUser,
-          created_at: now,
-          updated_at: now
-        },
-      ]);
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-groups"] });
-      toast.success("User group created successfully");
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: (error) => {
-      console.error("Error creating user group:", error);
-      toast.error("Failed to create user group");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (values: UserGroupFormData) => {
-      // For updates, we'll use the existing bigint ID
-      const { data, error } = await supabase
-        .from("nd_user_group")
-        .update({
-          group_name: values.group_name,
-          description: values.description,
-          updated_by: (await supabase.auth.getUser()).data.user?.id,
-        })
-        .eq("id", userGroup?.id);
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-groups"] });
-      toast.success("User group updated successfully");
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: (error) => {
-      console.error("Error updating user group:", error);
-      toast.error("Failed to update user group");
-    },
-  });
-
-  const onSubmit = (values: UserGroupFormData) => {
+  const handleSubmit = (values: UserGroupFormData) => {
     setIsSubmitting(true);
-    if (isEditing) {
-      updateMutation.mutate(values);
+    
+    if (isEditing && userGroup) {
+      updateUserGroup(
+        { values, id: userGroup.id },
+        {
+          onSettled: () => {
+            setIsSubmitting(false);
+            onOpenChange(false);
+          }
+        }
+      );
     } else {
-      createMutation.mutate(values);
+      createUserGroup(values, {
+        onSettled: () => {
+          setIsSubmitting(false);
+          onOpenChange(false);
+        }
+      });
     }
-    setIsSubmitting(false);
   };
 
   return (
@@ -152,57 +63,12 @@ export const UserGroupDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="group_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Group Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter group name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter a description for this group"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? "Saving..."
-                  : isEditing
-                  ? "Update Group"
-                  : "Create Group"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <UserGroupForm
+          userGroup={userGroup}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+          onCancel={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );
