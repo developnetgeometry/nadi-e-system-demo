@@ -1,13 +1,13 @@
 
 import { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Loading from '@/components/ui/loading';
-import DashboardPage from '@/pages/dashboard';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import DashboardPage from '@/pages/dashboard/Dashboard';
 import UsersPage from '@/pages/dashboard/Users';
 import RolesPage from '@/pages/dashboard/Roles';
 import AccessControlPage from '@/pages/dashboard/AccessControl';
 import MenuVisibilityPage from '@/pages/dashboard/MenuVisibility';
-import ActivityLogPage from '@/pages/dashboard/ActivityLog';
+import ActivityLogPage from '@/pages/dashboard/Activity';
 import ReportsPage from '@/pages/dashboard/Reports';
 import CalendarPage from '@/pages/dashboard/Calendar';
 import StateHolidaysPage from '@/pages/dashboard/StateHolidays';
@@ -16,80 +16,80 @@ import OrganizationsPage from '@/pages/dashboard/Organizations';
 import SettingsPage from '@/pages/dashboard/Settings';
 import UserGroupsPage from '@/pages/dashboard/UserGroups';
 
-const dashboardRoutes = [
+export const dashboardRoutes = [
   {
     path: '/admin/dashboard',
     element: <DashboardPage />,
   },
   {
     path: '/admin/users',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <UsersPage />
     </Suspense>
   },
   {
     path: '/admin/user-groups',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <UserGroupsPage />
     </Suspense>
   },
   {
     path: '/admin/roles',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <RolesPage />
     </Suspense>
   },
   {
     path: '/admin/access-control',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <AccessControlPage />
     </Suspense>
   },
   {
     path: '/admin/menu-visibility',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <MenuVisibilityPage />
     </Suspense>
   },
   {
     path: '/admin/activity',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <ActivityLogPage />
     </Suspense>
   },
   {
     path: '/admin/reports',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <ReportsPage />
     </Suspense>
   },
   {
     path: '/admin/calendar',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <CalendarPage />
     </Suspense>
   },
   {
     path: '/admin/state-holidays',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <StateHolidaysPage />
     </Suspense>
   },
   {
     path: '/admin/notifications',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <NotificationsPage />
     </Suspense>
   },
   {
     path: '/admin/organizations',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <OrganizationsPage />
     </Suspense>
   },
   {
     path: '/admin/settings',
-    element: <Suspense fallback={<Loading />}>
+    element: <Suspense fallback={<LoadingSpinner />}>
       <SettingsPage />
     </Suspense>
   },
