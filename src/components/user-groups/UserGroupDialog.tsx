@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UserGroup, UserGroupFormData } from "./types";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 const formSchema = z.object({
   group_name: z.string().min(1, "Group name is required"),
@@ -57,11 +58,15 @@ export const UserGroupDialog = ({
 
   const createMutation = useMutation({
     mutationFn: async (values: UserGroupFormData) => {
+      const newId = uuidv4();
+      const currentUser = (await supabase.auth.getUser()).data.user?.id;
+      
       const { data, error } = await supabase.from("nd_user_group").insert([
         {
+          id: newId,
           group_name: values.group_name,
           description: values.description,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: currentUser,
         },
       ]);
 
@@ -72,6 +77,7 @@ export const UserGroupDialog = ({
       queryClient.invalidateQueries({ queryKey: ["user-groups"] });
       toast.success("User group created successfully");
       onOpenChange(false);
+      form.reset();
     },
     onError: (error) => {
       console.error("Error creating user group:", error);
@@ -97,6 +103,7 @@ export const UserGroupDialog = ({
       queryClient.invalidateQueries({ queryKey: ["user-groups"] });
       toast.success("User group updated successfully");
       onOpenChange(false);
+      form.reset();
     },
     onError: (error) => {
       console.error("Error updating user group:", error);
