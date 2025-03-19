@@ -5,7 +5,6 @@ import { useOrganizations } from "@/hooks/use-organizations";
 import { UserType } from "@/types/auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
 
 export const useOrganizationUserManagement = () => {
   const { id } = useParams();
@@ -65,36 +64,32 @@ export const useOrganizationUserManagement = () => {
     error: orgUsersError 
   } = useOrganizationUsersQuery(id!);
 
-  // Fetch eligible users from profiles table
+  // Fetch users filtered by the appropriate user groups
   const { 
     data: eligibleUsers = [], 
     isLoading: loadingEligibleUsers 
   } = useQuery({
-    queryKey: ["eligible-users", organization?.type],
+    queryKey: ["eligible-users-by-group", userGroupIds, organization?.type],
     queryFn: async () => {
-      if (!organization?.type) return [];
+      if (!userGroupIds.length) return [];
       
-      console.log("Fetching eligible users for organization type:", organization.type);
+      console.log("Fetching eligible users for groups:", userGroupIds);
       
-      const orgTypeLower = organization.type.toLowerCase();
-      const userTypePrefix = orgTypeLower === "dusp" ? "dusp_" : "tp_";
-      
-      // Fetch users with matching user_type prefix
+      // Get users from profiles table filtered by user_group
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, email, user_type, user_group")
-        .ilike("user_type", `${userTypePrefix}%`);
-      
+        .in("user_group", userGroupIds);
+        
       if (error) {
-        console.error("Error fetching eligible users by type:", error);
-        toast.error("Failed to load eligible users");
+        console.error("Error fetching eligible users by group:", error);
         throw error;
       }
       
-      console.log(`Found ${data.length} users with ${userTypePrefix} user types:`, data);
+      console.log("Found eligible users:", data.length);
       return data;
     },
-    enabled: !!organization?.type
+    enabled: userGroupIds.length > 0
   });
 
   // Filter users not already in the organization
