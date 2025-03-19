@@ -7362,6 +7362,7 @@ export type Database = {
           id: number
           updated_at: string | null
           updated_by: string | null
+          user_types: string[] | null
         }
         Insert: {
           created_at: string
@@ -7371,6 +7372,7 @@ export type Database = {
           id: number
           updated_at?: string | null
           updated_by?: string | null
+          user_types?: string[] | null
         }
         Update: {
           created_at?: string
@@ -7380,6 +7382,7 @@ export type Database = {
           id?: number
           updated_at?: string | null
           updated_by?: string | null
+          user_types?: string[] | null
         }
         Relationships: []
       }
