@@ -1,7 +1,5 @@
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UserGroup } from "./types";
-import { toast } from "sonner";
+import { useDeleteUserGroup } from "./hooks/useDeleteUserGroup";
 
 interface DeleteUserGroupDialogProps {
   open: boolean;
@@ -26,34 +24,17 @@ export const DeleteUserGroupDialog = ({
   onOpenChange,
   userGroup,
 }: DeleteUserGroupDialogProps) => {
-  const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from("nd_user_group")
-        .delete()
-        .eq("id", userGroup.id);
-
-      if (error) throw error;
-      return true;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-groups"] });
-      toast.success("User group deleted successfully");
-      onOpenChange(false);
-    },
-    onError: (error) => {
-      console.error("Error deleting user group:", error);
-      toast.error("Failed to delete user group. It may be in use by one or more users.");
-    },
-  });
+  const { deleteUserGroup } = useDeleteUserGroup();
 
   const handleDelete = () => {
     setIsDeleting(true);
-    deleteMutation.mutate();
-    setIsDeleting(false);
+    deleteUserGroup.mutate(userGroup.id, {
+      onSettled: () => {
+        setIsDeleting(false);
+        onOpenChange(false);
+      }
+    });
   };
 
   return (

@@ -44,6 +44,5 @@ export interface EnhancedOrgUser extends OrganizationUser {
     full_name?: string;
     email?: string;
     user_type: UserType;
-    avatar_url?: string;
   };
 }
