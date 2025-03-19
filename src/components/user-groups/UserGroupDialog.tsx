@@ -71,13 +71,18 @@ export const UserGroupDialog = ({
       // Generate new ID (max + 1) or start with 1 if no records exist
       const newId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
       
-      // Insert with the new ID
+      // Get current timestamp for created_at
+      const now = new Date().toISOString();
+      
+      // Insert with the new ID and created_at
       const { data, error } = await supabase.from("nd_user_group").insert([
         {
           id: newId,
           group_name: values.group_name,
           description: values.description,
           created_by: currentUser,
+          created_at: now,
+          updated_at: now
         },
       ]);
 
