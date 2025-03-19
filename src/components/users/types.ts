@@ -5,6 +5,7 @@ export interface UserFormData {
   email: string;
   full_name: string;
   user_type: UserType;
+  user_group?: string;
   phone_number?: string;
   ic_number: string;
   password?: string;
@@ -16,6 +17,7 @@ export interface Profile {
   email: string;
   full_name: string;
   user_type: UserType;
+  user_group?: string;
   phone_number?: string;
   ic_number?: string;
 }

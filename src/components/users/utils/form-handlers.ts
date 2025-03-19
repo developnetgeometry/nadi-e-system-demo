@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { UserFormData } from "../types";
 import { Profile } from "@/types/auth";
@@ -13,6 +14,7 @@ export const handleCreateUser = async (data: UserFormData) => {
         email: data.email,
         fullName: data.full_name,
         userType: data.user_type,
+        userGroup: data.user_group,
         phoneNumber: data.phone_number,
         icNumber: data.ic_number,
         password: data.password
@@ -38,6 +40,7 @@ export const handleUpdateUser = async (data: UserFormData, user: Profile) => {
     .update({
       full_name: data.full_name,
       user_type: data.user_type,
+      user_group: data.user_group,
       phone_number: data.phone_number,
       updated_at: new Date().toISOString(),
     })

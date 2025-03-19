@@ -11,6 +11,7 @@ import { UserEmailField } from "./form-fields/UserEmailField";
 import { UserNameField } from "./form-fields/UserNameField";
 import { UserPhoneField } from "./form-fields/UserPhoneField";
 import { UserTypeField } from "./form-fields/UserTypeField";
+import { UserGroupField } from "./form-fields/UserGroupField";
 import { UserPasswordField } from "./form-fields/UserPasswordField";
 import { UserConfirmPasswordField } from "./form-fields/UserConfirmPasswordField";
 import { UserICNumberField } from "./form-fields/UserICNumberField";
@@ -22,6 +23,7 @@ const userFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   full_name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   user_type: z.string(),
+  user_group: z.string().optional(),
   phone_number: z.string()
     .regex(/^(\+?6?01)[0-9]{8,9}$/, { 
       message: "Please enter a valid Malaysian phone number (e.g., +60123456789 or 01123456789)" 
@@ -73,6 +75,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       email: user?.email || "",
       full_name: user?.full_name || "",
       user_type: user?.user_type || "member",
+      user_group: user?.user_group || "",
       phone_number: user?.phone_number || "",
       ic_number: user?.ic_number || "",
       password: "",
@@ -123,6 +126,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
         <UserICNumberField form={form} isLoading={isLoading} />
         <UserPhoneField form={form} isLoading={isLoading} />
         <UserTypeField form={form} isLoading={isLoading} />
+        <UserGroupField form={form} isLoading={isLoading} />
         
         {/* Only show password fields if creating a new user or explicitly updating password */}
         <UserPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
