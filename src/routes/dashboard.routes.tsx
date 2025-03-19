@@ -15,6 +15,7 @@ import NotificationsPage from '@/pages/dashboard/Notifications';
 import OrganizationsPage from '@/pages/dashboard/Organizations';
 import SettingsPage from '@/pages/dashboard/Settings';
 import UserGroupsPage from '@/pages/dashboard/UserGroups';
+import LookupSettingsPage from '@/pages/dashboard/LookupSettings';
 
 export const dashboardRoutes = [
   {
@@ -91,6 +92,12 @@ export const dashboardRoutes = [
     path: '/admin/settings',
     element: <Suspense fallback={<LoadingSpinner />}>
       <SettingsPage />
+    </Suspense>
+  },
+  {
+    path: '/admin/lookup-settings',
+    element: <Suspense fallback={<LoadingSpinner />}>
+      <LookupSettingsPage />
     </Suspense>
   },
 ];
