@@ -65,13 +65,16 @@ export const useOrganizationUserManagement = () => {
     data: eligibleUsers = [], 
     isLoading: loadingEligibleUsers 
   } = useQuery({
-    queryKey: ["eligible-users-by-group", userGroupIds],
+    queryKey: ["eligible-users-by-group", userGroupIds, organization?.type],
     queryFn: async () => {
       if (!userGroupIds.length) return [];
       
+      console.log("Fetching eligible users for groups:", userGroupIds);
+      
+      // Get users from profiles table filtered by user_group
       const { data, error } = await supabase
         .from("profiles")
-        .select("*, user_group")
+        .select("id, full_name, email, user_type, user_group")
         .in("user_group", userGroupIds);
         
       if (error) {
@@ -79,6 +82,7 @@ export const useOrganizationUserManagement = () => {
         throw error;
       }
       
+      console.log("Found eligible users:", data.length);
       return data;
     },
     enabled: userGroupIds.length > 0
