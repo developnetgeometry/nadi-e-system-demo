@@ -40,12 +40,39 @@ export const useRoles = () => {
 
         console.log('Roles data fetched:', rolesData);
 
+        // Get user counts based on user_type from profiles table
         const rolesWithCounts = await Promise.all(
           rolesData.map(async (role) => {
+            // For 'super_admin' role, count profiles with user_type 'super_admin'
+            // For 'admin' role, count profiles with user_type 'sso', 'dusp', etc.
+            // For 'user' role, count profiles with user_type 'member'
+            
+            let userType;
+            if (role.name === 'super_admin') {
+              userType = 'super_admin';
+            } else if (role.name === 'admin') {
+              // Count multiple admin-like types
+              const { count } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .in('user_type', ['sso', 'dusp', 'tp', 'staff_internal', 'staff_external', 'medical_office']);
+              
+              return {
+                ...role,
+                users_count: count || 0
+              };
+            } else if (role.name === 'user') {
+              userType = 'member';
+            } else {
+              // For other roles, use the role name as the user_type
+              userType = role.name.toLowerCase();
+            }
+            
+            // If we didn't return early (for admin role), get count for specific type
             const { count } = await supabase
-              .from('user_roles')
+              .from('profiles')
               .select('*', { count: 'exact', head: true })
-              .eq('role_id', role.id);
+              .eq('user_type', userType);
 
             return {
               ...role,
