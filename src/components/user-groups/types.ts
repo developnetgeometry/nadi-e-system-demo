@@ -1,6 +1,6 @@
 
 export interface UserGroup {
-  id: string;
+  id: number; // Changed from string to number to match bigint in the database
   group_name: string;
   description: string | null;
   created_at?: string;

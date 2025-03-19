@@ -26,7 +26,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UserGroup, UserGroupFormData } from "./types";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 
 const formSchema = z.object({
   group_name: z.string().min(1, "Group name is required"),
@@ -58,12 +57,11 @@ export const UserGroupDialog = ({
 
   const createMutation = useMutation({
     mutationFn: async (values: UserGroupFormData) => {
-      const newId = uuidv4();
       const currentUser = (await supabase.auth.getUser()).data.user?.id;
       
+      // When creating, let the database auto-increment the ID
       const { data, error } = await supabase.from("nd_user_group").insert([
         {
-          id: newId,
           group_name: values.group_name,
           description: values.description,
           created_by: currentUser,
@@ -87,6 +85,7 @@ export const UserGroupDialog = ({
 
   const updateMutation = useMutation({
     mutationFn: async (values: UserGroupFormData) => {
+      // For updates, we'll use the existing bigint ID
       const { data, error } = await supabase
         .from("nd_user_group")
         .update({
