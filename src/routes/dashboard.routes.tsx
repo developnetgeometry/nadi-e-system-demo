@@ -1,4 +1,5 @@
-import { Suspense, React } from 'react';
+
+import { Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Loading from '@/components/ui/loading';
 import DashboardPage from '@/pages/dashboard';
@@ -13,6 +14,7 @@ import StateHolidaysPage from '@/pages/dashboard/StateHolidays';
 import NotificationsPage from '@/pages/dashboard/Notifications';
 import OrganizationsPage from '@/pages/dashboard/Organizations';
 import SettingsPage from '@/pages/dashboard/Settings';
+import UserGroupsPage from '@/pages/dashboard/UserGroups';
 
 const dashboardRoutes = [
   {
@@ -22,73 +24,73 @@ const dashboardRoutes = [
   {
     path: '/admin/users',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Users')) />
+      <UsersPage />
     </Suspense>
   },
   {
     path: '/admin/user-groups',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/UserGroups')) />
+      <UserGroupsPage />
     </Suspense>
   },
   {
     path: '/admin/roles',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Roles')) />
+      <RolesPage />
     </Suspense>
   },
   {
     path: '/admin/access-control',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/AccessControl')) />
+      <AccessControlPage />
     </Suspense>
   },
   {
     path: '/admin/menu-visibility',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/MenuVisibility')) />
+      <MenuVisibilityPage />
     </Suspense>
   },
   {
     path: '/admin/activity',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/ActivityLog')) />
+      <ActivityLogPage />
     </Suspense>
   },
   {
     path: '/admin/reports',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Reports')) />
+      <ReportsPage />
     </Suspense>
   },
   {
     path: '/admin/calendar',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Calendar')) />
+      <CalendarPage />
     </Suspense>
   },
   {
     path: '/admin/state-holidays',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/StateHolidays')) />
+      <StateHolidaysPage />
     </Suspense>
   },
   {
     path: '/admin/notifications',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Notifications')) />
+      <NotificationsPage />
     </Suspense>
   },
   {
     path: '/admin/organizations',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Organizations')) />
+      <OrganizationsPage />
     </Suspense>
   },
   {
     path: '/admin/settings',
     element: <Suspense fallback={<Loading />}>
-      <React.lazy(() => import('@/pages/dashboard/Settings')) />
+      <SettingsPage />
     </Suspense>
   },
 ];
