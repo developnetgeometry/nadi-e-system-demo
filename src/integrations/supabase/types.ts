@@ -7369,7 +7369,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           group_name?: string | null
-          id: number
+          id?: number
           updated_at?: string | null
           updated_by?: string | null
           user_types?: string[] | null
