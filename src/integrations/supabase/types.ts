@@ -3465,8 +3465,8 @@ export type Database = {
           },
           {
             foreignKeyName: "nd_leave_public_holiday_state_nd_state_fk"
-            columns: ["id"]
-            isOneToOne: true
+            columns: ["state_id"]
+            isOneToOne: false
             referencedRelation: "nd_state"
             referencedColumns: ["id"]
           },
@@ -6504,7 +6504,7 @@ export type Database = {
       }
       nd_staff_photo: {
         Row: {
-          created_at: string
+          created_at: string | null
           created_by: string | null
           ext: string | null
           id: number
@@ -6513,12 +6513,12 @@ export type Database = {
           photo_thumb: string | null
           size: string | null
           staff_id: number | null
-          updated_at: string
+          updated_at: string | null
           updated_by: string | null
           user_id: string | null
         }
         Insert: {
-          created_at: string
+          created_at?: string | null
           created_by?: string | null
           ext?: string | null
           id?: number
@@ -6527,12 +6527,12 @@ export type Database = {
           photo_thumb?: string | null
           size?: string | null
           staff_id?: number | null
-          updated_at: string
+          updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           created_by?: string | null
           ext?: string | null
           id?: number
@@ -6541,7 +6541,7 @@ export type Database = {
           photo_thumb?: string | null
           size?: string | null
           staff_id?: number | null
-          updated_at?: string
+          updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
         }
@@ -8751,6 +8751,95 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      workflow_config_steps: {
+        Row: {
+          approver_user_types: string[] | null
+          conditions: Json | null
+          description: string | null
+          id: string
+          is_end_step: boolean | null
+          is_start_step: boolean | null
+          name: string
+          next_step_id: string | null
+          order_index: number
+          sla_hours: number | null
+          workflow_config_id: string | null
+        }
+        Insert: {
+          approver_user_types?: string[] | null
+          conditions?: Json | null
+          description?: string | null
+          id?: string
+          is_end_step?: boolean | null
+          is_start_step?: boolean | null
+          name: string
+          next_step_id?: string | null
+          order_index: number
+          sla_hours?: number | null
+          workflow_config_id?: string | null
+        }
+        Update: {
+          approver_user_types?: string[] | null
+          conditions?: Json | null
+          description?: string | null
+          id?: string
+          is_end_step?: boolean | null
+          is_start_step?: boolean | null
+          name?: string
+          next_step_id?: string | null
+          order_index?: number
+          sla_hours?: number | null
+          workflow_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_config_steps_workflow_config_id_fkey"
+            columns: ["workflow_config_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_configurations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          module_id: string | null
+          module_name: string | null
+          sla_hours: number | null
+          start_step_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string | null
+          module_name?: string | null
+          sla_hours?: number | null
+          start_step_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          module_id?: string | null
+          module_name?: string | null
+          sla_hours?: number | null
+          start_step_id?: string | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

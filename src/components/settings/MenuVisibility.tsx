@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -68,9 +69,15 @@ export const MenuVisibilitySettings = () => {
 
       setMenuVisibility(prev => {
         if (prev.some(m => m.menu_key === menuKey)) {
-          return prev.map(m => m.menu_key === menuKey ? { ...m, visible_to: updatedVisibleTo } : m);
+          return prev.map(m => m.menu_key === menuKey 
+            ? { ...m, visible_to: updatedVisibleTo } 
+            : m);
         } 
-        return [...prev, { menu_key: menuKey, visible_to: updatedVisibleTo }];
+        return [...prev, { 
+          menu_key: menuKey, 
+          visible_to: updatedVisibleTo,
+          menu_path: '' // Add required menu_path property
+        }];
       });
 
       toast({
@@ -136,7 +143,8 @@ export const MenuVisibilitySettings = () => {
           .insert({
             parent_module: parentModule,
             submodule_key: submoduleKey,
-            visible_to: updatedVisibleTo
+            visible_to: updatedVisibleTo,
+            submodule_path: '' // Add required submodule_path property
           });
         saveError = error;
       }
@@ -156,7 +164,8 @@ export const MenuVisibilitySettings = () => {
           return [...prev, {
             parent_module: parentModule,
             submodule_key: submoduleKey,
-            visible_to: updatedVisibleTo
+            visible_to: updatedVisibleTo,
+            submodule_path: '' // Add required submodule_path property
           }];
         }
       });

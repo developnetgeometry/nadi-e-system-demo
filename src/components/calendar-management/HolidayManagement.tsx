@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,8 +30,8 @@ const CalendarManagement = () => {
     setSelectedState(state);
   };
 
-  const handleYearChange = (year: number) => {
-    setSelectedYear(year);
+  const handleYearChange = (year: string) => {
+    setSelectedYear(Number(year));
   };
 
   const handleAddHoliday = () => {
@@ -116,13 +117,13 @@ const CalendarManagement = () => {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Select onValueChange={handleYearChange} defaultValue={selectedYear}>
+          <Select onValueChange={handleYearChange} defaultValue={String(selectedYear)}>
             <SelectTrigger>
               <SelectValue placeholder="Select Year" />
             </SelectTrigger>
             <SelectContent>
               {years.map((year) => (
-                <SelectItem key={year} value={year}>
+                <SelectItem key={year} value={String(year)}>
                   {year}
                 </SelectItem>
               ))}

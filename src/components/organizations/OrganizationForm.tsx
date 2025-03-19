@@ -2,37 +2,16 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Organization, OrganizationType } from "@/types/organization";
+import { Organization } from "@/types/organization";
 import { useOrganizations } from "@/hooks/use-organizations";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const organizationSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  type: z.enum(["dusp", "tp"] as const),
-  description: z.string().optional(),
-  logo_url: z.string().optional(),
-  parent_id: z.string().optional().nullable().transform(val => val === "" ? null : val),
-});
-
-type OrganizationFormValues = z.infer<typeof organizationSchema>;
+import { Form } from "@/components/ui/form";
+import { useOrganizationLogo } from "./hooks/use-organization-logo";
+import { organizationSchema, OrganizationFormValues } from "./schemas/organization-schema";
+import { BasicInfoFields } from "./form-parts/BasicInfoFields";
+import { OrganizationTypeField } from "./form-parts/OrganizationTypeField";
+import { ParentOrganizationField } from "./form-parts/ParentOrganizationField";
+import { LogoUploadField } from "./form-parts/LogoUploadField";
+import { FormActions } from "./form-parts/FormActions";
 
 interface OrganizationFormProps {
   organization?: Organization;
@@ -48,6 +27,16 @@ export function OrganizationForm({
   const { useOrganizationsQuery } = useOrganizations();
   const { data: organizations = [] } = useOrganizationsQuery();
   const [filteredParentOrgs, setFilteredParentOrgs] = useState<Organization[]>([]);
+  const [selectedType, setSelectedType] = useState<string>(organization?.type || "dusp");
+  
+  const {
+    logoFile,
+    previewUrl,
+    isUploading,
+    handleLogoChange,
+    handleRemoveLogo,
+    uploadLogo
+  } = useOrganizationLogo(organization?.logo_url);
 
   const form = useForm<OrganizationFormValues>({
     resolver: zodResolver(organizationSchema),
@@ -59,6 +48,16 @@ export function OrganizationForm({
       parent_id: organization?.parent_id || null,
     },
   });
+
+  // Listen for type changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "type") {
+        setSelectedType(value.type as string);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   // Filter parent organizations based on selected type
   useEffect(() => {
@@ -77,124 +76,72 @@ export function OrganizationForm({
     }
   }, [form.watch("type"), organizations, organization?.id]);
 
-  const handleSubmit = (values: OrganizationFormValues) => {
-    onSubmit(values);
+  const handleFormSubmit = async (values: OrganizationFormValues) => {
+    try {
+      // If there is an existing logo that isn't being changed, keep it
+      if (!logoFile && previewUrl && organization?.logo_url) {
+        values.logo_url = organization.logo_url;
+      }
+      // If a new logo was selected, upload it
+      else if (logoFile) {
+        const logoUrl = await uploadLogo();
+        
+        if (logoUrl) {
+          values.logo_url = logoUrl;
+        }
+      }
+      // If logo was removed, clear the URL
+      else if (!previewUrl) {
+        values.logo_url = "";
+      }
+      
+      // Handle "null" string value for parent_id
+      if (values.parent_id === "null") {
+        values.parent_id = null;
+      }
+      
+      // If organization type is DUSP and no parent_id is selected, ensure it's null
+      if (values.type === "dusp" && !values.parent_id) {
+        values.parent_id = null;
+      }
+      
+      onSubmit(values);
+    } catch (error) {
+      console.error("Error handling form submission:", error);
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter organization name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+        <BasicInfoFields form={form} />
+        
+        <OrganizationTypeField 
+          form={form}
+          organization={organization}
         />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Organization Type</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={!!organization} // Disable if editing
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="dusp">DUSP</SelectItem>
-                  <SelectItem value="tp">Technology Partner (TP)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        
+        {/* Only show ParentOrganizationField for TP type */}
+        {selectedType === "tp" && (
+          <ParentOrganizationField 
+            form={form}
+            filteredParentOrgs={filteredParentOrgs}
+          />
+        )}
+        
+        <LogoUploadField 
+          form={form}
+          previewUrl={previewUrl}
+          isUploading={isUploading}
+          onLogoChange={handleLogoChange}
+          onRemoveLogo={handleRemoveLogo}
         />
-
-        <FormField
-          control={form.control}
-          name="parent_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Parent Organization</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value || ""}
-                disabled={filteredParentOrgs.length === 0}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parent organization" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {filteredParentOrgs.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        
+        <FormActions 
+          isUploading={isUploading}
+          isEditing={!!organization}
+          onCancel={onCancel}
         />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Organization description"
-                  className="resize-none"
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="logo_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Logo URL</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter logo URL" {...field} value={field.value || ""} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit">
-            {organization ? "Update" : "Create"} Organization
-          </Button>
-        </div>
       </form>
     </Form>
   );

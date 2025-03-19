@@ -24,6 +24,7 @@ import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
+import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 
@@ -222,12 +223,28 @@ export const moduleRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
-  // Workflow Routes
+  // Workflow Routes - Keep only configuration related routes
   {
     path: "/workflow",
     element: (
       <ProtectedRoute requiredPermission="manage_workflows">
         <WorkflowDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/workflow/configuration",
+    element: (
+      <ProtectedRoute requiredPermission="manage_workflow_configuration">
+        <WorkflowConfiguration />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/workflow/configuration/:id",
+    element: (
+      <ProtectedRoute requiredPermission="manage_workflow_configuration">
+        <WorkflowConfiguration />
       </ProtectedRoute>
     ),
   },
@@ -247,7 +264,6 @@ export const moduleRoutes: RouteObject[] = [
       <ProtectedRoute requiredPermission="view_site_details">
         <SiteDetails />
       </ProtectedRoute>
-
-    )
+    ),
   },
 ];
