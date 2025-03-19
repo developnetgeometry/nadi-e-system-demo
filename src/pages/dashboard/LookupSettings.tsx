@@ -18,6 +18,13 @@ import { LookupEducation } from "@/components/lookup/LookupEducation";
 import { LookupEthnics } from "@/components/lookup/LookupEthnics";
 import { LookupGenders } from "@/components/lookup/LookupGenders";
 import { LookupICTKnowledge } from "@/components/lookup/LookupICTKnowledge";
+import { LookupIncomeLevel } from "@/components/lookup/LookupIncomeLevel";
+import { LookupLeaveOffType } from "@/components/lookup/LookupLeaveOffType";
+import { LookupLeaveStatus } from "@/components/lookup/LookupLeaveStatus";
+import { LookupLeaveType } from "@/components/lookup/LookupLeaveType";
+import { LookupMaritalStatus } from "@/components/lookup/LookupMaritalStatus";
+import { LookupMukim } from "@/components/lookup/LookupMukim";
+import { LookupNationality } from "@/components/lookup/LookupNationality";
 
 const LookupSettingsPage = () => {
   return (
@@ -49,6 +56,13 @@ const LookupSettingsPage = () => {
             <TabsTrigger value="ethnics">Ethnics</TabsTrigger>
             <TabsTrigger value="genders">Genders</TabsTrigger>
             <TabsTrigger value="ict-knowledge">ICT Knowledge</TabsTrigger>
+            <TabsTrigger value="income-level">Income Level</TabsTrigger>
+            <TabsTrigger value="leave-off-type">Leave Off Type</TabsTrigger>
+            <TabsTrigger value="leave-status">Leave Status</TabsTrigger>
+            <TabsTrigger value="leave-type">Leave Type</TabsTrigger>
+            <TabsTrigger value="marital-status">Marital Status</TabsTrigger>
+            <TabsTrigger value="mukim">Mukim</TabsTrigger>
+            <TabsTrigger value="nationality">Nationality</TabsTrigger>
           </TabsList>
           
           <TabsContent value="age-group">
@@ -117,6 +131,34 @@ const LookupSettingsPage = () => {
           
           <TabsContent value="ict-knowledge">
             <LookupICTKnowledge />
+          </TabsContent>
+          
+          <TabsContent value="income-level">
+            <LookupIncomeLevel />
+          </TabsContent>
+          
+          <TabsContent value="leave-off-type">
+            <LookupLeaveOffType />
+          </TabsContent>
+          
+          <TabsContent value="leave-status">
+            <LookupLeaveStatus />
+          </TabsContent>
+          
+          <TabsContent value="leave-type">
+            <LookupLeaveType />
+          </TabsContent>
+          
+          <TabsContent value="marital-status">
+            <LookupMaritalStatus />
+          </TabsContent>
+          
+          <TabsContent value="mukim">
+            <LookupMukim />
+          </TabsContent>
+          
+          <TabsContent value="nationality">
+            <LookupNationality />
           </TabsContent>
         </Tabs>
       </div>
