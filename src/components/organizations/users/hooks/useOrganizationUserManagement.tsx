@@ -34,6 +34,8 @@ export const useOrganizationUserManagement = () => {
     queryFn: async () => {
       if (!organization?.type) return [];
       
+      console.log("Fetching user groups for organization type:", organization.type);
+      
       // Get appropriate user group for the organization type
       const { data, error } = await supabase
         .from("nd_user_group")
@@ -44,6 +46,8 @@ export const useOrganizationUserManagement = () => {
         console.error("Error fetching user groups:", error);
         throw error;
       }
+      
+      console.log("Found user groups:", data);
       
       // Extract the ids of relevant user groups
       const groupIds = data.map(group => group.id);

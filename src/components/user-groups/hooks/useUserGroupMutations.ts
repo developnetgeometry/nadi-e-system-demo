@@ -10,7 +10,7 @@ export const useUserGroupMutations = () => {
   // Create user group mutation
   const createUserGroup = useMutation({
     mutationFn: async (formData: UserGroupFormData) => {
-      // First, create the user group
+      // First, create the user group - don't specify an ID, let the DB handle it
       const { data, error } = await supabase
         .from("nd_user_group")
         .insert({
