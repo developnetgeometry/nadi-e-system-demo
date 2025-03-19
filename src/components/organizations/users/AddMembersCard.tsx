@@ -16,6 +16,7 @@ interface AddMembersCardProps {
   users: any[];
   isLoading: boolean;
   onAddUser: (userId: string) => void;
+  organizationType?: string;
 }
 
 export const AddMembersCard = ({
@@ -28,12 +29,20 @@ export const AddMembersCard = ({
   onRoleChange,
   users,
   isLoading,
-  onAddUser
+  onAddUser,
+  organizationType
 }: AddMembersCardProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add Members</CardTitle>
+        <CardTitle>
+          Add Members
+          {organizationType && (
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              (Filtered to {organizationType.toUpperCase()} User Group)
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

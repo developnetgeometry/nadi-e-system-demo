@@ -58,8 +58,8 @@ export const UserGroupDialog = ({
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Update the user group details"
-              : "Create a new user group to organize users"}
+              ? "Update the user group details and associated user types"
+              : "Create a new user group and assign user types to it"}
           </DialogDescription>
         </DialogHeader>
 

@@ -10,6 +10,7 @@ interface UserProfile {
   full_name?: string;
   email?: string;
   user_type: string;
+  user_group?: number;
 }
 
 interface AvailableUsersListProps {
@@ -36,7 +37,7 @@ export const AvailableUsersList = ({
       <div className="text-center py-4 text-muted-foreground border rounded-md">
         {searchTerm || filterUserType !== "all" 
           ? "No users match your search criteria." 
-          : "No users available to add."}
+          : "No users available to add with the appropriate user group."}
       </div>
     );
   }
