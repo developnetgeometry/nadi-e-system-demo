@@ -22,9 +22,19 @@ import { LookupIncomeLevel } from "@/components/lookup/LookupIncomeLevel";
 import { LookupLeaveOffType } from "@/components/lookup/LookupLeaveOffType";
 import { LookupLeaveStatus } from "@/components/lookup/LookupLeaveStatus";
 import { LookupLeaveType } from "@/components/lookup/LookupLeaveType";
+import { LookupMaintenanceType } from "@/components/lookup/LookupMaintenanceType";
 import { LookupMaritalStatus } from "@/components/lookup/LookupMaritalStatus";
 import { LookupMukim } from "@/components/lookup/LookupMukim";
 import { LookupNationality } from "@/components/lookup/LookupNationality";
+import { LookupOccupation } from "@/components/lookup/LookupOccupation";
+import { LookupParliament } from "@/components/lookup/LookupParliament";
+import { LookupRace } from "@/components/lookup/LookupRace";
+import { LookupRegion } from "@/components/lookup/LookupRegion";
+import { LookupRelationship } from "@/components/lookup/LookupRelationship";
+import { LookupReligion } from "@/components/lookup/LookupReligion";
+import { LookupSectorType } from "@/components/lookup/LookupSectorType";
+import { LookupState } from "@/components/lookup/LookupState";
+import { LookupTechnology } from "@/components/lookup/LookupTechnology";
 
 const LookupSettingsPage = () => {
   return (
@@ -60,9 +70,19 @@ const LookupSettingsPage = () => {
             <TabsTrigger value="leave-off-type">Leave Off Type</TabsTrigger>
             <TabsTrigger value="leave-status">Leave Status</TabsTrigger>
             <TabsTrigger value="leave-type">Leave Type</TabsTrigger>
+            <TabsTrigger value="maintenance-type">Maintenance Type</TabsTrigger>
             <TabsTrigger value="marital-status">Marital Status</TabsTrigger>
             <TabsTrigger value="mukim">Mukim</TabsTrigger>
             <TabsTrigger value="nationality">Nationality</TabsTrigger>
+            <TabsTrigger value="occupation">Occupation</TabsTrigger>
+            <TabsTrigger value="parliament">Parliament</TabsTrigger>
+            <TabsTrigger value="race">Race</TabsTrigger>
+            <TabsTrigger value="region">Region</TabsTrigger>
+            <TabsTrigger value="relationship">Relationship</TabsTrigger>
+            <TabsTrigger value="religion">Religion</TabsTrigger>
+            <TabsTrigger value="sector-type">Sector Type</TabsTrigger>
+            <TabsTrigger value="state">State</TabsTrigger>
+            <TabsTrigger value="technology">Technology</TabsTrigger>
           </TabsList>
           
           <TabsContent value="age-group">
@@ -148,6 +168,10 @@ const LookupSettingsPage = () => {
           <TabsContent value="leave-type">
             <LookupLeaveType />
           </TabsContent>
+
+          <TabsContent value="maintenance-type">
+            <LookupMaintenanceType />
+          </TabsContent>
           
           <TabsContent value="marital-status">
             <LookupMaritalStatus />
@@ -159,6 +183,42 @@ const LookupSettingsPage = () => {
           
           <TabsContent value="nationality">
             <LookupNationality />
+          </TabsContent>
+
+          <TabsContent value="occupation">
+            <LookupOccupation />
+          </TabsContent>
+
+          <TabsContent value="parliament">
+            <LookupParliament />
+          </TabsContent>
+
+          <TabsContent value="race">
+            <LookupRace />
+          </TabsContent>
+
+          <TabsContent value="region">
+            <LookupRegion />
+          </TabsContent>
+
+          <TabsContent value="relationship">
+            <LookupRelationship />
+          </TabsContent>
+
+          <TabsContent value="religion">
+            <LookupReligion />
+          </TabsContent>
+
+          <TabsContent value="sector-type">
+            <LookupSectorType />
+          </TabsContent>
+
+          <TabsContent value="state">
+            <LookupState />
+          </TabsContent>
+
+          <TabsContent value="technology">
+            <LookupTechnology />
           </TabsContent>
         </Tabs>
       </div>
