@@ -59,9 +59,22 @@ export const UserGroupDialog = ({
     mutationFn: async (values: UserGroupFormData) => {
       const currentUser = (await supabase.auth.getUser()).data.user?.id;
       
-      // When creating, let the database auto-increment the ID
+      // First get the maximum ID to generate the next one
+      const { data: maxIdData, error: maxIdError } = await supabase
+        .from("nd_user_group")
+        .select("id")
+        .order("id", { ascending: false })
+        .limit(1);
+
+      if (maxIdError) throw maxIdError;
+      
+      // Generate new ID (max + 1) or start with 1 if no records exist
+      const newId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1;
+      
+      // Insert with the new ID
       const { data, error } = await supabase.from("nd_user_group").insert([
         {
+          id: newId,
           group_name: values.group_name,
           description: values.description,
           created_by: currentUser,
