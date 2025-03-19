@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Settings,
@@ -37,12 +38,14 @@ import {
   GitBranch,
   CheckSquare,
   BarChart,
+  Users2,
 } from "lucide-react";
 import { MenuItem } from "@/types/menu";
 
 export const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   { title: "User Management", icon: Users, path: "/admin/users" },
+  { title: "User Groups", icon: Users2, path: "/admin/user-groups" },
   { title: "Roles & Permissions", icon: Shield, path: "/admin/roles" },
   { title: "Access Control", icon: UserCog, path: "/admin/access-control" },
   { title: "Menu Visibility", icon: Eye, path: "/admin/menu-visibility" },
