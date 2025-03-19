@@ -36,7 +36,7 @@ export const useOrganizationUserManagement = () => {
       
       console.log("Fetching user groups for organization type:", organization.type);
       
-      // Get appropriate user group for the organization type
+      // Get appropriate user group for the organization type - using ILIKE for case-insensitive matching
       const { data, error } = await supabase
         .from("nd_user_group")
         .select("id, group_name, user_types")
