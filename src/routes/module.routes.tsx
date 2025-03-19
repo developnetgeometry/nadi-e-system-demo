@@ -24,8 +24,8 @@ import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
-import SiteDetail from "@/components/site/SiteDetail";
-import SiteManagement from "@/pages/dashboard/SiteManagement";
+import SiteManagement from "@/pages/dashboard/site/SiteManagement";
+import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -243,6 +243,11 @@ export const moduleRoutes: RouteObject[] = [
   },
   {
     path: "/site/:id",
-    element: <SiteDetail />,
+    element: (
+      <ProtectedRoute requiredPermission="view_site_details">
+        <SiteDetails />
+      </ProtectedRoute>
+
+    )
   },
 ];

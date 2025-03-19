@@ -14,7 +14,7 @@ const Activity = lazy(() => import("@/pages/dashboard/Activity"));
 const Reports = lazy(() => import("@/pages/dashboard/Reports"));
 const Calendar = lazy(() => import("@/pages/dashboard/Calendar"));
 const Notifications = lazy(() => import("@/pages/dashboard/Notifications"));
-const SiteManagement = lazy(() => import("@/pages/dashboard/SiteManagement"));
+const SiteManagement = lazy(() => import("@/pages/dashboard/site/SiteManagement"));
 const Profile = lazy(() => import("@/pages/dashboard/Profile"));
 const UsageSessions = lazy(() => import("@/pages/dashboard/UsageSessions"));
 const Organizations = lazy(() => import("@/pages/dashboard/Organizations"));
@@ -141,7 +141,11 @@ export const dashboardRoutes = [
   },
   {
     path: "/dashboard/profile",
-    element: <UserProfile />,
+    element: (
+      <ProtectedRoute>
+      <UserProfile />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/state-holidays",

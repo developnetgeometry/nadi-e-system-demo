@@ -14,10 +14,14 @@ import { Settings, Trash2, MapPin, Globe, Mail, Calendar, Users, Building } from
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardLayout } from "../layout/DashboardLayout";
+import useSiteGeneralData from "@/hooks/use-site-general-data";
+import useGeoData from "@/hooks/use-geo-data";
 
 const SiteDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error } = useSiteProfile(id);
+  const { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel } = useSiteGeneralData();
+  const { regions, states, parliaments, duns, mukims, phases } = useGeoData();
 
   if (loading) return <Skeleton className="w-full h-96">Loading...</Skeleton>;
   if (error) return <div className="p-4 text-destructive">Error: {error}</div>;
@@ -34,21 +38,16 @@ const SiteDetail = () => {
     return <Badge variant={variant}>{label}</Badge>;
   };
 
+  const getNameById = (id, data) => {
+    const item = data.find(item => item.id === id);
+    return item ? item.name || item.eng || item.fullname : "N/A";
+  };
+
   return (
-     <DashboardLayout>
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{data.sitename || data.fullname || "Site Details"}</h1>
-        {/* <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
-        </div> */}
+      <div className="items-center">
+        <h1 className="text-2xl font-bold">{data.sitename || data.fullname || "Site Name"}</h1>
+        <h3 className="text-2xl font-bold">{data.sitename || data.fullname || "Site Details"}</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -62,15 +61,15 @@ const SiteDetail = () => {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Region:</span>
-              <span className="font-medium">{data.region_id || "N/A"}</span>
+              <span className="font-medium">{getNameById(data.region_id, regions)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">State:</span>
-              <span className="font-medium">{data.state_id || "N/A"}</span>
+              <span className="font-medium">{getNameById(data.state_id, states)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Mukim:</span>
-              <span className="font-medium">{data.mukim_id || "N/A"}</span>
+              <span className="font-medium">{getNameById(data.mukim_id, mukims)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Coordinates:</span>
@@ -120,11 +119,11 @@ const SiteDetail = () => {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Building Type:</span>
-              <span className="font-medium">{data.building_type_id || "N/A"}</span>
+              <span className="font-medium">{getNameById(data.building_type_id, buildingType)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Building Area:</span>
-              <span className="font-medium">{data.building_area_id || "N/A"}</span>
+              <span className="font-medium">{getNameById(data.building_area_id, space)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Rental:</span>
@@ -161,11 +160,11 @@ const SiteDetail = () => {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell>{data.technology || "N/A"}</TableCell>
-                  <TableCell>{data.bandwidth ? `${data.bandwidth} Mbps` : "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.technology, technology)}</TableCell>
+                  <TableCell>{getNameById(data.bandwidth, bandwidth)}</TableCell>
                   <TableCell>{data.total_population?.toLocaleString() || "N/A"}</TableCell>
                   <TableCell>{data.socioeconomic_id || "N/A"}</TableCell>
-                  <TableCell>{data.phase_id || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.phase_id, phases)}</TableCell>
                   <TableCell>{data.cluster_id || "N/A"}</TableCell>
                   <TableCell>
                     {data.operate_date 
@@ -189,9 +188,9 @@ const SiteDetail = () => {
               <TableBody>
                 <TableRow>
                   <TableHead className="w-1/4">Parliament RFID</TableHead>
-                  <TableCell>{data.parliament_rfid || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.parliament_rfid, parliaments)}</TableCell>
                   <TableHead className="w-1/4">DUN RFID</TableHead>
-                  <TableCell>{data.dun_rfid || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.dun_rfid, duns)}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead>UST ID</TableHead>
@@ -201,15 +200,15 @@ const SiteDetail = () => {
                 </TableRow>
                 <TableRow>
                   <TableHead>Space ID</TableHead>
-                  <TableCell>{data.space_id || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.space_id, space)}</TableCell>
                   <TableHead>Zone ID</TableHead>
-                  <TableCell>{data.zone_id || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.zone_id, zone)}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead>Area ID</TableHead>
-                  <TableCell>{data.area_id || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.area_id, categoryArea)}</TableCell>
                   <TableHead>Level ID</TableHead>
-                  <TableCell>{data.level_id || "N/A"}</TableCell>
+                  <TableCell>{getNameById(data.level_id, buildingLevel)}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead>Created At</TableHead>
@@ -242,7 +241,6 @@ const SiteDetail = () => {
         </Card>
       )}
     </div>
-    </DashboardLayout>
   );
 };
 
