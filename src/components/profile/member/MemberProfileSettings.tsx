@@ -9,6 +9,7 @@ import useGeneralData from "@/hooks/use-general-data";
 import useGeoData from "@/hooks/use-geo-data";
 import useMemberID from "@/hooks/use-member-id";
 import { Skeleton } from "@/components/ui/skeleton";
+import MemberProfilePicture from "./components/MemberProfilePicture";
 
 const MemberProfileSettings = () => {
   const [memberData, setMemberData] = useState<any>(null);
@@ -218,11 +219,7 @@ const MemberProfileSettings = () => {
       </CardHeader>
 
       <CardContent className="p-6">
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 border-4 border-gray-300 rounded-full overflow-hidden shadow-lg">
-            <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-          </div>
-        </div>
+        <MemberProfilePicture/>
         <PersonalInformation
           memberData={memberData}
           genders={genders}

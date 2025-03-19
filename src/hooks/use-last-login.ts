@@ -19,7 +19,7 @@ const useLastLogin = () => {
           .eq("user_id", user.id)
           .eq("session_type", "login")
           .order("start_time", { ascending: false })
-          .limit(2);
+          .limit(3);
 
         if (sessionError) throw sessionError;
         if (!sessions || sessions.length === 0) {
@@ -27,7 +27,7 @@ const useLastLogin = () => {
         }
 
         setLastLogin(sessions[0]?.start_time || null);
-        setSecondLastLogin(sessions[1]?.start_time || null);
+        setSecondLastLogin(sessions[2]?.start_time || null);
       } catch (error) {
         console.error("Error fetching last login time:", error);
         setError(error.message);

@@ -25,7 +25,8 @@ import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import SiteManagement from "@/pages/dashboard/SiteManagement";
+import SiteManagement from "@/pages/dashboard/site/SiteManagement";
+import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -247,13 +248,21 @@ export const moduleRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
   },
-  
+
   // Site Management Routes
   {
     path: "/site-management/main",
     element: (
       <ProtectedRoute requiredPermission="site_management">
         <SiteManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/:id",
+    element: (
+      <ProtectedRoute requiredPermission="view_site_details">
+        <SiteDetails />
       </ProtectedRoute>
     ),
   },
