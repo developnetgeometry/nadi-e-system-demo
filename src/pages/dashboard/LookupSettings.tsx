@@ -8,6 +8,13 @@ import { LookupBuildingLevel } from "@/components/lookup/LookupBuildingLevel";
 import { LookupBuildingType } from "@/components/lookup/LookupBuildingType";
 import { LookupCategoryArea } from "@/components/lookup/LookupCategoryArea";
 import { LookupCity } from "@/components/lookup/LookupCity";
+import { LookupClosureAffectArea } from "@/components/lookup/LookupClosureAffectArea";
+import { LookupClosureCategory } from "@/components/lookup/LookupClosureCategory";
+import { LookupClosureStatus } from "@/components/lookup/LookupClosureStatus";
+import { LookupClosureSubcategory } from "@/components/lookup/LookupClosureSubcategory";
+import { LookupDistrict } from "@/components/lookup/LookupDistrict";
+import { LookupDUN } from "@/components/lookup/LookupDUN";
+import { LookupEducation } from "@/components/lookup/LookupEducation";
 
 const LookupSettingsPage = () => {
   return (
@@ -21,7 +28,7 @@ const LookupSettingsPage = () => {
         </div>
 
         <Tabs defaultValue="age-group" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-8 w-full">
+          <TabsList className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 mb-8 w-full h-full flex-wrap">
             <TabsTrigger value="age-group">Age Group</TabsTrigger>
             <TabsTrigger value="bandwidth">Bandwidth</TabsTrigger>
             <TabsTrigger value="bank-list">Bank List</TabsTrigger>
@@ -29,6 +36,13 @@ const LookupSettingsPage = () => {
             <TabsTrigger value="building-type">Building Type</TabsTrigger>
             <TabsTrigger value="category-area">Category Area</TabsTrigger>
             <TabsTrigger value="city">City</TabsTrigger>
+            <TabsTrigger value="closure-affect-area">Closure Affect Area</TabsTrigger>
+            <TabsTrigger value="closure-category">Closure Category</TabsTrigger>
+            <TabsTrigger value="closure-status">Closure Status</TabsTrigger>
+            <TabsTrigger value="closure-subcategory">Closure Subcategory</TabsTrigger>
+            <TabsTrigger value="district">District</TabsTrigger>
+            <TabsTrigger value="dun">DUN</TabsTrigger>
+            <TabsTrigger value="education">Education</TabsTrigger>
           </TabsList>
           
           <TabsContent value="age-group">
@@ -57,6 +71,34 @@ const LookupSettingsPage = () => {
           
           <TabsContent value="city">
             <LookupCity />
+          </TabsContent>
+
+          <TabsContent value="closure-affect-area">
+            <LookupClosureAffectArea />
+          </TabsContent>
+
+          <TabsContent value="closure-category">
+            <LookupClosureCategory />
+          </TabsContent>
+
+          <TabsContent value="closure-status">
+            <LookupClosureStatus />
+          </TabsContent>
+
+          <TabsContent value="closure-subcategory">
+            <LookupClosureSubcategory />
+          </TabsContent>
+
+          <TabsContent value="district">
+            <LookupDistrict />
+          </TabsContent>
+
+          <TabsContent value="dun">
+            <LookupDUN />
+          </TabsContent>
+
+          <TabsContent value="education">
+            <LookupEducation />
           </TabsContent>
         </Tabs>
       </div>
