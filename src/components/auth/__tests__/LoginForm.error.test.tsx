@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { LoginForm } from '../LoginForm';
@@ -13,9 +14,11 @@ vi.mock('@/lib/supabase', () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           maybeSingle: vi.fn(),
+          single: vi.fn(),
         })),
       })),
       insert: vi.fn(() => Promise.resolve({ error: null })),
+      update: vi.fn(() => Promise.resolve({ error: null })),
     })),
   },
 }));
