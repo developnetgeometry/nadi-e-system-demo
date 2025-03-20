@@ -15,6 +15,7 @@ interface ExtendedUserProfile {
   user_group?: number;
   user_group_name?: string;
   organization_id?: string;
+  organization_name?: string;
 }
 
 export const useOrganizationUserManagement = () => {
@@ -114,7 +115,7 @@ export const useOrganizationUserManagement = () => {
       // Get users from profiles table filtered by user_group and user_type
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, user_type, user_group")
+        .select("id, full_name, email, user_type, user_group, organization_id")
         .in("user_group", userGroupIds)
         .in("user_type", eligibleUserTypes);
         
@@ -129,6 +130,7 @@ export const useOrganizationUserManagement = () => {
       const extendedUsers: ExtendedUserProfile[] = [...data];
       
       for (const user of extendedUsers) {
+        // Fetch user group name
         if (user.user_group) {
           const { data: groupData, error: groupError } = await supabase
             .from("nd_user_group")
@@ -138,6 +140,19 @@ export const useOrganizationUserManagement = () => {
             
           if (!groupError && groupData) {
             user.user_group_name = groupData.group_name;
+          }
+        }
+        
+        // Fetch organization name if the user has an organization_id
+        if (user.organization_id) {
+          const { data: orgData, error: orgError } = await supabase
+            .from("organizations")
+            .select("name")
+            .eq("id", user.organization_id)
+            .maybeSingle();
+            
+          if (!orgError && orgData) {
+            user.organization_name = orgData.name;
           }
         }
       }
