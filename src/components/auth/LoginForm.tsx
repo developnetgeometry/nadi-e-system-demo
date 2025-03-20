@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import CryptoJS from "crypto-js";
 import { Link, useNavigate } from "react-router-dom";
@@ -131,7 +130,10 @@ export const LoginForm = () => {
 
       console.log("User metadata:", userMetadata);
 
-      // Store session data
+      // Store user metadata directly in localStorage
+      localStorage.setItem('user_metadata', JSON.stringify(userMetadata));
+
+      // Also keep the encrypted session for backward compatibility
       const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify({
         user: {
           ...authData.user,
