@@ -11,6 +11,7 @@ export interface Site {
     website: string;
     longtitude: string;
     latitude: string;
+    operate_date: string;
     technology: string;
     bandwidth: string;
     building_type_id: string;
@@ -41,7 +42,7 @@ export interface Site {
         city: string;
         district_id: string;
         state_id: string;
-    };
+    }[];
     nd_parliament?: {
         id: string;
     };
@@ -51,6 +52,18 @@ export interface Site {
     nd_mukim?: {
         id: string;
     };
+    nd_site_socioeconomic: {
+        nd_socioeconomics: {
+            id: string;
+            eng: string;
+        };
+    }[];
+    nd_site_space: {
+        nd_space: {
+            id: string;
+            eng: string;
+        };
+    }[];
 }
 
 interface SiteStatus {
@@ -124,28 +137,46 @@ interface BuildingLevel {
     eng: string;
 }
 
+interface Socioeconomic {
+    id: string;
+    eng: string;
+}
+interface Space {
+    id: string;
+    eng: string;
+}
+
 export const fetchSites = async (): Promise<Site[]> => {
-    try {
-        const { data, error } = await supabase
-            .from('nd_site_profile')
-            .select(`
-                *,
-                nd_site_status:nd_site_status(eng),
-                nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
-                nd_phases:nd_phases(name),
-                nd_region:nd_region(eng),
-                nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
-                nd_parliament:nd_parliaments(id),
-                nd_dun:nd_duns(id),
-                nd_mukim:nd_mukims(id)
-            `)
-            .order('created_at', { ascending: false });      
-        if (error) throw error;
-        return data as Site[];
-    } catch (error) {
-        console.error('Error fetching site profile:', error);
-        throw error;
-    }
+  try {
+    const { data, error } = await supabase
+      .from('nd_site_profile')
+      .select(`
+        *,
+        nd_site_status:nd_site_status(eng),
+        nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
+        nd_site_socioeconomic:nd_site_socioeconomic(nd_socioeconomics:nd_socioeconomics(id,eng)),
+        nd_site_space:nd_site_space(nd_space:nd_space(id,eng)),
+        nd_phases:nd_phases(name),
+        nd_region:nd_region(eng),
+        nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
+        nd_parliament:nd_parliaments(id),
+        nd_dun:nd_duns(id),
+        nd_mukim:nd_mukims(id)
+      `)
+      .order('created_at', { ascending: false });
+        console.log(data);
+        // await new Promise((resolve) => setTimeout(resolve, 5000)); // Sleep for 2 seconds
+    if (error) throw error;
+
+    // Format operate_date to date string
+    return data.map((site) => ({
+      ...site,
+      operate_date: site.operate_date ? site.operate_date.split('T')[0] : null,
+    })) as Site[];
+  } catch (error) {
+    console.error('Error fetching site profile:', error);
+    throw error;
+  }
 };
 
 export const fetchSiteStatus = async (): Promise<SiteStatus[]> => {
@@ -373,6 +404,34 @@ export const toggleSiteActiveStatus = async (siteId: string, currentStatus: bool
         if (error) throw error;
     } catch (error) {
         console.error('Error toggling site active status:', error);
+        throw error;
+    }
+};
+
+export const fetchSocioecomic = async (): Promise<Socioeconomic[]> => {
+    try {
+        const { data, error } = await supabase
+            .from('nd_socioeconomics')
+            .select('id,eng');
+
+        if (error) throw error;
+        return data as Socioeconomic[];
+    } catch (error) {
+        console.error('Error fetching socioecomic:', error);
+        throw error;
+    }
+};
+
+export const fetchSiteSpace = async (): Promise<Space[]> => {
+    try {
+        const { data, error } = await supabase
+            .from('nd_space')
+            .select('id,eng');
+
+        if (error) throw error;
+        return data as Space[];
+    } catch (error) {
+        console.error('Error fetching space:', error);
         throw error;
     }
 };

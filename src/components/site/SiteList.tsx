@@ -19,6 +19,7 @@ import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
 import { Input } from "@/components/ui/input"; // Import Input component
 import { PaginationComponent } from "../ui/PaginationComponent"; // Correct import path
 import { useNavigate } from 'react-router-dom';
+import { Skeleton } from "../ui/skeleton";
 export const SiteList = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export const SiteList = () => {
     queryKey: ['sites'],
     queryFn: fetchSites,
   });
-
+  // console.log(sites);
   const { data: phases = [] } = useQuery({
     queryKey: ['phases'],
     queryFn: fetchPhase,
@@ -155,10 +156,6 @@ export const SiteList = () => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, filteredSites.length);
 
-  if (isLoading) {
-    return <div>Loading sites...</div>;
-  }
-
   return (
     <div className="space-y-4">
       <div className="relative mb-4 flex space-x-4">
@@ -207,70 +204,118 @@ export const SiteList = () => {
         </div>
       </div>
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>No.</TableHead>
-              <TableHead>Site Code</TableHead>
-              <TableHead>Site Name</TableHead>
-              <TableHead>Phase</TableHead>
-              <TableHead>Region</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedSites.map((site, index) => {
-              return (
-                <TableRow key={site.id}>
-                  <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
-                  <TableCell>{site?.nd_site[0]?.standard_code || ""}</TableCell>
-                  <TableCell>{site?.sitename || ""}</TableCell>
-                  <TableCell>{site?.nd_phases?.name || ""}</TableCell>
-                  <TableCell>{site?.nd_region?.eng || ""}</TableCell>
-                  <TableCell>{getStatusBadge(site?.nd_site_status?.eng)}</TableCell>
+        {isLoading ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>No.</TableHead>
+                <TableHead>Site Code</TableHead>
+                <TableHead>Site Name</TableHead>
+                <TableHead>Phase</TableHead>
+                <TableHead>Region</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 4 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-6" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-20" />
+                  </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleToggleStatus(site)}
-                      >
-                        {site.is_active ? (
-                          <Eye className="h-4 w-4" />
-                        ) : (
-                          <EyeOff className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleEditClick(site)}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => handleDeleteClick(site.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleViewDetailsClick(site.id)} // Add view details button
-                      >
-                        <Search className="h-4 w-4" />
-                      </Button>
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-8 w-8 rounded-full" />
                     </div>
                   </TableCell>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>No.</TableHead>
+                <TableHead>Site Code</TableHead>
+                <TableHead>Site Name</TableHead>
+                <TableHead>Phase</TableHead>
+                <TableHead>Region</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedSites.map((site, index) => {
+                return (
+                  <TableRow key={site.id}>
+                    <TableCell>{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
+                    <TableCell>{site?.nd_site[0]?.standard_code || ""}</TableCell>
+                    <TableCell>{site?.sitename || ""}</TableCell>
+                    <TableCell>{site?.nd_phases?.name || ""}</TableCell>
+                    <TableCell>{site?.nd_region?.eng || ""}</TableCell>
+                    <TableCell>{getStatusBadge(site?.nd_site_status?.eng)}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleToggleStatus(site)}
+                        >
+                          {site.is_active ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEditClick(site)}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => handleDeleteClick(site.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleViewDetailsClick(site.id)} // Add view details button
+                        >
+                          <Search className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
       </div>
       {totalPages > 1 && (
         <PaginationComponent
