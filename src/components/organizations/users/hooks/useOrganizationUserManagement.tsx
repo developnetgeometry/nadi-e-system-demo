@@ -6,6 +6,17 @@ import { UserType } from "@/types/auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
+// Define an extended interface for the user profile that includes user_group_name
+interface ExtendedUserProfile {
+  id: string;
+  full_name?: string;
+  email?: string;
+  user_type: string;
+  user_group?: number;
+  user_group_name?: string;
+  organization_id?: string;
+}
+
 export const useOrganizationUserManagement = () => {
   const { id } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
@@ -114,8 +125,10 @@ export const useOrganizationUserManagement = () => {
       
       console.log("Found eligible users:", data.length);
       
-      // Fetch user group details for each user
-      for (const user of data) {
+      // Fetch user group details for each user and cast to ExtendedUserProfile
+      const extendedUsers: ExtendedUserProfile[] = [...data];
+      
+      for (const user of extendedUsers) {
         if (user.user_group) {
           const { data: groupData, error: groupError } = await supabase
             .from("nd_user_group")
@@ -129,7 +142,7 @@ export const useOrganizationUserManagement = () => {
         }
       }
       
-      return data;
+      return extendedUsers;
     },
     enabled: userGroupIds.length > 0 && eligibleUserTypes.length > 0
   });
