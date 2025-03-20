@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -21,11 +20,12 @@ export const useLogin = () => {
 
     try {
       console.log("Attempting login for email:", email);
-      
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (authError) {
         console.error("Authentication error:", authError);
@@ -39,43 +39,48 @@ export const useLogin = () => {
       console.log("Auth successful, checking profile...");
 
       // Fetch user profile
-      const { profile, profileError } = await fetchUserProfile(authData.user.id);
-      
-      if (profileError && profileError.code !== 'PGRST116') { // Ignore "not found" error
+      const { profile, profileError } = await fetchUserProfile(
+        authData.user.id
+      );
+
+      if (profileError && profileError.code !== "PGRST116") {
+        // Ignore "not found" error
         console.error("Profile fetch error:", profileError);
         throw profileError;
       }
 
       // Handle organization details for tp_admin
-      const { organizationId, organizationName } = await fetchOrganizationDetails(
-        authData.user.id, 
-        profile
-      );
+      const { organizationId, organizationName } =
+        await fetchOrganizationDetails(authData.user.id, profile);
 
       // Create user metadata
-      const userMetadata = {
-        user_type: profile?.user_type || 'member',
+      const userMetadata: Record<string, any> = {
+        user_type: profile?.user_type || "member",
         organization_id: organizationId,
         organization_name: organizationName,
-        user_group: profile?.user_group || null,
-        user_group_name: profile?.nd_user_group?.group_name || null
       };
+
+      if (profile?.user_group) {
+        userMetadata.user_group = profile.user_group;
+        userMetadata.user_group_name =
+          profile.nd_user_group?.group_name || null;
+      }
 
       console.log("User metadata:", userMetadata);
 
       // Store user session
       createUserSession(authData.user, profile, userMetadata);
 
-      console.log('Login successful with metadata:', userMetadata);
+      console.log("Login successful with metadata:", userMetadata);
 
       toast({
         title: "Success",
         description: "Logged in successfully",
       });
-      
+
       navigate("/admin/dashboard");
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       const errorMessage = handleAuthError(error);
 
       toast({
@@ -94,6 +99,6 @@ export const useLogin = () => {
     password,
     setPassword,
     loading,
-    handleLogin
+    handleLogin,
   };
 };
