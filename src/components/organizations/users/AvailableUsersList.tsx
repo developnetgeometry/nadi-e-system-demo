@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus } from "lucide-react";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -10,7 +10,10 @@ interface UserProfile {
   full_name?: string;
   email?: string;
   user_type: string;
-  avatar_url?: string;
+  user_group?: number;
+  user_group_name?: string;
+  organization_id?: string;
+  organization_name?: string;
 }
 
 interface AvailableUsersListProps {
@@ -37,7 +40,7 @@ export const AvailableUsersList = ({
       <div className="text-center py-4 text-muted-foreground border rounded-md">
         {searchTerm || filterUserType !== "all" 
           ? "No users match your search criteria." 
-          : "No users available to add."}
+          : "No users available to add with the appropriate user group."}
       </div>
     );
   }
@@ -48,14 +51,25 @@ export const AvailableUsersList = ({
         <div key={user.id} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-md transition-colors">
           <div className="flex items-center space-x-3">
             <Avatar>
-              <AvatarImage src={user.avatar_url || "/placeholder.svg"} />
               <AvatarFallback>{user.full_name?.substring(0, 2) || "U"}</AvatarFallback>
             </Avatar>
             <div>
               <div className="font-medium">{user.full_name || "Unknown User"}</div>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="text-sm text-muted-foreground">{user.email}</div>
-                <Badge variant="outline" className="text-xs capitalize">{user.user_type}</Badge>
+                <div className="flex gap-1 flex-wrap">
+                  <Badge variant="outline" className="text-xs capitalize">{user.user_type}</Badge>
+                  {user.user_group_name && (
+                    <Badge variant="secondary" className="text-xs">
+                      Group: {user.user_group_name}
+                    </Badge>
+                  )}
+                  {user.organization_name && (
+                    <Badge variant="default" className="text-xs">
+                      Org: {user.organization_name}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           </div>

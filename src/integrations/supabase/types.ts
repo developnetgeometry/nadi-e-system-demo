@@ -7362,15 +7362,17 @@ export type Database = {
           id: number
           updated_at: string | null
           updated_by: string | null
+          user_types: string[] | null
         }
         Insert: {
           created_at: string
           created_by?: string | null
           description?: string | null
           group_name?: string | null
-          id: number
+          id?: number
           updated_at?: string | null
           updated_by?: string | null
+          user_types?: string[] | null
         }
         Update: {
           created_at?: string
@@ -7380,6 +7382,7 @@ export type Database = {
           id?: number
           updated_at?: string | null
           updated_by?: string | null
+          user_types?: string[] | null
         }
         Relationships: []
       }
@@ -8355,6 +8358,7 @@ export type Database = {
           id: string
           phone_number: string | null
           updated_at: string
+          user_group: number | null
           user_type: Database["public"]["Enums"]["user_type"]
         }
         Insert: {
@@ -8365,6 +8369,7 @@ export type Database = {
           id: string
           phone_number?: string | null
           updated_at?: string
+          user_group?: number | null
           user_type: Database["public"]["Enums"]["user_type"]
         }
         Update: {
@@ -8375,9 +8380,18 @@ export type Database = {
           id?: string
           phone_number?: string | null
           updated_at?: string
+          user_group?: number | null
           user_type?: Database["public"]["Enums"]["user_type"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_nd_user_group_fk"
+            columns: ["user_group"]
+            isOneToOne: false
+            referencedRelation: "nd_user_group"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       programme_participants: {
         Row: {

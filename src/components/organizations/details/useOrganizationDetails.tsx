@@ -59,7 +59,7 @@ export function useOrganizationDetails() {
     
     deleteOrganizationMutation.mutate(id!, {
       onSuccess: () => {
-        navigate("/dashboard/organizations");
+        navigate("/admin/organizations");
       }
     });
   };

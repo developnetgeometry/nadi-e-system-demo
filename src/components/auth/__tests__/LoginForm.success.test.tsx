@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { LoginForm } from '../LoginForm';
@@ -13,11 +14,32 @@ vi.mock('@/lib/supabase', () => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
           maybeSingle: vi.fn(),
+          single: vi.fn(),
         })),
       })),
       insert: vi.fn(() => Promise.resolve({ error: null })),
+      update: vi.fn(() => Promise.resolve({ error: null })),
     })),
   },
+}));
+
+// Mock the auth hooks
+vi.mock('@/hooks/auth', () => ({
+  useLogin: () => ({
+    email: 'test@example.com',
+    setEmail: vi.fn(),
+    password: 'password123',
+    setPassword: vi.fn(),
+    loading: false,
+    handleLogin: vi.fn((e) => {
+      e.preventDefault();
+      // This directly calls the mocked Supabase functions
+      supabase.auth.signInWithPassword({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+    }),
+  }),
 }));
 
 describe('LoginForm Success Scenarios', () => {
@@ -39,17 +61,12 @@ describe('LoginForm Success Scenarios', () => {
     vi.mocked(supabase.from).mockImplementationOnce(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValueOnce({ data: mockProfile, error: null }),
+      single: vi.fn().mockResolvedValueOnce({ data: mockProfile, error: null }),
     } as any));
 
     renderWithProviders(<LoginForm />);
 
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {

@@ -17,6 +17,7 @@ import { UserGroupDialog } from "./UserGroupDialog";
 import { DeleteUserGroupDialog } from "./DeleteUserGroupDialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
+import { UserTypeChips } from "./UserTypeChips";
 
 export const UserGroupList = () => {
   const queryClient = useQueryClient();
@@ -84,6 +85,7 @@ export const UserGroupList = () => {
               <TableRow>
                 <TableHead>Group Name</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>User Types</TableHead>
                 <TableHead className="w-[120px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -92,6 +94,9 @@ export const UserGroupList = () => {
                 <TableRow key={group.id}>
                   <TableCell className="font-medium">{group.group_name}</TableCell>
                   <TableCell>{group.description || "—"}</TableCell>
+                  <TableCell>
+                    <UserTypeChips userTypes={group.user_types} />
+                  </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
