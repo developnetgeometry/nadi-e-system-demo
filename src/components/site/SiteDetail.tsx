@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteProfile } from "./hook/use-site-profile";
+import { useSiteCode } from "./hook/use-site-code";
+import { useSiteAddress } from "./hook/use-site-address";
 import {
   Table,
   TableBody,
@@ -10,44 +12,44 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Settings, Trash2, MapPin, Globe, Mail, Calendar, Users, Building } from "lucide-react";
+import { Settings, Trash2, MapPin, Globe, Mail, Calendar, Users, Building, EyeOff, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardLayout } from "../layout/DashboardLayout";
 import useSiteGeneralData from "@/hooks/use-site-general-data";
 import useGeoData from "@/hooks/use-geo-data";
 
 const SiteDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data, loading, error } = useSiteProfile(id);
+  const { siteCode, loading: codeLoading, error: codeError } = useSiteCode(id);
+  const { data: addressData, loading: addressLoading, error: addressError } = useSiteAddress(id);
   const { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel } = useSiteGeneralData();
   const { regions, states, parliaments, duns, mukims, phases } = useGeoData();
 
-  if (loading) return <Skeleton className="w-full h-96">Loading...</Skeleton>;
-  if (error) return <div className="p-4 text-destructive">Error: {error}</div>;
-
-  const getStatusBadge = (status) => {
-    if (!status) return <Badge variant="outline">Unknown</Badge>;
-    
-    const statusMap = {
-      true: { variant: "success", label: "Active" },
-      false: { variant: "destructive", label: "Inactive" },
-    };
-    
-    const { variant, label } = statusMap[status] || { variant: "outline", label: status.toString() };
-    return <Badge variant={variant}>{label}</Badge>;
-  };
+  if (loading || codeLoading || addressLoading) return <Skeleton className="w-full h-96">Loading...</Skeleton>;
+  if (error || codeError || addressError) return <div className="p-4 text-destructive">Error: {error || codeError || addressError}</div>;
 
   const getNameById = (id, data) => {
     const item = data.find(item => item.id === id);
-    return item ? item.name || item.eng || item.fullname : "N/A";
+    return item ? item.fullname || item.eng || item.name || item.area : "N/A";
   };
 
   return (
     <div className="space-y-6">
       <div className="items-center">
-        <h1 className="text-2xl font-bold">{data.sitename || data.fullname || "Site Name"}</h1>
-        <h3 className="text-2xl font-bold">{data.sitename || data.fullname || "Site Details"}</h3>
+        <h1 className="text-2xl font-bold">{data.fullname || "Site Name"}</h1>
+        <h3 className="text-muted-foreground">Site Code: <span className="text-black font-bold">{siteCode || "N/A"}</span></h3>
+        <div className="font-medium flex items-center gap-2">
+          <span className="text-muted-foreground">Status:  </span>
+          <span className="font-medium flex items-center gap-2">
+          {getNameById(data.active_status, siteStatus)}
+            {data.is_active ? (
+              <Eye className="h-4 w-4" />
+            ) : (
+              <EyeOff className="h-4 w-4" />
+            )}
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -74,8 +76,8 @@ const SiteDetail = () => {
             <div className="flex justify-between">
               <span className="text-muted-foreground">Coordinates:</span>
               <span className="font-medium">
-                {data.latitude && data.longtitude 
-                  ? `${data.latitude}, ${data.longtitude}` 
+                {data.latitude && data.longtitude
+                  ? `${data.latitude}, ${data.longtitude}`
                   : "N/A"}
               </span>
             </div>
@@ -102,10 +104,7 @@ const SiteDetail = () => {
               <span className="text-muted-foreground">Reference ID:</span>
               <span className="font-medium">{data.ref_id || "N/A"}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Status:</span>
-              <span>{getStatusBadge(data.is_active)}</span>
-            </div>
+
           </CardContent>
         </Card>
 
@@ -167,8 +166,8 @@ const SiteDetail = () => {
                   <TableCell>{getNameById(data.phase_id, phases)}</TableCell>
                   <TableCell>{data.cluster_id || "N/A"}</TableCell>
                   <TableCell>
-                    {data.operate_date 
-                      ? new Date(data.operate_date).toLocaleDateString() 
+                    {data.operate_date
+                      ? new Date(data.operate_date).toLocaleDateString()
                       : "Not specified"}
                   </TableCell>
                 </TableRow>
@@ -213,19 +212,47 @@ const SiteDetail = () => {
                 <TableRow>
                   <TableHead>Created At</TableHead>
                   <TableCell>
-                    {data.created_at 
-                      ? new Date(data.created_at).toLocaleString() 
+                    {data.created_at
+                      ? new Date(data.created_at).toLocaleString()
                       : "N/A"}
                   </TableCell>
                   <TableHead>Updated At</TableHead>
                   <TableCell>
-                    {data.updated_at 
-                      ? new Date(data.updated_at).toLocaleString() 
+                    {data.updated_at
+                      ? new Date(data.updated_at).toLocaleString()
                       : "N/A"}
                   </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Address Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Street:</span>
+            <span className="font-medium">{addressData.address1 || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Address 2:</span>
+            <span className="font-medium">{addressData.address2 || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">City:</span>
+            <span className="font-medium">{addressData.city || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Postal Code:</span>
+            <span className="font-medium">{addressData.postcode || "N/A"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Country:</span>
+            <span className="font-medium">{getNameById(addressData.state_id, states)}</span>
           </div>
         </CardContent>
       </Card>
