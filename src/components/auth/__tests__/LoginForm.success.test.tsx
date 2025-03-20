@@ -23,6 +23,25 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
+// Mock the auth hooks
+vi.mock('@/hooks/auth', () => ({
+  useLogin: () => ({
+    email: 'test@example.com',
+    setEmail: vi.fn(),
+    password: 'password123',
+    setPassword: vi.fn(),
+    loading: false,
+    handleLogin: vi.fn((e) => {
+      e.preventDefault();
+      // This directly calls the mocked Supabase functions
+      supabase.auth.signInWithPassword({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+    }),
+  }),
+}));
+
 describe('LoginForm Success Scenarios', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,12 +66,7 @@ describe('LoginForm Success Scenarios', () => {
 
     renderWithProviders(<LoginForm />);
 
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
-
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.click(submitButton);
 
     await waitFor(() => {

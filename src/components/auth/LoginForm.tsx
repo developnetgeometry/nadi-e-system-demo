@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useLogin } from "@/hooks/use-login";
+import { useLogin } from "@/hooks/auth";
 
 export const LoginForm = () => {
   const { email, setEmail, password, setPassword, loading, handleLogin } = useLogin();
