@@ -64,32 +64,74 @@ export const useOrganizationUserManagement = () => {
     error: orgUsersError 
   } = useOrganizationUsersQuery(id!);
 
-  // Fetch users filtered by the appropriate user groups
+  // Store organization details in profiles table for users with appropriate user types
+  const { data: updateResult } = useQuery({
+    queryKey: ["store-organization-id", id, eligibleUserTypes],
+    queryFn: async () => {
+      if (!id || !organization?.type) return null;
+      
+      console.log("Storing organization ID for eligible users");
+      
+      // Update profiles to include organization_id for eligible users
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ organization_id: id })
+        .in("user_type", eligibleUserTypes)
+        .in("user_group", userGroupIds);
+        
+      if (error) {
+        console.error("Error updating organization_id for users:", error);
+        throw error;
+      }
+      
+      return { success: true };
+    },
+    enabled: !!id && !!organization?.type && userGroupIds.length > 0
+  });
+
+  // Fetch users filtered by the appropriate user groups and user types
   const { 
     data: eligibleUsers = [], 
     isLoading: loadingEligibleUsers 
   } = useQuery({
-    queryKey: ["eligible-users-by-group", userGroupIds, organization?.type],
+    queryKey: ["eligible-users-by-group-type", userGroupIds, eligibleUserTypes],
     queryFn: async () => {
       if (!userGroupIds.length) return [];
       
-      console.log("Fetching eligible users for groups:", userGroupIds);
+      console.log("Fetching eligible users with user_group and user_type details");
       
-      // Get users from profiles table filtered by user_group
+      // Get users from profiles table filtered by user_group and user_type
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, email, user_type, user_group")
-        .in("user_group", userGroupIds);
+        .in("user_group", userGroupIds)
+        .in("user_type", eligibleUserTypes);
         
       if (error) {
-        console.error("Error fetching eligible users by group:", error);
+        console.error("Error fetching eligible users:", error);
         throw error;
       }
       
       console.log("Found eligible users:", data.length);
+      
+      // Fetch user group details for each user
+      for (const user of data) {
+        if (user.user_group) {
+          const { data: groupData, error: groupError } = await supabase
+            .from("nd_user_group")
+            .select("group_name")
+            .eq("id", user.user_group)
+            .single();
+            
+          if (!groupError && groupData) {
+            user.user_group_name = groupData.group_name;
+          }
+        }
+      }
+      
       return data;
     },
-    enabled: userGroupIds.length > 0
+    enabled: userGroupIds.length > 0 && eligibleUserTypes.length > 0
   });
 
   // Filter users not already in the organization
@@ -157,6 +199,7 @@ export const useOrganizationUserManagement = () => {
     loadingEligibleUsers: loadingEligibleUsers || loadingUserGroups,
     handleAddUser,
     handleRemoveUser,
-    organizationType: organization?.type
+    organizationType: organization?.type,
+    userGroups
   };
 };
