@@ -8383,7 +8383,15 @@ export type Database = {
           user_group?: number | null
           user_type?: Database["public"]["Enums"]["user_type"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_nd_user_group_fk"
+            columns: ["user_group"]
+            isOneToOne: false
+            referencedRelation: "nd_user_group"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       programme_participants: {
         Row: {

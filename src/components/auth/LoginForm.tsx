@@ -1,113 +1,12 @@
-import { useState } from "react";
-import CryptoJS from "crypto-js";
-import { Link, useNavigate } from "react-router-dom";
+
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/lib/supabase";
-import { useToast } from "@/hooks/use-toast";
+import { useLogin } from "@/hooks/auth";
 
 export const LoginForm = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      console.log("Attempting login for email:", email);
-      
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        console.error("Authentication error:", authError);
-        throw authError;
-      }
-
-      if (!authData.user) {
-        throw new Error("No user data returned after successful auth");
-      }
-
-      console.log("Auth successful, checking profile...");
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') { // Ignore "not found" error
-        console.error("Profile fetch error:", profileError);
-        throw profileError;
-      }
-
-      // If no profile exists, create one
-      if (!profile) {
-        console.log("No profile found, creating one...");
-        const { error: createProfileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              email: authData.user.email,
-              user_type: 'member'
-            }
-          ]);
-
-        if (createProfileError) {
-          console.error("Error creating profile:", createProfileError);
-          throw createProfileError;
-        }
-      }
-
-      // Store session data
-      const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify({
-        user: authData.user,
-        profile: profile || {
-          id: authData.user.id,
-          email: authData.user.email,
-          user_type: 'member'
-        }
-      }), 'secret-key').toString();
-      localStorage.setItem('session', encryptedSession);
-
-      console.log('Login successful');
-
-      toast({
-        title: "Success",
-        description: "Logged in successfully",
-      });
-      
-      navigate("/admin/dashboard");
-    } catch (error: any) {
-      console.error('Login error:', error);
-      
-      let errorMessage = "An unexpected error occurred. Please try again.";
-      
-      if (error.message.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password. Please try again.";
-      } else if (error.message.includes("Email not confirmed")) {
-        errorMessage = "Please verify your email before logging in.";
-      } else if (error.message.includes("User not found")) {
-        errorMessage = "No account found with this email. Please sign up.";
-      }
-
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { email, setEmail, password, setPassword, loading, handleLogin } = useLogin();
 
   return (
     <form onSubmit={handleLogin} className="space-y-6">
