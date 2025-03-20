@@ -15,7 +15,7 @@ export const useVisibilityData = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load menu visibility
+        // Load menu visibility - get all records
         const { data: menuData, error: menuError } = await supabase
           .from('menu_visibility')
           .select('*');
@@ -23,7 +23,7 @@ export const useVisibilityData = () => {
         if (menuError) throw menuError;
         setMenuVisibility(menuData || []);
 
-        // Load submodule visibility
+        // Load submodule visibility - get all records
         const { data: submoduleData, error: submoduleError } = await supabase
           .from('submodule_visibility')
           .select('*');
