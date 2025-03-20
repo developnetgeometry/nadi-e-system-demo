@@ -1,4 +1,3 @@
-
 import { UserType } from "./auth";
 
 export type OrganizationType = "dusp" | "tp";
@@ -12,6 +11,7 @@ export interface Organization {
   parent_id?: string | null;
   created_at: string;
   updated_at: string;
+  displayName?: string; // Add displayName property
 }
 
 export interface OrganizationUser {
