@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { Organization } from "@/types/organization";
 
 export interface Site {
     id: string;
@@ -21,6 +22,8 @@ export interface Site {
     area_id: string;
     level_id: string;
     oku_friendly: boolean;
+    dusp_tp_id: string;
+    dusp_tp_id_display: string;
     nd_site_status: {
         eng: string;
     };
@@ -146,11 +149,11 @@ interface Space {
     eng: string;
 }
 
-export const fetchSites = async (): Promise<Site[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('nd_site_profile')
-      .select(`
+export const fetchSites = async (organizationId: string | null): Promise<Site[]> => {
+    try {
+        let query = supabase
+            .from('nd_site_profile')
+            .select(`
         *,
         nd_site_status:nd_site_status(eng),
         nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
@@ -161,22 +164,29 @@ export const fetchSites = async (): Promise<Site[]> => {
         nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
         nd_parliament:nd_parliaments(id),
         nd_dun:nd_duns(id),
-        nd_mukim:nd_mukims(id)
+        nd_mukim:nd_mukims(id),
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(name))
       `)
-      .order('created_at', { ascending: false });
-        console.log(data);
-        // await new Promise((resolve) => setTimeout(resolve, 5000)); // Sleep for 2 seconds
-    if (error) throw error;
+            .order('created_at', { ascending: false });
 
-    // Format operate_date to date string
-    return data.map((site) => ({
-      ...site,
-      operate_date: site.operate_date ? site.operate_date.split('T')[0] : null,
-    })) as Site[];
-  } catch (error) {
-    console.error('Error fetching site profile:', error);
-    throw error;
-  }
+        if (organizationId) {
+            query = query.eq('dusp_tp_id', organizationId);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        return data.map((site) => ({
+            ...site,
+            operate_date: site.operate_date ? site.operate_date.split('T')[0] : null,
+            dusp_tp_id_display: site.dusp_tp?.parent?.name
+                ? `${site.dusp_tp.name} (${site.dusp_tp.parent.name})`
+                : site.dusp_tp?.name || "N/A", // Ensure dusp_tp_id_display is always set
+        })) as Site[];
+    } catch (error) {
+        console.error('Error fetching site profile:', error);
+        throw error;
+    }
 };
 
 export const fetchSiteStatus = async (): Promise<SiteStatus[]> => {
@@ -437,16 +447,48 @@ export const fetchSiteSpace = async (): Promise<Space[]> => {
 };
 
 export const deleteSite = async (siteId: string): Promise<void> => {
-  try {
-    const { error } = await supabase
-      .from('nd_site_profile')
-      .delete()
-      .eq('id', siteId);
+    try {
+        const { error } = await supabase
+            .from('nd_site_profile')
+            .delete()
+            .eq('id', siteId);
 
-    if (error) throw error;
-  } catch (error) {
-    console.error('Error deleting site:', error);
-    throw error;
-  }
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error deleting site:', error);
+        throw error;
+    }
 };
 
+export const fetchOrganization = async (): Promise<Organization[]> => {
+    try {
+
+        const { data: parent, error: parentErr } = await supabase
+            .from('organizations')
+            .select('id,name,type')
+            .neq('type', 'tp');
+
+        if (parentErr) throw parentErr;
+
+        const { data: child, error: childErr } = await supabase
+            .from('organizations')
+            .select('id,name,type,parent_id')
+            .eq('type', 'tp');
+
+        if (childErr) throw childErr;
+
+
+        const datacombine = child.map((child) => {
+            const parentData = parent.find((parent) => parent.id === child.parent_id);
+            return {
+                ...child,
+                displayName: parentData ? `${child.name} (${parentData.name})` : child.name,
+            };
+        });
+
+        return datacombine as Organization[];
+    } catch (error) {
+        console.error('Error fetching organization:', error);
+        throw error;
+    }
+};

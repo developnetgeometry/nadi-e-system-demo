@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site, fetchSocioecomic, fetchSiteSpace } from "@/components/site/component/site-utils";
+import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site, fetchSocioecomic, fetchSiteSpace, fetchOrganization } from "@/components/site/component/site-utils";
 import { Textarea } from "../ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
@@ -31,9 +31,15 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
   // Retrieve user metadata
   const userMetadata = useUserMetadata();
-  const organizationId = userMetadata ? JSON.parse(userMetadata).organization_id : null;
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    parsedMetadata?.user_group_name === "TP" &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
 
-  // State for form fields
+  // Hooks must be called unconditionally
   const [formState, setFormState] = useState({
     code: '',
     name: '',
@@ -66,6 +72,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     operate_date: '', // Add operate_date field
     socio_economic: [], // Add socio_economic field
     space: [], // Add space field
+    dusp_tp_id: undefined, // Add dusp_tp_id field
   });
 
   // Fetch socio-economic options
@@ -78,6 +85,13 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   const { data: siteSpaceOptions = [], isLoading: isSiteSpaceLoading } = useQuery({
     queryKey: ['site-space'],
     queryFn: fetchSiteSpace,
+  });
+
+  // Fetch organization options for super admin
+  const { data: organizations = [], isLoading: isOrganizationsLoading } = useQuery({
+    queryKey: ['organizations'],
+    queryFn: fetchOrganization,
+    enabled: parsedMetadata?.user_type === "super_admin", // Only fetch for super admin
   });
 
   const setField = (field: string, value: any) => {
@@ -251,10 +265,10 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
   //preset on 2nd value of status
   useEffect(() => {
-    if (siteStatus.length > 1 && !formState.status) {
-      setField('status', String(siteStatus[1].id));
+    if (open && !site && !formState.status && siteStatus.length > 1 && !isStatusLoading) {
+      setField('status', String(siteStatus[1].id)); // Set predefined status when the form is opened
     }
-  }, [siteStatus, formState.status]);
+  }, [open, site, formState.status, siteStatus, isStatusLoading]);
 
   const resetForm = () => {
     setFormState({
@@ -289,6 +303,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       operate_date: '', // Add operate_date field
       socio_economic: [], // Add socio_economic field
       space: [], // Add space field
+      dusp_tp_id: undefined, // Add dusp_tp_id field
     });
   };
 
@@ -333,6 +348,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         operate_date: site.operate_date ? site.operate_date.split('T')[0] : '', // Format timestamp to date
         socio_economic: site.nd_site_socioeconomic.map((s) => s.nd_socioeconomics.id) || [], // Populate socio_economic
         space: site.nd_site_space.map((s) => s.nd_space.id) || [], // Populate space
+        dusp_tp_id: site.dusp_tp_id || undefined, // Populate dusp_tp_id
       });
 
       // Enable dependent fields
@@ -412,7 +428,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         level_id: formState.building_level === '' ? null : formState.building_level,
         oku_friendly: formState.oku ?? null,
         operate_date: formState.operate_date || null,
-        ...(site ? {} : { dusp_tp_id: organizationId }), // Add organization_id only for creation
+        dusp_tp_id: formState.dusp_tp_id === '' ? null : formState.dusp_tp_id, // Add dusp_tp_id to site_profile
+        ...(site ? {} : organizationId ? { dusp_tp_id: organizationId } : {}), // Add dusp_tp_id only for creation and non-super_admin and TP group only
       };
 
       const site_address = {
@@ -431,7 +448,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       console.log(site_address);
 
       if (site) {
-        // Update existing site
+        // Update existing site (exclude dusp_tp_id from updates)
         const { error: profError } = await supabase
           .from('nd_site_profile')
           .update(site_profile)
@@ -568,6 +585,11 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     }
   };
 
+  // Access control logic moved to the return statement
+  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
+    return <div>You do not have access to create or edit sites.</div>;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
@@ -579,6 +601,29 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
             {/* Section 1 */}
             <div className="flex-1 space-y-4">
               <DialogTitle>Site Information</DialogTitle>
+              {parsedMetadata?.user_type === "super_admin" && (
+                <div className="space-y-2">
+                  <Label htmlFor="dusp_tp_id">DUSP TP ID</Label>
+                  <Select
+                    name="dusp_tp_id"
+                    value={formState.dusp_tp_id ?? undefined}
+                    onValueChange={(value) => setField('dusp_tp_id', value)}
+                    disabled={isOrganizationsLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={String(org.id)}>
+                          {org.displayName} {/* Use displayName for dropdown */}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="name">Site Name</Label>
                 <Input id="name" name="name" value={formState.name} onChange={(e) => setField('name', e.target.value)} required />

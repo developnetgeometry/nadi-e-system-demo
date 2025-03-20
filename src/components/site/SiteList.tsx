@@ -20,29 +20,42 @@ import { Input } from "@/components/ui/input"; // Import Input component
 import { PaginationComponent } from "../ui/PaginationComponent"; // Correct import path
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from "../ui/skeleton";
+import { useUserMetadata } from "@/hooks/use-user-metadata"; // Import useUserMetadata
+
 export const SiteList = () => {
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+      parsedMetadata?.user_group_name === "TP" &&
+      parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+
+  // Hooks must be called unconditionally
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
-  const [filter, setFilter] = useState(""); // Add filter state
-  const [phaseFilter, setPhaseFilter] = useState(""); // Add phase filter state
-  const [regionFilter, setRegionFilter] = useState(""); // Add region filter state
-  const [statusFilter, setStatusFilter] = useState(""); // Add status filter state
-  const [currentPage, setCurrentPage] = useState(1); // Add currentPage state
-  const itemsPerPage = 10; // Define items per page
+  const [filter, setFilter] = useState("");
+  const [phaseFilter, setPhaseFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const navigate = useNavigate(); // Initialize useNavigate
-
+  const navigate = useNavigate();
 
   const { data: sites = [], isLoading } = useQuery({
-    queryKey: ['sites'],
-    queryFn: fetchSites,
+    queryKey: ['sites', organizationId],
+    queryFn: () => fetchSites(organizationId),
+    enabled: !!organizationId || isSuperAdmin, // Disable query if no access
   });
-  // console.log(sites);
+  console.log(sites);
   const { data: phases = [] } = useQuery({
     queryKey: ['phases'],
     queryFn: fetchPhase,
@@ -156,6 +169,11 @@ export const SiteList = () => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, filteredSites.length);
 
+  // Access control logic moved to the return statement
+  if (!isSuperAdmin && !organizationId) {
+    return <div>You do not have access to view this list.</div>;
+  }
+
   return (
     <div className="space-y-4">
       <div className="relative mb-4 flex space-x-4">
@@ -213,6 +231,7 @@ export const SiteList = () => {
                 <TableHead>Site Name</TableHead>
                 <TableHead>Phase</TableHead>
                 <TableHead>Region</TableHead>
+                {isSuperAdmin && <TableHead>DUSP TP</TableHead>} {/* Add DUSP TP column for super admin */}
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -235,6 +254,7 @@ export const SiteList = () => {
                   <TableCell>
                     <Skeleton className="h-4 w-24" />
                   </TableCell>
+                  {isSuperAdmin && <TableCell><Skeleton className="h-4 w-24" /></TableCell>} {/* Add DUSP TP column for super admin */}
                   <TableCell>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
@@ -259,6 +279,7 @@ export const SiteList = () => {
                 <TableHead>Site Name</TableHead>
                 <TableHead>Phase</TableHead>
                 <TableHead>Region</TableHead>
+                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>} {/* Add DUSP TP column for super admin */}
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -272,6 +293,11 @@ export const SiteList = () => {
                     <TableCell>{site?.sitename || ""}</TableCell>
                     <TableCell>{site?.nd_phases?.name || ""}</TableCell>
                     <TableCell>{site?.nd_region?.eng || ""}</TableCell>
+                    {isSuperAdmin && (
+                      <TableCell>
+                        {site.dusp_tp_id_display || "N/A"}
+                      </TableCell>
+                    )}
                     <TableCell>{getStatusBadge(site?.nd_site_status?.eng)}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
@@ -293,14 +319,16 @@ export const SiteList = () => {
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => handleDeleteClick(site.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {isSuperAdmin && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => handleDeleteClick(site.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="icon"
