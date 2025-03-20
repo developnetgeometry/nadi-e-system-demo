@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Box, Package, Settings, DollarSign, Plus, CheckCircle, Clock, PauseCircle, XCircle } from "lucide-react";
+import { Box, Package, Settings, DollarSign, Plus, CheckCircle, Clock, PauseCircle, XCircle, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -40,7 +40,7 @@ const SiteDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Total Site
               </CardTitle>
-              <Box className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{siteStats?.length || 0}</div>

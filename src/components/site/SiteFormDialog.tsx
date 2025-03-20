@@ -928,6 +928,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteDun.map((dun) => (
                       <SelectItem key={dun.id} value={String(dun.id)}>
+                        {dun.full_name}
                       </SelectItem>
                     ))}
                   </SelectContent>
