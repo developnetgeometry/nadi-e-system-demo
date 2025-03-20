@@ -11,6 +11,9 @@ interface UserProfile {
   email?: string;
   user_type: string;
   user_group?: number;
+  user_group_name?: string;
+  organization_id?: string;
+  organization_name?: string;
 }
 
 interface AvailableUsersListProps {
@@ -52,9 +55,21 @@ export const AvailableUsersList = ({
             </Avatar>
             <div>
               <div className="font-medium">{user.full_name || "Unknown User"}</div>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="text-sm text-muted-foreground">{user.email}</div>
-                <Badge variant="outline" className="text-xs capitalize">{user.user_type}</Badge>
+                <div className="flex gap-1 flex-wrap">
+                  <Badge variant="outline" className="text-xs capitalize">{user.user_type}</Badge>
+                  {user.user_group_name && (
+                    <Badge variant="secondary" className="text-xs">
+                      Group: {user.user_group_name}
+                    </Badge>
+                  )}
+                  {user.organization_name && (
+                    <Badge variant="default" className="text-xs">
+                      Org: {user.organization_name}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
           </div>
