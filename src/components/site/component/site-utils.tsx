@@ -24,6 +24,13 @@ export interface Site {
     oku_friendly: boolean;
     dusp_tp_id: string;
     dusp_tp_id_display: string;
+    dusp_tp?: {
+        id: string;
+        name: string;
+        parent?: {
+            name: string;
+        };
+    }; // Add dusp_tp field for organization details
     nd_site_status: {
         eng: string;
     };
