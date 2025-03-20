@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { UserFormData } from "../types";
 import { Profile } from "@/types/auth";
 import { useToast } from "@/hooks/use-toast";
+import { createUser } from "@/routes/api/createUser";
 
 export const handleCreateUser = async (data: UserFormData) => {
   try {
@@ -10,36 +11,18 @@ export const handleCreateUser = async (data: UserFormData) => {
     const { data: userData } = await supabase.auth.getUser();
     const createdBy = userData?.user?.id || "";
 
-    const response = await fetch('/api/create-user', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: data.email,
-        fullName: data.full_name,
-        userType: data.user_type,
-        userGroup: data.user_group,
-        phoneNumber: data.phone_number,
-        icNumber: data.ic_number,
-        password: data.password,
-        createdBy: createdBy
-      }),
+    // Use the createUser helper function that properly constructs the URL
+    const responseData = await createUser({
+      email: data.email,
+      fullName: data.full_name,
+      userType: data.user_type,
+      userGroup: data.user_group,
+      phoneNumber: data.phone_number,
+      icNumber: data.ic_number,
+      password: data.password,
+      createdBy: createdBy
     });
 
-    if (!response.ok) {
-      let errorMessage = 'Failed to create user';
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (jsonError) {
-        // If JSON parsing fails, use status text
-        errorMessage = `${errorMessage}: ${response.status} ${response.statusText}`;
-      }
-      throw new Error(errorMessage);
-    }
-
-    const responseData = await response.json();
     return responseData;
   } catch (error) {
     console.error('Error creating user:', error);

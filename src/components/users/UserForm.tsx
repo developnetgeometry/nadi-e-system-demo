@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,7 +20,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-// Define validation schema
 const userFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   full_name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -100,7 +98,6 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
-        // Create the user with our non-authentication method
         await handleCreateUser(data);
         
         toast({
@@ -111,14 +108,25 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       onSuccess?.();
     } catch (error) {
       console.error("Error saving user:", error);
-      setError(typeof error === 'object' && error !== null && 'message' in error 
-        ? String(error.message) 
-        : "Failed to save user");
+      let errorMessage = "Failed to save user";
+      
+      if (typeof error === 'object' && error !== null) {
+        if ('message' in error) {
+          errorMessage = String(error.message);
+        } else if (error instanceof Response) {
+          try {
+            const errorData = await error.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (jsonError) {
+            errorMessage = `${errorMessage}: ${error.status} ${error.statusText}`;
+          }
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: typeof error === 'object' && error !== null && 'message' in error 
-          ? String(error.message) 
-          : "Failed to save user",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -148,7 +156,6 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
               <UserGroupField form={form} isLoading={isLoading} />
             </div>
             
-            {/* Only show password fields if creating a new user or explicitly updating password */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <UserPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
               <UserConfirmPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
