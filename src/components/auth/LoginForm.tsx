@@ -49,19 +49,52 @@ export const LoginForm = () => {
         throw profileError;
       }
 
-      // Fetch organization name if profile has organization_id
+      // Special handling for tp_admin to ensure they have organization info
       let organizationName = null;
-      if (profile && profile.organization_id) {
-        const { data: orgData, error: orgError } = await supabase
-          .from('organizations')
-          .select('name')
-          .eq('id', profile.organization_id)
-          .single();
+      let organizationId = profile?.organization_id || null;
+      
+      // If user is tp_admin or has an organization_id, fetch organization details
+      if ((profile?.user_type === 'tp_admin' || profile?.organization_id) && profile) {
+        // If tp_admin without organization_id, try to find their organization
+        if (profile.user_type === 'tp_admin' && !profile.organization_id) {
+          console.log("Fetching organization for tp_admin user");
           
-        if (!orgError && orgData) {
-          organizationName = orgData.name;
-        } else if (orgError) {
-          console.error("Error fetching organization:", orgError);
+          // Try to find organization where this user is an admin
+          const { data: orgAdminData, error: orgAdminError } = await supabase
+            .from('organization_users')
+            .select('organization_id')
+            .eq('user_id', authData.user.id)
+            .eq('role', 'admin')
+            .maybeSingle();
+            
+          if (!orgAdminError && orgAdminData?.organization_id) {
+            organizationId = orgAdminData.organization_id;
+            
+            // Update profile with organization_id if found
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ organization_id: organizationId })
+              .eq('id', authData.user.id);
+              
+            if (updateError) {
+              console.error("Error updating profile with organization_id:", updateError);
+            }
+          }
+        }
+        
+        // Fetch organization name if we have an organization_id
+        if (organizationId) {
+          const { data: orgData, error: orgError } = await supabase
+            .from('organizations')
+            .select('name')
+            .eq('id', organizationId)
+            .single();
+            
+          if (!orgError && orgData) {
+            organizationName = orgData.name;
+          } else if (orgError) {
+            console.error("Error fetching organization:", orgError);
+          }
         }
       }
 
@@ -90,11 +123,13 @@ export const LoginForm = () => {
       // Create user metadata with all the requested fields
       const userMetadata = {
         user_type: profile?.user_type || 'member',
-        organization_id: profile?.organization_id || null,
+        organization_id: organizationId,
         organization_name: organizationName,
         user_group: profile?.user_group || null,
         user_group_name: userGroupName
       };
+
+      console.log("User metadata:", userMetadata);
 
       // Store session data
       const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify({
