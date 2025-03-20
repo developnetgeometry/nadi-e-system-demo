@@ -2,10 +2,11 @@
 // This file will help with routing the API request to the Supabase function
 
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_URL } from "@/integrations/supabase/client";
 
 export async function createUser(requestData: any) {
-  // Get the Supabase URL from the client
-  const supabaseUrl = supabase.supabaseUrl;
+  // Use the imported SUPABASE_URL constant instead of accessing the protected property
+  const supabaseUrl = SUPABASE_URL;
   
   // Construct the function URL
   const functionUrl = `${supabaseUrl}/functions/v1/create-user`;
