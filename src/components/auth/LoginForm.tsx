@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import CryptoJS from "crypto-js";
 import { Link, useNavigate } from "react-router-dom";
@@ -39,13 +40,29 @@ export const LoginForm = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, nd_user_group(group_name)')
         .eq('id', authData.user.id)
         .single();
 
       if (profileError && profileError.code !== 'PGRST116') { // Ignore "not found" error
         console.error("Profile fetch error:", profileError);
         throw profileError;
+      }
+
+      // Fetch organization name if profile has organization_id
+      let organizationName = null;
+      if (profile && profile.organization_id) {
+        const { data: orgData, error: orgError } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('id', profile.organization_id)
+          .single();
+          
+        if (!orgError && orgData) {
+          organizationName = orgData.name;
+        } else if (orgError) {
+          console.error("Error fetching organization:", orgError);
+        }
       }
 
       // If no profile exists, create one
@@ -67,9 +84,24 @@ export const LoginForm = () => {
         }
       }
 
+      // Extract user group name from the join result
+      const userGroupName = profile?.nd_user_group?.group_name || null;
+
+      // Create user metadata with all the requested fields
+      const userMetadata = {
+        user_type: profile?.user_type || 'member',
+        organization_id: profile?.organization_id || null,
+        organization_name: organizationName,
+        user_group: profile?.user_group || null,
+        user_group_name: userGroupName
+      };
+
       // Store session data
       const encryptedSession = CryptoJS.AES.encrypt(JSON.stringify({
-        user: authData.user,
+        user: {
+          ...authData.user,
+          user_metadata: userMetadata
+        },
         profile: profile || {
           id: authData.user.id,
           email: authData.user.email,
@@ -78,7 +110,7 @@ export const LoginForm = () => {
       }), 'secret-key').toString();
       localStorage.setItem('session', encryptedSession);
 
-      console.log('Login successful');
+      console.log('Login successful with metadata:', userMetadata);
 
       toast({
         title: "Success",
