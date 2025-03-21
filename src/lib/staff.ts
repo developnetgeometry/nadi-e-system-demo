@@ -1,4 +1,3 @@
-
 import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
@@ -58,7 +57,7 @@ export async function createStaffMember(staffData: any) {
     const { data: staffProfile, error: staffProfileError } = await supabase
       .from("nd_staff_profile")
       .insert({
-        id: authUser.user?.id, // Should be UUID, not bigint
+        user_id: authUser.user?.id, // Should be UUID, not bigint
         fullname: staffData.name,
         ic_no: staffData.ic_number,
         mobile_no: staffData.phone_number,
@@ -83,17 +82,23 @@ export async function createStaffMember(staffData: any) {
     // 3. Create staff job record with the site location
     // The site_id column expects a bigint, make sure staffData.siteLocation is a number
     // If it's a string, convert it to an integer
-    const siteLocationId = typeof staffData.siteLocation === 'string' 
-      ? parseInt(staffData.siteLocation, 10)
-      : staffData.siteLocation;
-      
+    const siteLocationId =
+      typeof staffData.siteLocation === "string"
+        ? parseInt(staffData.siteLocation, 10)
+        : staffData.siteLocation;
+
     if (isNaN(siteLocationId)) {
       console.error("Invalid site location ID:", staffData.siteLocation);
       throw new Error("Invalid site location ID format");
     }
-    
-    console.log("Creating staff job with site ID:", siteLocationId, "and staff profile ID:", staffProfile.id);
-    
+
+    console.log(
+      "Creating staff job with site ID:",
+      siteLocationId,
+      "and staff profile ID:",
+      staffProfile.id
+    );
+
     const { error: jobError } = await supabase.from("nd_staff_job").insert({
       staff_id: staffProfile.id, // This is a UUID
       site_id: siteLocationId, // Make sure this is properly converted to a bigint
