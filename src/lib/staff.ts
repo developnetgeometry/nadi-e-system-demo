@@ -1,4 +1,3 @@
-
 import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
@@ -24,7 +23,7 @@ export async function createStaffMember(staffData: any) {
     }
 
     // Check if current user is authorized to create staff
-    const allowedCreatorTypes = ["tp_admin", "tp_hr", "super_admin"];
+    const allowedCreatorTypes = ["tp_admin", "tp_hr", "super_admin", "staff_manager"];
     if (!allowedCreatorTypes.includes(currentUserProfile.user_type)) {
       throw new Error("User not allowed to create staff members");
     }
@@ -198,4 +197,316 @@ export async function createStaffMember(staffData: any) {
 function generateTemporaryPassword() {
   // Generate a random password that meets your requirements
   return Math.random().toString(36).slice(-10) + "A1!";
+}
+
+export async function updateStaffMember(staffId: string, staffData: any) {
+  try {
+    // Get current user to check permissions
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
+    if (!currentUser) {
+      throw new Error("Authentication required");
+    }
+
+    // Get current user's type from profiles
+    const { data: currentUserProfile, error: userProfileError } = await supabase
+      .from("profiles")
+      .select("user_type")
+      .eq("id", currentUser.id)
+      .single();
+
+    if (userProfileError) {
+      throw new Error("Error fetching user profile");
+    }
+
+    // Check if current user is authorized to update staff
+    const allowedCreatorTypes = ["tp_admin", "tp_hr", "super_admin", "staff_manager"];
+    if (!allowedCreatorTypes.includes(currentUserProfile.user_type)) {
+      throw new Error("User not allowed to update staff members");
+    }
+
+    // Current timestamp for update operations
+    const timestamp = new Date().toISOString();
+    
+    // Metadata object for update operations
+    const updateMetaData = {
+      updated_by: currentUser.id,
+      updated_at: timestamp
+    };
+
+    // Update staff profile
+    if (staffData.profile) {
+      const { error: profileError } = await supabase
+        .from("nd_staff_profile")
+        .update({
+          fullname: staffData.profile.fullname,
+          mobile_no: staffData.profile.mobile_no,
+          personal_email: staffData.profile.personal_email,
+          dob: staffData.profile.dob,
+          place_of_birth: staffData.profile.place_of_birth,
+          gender_id: staffData.profile.gender_id,
+          marital_status: staffData.profile.marital_status,
+          race_id: staffData.profile.race_id,
+          religion_id: staffData.profile.religion_id,
+          nationality_id: staffData.profile.nationality_id,
+          ...updateMetaData
+        })
+        .eq("id", staffId);
+
+      if (profileError) {
+        console.error("Error updating staff profile:", profileError);
+        throw new Error(`Error updating staff profile: ${profileError.message}`);
+      }
+    }
+
+    // Update staff address
+    if (staffData.address) {
+      if (staffData.address.id) {
+        // Update existing address
+        const { error: addressError } = await supabase
+          .from("nd_staff_address")
+          .update({
+            address1: staffData.address.address1,
+            address2: staffData.address.address2,
+            postcode: staffData.address.postcode,
+            city: staffData.address.city,
+            district_id: staffData.address.district_id,
+            state_id: staffData.address.state_id,
+            ...updateMetaData
+          })
+          .eq("id", staffData.address.id);
+
+        if (addressError) {
+          console.error("Error updating staff address:", addressError);
+          throw new Error(`Error updating staff address: ${addressError.message}`);
+        }
+      } else {
+        // Create new address if it doesn't exist
+        const { error: addressError } = await supabase
+          .from("nd_staff_address")
+          .insert({
+            staff_id: staffId,
+            address1: staffData.address.address1,
+            address2: staffData.address.address2,
+            postcode: staffData.address.postcode,
+            city: staffData.address.city,
+            district_id: staffData.address.district_id,
+            state_id: staffData.address.state_id,
+            is_active: true,
+            created_by: currentUser.id,
+            created_at: timestamp,
+            ...updateMetaData
+          });
+
+        if (addressError) {
+          console.error("Error creating staff address:", addressError);
+          throw new Error(`Error creating staff address: ${addressError.message}`);
+        }
+      }
+    }
+
+    // Update staff contact
+    if (staffData.contact) {
+      if (staffData.contact.id) {
+        // Update existing contact
+        const { error: contactError } = await supabase
+          .from("nd_staff_contact")
+          .update({
+            full_name: staffData.contact.full_name,
+            relationship_id: staffData.contact.relationship_id,
+            mobile_no: staffData.contact.mobile_no,
+            ic_no: staffData.contact.ic_no,
+            total_children: staffData.contact.total_children,
+            ...updateMetaData
+          })
+          .eq("id", staffData.contact.id);
+
+        if (contactError) {
+          console.error("Error updating staff contact:", contactError);
+          throw new Error(`Error updating staff contact: ${contactError.message}`);
+        }
+      } else {
+        // Create new contact if it doesn't exist
+        const { error: contactError } = await supabase
+          .from("nd_staff_contact")
+          .insert({
+            staff_id: staffId,
+            full_name: staffData.contact.full_name,
+            relationship_id: staffData.contact.relationship_id,
+            mobile_no: staffData.contact.mobile_no,
+            ic_no: staffData.contact.ic_no,
+            total_children: staffData.contact.total_children,
+            created_by: currentUser.id,
+            created_at: timestamp,
+            ...updateMetaData
+          });
+
+        if (contactError) {
+          console.error("Error creating staff contact:", contactError);
+          throw new Error(`Error creating staff contact: ${contactError.message}`);
+        }
+      }
+    }
+
+    // Update staff contract
+    if (staffData.contract) {
+      if (staffData.contract.id) {
+        // Update existing contract
+        const { error: contractError } = await supabase
+          .from("nd_staff_contract")
+          .update({
+            site_id: staffData.contract.site_id,
+            contract_start: staffData.contract.contract_start,
+            contract_end: staffData.contract.contract_end,
+            contract_type: staffData.contract.contract_type,
+            is_active: staffData.contract.is_active,
+            remark: staffData.contract.remark,
+            ...updateMetaData
+          })
+          .eq("id", staffData.contract.id);
+
+        if (contractError) {
+          console.error("Error updating staff contract:", contractError);
+          throw new Error(`Error updating staff contract: ${contractError.message}`);
+        }
+      } else {
+        // Create new contract if it doesn't exist
+        const { error: contractError } = await supabase
+          .from("nd_staff_contract")
+          .insert({
+            staff_id: staffId,
+            site_id: staffData.contract.site_id,
+            contract_start: staffData.contract.contract_start,
+            contract_end: staffData.contract.contract_end,
+            contract_type: staffData.contract.contract_type,
+            is_active: staffData.contract.is_active || true,
+            remark: staffData.contract.remark,
+            user_id: staffData.contract.user_id,
+            created_by: currentUser.id,
+            created_at: timestamp,
+            ...updateMetaData
+          });
+
+        if (contractError) {
+          console.error("Error creating staff contract:", contractError);
+          throw new Error(`Error creating staff contract: ${contractError.message}`);
+        }
+      }
+    }
+
+    // Update staff pay info
+    if (staffData.payInfo) {
+      if (staffData.payInfo.id) {
+        // Update existing pay info
+        const { error: payInfoError } = await supabase
+          .from("nd_staff_pay_info")
+          .update({
+            bank_id: staffData.payInfo.bank_id,
+            bank_acc_no: staffData.payInfo.bank_acc_no,
+            epf_no: staffData.payInfo.epf_no,
+            socso_no: staffData.payInfo.socso_no,
+            tax_no: staffData.payInfo.tax_no,
+            ...updateMetaData
+          })
+          .eq("id", staffData.payInfo.id);
+
+        if (payInfoError) {
+          console.error("Error updating pay info:", payInfoError);
+          throw new Error(`Error updating pay info: ${payInfoError.message}`);
+        }
+      } else {
+        // Create new pay info if it doesn't exist
+        const { error: payInfoError } = await supabase
+          .from("nd_staff_pay_info")
+          .insert({
+            staff_id: staffId,
+            bank_id: staffData.payInfo.bank_id,
+            bank_acc_no: staffData.payInfo.bank_acc_no,
+            epf_no: staffData.payInfo.epf_no,
+            socso_no: staffData.payInfo.socso_no,
+            tax_no: staffData.payInfo.tax_no,
+            created_by: currentUser.id,
+            created_at: timestamp,
+            ...updateMetaData
+          });
+
+        if (payInfoError) {
+          console.error("Error creating pay info:", payInfoError);
+          throw new Error(`Error creating pay info: ${payInfoError.message}`);
+        }
+      }
+    }
+
+    return { success: true, message: "Staff details updated successfully" };
+  } catch (error) {
+    console.error("Error updating staff member:", error);
+    throw error;
+  }
+}
+
+export async function getStaffDetails(staffId: string) {
+  try {
+    // Fetch staff profile
+    const { data: staffProfile, error: staffProfileError } = await supabase
+      .from("nd_staff_profile")
+      .select("*")
+      .eq("id", staffId)
+      .single();
+
+    if (staffProfileError) {
+      throw new Error(`Error fetching staff profile: ${staffProfileError.message}`);
+    }
+
+    // Fetch staff address
+    const { data: staffAddress, error: staffAddressError } = await supabase
+      .from("nd_staff_address")
+      .select("*")
+      .eq("staff_id", staffId)
+      .eq("is_active", true)
+      .single();
+
+    // Fetch staff contact
+    const { data: staffContact, error: staffContactError } = await supabase
+      .from("nd_staff_contact")
+      .select("*")
+      .eq("staff_id", staffId)
+      .single();
+
+    // Fetch staff contract
+    const { data: staffContract, error: staffContractError } = await supabase
+      .from("nd_staff_contract")
+      .select("*")
+      .eq("staff_id", staffId)
+      .eq("is_active", true)
+      .single();
+
+    // Fetch staff pay info
+    const { data: staffPayInfo, error: staffPayInfoError } = await supabase
+      .from("nd_staff_pay_info")
+      .select("*")
+      .eq("staff_id", staffId)
+      .single();
+
+    // Fetch staff job
+    const { data: staffJob, error: staffJobError } = await supabase
+      .from("nd_staff_job")
+      .select("*")
+      .eq("staff_id", staffId)
+      .eq("is_active", true)
+      .single();
+
+    return {
+      profile: staffProfile || null,
+      address: staffAddress || null,
+      contact: staffContact || null,
+      contract: staffContract || null,
+      payInfo: staffPayInfo || null,
+      job: staffJob || null
+    };
+  } catch (error) {
+    console.error("Error fetching staff details:", error);
+    throw error;
+  }
 }
