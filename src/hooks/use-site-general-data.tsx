@@ -10,6 +10,7 @@ const useSiteGeneralData = () => {
   const [zone, setZone] = useState<any[]>([]);
   const [categoryArea, setCategoryArea] = useState<any[]>([]);
   const [buildingLevel, setBuildingLevel] = useState<any[]>([]);
+  const [socioEconomics, setSocioEconomic] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,6 +102,17 @@ const useSiteGeneralData = () => {
       }
     };
 
+    const fetchSocioeconomic = async () => {
+      try {
+        const { data, error } = await supabase.from("nd_socioeconomics").select("id, sector_id, eng, bm");
+        if (error) throw error;
+        setSocioEconomic(data);
+      } catch (error) {
+        console.error("Error fetching socio economic:", error);
+        setError(error.message);
+      }
+    };
+
     fetchSiteStatus();
     fetchTechnology();
     fetchBandwidth();
@@ -109,9 +121,10 @@ const useSiteGeneralData = () => {
     fetchZone();
     fetchCategoryArea();
     fetchBuildingLevel();
+    fetchSocioeconomic();
   }, []);
 
-  return { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel, error };
+  return { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel, socioEconomics, error };
 };
 
 export default useSiteGeneralData;
