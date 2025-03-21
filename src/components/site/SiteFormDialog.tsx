@@ -12,9 +12,11 @@ import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site } from "@/components/site/component/site-utils";
+import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site, fetchSocioecomic, fetchSiteSpace, fetchOrganization } from "@/components/site/component/site-utils";
 import { Textarea } from "../ui/textarea";
-import { format } from "path";
+import { DateInput } from "@/components/ui/date-input";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { SelectMany } from "@/components/ui/SelectMany";
 
 interface SiteFormDialogProps {
   open: boolean;
@@ -27,7 +29,17 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State for form fields
+  // Retrieve user metadata
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    parsedMetadata?.user_group_name === "TP" &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
+
+  // Hooks must be called unconditionally
   const [formState, setFormState] = useState({
     code: '',
     name: '',
@@ -56,7 +68,30 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     category_area: undefined,
     building_level: undefined,
     oku: undefined,
-    coordinates: ''
+    coordinates: '',
+    operate_date: '', // Add operate_date field
+    socio_economic: [], // Add socio_economic field
+    space: [], // Add space field
+    dusp_tp_id: undefined, // Add dusp_tp_id field
+  });
+
+  // Fetch socio-economic options
+  const { data: socioEconomicOptions = [], isLoading: isSocioEconomicLoading } = useQuery({
+    queryKey: ['socio-economic'],
+    queryFn: fetchSocioecomic,
+  });
+
+  // Fetch site space options
+  const { data: siteSpaceOptions = [], isLoading: isSiteSpaceLoading } = useQuery({
+    queryKey: ['site-space'],
+    queryFn: fetchSiteSpace,
+  });
+
+  // Fetch organization options for super admin
+  const { data: organizations = [], isLoading: isOrganizationsLoading } = useQuery({
+    queryKey: ['organizations'],
+    queryFn: fetchOrganization,
+    enabled: parsedMetadata?.user_type === "super_admin", // Only fetch for super admin
   });
 
   const setField = (field: string, value: any) => {
@@ -230,10 +265,10 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
   //preset on 2nd value of status
   useEffect(() => {
-    if (siteStatus.length > 1 && !formState.status) {
-      setField('status', String(siteStatus[1].id));
+    if (open && !site && !formState.status && siteStatus.length > 1 && !isStatusLoading) {
+      setField('status', String(siteStatus[1].id)); // Set predefined status when the form is opened
     }
-  }, [siteStatus, formState.status]);
+  }, [open, site, formState.status, siteStatus, isStatusLoading]);
 
   const resetForm = () => {
     setFormState({
@@ -264,7 +299,11 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       category_area: undefined,
       building_level: undefined,
       oku: undefined,
-      coordinates: ''
+      coordinates: '',
+      operate_date: '', // Add operate_date field
+      socio_economic: [], // Add socio_economic field
+      space: [], // Add space field
+      dusp_tp_id: undefined, // Add dusp_tp_id field
     });
   };
 
@@ -305,7 +344,11 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         category_area: site.area_id || undefined,
         building_level: site.level_id || undefined,
         oku: site.oku_friendly ?? undefined,
-        coordinates: site.longtitude && site.latitude ? `${site.longtitude},${site.latitude}` : ''
+        coordinates: site.longtitude && site.latitude ? `${site.longtitude},${site.latitude}` : '',
+        operate_date: site.operate_date ? site.operate_date.split('T')[0] : '', // Format timestamp to date
+        socio_economic: site.nd_site_socioeconomic.map((s) => s.nd_socioeconomics.id) || [], // Populate socio_economic
+        space: site.nd_site_space.map((s) => s.nd_space.id) || [], // Populate space
+        dusp_tp_id: site.dusp_tp_id || undefined, // Populate dusp_tp_id
       });
 
       // Enable dependent fields
@@ -384,6 +427,9 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         area_id: formState.category_area === '' ? null : formState.category_area,
         level_id: formState.building_level === '' ? null : formState.building_level,
         oku_friendly: formState.oku ?? null,
+        operate_date: formState.operate_date || null,
+        dusp_tp_id: formState.dusp_tp_id === '' ? null : formState.dusp_tp_id, // Add dusp_tp_id to site_profile
+        ...(site ? {} : organizationId ? { dusp_tp_id: organizationId } : {}), // Add dusp_tp_id only for creation and non-super_admin and TP group only
       };
 
       const site_address = {
@@ -402,7 +448,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       console.log(site_address);
 
       if (site) {
-        // Update existing site
+        // Update existing site (exclude dusp_tp_id from updates)
         const { error: profError } = await supabase
           .from('nd_site_profile')
           .update(site_profile)
@@ -423,6 +469,44 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
           .eq('site_profile_id', site.id);
 
         if (codeError) throw codeError;
+
+        // Update socio-economic data
+        const { error: deleteSocioError } = await supabase
+          .from('nd_site_socioeconomic')
+          .delete()
+          .eq('site_id', site.id);
+
+        if (deleteSocioError) throw deleteSocioError;
+
+        const socioEconomicData = formState.socio_economic.map((id) => ({
+          site_id: site.id,
+          socioeconomic_id: id,
+        }));
+
+        const { error: insertSocioError } = await supabase
+          .from('nd_site_socioeconomic')
+          .insert(socioEconomicData);
+
+        if (insertSocioError) throw insertSocioError;
+
+        // Update space data
+        const { error: deleteSpaceError } = await supabase
+          .from('nd_site_space')
+          .delete()
+          .eq('site_id', site.id);
+
+        if (deleteSpaceError) throw deleteSpaceError;
+
+        const spaceData = formState.space.map((id) => ({
+          site_id: site.id,
+          space_id: id,
+        }));
+
+        const { error: insertSpaceError } = await supabase
+          .from('nd_site_space')
+          .insert(spaceData);
+
+        if (insertSpaceError) throw insertSpaceError;
 
         toast({
           title: "Site updated successfully",
@@ -453,6 +537,30 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
         if (codeError) throw codeError;
 
+        // Create socio-economic data
+        const socioEconomicData = formState.socio_economic.map((id) => ({
+          site_id: site_id,
+          socioeconomic_id: id,
+        }));
+
+        const { error: insertSocioError } = await supabase
+          .from('nd_site_socioeconomic')
+          .insert(socioEconomicData);
+
+        if (insertSocioError) throw insertSocioError;
+
+        // Create space data
+        const spaceData = formState.space.map((id) => ({
+          site_id: site_id,
+          space_id: id,
+        }));
+
+        const { error: insertSpaceError } = await supabase
+          .from('nd_site_space')
+          .insert(spaceData);
+
+        if (insertSpaceError) throw insertSpaceError;
+
         toast({
           title: "Site added successfully",
           description: `The ${site_profile.sitename} site has been added to the system.`,
@@ -477,6 +585,11 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     }
   };
 
+  // Access control logic moved to the return statement
+  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
+    return <div>You do not have access to create or edit sites.</div>;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
@@ -488,6 +601,29 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
             {/* Section 1 */}
             <div className="flex-1 space-y-4">
               <DialogTitle>Site Information</DialogTitle>
+              {parsedMetadata?.user_type === "super_admin" && (
+                <div className="space-y-2">
+                  <Label htmlFor="dusp_tp_id">DUSP TP ID</Label>
+                  <Select
+                    name="dusp_tp_id"
+                    value={formState.dusp_tp_id ?? undefined}
+                    onValueChange={(value) => setField('dusp_tp_id', value)}
+                    disabled={isOrganizationsLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select organization" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
+                      {organizations.map((org) => (
+                        <SelectItem key={org.id} value={String(org.id)}>
+                          {org.displayName} {/* Use displayName for dropdown */}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="name">Site Name</Label>
                 <Input id="name" name="name" value={formState.name} onChange={(e) => setField('name', e.target.value)} required />
@@ -503,7 +639,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select phase" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={null} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {sitePhase.map((phase) => (
                       <SelectItem key={phase.id} value={String(phase.id)}>
                         {phase.name}
@@ -537,7 +673,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select technology" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
                     {siteTechnology.map((tech) => (
                       <SelectItem key={tech.id} value={String(tech.id)}>
                         {tech.name}
@@ -553,7 +689,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select bandwidth" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
                     {siteBandwidth.map((bandwidth) => (
                       <SelectItem key={bandwidth.id} value={String(bandwidth.id)}>
                         {bandwidth.name}
@@ -562,21 +698,6 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                   </SelectContent>
                 </Select>
               </div>
-              {/* <div className="space-y-2">
-                <Label htmlFor="status">Socioeconomic</Label>
-                <Select name="status" value={status ?? undefined} onValueChange={setStatus} disabled={isStatusLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {siteStatus.map((status) => (
-                      <SelectItem key={status.id} value={String(status.id)}>
-                        {status.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="building_type">Building type</Label>
                 <Select name="building_type" value={formState.building_type ?? undefined} onValueChange={(value) => setField('building_type', value)} disabled={isBuildingTypeLoading}>
@@ -584,7 +705,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select building type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
                     {siteBuildingType.map((type) => (
                       <SelectItem key={type.id} value={String(type.id)}>
                         {type.eng}
@@ -620,21 +741,6 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                   </label>
                 </div>
               </div>
-              {/* <div className="space-y-2">
-                <Label htmlFor="status">Space</Label>
-                <Select name="status" value={status ?? undefined} onValueChange={setStatus} disabled={isStatusLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {siteStatus.map((status) => (
-                      <SelectItem key={status.id} value={String(status.id)}>
-                        {status.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="zone">Zone</Label>
                 <Select name="zone" value={formState.zone ?? undefined} onValueChange={(value) => setField('zone', value)} disabled={isZoneLoading}>
@@ -642,7 +748,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select zone" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
                     {siteZone.map((zone) => (
                       <SelectItem key={zone.id} value={String(zone.id)}>
                         {zone.area}
@@ -658,7 +764,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Category Area" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
                     {siteCategoryArea.map((catA) => (
                       <SelectItem key={catA.id} value={String(catA.id)}>
                         {catA.name}
@@ -674,7 +780,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select building level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
                     {siteBuildingLevel.map((level) => (
                       <SelectItem key={level.id} value={String(level.id)}>
                         {level.eng}
@@ -706,21 +812,32 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                   </label>
                 </div>
               </div>
-              {/* <div className="space-y-2">
-                <Label htmlFor="status">Cluster</Label>
-                <Select name="status" value={status ?? undefined} onValueChange={setStatus} disabled={isStatusLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {siteStatus.map((status) => (
-                      <SelectItem key={status.id} value={String(status.id)}>
-                        {status.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div> */}
+              <div className="space-y-2">
+                <Label htmlFor="socio_economic">Socio-Economic</Label>
+                <SelectMany
+                  options={socioEconomicOptions.map((option) => ({
+                    id: option.id,
+                    label: option.eng,
+                  }))}
+                  value={formState.socio_economic}
+                  onChange={(value) => setField("socio_economic", value)}
+                  placeholder="Select socio-economic"
+                  disabled={isSocioEconomicLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="space">Space</Label>
+                <SelectMany
+                  options={siteSpaceOptions.map((option) => ({
+                    id: option.id,
+                    label: option.eng,
+                  }))}
+                  value={formState.space}
+                  onChange={(value) => setField("space", value)}
+                  placeholder="Select space"
+                  disabled={isSiteSpaceLoading}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select name="status" value={formState.status ?? undefined} onValueChange={(value) => setField('status', value)} disabled={isStatusLoading}>
@@ -735,6 +852,15 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="operate_date">Operate Date</Label>
+                <DateInput
+                  id="operate_date"
+                  name="operate_date"
+                  value={formState.operate_date}
+                  onChange={(e) => setField('operate_date', e.target.value)}
+                />
               </div>
             </div>
             <div className="border-l border-gray-300"></div>
@@ -764,7 +890,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteRegion.map((region) => (
                       <SelectItem key={region.id} value={String(region.id)}>
                         {region.eng}
@@ -780,7 +906,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteState.map((state) => (
                       <SelectItem key={state.id} value={String(state.id)}>
                         {state.name}
@@ -796,7 +922,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select district" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteDistrict.map((district) => (
                       <SelectItem key={district.id} value={String(district.id)}>
                         {district.name}
@@ -812,7 +938,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select mukim" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteMukim.map((mukim) => (
                       <SelectItem key={mukim.id} value={String(mukim.id)}>
                         {mukim.name}
@@ -828,7 +954,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select parliament" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteParliament.map((parliament) => (
                       <SelectItem key={parliament.id} value={String(parliament.id)}>
                         {parliament.fullname}
@@ -844,7 +970,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                     <SelectValue placeholder="Select dun" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>..</SelectItem> {/* Add clearable option */}
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
                     {siteDun.map((dun) => (
                       <SelectItem key={dun.id} value={String(dun.id)}>
                         {dun.full_name}
