@@ -50,10 +50,11 @@ export async function createStaffMember(staffData: any) {
     if (authError) throw authError;
 
     // 2. Create staff profile
+    // Note: we're storing user_id in the staff_profile table
     const { data: staffProfile, error: staffProfileError } = await supabase
       .from('nd_staff_profile')
       .insert({
-        user_id: authUser.user?.id,
+        user_id: authUser.user?.id, // This should match the actual column name in your database
         fullname: staffData.name,
         ic_no: staffData.ic_number,
         mobile_no: staffData.phone_number,
@@ -63,7 +64,10 @@ export async function createStaffMember(staffData: any) {
       .select()
       .single();
 
-    if (staffProfileError) throw staffProfileError;
+    if (staffProfileError) {
+      console.error('Staff profile creation error:', staffProfileError);
+      throw new Error(`Error creating staff profile: ${staffProfileError.message}`);
+    }
 
     // 3. Create staff job record
     const { error: jobError } = await supabase
@@ -102,4 +106,3 @@ function generateTemporaryPassword() {
   // Generate a random password that meets your requirements
   return Math.random().toString(36).slice(-10) + 'A1!';
 }
-
