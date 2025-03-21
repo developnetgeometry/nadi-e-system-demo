@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 
 // Mock data for staff members
 const staffData = [
@@ -79,6 +80,8 @@ const Employees = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
+  const [staffList, setStaffList] = useState(staffData);
   const userMetadataString = useUserMetadata();
   const [organizationInfo, setOrganizationInfo] = useState<{
     organization_id: string | null;
@@ -103,7 +106,7 @@ const Employees = () => {
   }, [userMetadataString]);
 
   // Filter staff based on search query and filters
-  const filteredStaff = staffData.filter((staff) => {
+  const filteredStaff = staffList.filter((staff) => {
     const matchesSearch =
       staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       staff.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,8 +121,8 @@ const Employees = () => {
   });
 
   // Get unique location and status options for filters
-  const locationOptions = [...new Set(staffData.map((staff) => staff.siteLocation))];
-  const statusOptions = [...new Set(staffData.map((staff) => staff.status))];
+  const locationOptions = [...new Set(staffList.map((staff) => staff.siteLocation))];
+  const statusOptions = [...new Set(staffList.map((staff) => staff.status))];
 
   const handleAddStaff = () => {
     if (!organizationInfo.organization_id) {
@@ -131,9 +134,14 @@ const Employees = () => {
       return;
     }
     
+    setIsAddStaffOpen(true);
+  };
+
+  const handleStaffAdded = (newStaff: any) => {
+    setStaffList((prevStaff) => [newStaff, ...prevStaff]);
     toast({
-      title: "Add Staff for " + (organizationInfo.organization_name || "Your Organization"),
-      description: "The Add Staff feature is currently being developed. Staff will be linked to your organization.",
+      title: "Staff Added",
+      description: `${newStaff.name} has been added successfully.`,
     });
   };
 
@@ -252,6 +260,17 @@ const Employees = () => {
           </Table>
         </div>
       </div>
+
+      {organizationInfo.organization_id && (
+        <StaffFormDialog
+          open={isAddStaffOpen}
+          onOpenChange={setIsAddStaffOpen}
+          organizationId={organizationInfo.organization_id}
+          organizationName={organizationInfo.organization_name || "Your Organization"}
+          onStaffAdded={handleStaffAdded}
+          siteLocations={locationOptions}
+        />
+      )}
     </DashboardLayout>
   );
 };
