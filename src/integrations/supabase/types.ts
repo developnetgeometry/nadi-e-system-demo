@@ -6243,6 +6243,7 @@ export type Database = {
           created_by: string | null
           id: number
           latitude: number | null
+          longitude: number | null
           longtitude: number | null
           photo_path: string | null
           remark: string | null
@@ -6263,6 +6264,7 @@ export type Database = {
           created_by?: string | null
           id: number
           latitude?: number | null
+          longitude?: number | null
           longtitude?: number | null
           photo_path?: string | null
           remark?: string | null
@@ -6283,6 +6285,7 @@ export type Database = {
           created_by?: string | null
           id?: number
           latitude?: number | null
+          longitude?: number | null
           longtitude?: number | null
           photo_path?: string | null
           remark?: string | null
