@@ -5,6 +5,7 @@ import { VendorDashboard } from "./user-dashboards/VendorDashboard";
 import { useUserDashboard } from "@/hooks/use-user-dashboard";
 import { DuspDashboard } from "./user-dashboards/DuspDashboard";
 import { McmcDashboard } from "./user-dashboards/McmcDashboard";
+import { StaffDashboard } from "./user-dashboards/StaffDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -58,6 +59,9 @@ export const DynamicDashboard = () => {
     case "vendor":
     case typeof userType === "string" && userType.match(/^vendor.*/)?.input:
       return <VendorDashboard />;
+    case "staff":
+    case typeof userType === "string" && userType.match(/^staff.*/)?.input:
+      return <StaffDashboard />;
     case "member":
     case typeof userType === "string" && userType.match(/^member.*/)?.input:
       return <MemberDashboard />;
