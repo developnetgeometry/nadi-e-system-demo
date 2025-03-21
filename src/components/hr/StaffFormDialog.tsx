@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -180,15 +181,24 @@ export function StaffFormDialog({
       
       console.log("Submitting staff with user type:", data.userType, "and site location:", data.siteLocation);
       
+      // Find the selected site for displaying in success message
+      const selectedSite = availableSites.find(site => site.id === data.siteLocation);
+      
       const result = await createStaffMember({
         ...data,
         organizationId,
       });
 
-      onStaffAdded(result.data);
+      onStaffAdded({
+        ...result.data,
+        name: data.name,
+        userType: data.userType,
+        siteLocationName: selectedSite?.sitename || "Unknown site"
+      });
+      
       toast({
         title: "Success",
-        description: `${data.name} has been added to ${organizationName} as ${data.userType.replace(/_/g, ' ')}`,
+        description: `${data.name} has been added to ${organizationName} as ${data.userType.replace(/_/g, ' ')} at ${selectedSite?.sitename || "Unknown site"}`,
       });
       onOpenChange(false);
       form.reset();
@@ -350,10 +360,12 @@ export function StaffFormDialog({
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select site location" />
+                          <SelectValue placeholder="Select site location">
+                            {field.value && availableSites.find(site => site.id === field.value)?.sitename}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         {availableSites.map((site) => (
                           <SelectItem key={site.id} value={site.id}>
                             {site.sitename}

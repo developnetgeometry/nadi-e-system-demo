@@ -169,12 +169,44 @@ const Employees = () => {
   const handleStaffAdded = async (newStaff: any) => {
     try {
       console.log("Adding new staff member with data:", newStaff);
-      const result = await createStaffMember(newStaff);
-      setStaffList((prevStaff) => [result.data, ...prevStaff]);
-      toast({
-        title: "Staff Added",
-        description: `${newStaff.name} has been added successfully as ${newStaff.userType.replace(/_/g, ' ')}.`,
-      });
+      
+      if (newStaff.id) {
+        setStaffList((prevStaff) => [{
+          id: newStaff.id,
+          name: newStaff.name || newStaff.fullname,
+          email: newStaff.work_email || newStaff.email,
+          userType: newStaff.userType,
+          employDate: newStaff.join_date || new Date().toISOString().split("T")[0],
+          status: newStaff.is_active ? "Active" : "Inactive",
+          siteLocation: newStaff.siteLocationName || "Unknown site",
+          phone_number: newStaff.mobile_no || newStaff.phone_number,
+          ic_number: newStaff.ic_no || newStaff.ic_number,
+        }, ...prevStaff]);
+        
+        toast({
+          title: "Staff Added",
+          description: `${newStaff.name || newStaff.fullname} has been added successfully as ${(newStaff.userType || "").replace(/_/g, ' ')} at ${newStaff.siteLocationName || "Unknown site"}.`,
+        });
+      } else {
+        const result = await createStaffMember(newStaff);
+        
+        setStaffList((prevStaff) => [{
+          id: result.data.id,
+          name: newStaff.name,
+          email: newStaff.email,
+          userType: newStaff.userType,
+          employDate: newStaff.employDate,
+          status: newStaff.status,
+          siteLocation: newStaff.siteLocationName || "Unknown site",
+          phone_number: newStaff.phone_number,
+          ic_number: newStaff.ic_number,
+        }, ...prevStaff]);
+        
+        toast({
+          title: "Staff Added",
+          description: `${newStaff.name} has been added successfully as ${newStaff.userType.replace(/_/g, ' ')} at ${newStaff.siteLocationName || "Unknown site"}.`,
+        });
+      }
     } catch (error: any) {
       console.error('Error adding staff:', error);
       toast({
