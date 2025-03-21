@@ -113,7 +113,7 @@ export async function createStaffMember(staffData: any) {
 
     // 4. Update profiles table with the correct user_type
     const { error: profilesError } = await supabase.from("profiles").upsert({
-      id: authUser.user?.id,
+      user_id: authUser.user?.id,
       email: staffData.email,
       full_name: staffData.name,
       user_type: staffData.userType, // Explicitly set the user_type
