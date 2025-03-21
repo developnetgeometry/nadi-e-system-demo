@@ -1,5 +1,5 @@
 
-import { Bell, Settings, Menu } from "lucide-react";
+import { Bell, Settings, Menu, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,12 +75,13 @@ export const DashboardNavbar = () => {
             {navbarTitle}
           </h2>
         )}
-        <div className={isMobile ? "flex items-center space-x-2" : "flex flex-1 items-center justify-end space-x-4"}>
-          <nav className="flex items-center space-x-2">
+        <div className={isMobile ? "flex items-center space-x-2" : "flex flex-1 items-center justify-end space-x-6"}>
+          <nav className="flex items-center space-x-6">
+            {/* Notification Bell Icon */}
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white">
-                  <Bell className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="rounded-full bg-transparent hover:bg-white/10 transition-colors p-2">
+                  <Bell className="h-7 w-7 text-white" />
                   <span className="sr-only">Notifications</span>
                 </Button>
               </DialogTrigger>
@@ -92,10 +93,11 @@ export const DashboardNavbar = () => {
               </DialogContent>
             </Dialog>
 
+            {/* Settings Icon */}
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white">
-                  <Settings className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="rounded-full bg-transparent hover:bg-white/10 transition-colors p-2">
+                  <Settings className="h-7 w-7 text-white" />
                   <span className="sr-only">Settings</span>
                 </Button>
               </DialogTrigger>
@@ -129,14 +131,21 @@ export const DashboardNavbar = () => {
               </DialogContent>
             </Dialog>
 
+            {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8 border border-white/20">
+                <Button variant="ghost" className="rounded-full pl-2 pr-3 py-1 h-auto hover:bg-white/10 flex items-center gap-2">
+                  <Avatar className="h-10 w-10 border-2 border-white">
+                    <AvatarImage 
+                      src="/lovable-uploads/31e9f7ec-175a-48af-9ad7-eefda1ea40db.png" 
+                      alt="Profile" 
+                      className="object-cover"
+                    />
                     <AvatarFallback className="bg-white/10 text-white">
                       {profile?.full_name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
+                  <ChevronDown className="h-5 w-5 text-white" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
