@@ -184,9 +184,17 @@ export function StaffFormDialog({
       // Find the selected site for displaying in success message
       const selectedSite = availableSites.find(site => site.id === data.siteLocation);
       
+      // Ensure site location is a number for database compatibility
+      const siteLocationId = parseInt(data.siteLocation, 10);
+      
+      if (isNaN(siteLocationId)) {
+        throw new Error('Invalid site location format');
+      }
+      
       const result = await createStaffMember({
         ...data,
         organizationId,
+        siteLocation: siteLocationId, // Convert to number to match bigint in database
       });
 
       onStaffAdded({
