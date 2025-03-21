@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Search, Filter, Edit } from "lucide-react";
+import { UserPlus, Search, Filter } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -27,7 +28,6 @@ import { useHasPermission } from "@/hooks/use-has-permission";
 import { createStaffMember } from "@/lib/staff";
 import { useUserAccess } from "@/hooks/use-user-access";
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
 
 const statusColors = {
   Active: "bg-green-100 text-green-800",
@@ -37,7 +37,6 @@ const statusColors = {
 
 const Employees = () => {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -73,6 +72,7 @@ const Employees = () => {
     }
   }, [userMetadataString]);
 
+  // Fetch staff data from Supabase
   useEffect(() => {
     const fetchStaffData = async () => {
       try {
@@ -80,6 +80,7 @@ const Employees = () => {
         
         setIsLoading(true);
         
+        // Get sites associated with organization
         const { data: sites, error: sitesError } = await supabase
           .from('nd_site_profile')
           .select('id, sitename')
@@ -95,6 +96,7 @@ const Employees = () => {
         
         const siteIds = sites.map(site => site.id);
         
+        // Get staff jobs for these sites
         const { data: staffJobs, error: staffJobsError } = await supabase
           .from('nd_staff_job')
           .select('id, staff_id, site_id, join_date, is_active')
@@ -108,8 +110,10 @@ const Employees = () => {
           return;
         }
 
+        // Get the staff IDs from the jobs to fetch staff profiles
         const staffIds = staffJobs.map(job => job.staff_id);
 
+        // Fetch staff profiles by ID
         const { data: staffProfiles, error: staffProfilesError } = await supabase
           .from('nd_staff_profile')
           .select('id, fullname, work_email, mobile_no, ic_no, is_active, user_id')
@@ -124,12 +128,14 @@ const Employees = () => {
           return;
         }
 
+        // Get the user IDs from staff profiles to fetch user types
         const userIds = staffProfiles
           .map(profile => profile.user_id)
           .filter(id => id !== null && id !== undefined);
         
         let userTypesData = [];
         if (userIds.length > 0) {
+          // Fetch user types from profiles table
           const { data: userProfiles, error: userProfilesError } = await supabase
             .from('profiles')
             .select('id, user_type')
@@ -139,6 +145,7 @@ const Employees = () => {
           userTypesData = userProfiles || [];
         }
         
+        // Map the data to our staffList format by joining the data manually
         const formattedStaff = staffJobs.map(job => {
           const staffProfile = staffProfiles.find(profile => profile.id === job.staff_id);
           if (!staffProfile) return null;
@@ -161,6 +168,7 @@ const Employees = () => {
         
         setStaffList(formattedStaff);
         
+        // Extract location and status options
         const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation))];
         const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
         
@@ -271,10 +279,6 @@ const Employees = () => {
     }
   };
 
-  const handleEditStaff = (staffId: string) => {
-    navigate(`/dashboard/hr/staff/${staffId}`);
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-MY", {
@@ -362,13 +366,12 @@ const Employees = () => {
                 <TableHead>Employ Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Site Location</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                     </div>
@@ -389,22 +392,11 @@ const Employees = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{staff.siteLocation}</TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleEditStaff(staff.id)}
-                        className="flex items-center gap-1"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                     No staff members found matching your criteria
                   </TableCell>
                 </TableRow>
