@@ -5571,8 +5571,8 @@ export type Database = {
           region_id: number | null
           remark: string | null
           sitename: string | null
-          socioeconomic_id: number | null
-          space_id: number | null
+          socioeconomic_id: number[] | null
+          space_id: number[] | null
           state_id: number | null
           technology: number | null
           total_population: number | null
@@ -5610,8 +5610,8 @@ export type Database = {
           region_id?: number | null
           remark?: string | null
           sitename?: string | null
-          socioeconomic_id?: number | null
-          space_id?: number | null
+          socioeconomic_id?: number[] | null
+          space_id?: number[] | null
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
@@ -5649,8 +5649,8 @@ export type Database = {
           region_id?: number | null
           remark?: string | null
           sitename?: string | null
-          socioeconomic_id?: number | null
-          space_id?: number | null
+          socioeconomic_id?: number[] | null
+          space_id?: number[] | null
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
@@ -5729,13 +5729,6 @@ export type Database = {
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "nd_region"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_site_profile_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "nd_space"
             referencedColumns: ["id"]
           },
           {
