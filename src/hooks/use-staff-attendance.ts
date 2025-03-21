@@ -69,14 +69,14 @@ const useStaffAttendance = ({
       if (!staffJob) throw new Error('Staff job information not found');
 
       const today = new Date();
-      const attendanceData: StaffAttendance = {
+      const attendancePayload: StaffAttendance = {
         staff_id: staffId,
         site_id: staffJob.site_id,
         attend_date: today.toISOString().split('T')[0],
         check_in: today.toISOString(),
       };
 
-      await recordAttendance(attendanceData);
+      await recordAttendance(attendancePayload);
       toast({
         title: 'Check-in successful',
         description: `Checked in at ${today.toLocaleTimeString()}`,
@@ -117,14 +117,14 @@ const useStaffAttendance = ({
       }
 
       const now = new Date();
-      const attendanceData: StaffAttendance = {
+      const attendancePayload: StaffAttendance = {
         staff_id: staffId,
         site_id: todayRecord.site_id,
         attend_date: today,
         check_out: now.toISOString(),
       };
 
-      await recordAttendance(attendanceData);
+      await recordAttendance(attendancePayload);
       toast({
         title: 'Check-out successful',
         description: `Checked out at ${now.toLocaleTimeString()}`,
