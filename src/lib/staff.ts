@@ -45,6 +45,20 @@ export async function createStaffMember(staffData: any) {
 
     if (jobError) throw jobError;
 
+    // 4. Update profiles table
+    const { error: profilesError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: authUser.user?.id,
+        email: staffData.email,
+        full_name: staffData.name,
+        user_type: staffData.userType,
+        ic_number: staffData.ic_number,
+        phone_number: staffData.phone_number
+      });
+
+    if (profilesError) throw profilesError;
+
     return { success: true, data: staffProfile };
   } catch (error) {
     console.error('Error creating staff member:', error);
