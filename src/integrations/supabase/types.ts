@@ -6685,6 +6685,7 @@ export type Database = {
           status: number | null
           updated_at: string | null
           updated_by: string | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
@@ -6713,6 +6714,7 @@ export type Database = {
           status?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Update: {
@@ -6741,6 +6743,7 @@ export type Database = {
           status?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: [
@@ -7653,7 +7656,15 @@ export type Database = {
           updated_by?: string | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_utilities_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_type_utilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_utilities_attachment: {
         Row: {
@@ -7683,7 +7694,15 @@ export type Database = {
           updated_by?: string | null
           utilities_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_utilities_attachment_utilities_id_fkey"
+            columns: ["utilities_id"]
+            isOneToOne: false
+            referencedRelation: "nd_utilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_utilities_threshold: {
         Row: {
@@ -7716,7 +7735,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_utilities_threshold_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_type_utilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_vendor_address: {
         Row: {
@@ -9169,7 +9196,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_type"]
       }
+      is_admin_role: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_current_user_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_staff_manager_role: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
@@ -9182,6 +9217,12 @@ export type Database = {
           p_ip_address?: string
         }
         Returns: string
+      }
+      user_has_role: {
+        Args: {
+          required_roles: string[]
+        }
+        Returns: boolean
       }
     }
     Enums: {

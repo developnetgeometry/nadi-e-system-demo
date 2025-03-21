@@ -44,7 +44,7 @@ export async function createStaffMember(staffData: any) {
       options: {
         data: {
           full_name: staffData.name,
-          user_type: staffData.userType, // Make sure user_type is set correctly from form data
+          user_type: staffData.userType,
         },
         emailRedirectTo: `${window.location.origin}/dashboard/hr`,
       },
