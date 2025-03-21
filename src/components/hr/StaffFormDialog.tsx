@@ -70,6 +70,7 @@ export function StaffFormDialog({
   organizationId,
   organizationName,
   onStaffAdded,
+  siteLocations,
 }: StaffFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -173,7 +174,7 @@ export function StaffFormDialog({
         throw new Error('You do not have permission to create staff members');
       }
       
-      if (data.userType !== 'staff_manager' && data.userType !== 'staff_assistant_manager') {
+      if (!['staff_manager', 'staff_assistant_manager'].includes(data.userType)) {
         throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');
       }
       

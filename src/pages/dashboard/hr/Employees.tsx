@@ -153,20 +153,11 @@ const Employees = () => {
       return;
     }
     
-    if (!hasPermission) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to add staff members.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     const allowedUserTypes = ['tp_admin', 'tp_hr', 'super_admin'];
     if (!userType || !allowedUserTypes.includes(userType)) {
       toast({
-        title: "Access Denied",
-        description: "Only TP Admin and HR users can add staff members.",
+        title: "Permission Denied",
+        description: "Only TP Admin, HR, and Super Admin users can add staff members.",
         variant: "destructive",
       });
       return;
