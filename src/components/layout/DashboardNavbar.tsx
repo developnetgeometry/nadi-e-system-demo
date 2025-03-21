@@ -57,6 +57,14 @@ export const DashboardNavbar = () => {
     enabled: !!user?.id,
   });
 
+  // Get first character of name for avatar fallback
+  const getNameInitial = () => {
+    if (profile?.full_name) {
+      return profile.full_name.charAt(0).toUpperCase();
+    }
+    return 'U'; // Default to 'U' for User if no name is available
+  };
+
   return (
     <header className={cn("sticky top-0 z-30 w-full border-b border-border/10 backdrop-blur supports-[backdrop-filter]:bg-[#000033]/90", sidebarStyles.navbarBackground)}>
       <div className="flex h-14 items-center px-4">
@@ -142,7 +150,7 @@ export const DashboardNavbar = () => {
                       className="object-cover"
                     />
                     <AvatarFallback className="bg-white/10 text-white">
-                      {profile?.full_name?.charAt(0) || 'U'}
+                      {getNameInitial()}
                     </AvatarFallback>
                   </Avatar>
                   <ChevronDown className="h-5 w-5 text-white" />
