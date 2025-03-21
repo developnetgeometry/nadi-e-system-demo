@@ -40,21 +40,21 @@ export async function createStaffMember(staffData: any) {
       options: {
         data: {
           full_name: staffData.name,
-          user_type: staffData.userType,
+          user_type: staffData.userType, // Make sure user_type is set correctly from form data
         },
-        // Don't require email verification for staff accounts
         emailRedirectTo: `${window.location.origin}/dashboard/hr`,
       },
     });
 
     if (authError) throw authError;
 
+    console.log("Created auth user with type:", staffData.userType);
+
     // 2. Create staff profile
-    // Note: we're storing user_id in the staff_profile table
     const { data: staffProfile, error: staffProfileError } = await supabase
       .from('nd_staff_profile')
       .insert({
-        user_id: authUser.user?.id, // This should match the actual column name in your database
+        user_id: authUser.user?.id,
         fullname: staffData.name,
         ic_no: staffData.ic_number,
         mobile_no: staffData.phone_number,
@@ -69,32 +69,39 @@ export async function createStaffMember(staffData: any) {
       throw new Error(`Error creating staff profile: ${staffProfileError.message}`);
     }
 
-    // 3. Create staff job record
+    // 3. Create staff job record with the site location
     const { error: jobError } = await supabase
       .from('nd_staff_job')
       .insert({
         staff_id: staffProfile.id,
-        site_id: staffData.siteLocation,
+        site_id: staffData.siteLocation, // Store the site location ID
         join_date: staffData.employDate,
         is_active: true,
       });
 
-    if (jobError) throw jobError;
+    if (jobError) {
+      console.error('Staff job creation error:', jobError);
+      throw jobError;
+    }
 
-    // 4. Update profiles table
+    // 4. Update profiles table with the correct user_type
     const { error: profilesError } = await supabase
       .from('profiles')
       .upsert({
         id: authUser.user?.id,
         email: staffData.email,
         full_name: staffData.name,
-        user_type: staffData.userType,
+        user_type: staffData.userType, // Explicitly set the user_type
         ic_number: staffData.ic_number,
         phone_number: staffData.phone_number
       });
 
-    if (profilesError) throw profilesError;
+    if (profilesError) {
+      console.error('Profile update error:', profilesError);
+      throw profilesError;
+    }
 
+    console.log("Successfully created staff with user type:", staffData.userType);
     return { success: true, data: staffProfile };
   } catch (error) {
     console.error('Error creating staff member:', error);

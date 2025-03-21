@@ -168,11 +168,12 @@ const Employees = () => {
 
   const handleStaffAdded = async (newStaff: any) => {
     try {
+      console.log("Adding new staff member with data:", newStaff);
       const result = await createStaffMember(newStaff);
       setStaffList((prevStaff) => [result.data, ...prevStaff]);
       toast({
         title: "Staff Added",
-        description: `${newStaff.name} has been added successfully.`,
+        description: `${newStaff.name} has been added successfully as ${newStaff.userType.replace(/_/g, ' ')}.`,
       });
     } catch (error: any) {
       console.error('Error adding staff:', error);

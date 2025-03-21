@@ -178,6 +178,8 @@ export function StaffFormDialog({
         throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');
       }
       
+      console.log("Submitting staff with user type:", data.userType, "and site location:", data.siteLocation);
+      
       const result = await createStaffMember({
         ...data,
         organizationId,
@@ -186,7 +188,7 @@ export function StaffFormDialog({
       onStaffAdded(result.data);
       toast({
         title: "Success",
-        description: `${data.name} has been added to ${organizationName}`,
+        description: `${data.name} has been added to ${organizationName} as ${data.userType.replace(/_/g, ' ')}`,
       });
       onOpenChange(false);
       form.reset();
