@@ -1,3 +1,4 @@
+
 import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
@@ -36,20 +37,28 @@ export async function createStaffMember(staffData: any) {
       );
     }
 
-    // 1. Create auth user through regular signup
-    const { data: authUser, error: authError } = await supabase.auth.signUp({
-      email: staffData.email,
-      password: generateTemporaryPassword(),
-      options: {
-        data: {
-          full_name: staffData.name,
-          user_type: staffData.userType,
-        },
-        emailRedirectTo: `${window.location.origin}/dashboard/hr`,
-      },
+    // 1. Create auth user through admin API instead of regular signup
+    // This prevents session switching
+    const { data: authUser, error: authError } = await supabase.functions.invoke('create-user', {
+      body: {
+        email: staffData.email,
+        password: generateTemporaryPassword(),
+        fullName: staffData.name,
+        userType: staffData.userType,
+        icNumber: staffData.ic_number,
+        phoneNumber: staffData.phone_number,
+        createdBy: currentUser.id
+      }
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      console.error("Error creating auth user:", authError);
+      throw new Error(`Error creating auth user: ${authError.message}`);
+    }
+
+    if (!authUser || !authUser.id) {
+      throw new Error("Failed to create user account");
+    }
 
     console.log("Created auth user with type:", staffData.userType);
 
@@ -57,7 +66,7 @@ export async function createStaffMember(staffData: any) {
     const { data: staffProfile, error: staffProfileError } = await supabase
       .from("nd_staff_profile")
       .insert({
-        user_id: authUser.user?.id, // Should be UUID, not bigint
+        user_id: authUser.id, // Should be UUID, not bigint
         fullname: staffData.name,
         ic_no: staffData.ic_number,
         mobile_no: staffData.phone_number,
@@ -109,21 +118,6 @@ export async function createStaffMember(staffData: any) {
     if (jobError) {
       console.error("Staff job creation error:", jobError);
       throw jobError;
-    }
-
-    // 4. Update profiles table with the correct user_type
-    const { error: profilesError } = await supabase.from("profiles").upsert({
-      user_id: authUser.user?.id,
-      email: staffData.email,
-      full_name: staffData.name,
-      user_type: staffData.userType, // Explicitly set the user_type
-      ic_number: staffData.ic_number,
-      phone_number: staffData.phone_number,
-    });
-
-    if (profilesError) {
-      console.error("Profile update error:", profilesError);
-      throw profilesError;
     }
 
     console.log(
