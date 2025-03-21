@@ -80,7 +80,7 @@ const Employees = () => {
         
         setIsLoading(true);
         
-        // Get staff profiles associated with organization sites
+        // Get sites associated with organization
         const { data: sites, error: sitesError } = await supabase
           .from('nd_site_profile')
           .select('id, sitename')
@@ -96,23 +96,10 @@ const Employees = () => {
         
         const siteIds = sites.map(site => site.id);
         
-        // First get the staff profiles
-        const { data: staffProfiles, error: staffProfilesError } = await supabase
-          .from('nd_staff_profile')
-          .select('id, fullname, work_email, mobile_no, ic_no, is_active');
-          
-        if (staffProfilesError) throw staffProfilesError;
-        
-        // Then get the job info separately
+        // Get staff jobs for these sites
         const { data: staffJobs, error: staffJobsError } = await supabase
           .from('nd_staff_job')
-          .select(`
-            id,
-            staff_id,
-            site_id,
-            join_date,
-            is_active
-          `)
+          .select('id, staff_id, site_id, join_date, is_active')
           .in('site_id', siteIds);
           
         if (staffJobsError) throw staffJobsError;
@@ -122,24 +109,49 @@ const Employees = () => {
           setIsLoading(false);
           return;
         }
-        
-        // Get user types from profiles table for the staff members
+
+        // Get the staff IDs from the jobs to fetch staff profiles
         const staffIds = staffJobs.map(job => job.staff_id);
-        
-        const { data: userProfiles, error: userProfilesError } = await supabase
-          .from('profiles')
-          .select('id, user_type')
+
+        // Fetch staff profiles by ID
+        const { data: staffProfiles, error: staffProfilesError } = await supabase
+          .from('nd_staff_profile')
+          .select('id, fullname, work_email, mobile_no, ic_no, is_active, user_id')
           .in('id', staffIds);
           
-        if (userProfilesError) throw userProfilesError;
+        if (staffProfilesError) throw staffProfilesError;
+        
+        if (!staffProfiles || staffProfiles.length === 0) {
+          console.log("No staff profiles found for the given jobs");
+          setStaffList([]);
+          setIsLoading(false);
+          return;
+        }
+
+        // Get the user IDs from staff profiles to fetch user types
+        const userIds = staffProfiles
+          .map(profile => profile.user_id)
+          .filter(id => id !== null && id !== undefined);
+        
+        let userTypesData = [];
+        if (userIds.length > 0) {
+          // Fetch user types from profiles table
+          const { data: userProfiles, error: userProfilesError } = await supabase
+            .from('profiles')
+            .select('id, user_type')
+            .in('id', userIds);
+          
+          if (userProfilesError) throw userProfilesError;
+          userTypesData = userProfiles || [];
+        }
         
         // Map the data to our staffList format by joining the data manually
         const formattedStaff = staffJobs.map(job => {
-          const staffProfile = staffProfiles?.find(profile => profile.id === job.staff_id);
-          const userProfile = userProfiles?.find(p => p.id === job.staff_id);
-          const site = sites?.find(s => s.id === job.site_id);
-          
+          const staffProfile = staffProfiles.find(profile => profile.id === job.staff_id);
           if (!staffProfile) return null;
+
+          const userProfile = userTypesData.find(p => p.id === staffProfile.user_id);
+          const site = sites.find(s => s.id === job.site_id);
           
           return {
             id: staffProfile.id,

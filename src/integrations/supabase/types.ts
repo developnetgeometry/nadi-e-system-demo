@@ -6798,6 +6798,13 @@ export type Database = {
             referencedRelation: "nd_races"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_staff_profile_profiles_fk"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_staff_taining_attachment: {
@@ -7428,7 +7435,7 @@ export type Database = {
       nd_type_utilities: {
         Row: {
           created_at: string | null
-          created_by: string
+          created_by: string | null
           id: number
           name: string | null
           updated_at: string | null
@@ -7436,15 +7443,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          created_by: string
-          id: number
+          created_by?: string | null
+          id?: number
           name?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           id?: number
           name?: string | null
           updated_at?: string | null
@@ -7633,7 +7640,7 @@ export type Database = {
         Row: {
           amount_bill: number | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           id: number
           month: number | null
           reference_no: string | null
@@ -7647,8 +7654,8 @@ export type Database = {
         Insert: {
           amount_bill?: number | null
           created_at?: string | null
-          created_by: string
-          id: number
+          created_by?: string | null
+          id?: number
           month?: number | null
           reference_no?: string | null
           remark?: string | null
@@ -7661,7 +7668,7 @@ export type Database = {
         Update: {
           amount_bill?: number | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           id?: number
           month?: number | null
           reference_no?: string | null
@@ -7696,7 +7703,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           file_path?: string | null
-          id: number
+          id?: number
           updated_at?: string | null
           updated_by?: string | null
           utilities_id?: number | null
@@ -7724,7 +7731,7 @@ export type Database = {
         Row: {
           amount: number | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           id: number
           tech_profile_id: number | null
           type_id: number | null
@@ -7734,8 +7741,8 @@ export type Database = {
         Insert: {
           amount?: number | null
           created_at?: string | null
-          created_by: string
-          id: number
+          created_by?: string | null
+          id?: number
           tech_profile_id?: number | null
           type_id?: number | null
           updated_at?: string | null
@@ -7744,7 +7751,7 @@ export type Database = {
         Update: {
           amount?: number | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           id?: number
           tech_profile_id?: number | null
           type_id?: number | null
