@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
@@ -29,42 +28,57 @@ const staffData = [
   {
     id: "1",
     name: "John Doe",
+    email: "john.doe@example.com",
     position: "Site Engineer",
     employDate: "2023-05-15",
     status: "Active",
     siteLocation: "Kuala Lumpur Central",
+    phone_number: "+60123456789",
+    ic_number: "901234-56-7890",
   },
   {
     id: "2",
     name: "Jane Smith",
+    email: "jane.smith@example.com",
     position: "Site Manager",
     employDate: "2022-11-03",
     status: "Active",
     siteLocation: "Penang Heights",
+    phone_number: "+60123456788",
+    ic_number: "890123-45-6789",
   },
   {
     id: "3",
     name: "Raj Patel",
+    email: "raj.patel@example.com",
     position: "Maintenance Specialist",
     employDate: "2023-02-20",
     status: "On Leave",
     siteLocation: "Johor Bahru South",
+    phone_number: "+60123456787",
+    ic_number: "780912-34-5678",
   },
   {
     id: "4",
     name: "Lisa Wong",
+    email: "lisa.wong@example.com",
     position: "Technical Assistant",
     employDate: "2021-07-12",
     status: "Active",
     siteLocation: "Ipoh Central",
+    phone_number: "+60123456786",
+    ic_number: "670891-23-4567",
   },
   {
     id: "5",
     name: "Ahmad Hassan",
+    email: "ahmad.hassan@example.com",
     position: "Site Coordinator",
     employDate: "2022-09-08",
     status: "Inactive",
     siteLocation: "Kuching Main",
+    phone_number: "+60123456785",
+    ic_number: "560789-12-3456",
   },
 ];
 
@@ -110,7 +124,8 @@ const Employees = () => {
     const matchesSearch =
       staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       staff.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase());
+      staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (staff.email && staff.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesLocation =
       locationFilter === "all" || staff.siteLocation === locationFilter;
@@ -177,7 +192,7 @@ const Employees = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search staff by name, position, or location..."
+              placeholder="Search staff by name, email, position, or location..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

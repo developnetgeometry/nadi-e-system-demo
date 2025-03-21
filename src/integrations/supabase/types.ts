@@ -5431,7 +5431,7 @@ export type Database = {
           remark: string | null
           session: string | null
           site_id: number | null
-          status: string | null
+          status: number | null
           subcategory_id: number | null
           updated_at: string | null
           updated_by: string | null
@@ -5448,7 +5448,7 @@ export type Database = {
           remark?: string | null
           session?: string | null
           site_id?: number | null
-          status?: string | null
+          status?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -5465,7 +5465,7 @@ export type Database = {
           remark?: string | null
           session?: string | null
           site_id?: number | null
-          status?: string | null
+          status?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -5488,6 +5488,13 @@ export type Database = {
           {
             foreignKeyName: "nd_site_closure_nd_closure_status_fk"
             columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_closure_status_fkey"
+            columns: ["status"]
             isOneToOne: false
             referencedRelation: "nd_closure_status"
             referencedColumns: ["id"]
