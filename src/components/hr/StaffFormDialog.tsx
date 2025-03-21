@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,6 +28,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { createStaffMember } from "@/lib/staff";
 
 const staffFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -151,33 +151,24 @@ export function StaffFormDialog({
   const onSubmit = async (data: StaffFormValues) => {
     setIsSubmitting(true);
     try {
-      // In a real implementation, we would:
-      // 1. Create an auth user
-      // 2. Insert into nd_staff_profile
-      // 3. Set up related tables (nd_staff_job, etc.)
-      
-      // For now, just simulate the creation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Create a new staff member with all required fields
-      const newStaff = {
-        id: Date.now().toString(),
+      // Call the createStaffMember function with the form data
+      const result = await createStaffMember({
         ...data,
         organizationId,
-      };
+      });
 
-      onStaffAdded(newStaff);
+      onStaffAdded(result.data);
       toast({
         title: "Success",
         description: `${data.name} has been added to ${organizationName}`,
       });
       onOpenChange(false);
       form.reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding staff:", error);
       toast({
         title: "Error",
-        description: "Failed to add staff member. Please try again.",
+        description: error.message || "Failed to add staff member. Please try again.",
         variant: "destructive",
       });
     } finally {

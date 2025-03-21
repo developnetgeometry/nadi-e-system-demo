@@ -3,15 +3,14 @@ import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
   try {
-    // 1. Create auth user
-    const { data: authUser, error: authError } = await supabase.auth.signUp({
+    // 1. Create auth user WITHOUT signing in
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email: staffData.email,
-      password: generateTemporaryPassword(), // You would implement this
-      options: {
-        data: {
-          full_name: staffData.name,
-          user_type: staffData.userType,
-        },
+      password: generateTemporaryPassword(),
+      email_confirm: true,
+      user_metadata: {
+        full_name: staffData.name,
+        user_type: staffData.userType,
       },
     });
 
