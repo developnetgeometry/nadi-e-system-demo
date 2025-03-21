@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, CheckCircle, Clock, PauseCircle, XCircle, Plus } from "lucide-react";
+import { Building2, CheckCircle, Clock, PauseCircle, XCircle, Plus, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -59,6 +59,10 @@ const SiteDashboard = () => {
     enabled: !!organizationId,
   });
 
+  const handleViewDetailsClick = () => {
+    navigate(`/site/approval`);
+  };
+
   if (parsedMetadata?.user_type === "super_admin" || organizationId || parsedMetadata?.user_type?.startsWith("tp")) {
     return (
       <DashboardLayout>
@@ -68,9 +72,14 @@ const SiteDashboard = () => {
               <h1 className="text-3xl font-bold">Site Management</h1>
               <p className="text-muted-foreground mt-2">Track and manage site</p>
             </div>
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Site
-            </Button>
+            <div className="flex justify-between items-center gap-4">
+              <Button onClick={() => handleViewDetailsClick()} variant="secondary">
+                <Bell className="h-4 w-4 mr-2" /> Closure Approval
+              </Button>
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Add Site
+              </Button>
+            </div>
           </div>
           <div className="flex flex-col md:flex-row flex-wrap gap-4">
             <Card className="flex-1 min-w-[200px]">

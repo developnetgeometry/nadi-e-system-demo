@@ -27,6 +27,7 @@ import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
+import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -263,6 +264,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
         <SiteDetails />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/approval",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+        <SiteClosureApproval />
       // </ProtectedRoute>
     ),
   },
