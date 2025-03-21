@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,20 +21,25 @@ const Attendance = () => {
   const { staffID } = useStaffID();
   const userMetadataString = useUserMetadata();
   const [siteId, setSiteId] = useState<number | undefined>(undefined);
+  const [organizationId, setOrganizationId] = useState<string | undefined>(undefined);
   
   // Extract organization info from metadata
-  useState(() => {
+  useEffect(() => {
     if (userMetadataString) {
       try {
         const metadata = JSON.parse(userMetadataString);
         if (metadata.site_id) {
           setSiteId(Number(metadata.site_id));
         }
+        if (metadata.organization_id) {
+          setOrganizationId(metadata.organization_id);
+          console.log("Organization ID set:", metadata.organization_id);
+        }
       } catch (error) {
         console.error("Error parsing user metadata:", error);
       }
     }
-  });
+  }, [userMetadataString]);
 
   const attendanceStats = {
     presentToday: 32,

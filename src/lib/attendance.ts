@@ -1,6 +1,5 @@
 
 import { supabase } from "./supabase";
-import { toast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 
 export type StaffAttendance = {
@@ -142,7 +141,7 @@ export async function getStaffAttendance(staffId: number, month?: number, year?:
   }
 }
 
-export async function getAllStaffAttendanceByDate(date: string, siteId?: number) {
+export async function getAllStaffAttendanceByDate(date: string, siteId?: number, organizationId?: string) {
   try {
     const formattedDate = format(new Date(date), 'yyyy-MM-dd');
     
@@ -151,12 +150,17 @@ export async function getAllStaffAttendanceByDate(date: string, siteId?: number)
       .select(`
         *,
         nd_staff_profile(id, fullname, mobile_no),
-        nd_site_profile(id, sitename)
+        nd_site_profile!inner(id, sitename, organization_id)
       `)
       .eq("attend_date", formattedDate);
     
     if (siteId) {
       query = query.eq("site_id", siteId);
+    }
+    
+    // Filter by organization if provided
+    if (organizationId) {
+      query = query.eq("nd_site_profile.organization_id", organizationId);
     }
     
     const { data, error } = await query;
@@ -169,6 +173,47 @@ export async function getAllStaffAttendanceByDate(date: string, siteId?: number)
     return data;
   } catch (error) {
     console.error("Error in getAllStaffAttendanceByDate:", error);
+    throw error;
+  }
+}
+
+// Get all staff for a specific site and/or organization
+export async function getSiteStaff(siteId?: number, organizationId?: string) {
+  try {
+    let query = supabase
+      .from('nd_staff_job')
+      .select(`
+        id,
+        staff_id,
+        site_id,
+        join_date,
+        nd_staff_profile (
+          id, 
+          fullname,
+          mobile_no
+        ),
+        nd_site_profile!inner(id, sitename, organization_id)
+      `)
+      .eq('is_active', true);
+    
+    if (siteId) {
+      query = query.eq('site_id', siteId);
+    }
+    
+    // Filter by organization if provided
+    if (organizationId) {
+      query = query.eq('nd_site_profile.organization_id', organizationId);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching site staff:", error);
     throw error;
   }
 }

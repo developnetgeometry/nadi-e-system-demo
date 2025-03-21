@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { getAllStaffAttendanceByDate, recordAttendance } from "@/lib/attendance";
+import { getAllStaffAttendanceByDate, recordAttendance, getSiteStaff } from "@/lib/attendance";
 import useStaffID from "@/hooks/use-staff-id";
-import { supabase } from "@/lib/supabase";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 type AttendanceRecordsProps = {
   siteId?: number;
@@ -26,6 +25,22 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
   const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
   const { toast } = useToast();
   const { staffID } = useStaffID();
+  const userMetadataString = useUserMetadata();
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (userMetadataString) {
+      try {
+        const metadata = JSON.parse(userMetadataString);
+        if (metadata.organization_id) {
+          setOrganizationId(metadata.organization_id);
+          console.log("Organization ID from metadata:", metadata.organization_id);
+        }
+      } catch (err) {
+        console.error("Error parsing user metadata:", err);
+      }
+    }
+  }, [userMetadataString]);
   
   const fetchAttendance = async () => {
     if (!date) return;
@@ -33,7 +48,7 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
     setLoading(true);
     try {
       const formattedDate = format(date, 'yyyy-MM-dd');
-      const data = await getAllStaffAttendanceByDate(formattedDate, siteId);
+      const data = await getAllStaffAttendanceByDate(formattedDate, siteId, organizationId || undefined);
       setAttendanceData(data || []);
     } catch (error) {
       console.error("Error fetching attendance data:", error);
@@ -49,41 +64,24 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
 
   const fetchSiteStaff = async () => {
     try {
-      let query = supabase
-        .from('nd_staff_job')
-        .select(`
-          id,
-          staff_id,
-          site_id,
-          join_date,
-          nd_staff_profile (
-            id, 
-            fullname,
-            mobile_no
-          )
-        `)
-        .eq('is_active', true);
-      
-      if (siteId) {
-        query = query.eq('site_id', siteId);
-      }
-      
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
-      
+      const data = await getSiteStaff(siteId, organizationId || undefined);
       setSiteStaff(data || []);
     } catch (error) {
       console.error("Error fetching site staff:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load staff data",
+        variant: "destructive",
+      });
     }
   };
 
   useEffect(() => {
-    fetchAttendance();
-    fetchSiteStaff();
-  }, [date, siteId]);
+    if (organizationId) {
+      fetchAttendance();
+      fetchSiteStaff();
+    }
+  }, [date, siteId, organizationId]);
 
   const navigateDate = (direction: 'prev' | 'next') => {
     if (!date) return;
@@ -127,7 +125,6 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
       const formattedDate = format(date || new Date(), 'yyyy-MM-dd');
       const currentTime = new Date().toISOString();
       
-      // Get current position if available
       let position: { latitude?: number; longitude?: number; address?: string } = {};
       
       try {
@@ -145,10 +142,10 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
         console.warn("Geolocation not available:", err);
       }
       
-      // Process attendance for each selected staff
       for (const staffId of selectedStaffIds) {
         const remark = remarks[staffId] || '';
-        const staffSiteId = siteStaff.find(s => s.staff_id === staffId)?.site_id || siteId;
+        const staffItem = siteStaff.find(s => s.staff_id === staffId);
+        const staffSiteId = staffItem?.site_id || siteId;
         
         if (!staffSiteId) {
           console.error(`Site ID not found for staff ${staffId}`);
@@ -171,7 +168,6 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
         description: `Attendance marked for ${selectedStaffIds.length} staff members`,
       });
       
-      // Refresh data
       fetchAttendance();
       setSelectedStaffIds([]);
       setRemarks({});
@@ -210,7 +206,6 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
         description: "Checkout recorded successfully",
       });
       
-      // Refresh data
       fetchAttendance();
       
     } catch (error) {
@@ -225,7 +220,6 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
     }
   };
 
-  // Filter staff that don't already have attendance
   const staffWithNoAttendance = siteStaff.filter(staff => 
     !attendanceData.some(record => record.staff_id === staff.staff_id)
   );
@@ -291,7 +285,6 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
         </Card>
       </div>
 
-      {/* Attendance Records */}
       <Card>
         <CardHeader>
           <CardTitle>Attendance Records ({format(date || new Date(), 'MMMM d, yyyy')})</CardTitle>
@@ -362,7 +355,6 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
                 </div>
               )}
               
-              {/* Mark attendance for new staff */}
               {staffWithNoAttendance.length > 0 && (
                 <div className="border rounded-lg p-4 mt-6">
                   <h3 className="text-lg font-medium mb-4">Mark Attendance</h3>
