@@ -11,13 +11,13 @@ export async function createStaffMember(staffData: any) {
     }
     
     // Get current user's type from profiles
-    const { data: currentUserProfile, error: profileError } = await supabase
+    const { data: currentUserProfile, error: userProfileError } = await supabase
       .from('profiles')
       .select('user_type')
       .eq('id', currentUser.id)
       .single();
       
-    if (profileError) {
+    if (userProfileError) {
       throw new Error('Error fetching user profile');
     }
     
@@ -50,7 +50,7 @@ export async function createStaffMember(staffData: any) {
     if (authError) throw authError;
 
     // 2. Create staff profile
-    const { data: staffProfile, error: profileError } = await supabase
+    const { data: staffProfile, error: staffProfileError } = await supabase
       .from('nd_staff_profile')
       .insert({
         user_id: authUser.user?.id,
@@ -63,7 +63,7 @@ export async function createStaffMember(staffData: any) {
       .select()
       .single();
 
-    if (profileError) throw profileError;
+    if (staffProfileError) throw staffProfileError;
 
     // 3. Create staff job record
     const { error: jobError } = await supabase
@@ -102,3 +102,4 @@ function generateTemporaryPassword() {
   // Generate a random password that meets your requirements
   return Math.random().toString(36).slice(-10) + 'A1!';
 }
+
