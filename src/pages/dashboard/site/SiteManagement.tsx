@@ -1,6 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Box, CheckCircle, Clock, PauseCircle, Plus, XCircle } from "lucide-react";
+import { Box, CheckCircle, Clock, PauseCircle, Plus, XCircle, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { SiteList } from "@/components/site/SiteList";
@@ -8,35 +8,34 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth"; 
 import { SiteFormDialog } from "@/components/site/SiteFormDialog";
 import { fetchSites } from "@/components/site/component/site-utils";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useNavigate } from 'react-router-dom';
 import { useUserMetadata } from "@/hooks/use-user-metada";
 
 const SiteDashboard = () => {
-  const { user } = useAuth();  //get user auth value
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const siteId = useSiteId();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const userMetadata = useUserMetadata();
-  const [shouldRender, setShouldRender] = useState(false);
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    parsedMetadata?.user_group_name === "TP" &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
 
+  // Hooks must be called unconditionally
   const { data: siteStats, isLoading } = useQuery({
-    queryKey: ['site-stats'],
-    queryFn: fetchSites,
+    queryKey: ['site-stats', organizationId],
+    queryFn: () => fetchSites(organizationId),
+    enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Disable query if no access
   });
 
-  useEffect(() => {
-    const userType = userMetadata ? JSON.parse(userMetadata).user_type : null;
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    if (userType === "super_admin" || userType?.startsWith("tp")) {
-      setShouldRender(true);
-    } else if (userType?.startsWith("staff") && siteId) {
-      navigate(`/site/${siteId}`);
-    }
-  }, [userMetadata, siteId, navigate]);
-
-  if (!shouldRender) {
-    return null;
+  // Access control logic moved to the return statement
+  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
+    return <div>You do not have access to this dashboard.</div>;
   }
 
   return (
@@ -60,7 +59,7 @@ const SiteDashboard = () => {
               <CardTitle className="text-sm font-medium">
                 Total Site
               </CardTitle>
-              <Box className="h-4 w-4 text-muted-foreground" />
+              <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{siteStats?.length || 0}</div>

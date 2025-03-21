@@ -15,9 +15,9 @@ import {
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 import { UserFormData } from "../types";
-import { UserType } from "@/types/auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserTypeFieldProps {
   form: UseFormReturn<UserFormData>;
@@ -25,21 +25,17 @@ interface UserTypeFieldProps {
 }
 
 export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
-  const { data: roles = [], isLoading: rolesLoading } = useQuery({
-    queryKey: ['roles'],
+  const { data: userTypes, isLoading: isLoadingTypes } = useQuery({
+    queryKey: ["user-types"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('roles')
-        .select('name, description')
-        .order('name');
-      
-      if (error) {
-        console.error('Error fetching roles:', error);
-        throw error;
-      }
-      
+        .from("roles")
+        .select("name, description")
+        .order("name", { ascending: true });
+        
+      if (error) throw error;
       return data;
-    }
+    },
   });
 
   return (
@@ -49,30 +45,28 @@ export function UserTypeField({ form, isLoading }: UserTypeFieldProps) {
       render={({ field }) => (
         <FormItem>
           <FormLabel>User Type</FormLabel>
-          <Select
-            onValueChange={field.onChange}
-            defaultValue={field.value}
-            disabled={isLoading || rolesLoading}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select user type" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {roles.map(({ name, description }) => (
-                <SelectItem 
-                  key={name} 
-                  value={name}
-                  title={description || undefined}
-                >
-                  {name.split('_').map(word => 
-                    word.charAt(0).toUpperCase() + word.slice(1)
-                  ).join(' ')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isLoadingTypes ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select
+              disabled={isLoading}
+              onValueChange={field.onChange}
+              value={field.value}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a user type" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {userTypes?.map((type) => (
+                  <SelectItem key={type.name} value={type.name}>
+                    {type.name} {type.description ? `- ${type.description}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <FormMessage />
         </FormItem>
       )}

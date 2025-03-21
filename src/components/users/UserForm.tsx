@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,8 +16,10 @@ import { UserConfirmPasswordField } from "./form-fields/UserConfirmPasswordField
 import { UserICNumberField } from "./form-fields/UserICNumberField";
 import { handleCreateUser, handleUpdateUser } from "./utils/form-handlers";
 import { UserFormData } from "./types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
-// Define validation schema
 const userFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   full_name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -67,6 +68,7 @@ interface UserFormProps {
 
 export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<UserFormData>({
@@ -75,7 +77,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       email: user?.email || "",
       full_name: user?.full_name || "",
       user_type: user?.user_type || "member",
-      user_group: user?.user_group || "",
+      user_group: user?.user_group?.toString() || "",
       phone_number: user?.phone_number || "",
       ic_number: user?.ic_number || "",
       password: "",
@@ -87,6 +89,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
 
   const onSubmit = async (data: UserFormData) => {
     setIsLoading(true);
+    setError(null);
     try {
       if (user) {
         await handleUpdateUser(data, user);
@@ -95,7 +98,6 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
           description: "User updated successfully",
         });
       } else {
-        // Create the user with our non-authentication method
         await handleCreateUser(data);
         
         toast({
@@ -106,11 +108,25 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       onSuccess?.();
     } catch (error) {
       console.error("Error saving user:", error);
+      let errorMessage = "Failed to save user";
+      
+      if (typeof error === 'object' && error !== null) {
+        if ('message' in error) {
+          errorMessage = String(error.message);
+        } else if (error instanceof Response) {
+          try {
+            const errorData = await error.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (jsonError) {
+            errorMessage = `${errorMessage}: ${error.status} ${error.statusText}`;
+          }
+        }
+      }
+      
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: typeof error === 'object' && error !== null && 'message' in error 
-          ? String(error.message) 
-          : "Failed to save user",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -119,33 +135,55 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <UserEmailField form={form} isLoading={isLoading} isEditMode={!!user} />
-        <UserNameField form={form} isLoading={isLoading} />
-        <UserICNumberField form={form} isLoading={isLoading} />
-        <UserPhoneField form={form} isLoading={isLoading} />
-        <UserTypeField form={form} isLoading={isLoading} />
-        <UserGroupField form={form} isLoading={isLoading} />
-        
-        {/* Only show password fields if creating a new user or explicitly updating password */}
-        <UserPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
-        <UserConfirmPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
+    <Card className="border-0 shadow-none">
+      <CardContent className="p-0">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <UserEmailField form={form} isLoading={isLoading} isEditMode={!!user} />
+              <UserNameField form={form} isLoading={isLoading} />
+              <UserICNumberField form={form} isLoading={isLoading} />
+              <UserPhoneField form={form} isLoading={isLoading} />
+              <UserTypeField form={form} isLoading={isLoading} />
+              <UserGroupField form={form} isLoading={isLoading} />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <UserPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
+              <UserConfirmPasswordField form={form} isLoading={isLoading} isEditMode={!!user} />
+            </div>
 
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : user ? "Update User" : "Create User"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <div className="flex justify-end gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {user ? "Updating..." : "Creating..."}
+                  </>
+                ) : (
+                  user ? "Update User" : "Create User"
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

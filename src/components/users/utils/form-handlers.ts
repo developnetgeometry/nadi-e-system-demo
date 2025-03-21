@@ -2,31 +2,28 @@
 import { supabase } from "@/lib/supabase";
 import { UserFormData } from "../types";
 import { Profile } from "@/types/auth";
+import { useToast } from "@/hooks/use-toast";
+import { createUser } from "@/routes/api/createUser";
 
 export const handleCreateUser = async (data: UserFormData) => {
   try {
-    const response = await fetch('/api/create-user', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: data.email,
-        fullName: data.full_name,
-        userType: data.user_type,
-        userGroup: data.user_group,
-        phoneNumber: data.phone_number,
-        icNumber: data.ic_number,
-        password: data.password
-      }),
+    // Get the current user's ID to use as created_by
+    const { data: userData } = await supabase.auth.getUser();
+    const createdBy = userData?.user?.id || "";
+
+    // Use the createUser helper function that properly constructs the URL
+    const responseData = await createUser({
+      email: data.email,
+      fullName: data.full_name,
+      userType: data.user_type,
+      userGroup: data.user_group,
+      phoneNumber: data.phone_number,
+      icNumber: data.ic_number,
+      password: data.password,
+      createdBy: createdBy
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create user');
-    }
-
-    return await response.json();
+    return responseData;
   } catch (error) {
     console.error('Error creating user:', error);
     throw error;
@@ -42,6 +39,7 @@ export const handleUpdateUser = async (data: UserFormData, user: Profile) => {
       user_type: data.user_type,
       user_group: data.user_group,
       phone_number: data.phone_number,
+      ic_number: data.ic_number,
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id);
