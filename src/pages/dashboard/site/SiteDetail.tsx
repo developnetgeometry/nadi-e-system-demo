@@ -53,15 +53,7 @@ const SiteDetails = () => {
     return <SettingsLoading />;
   }
 
-  if (userType === "super_admin") {
-    return (
-      <DashboardLayout>
-        <SiteDetail />
-      </DashboardLayout>
-    );
-  }
-
-  if (userType?.startsWith("staff")) {
+  if (userType === "super_admin" || userType?.startsWith("tp")) {
     return (
       <DashboardLayout>
         <SiteDetail />
