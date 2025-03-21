@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, UserPlus } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const staffFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -58,7 +59,7 @@ interface StaffFormDialogProps {
   organizationId: string;
   organizationName: string;
   onStaffAdded: (staff: any) => void;
-  siteLocations: string[];
+  siteLocations?: string[];
 }
 
 export function StaffFormDialog({
@@ -67,21 +68,52 @@ export function StaffFormDialog({
   organizationId,
   organizationName,
   onStaffAdded,
-  siteLocations,
 }: StaffFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const [availableSites, setAvailableSites] = useState<{id: string, sitename: string}[]>([]);
+  const [userTypes, setUserTypes] = useState<string[]>([]);
 
-  // Available user types
-  const userTypes = [
-    "Admin",
-    "Manager",
-    "Supervisor",
-    "General Staff",
-    "Technician",
-    "Maintenance Staff",
-    "Customer Service"
-  ];
+  // Fetch available sites based on organization_id
+  useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('nd_site_profile')
+          .select('id, sitename')
+          .eq('dusp_tp_id', organizationId);
+        
+        if (error) throw error;
+        if (data) {
+          setAvailableSites(data);
+        }
+      } catch (err) {
+        console.error('Error fetching sites:', err);
+        toast({
+          title: "Error",
+          description: "Failed to load site locations.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    // Fetch user types from roles table (limit to staff roles)
+    const fetchUserTypes = async () => {
+      try {
+        // This is a placeholder - in a real app, this would fetch from the roles table
+        // Filtering for staff_manager and staff_assistant_manager
+        // For demo, we're hardcoding the values
+        setUserTypes(['staff_manager', 'staff_assistant_manager']);
+      } catch (err) {
+        console.error('Error fetching user types:', err);
+      }
+    };
+
+    if (organizationId) {
+      fetchSites();
+      fetchUserTypes();
+    }
+  }, [organizationId, toast]);
 
   const form = useForm<StaffFormValues>({
     resolver: zodResolver(staffFormSchema),
@@ -91,7 +123,7 @@ export function StaffFormDialog({
       userType: "",
       employDate: new Date().toISOString().split("T")[0],
       status: "Active",
-      siteLocation: siteLocations[0] || "",
+      siteLocation: "",
       phone_number: "",
       ic_number: "",
     },
@@ -119,17 +151,19 @@ export function StaffFormDialog({
   const onSubmit = async (data: StaffFormValues) => {
     setIsSubmitting(true);
     try {
-      // In a real application, you would make an API call here
-      // For now, we'll simulate an API call with a timeout
+      // In a real implementation, we would:
+      // 1. Create an auth user
+      // 2. Insert into nd_staff_profile
+      // 3. Set up related tables (nd_staff_job, etc.)
+      
+      // For now, just simulate the creation
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Create a new staff object with an ID and the form data
+      // Create a new staff member with all required fields
       const newStaff = {
         id: Date.now().toString(),
         ...data,
-        position: data.userType, // Map userType to position for backward compatibility
         organizationId,
-        user_group: "centre staff", // Fixed user group as specified
       };
 
       onStaffAdded(newStaff);
@@ -143,7 +177,7 @@ export function StaffFormDialog({
       console.error("Error adding staff:", error);
       toast({
         title: "Error",
-        description: "Failed to add staff. Please try again.",
+        description: "Failed to add staff member. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -176,7 +210,7 @@ export function StaffFormDialog({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -184,11 +218,7 @@ export function StaffFormDialog({
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        type="email" 
-                        placeholder="user@example.com" 
-                      />
+                      <Input {...field} type="email" placeholder="user@example.com" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -234,10 +264,7 @@ export function StaffFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>User Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select user type" />
@@ -246,7 +273,9 @@ export function StaffFormDialog({
                       <SelectContent>
                         {userTypes.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {type}
+                            {type.split('_').map(word => 
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ')}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -255,7 +284,7 @@ export function StaffFormDialog({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="employDate"
@@ -269,17 +298,14 @@ export function StaffFormDialog({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -295,48 +321,31 @@ export function StaffFormDialog({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="siteLocation"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Site Location</FormLabel>
-                    {siteLocations.length > 0 ? (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select site location" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {siteLocations.map((location) => (
-                            <SelectItem key={location} value={location}>
-                              {location}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input {...field} placeholder="Enter site location" />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select site location" />
+                        </SelectTrigger>
                       </FormControl>
-                    )}
+                      <SelectContent>
+                        {availableSites.map((site) => (
+                          <SelectItem key={site.id} value={site.id}>
+                            {site.sitename}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              {/* Fixed user group display - read-only */}
-              <FormItem>
-                <FormLabel>User Group</FormLabel>
-                <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground">
-                  Centre Staff
-                </div>
-              </FormItem>
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">

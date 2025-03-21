@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
@@ -23,8 +22,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
+import { createStaffMember } from "@/lib/staff";
 
-// Mock data for staff members
 const staffData = [
   {
     id: "1",
@@ -83,7 +82,6 @@ const staffData = [
   },
 ];
 
-// Status badge color mapping
 const statusColors = {
   Active: "bg-green-100 text-green-800",
   "On Leave": "bg-yellow-100 text-yellow-800",
@@ -120,7 +118,6 @@ const Employees = () => {
     }
   }, [userMetadataString]);
 
-  // Filter staff based on search query and filters
   const filteredStaff = staffList.filter((staff) => {
     const matchesSearch =
       staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -136,7 +133,6 @@ const Employees = () => {
     return matchesSearch && matchesLocation && matchesStatus;
   });
 
-  // Get unique location and status options for filters
   const locationOptions = [...new Set(staffList.map((staff) => staff.siteLocation))];
   const statusOptions = [...new Set(staffList.map((staff) => staff.status))];
 
@@ -153,12 +149,22 @@ const Employees = () => {
     setIsAddStaffOpen(true);
   };
 
-  const handleStaffAdded = (newStaff: any) => {
-    setStaffList((prevStaff) => [newStaff, ...prevStaff]);
-    toast({
-      title: "Staff Added",
-      description: `${newStaff.name} has been added successfully.`,
-    });
+  const handleStaffAdded = async (newStaff: any) => {
+    try {
+      const result = await createStaffMember(newStaff);
+      setStaffList((prevStaff) => [result.data, ...prevStaff]);
+      toast({
+        title: "Staff Added",
+        description: `${newStaff.name} has been added successfully.`,
+      });
+    } catch (error) {
+      console.error('Error adding staff:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add staff member. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateString) => {
