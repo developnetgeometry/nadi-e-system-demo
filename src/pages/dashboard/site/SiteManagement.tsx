@@ -1,23 +1,43 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Box, Package, Settings, DollarSign, Plus, CheckCircle, Clock, PauseCircle, XCircle } from "lucide-react";
+import { Box, CheckCircle, Clock, PauseCircle, Plus, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import { SiteList } from "@/components/site/SiteList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth"; 
 import { SiteFormDialog } from "@/components/site/SiteFormDialog";
 import { fetchSites } from "@/components/site/component/site-utils";
+import { useSiteId } from "@/hooks/use-site-id";
+import { useNavigate } from 'react-router-dom';
+import { useUserMetadata } from "@/hooks/use-user-metada";
 
 const SiteDashboard = () => {
   const { user } = useAuth();  //get user auth value
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const siteId = useSiteId();
+  const navigate = useNavigate();
+  const userMetadata = useUserMetadata();
+  const [shouldRender, setShouldRender] = useState(false);
 
   const { data: siteStats, isLoading } = useQuery({
     queryKey: ['site-stats'],
     queryFn: fetchSites,
   });
+
+  useEffect(() => {
+    const userType = userMetadata ? JSON.parse(userMetadata).user_type : null;
+
+    if (userType === "super_admin" || userType?.startsWith("tp")) {
+      setShouldRender(true);
+    } else if (userType?.startsWith("staff") && siteId) {
+      navigate(`/site/${siteId}`);
+    }
+  }, [userMetadata, siteId, navigate]);
+
+  if (!shouldRender) {
+    return null;
+  }
 
   return (
     <DashboardLayout>

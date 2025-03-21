@@ -23,16 +23,11 @@ const SiteDetail = () => {
   const { data, loading, error } = useSiteProfile(id);
   const { siteCode, loading: codeLoading, error: codeError } = useSiteCode(id);
   const { data: addressData, loading: addressLoading, error: addressError } = useSiteAddress(id);
-  const { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel } = useSiteGeneralData();
+  const { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel, socioEconomics } = useSiteGeneralData();
   const { regions, states, parliaments, duns, mukims, phases } = useGeoData();
 
   if (loading || codeLoading || addressLoading) return <Skeleton className="w-full h-96">Loading...</Skeleton>;
   if (error || codeError || addressError) return <div className="p-4 text-destructive">Error: {error || codeError || addressError}</div>;
-
-  const getNameById = (id, data) => {
-    const item = data.find(item => item.id === id);
-    return item ? item.fullname || item.eng || item.name || item.area : "N/A";
-  };
 
   return (
     <div className="space-y-6">
@@ -42,7 +37,7 @@ const SiteDetail = () => {
         <div className="font-medium flex items-center gap-2">
           <span className="text-muted-foreground">Status:  </span>
           <span className="font-medium flex items-center gap-2">
-          {getNameById(data.active_status, siteStatus)}
+            {siteStatus.find(status => status.id === data.active_status)?.eng || "N/A"}
             {data.is_active ? (
               <Eye className="h-4 w-4" />
             ) : (
@@ -63,15 +58,15 @@ const SiteDetail = () => {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Region:</span>
-              <span className="font-medium">{getNameById(data.region_id, regions)}</span>
+              <span className="font-medium">{regions.find(region => region.id === data.region_id)?.eng || "N/A"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">State:</span>
-              <span className="font-medium">{getNameById(data.state_id, states)}</span>
+              <span className="font-medium">{states.find(state => state.id === data.state_id)?.name || "N/A"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Mukim:</span>
-              <span className="font-medium">{getNameById(data.mukim_id, mukims)}</span>
+              <span className="font-medium">{mukims.find(mukim => mukim.id === data.mukim_id)?.name || "N/A"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Coordinates:</span>
@@ -118,11 +113,11 @@ const SiteDetail = () => {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Building Type:</span>
-              <span className="font-medium">{getNameById(data.building_type_id, buildingType)}</span>
+              <span className="font-medium">{buildingType.find(type => type.id === data.building_type_id)?.eng || "N/A"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Building Area:</span>
-              <span className="font-medium">{getNameById(data.building_area_id, space)}</span>
+              <span className="font-medium">{data.building_area_id?.toLocaleString() + " sqft" || "N/A"} </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Rental:</span>
@@ -159,11 +154,15 @@ const SiteDetail = () => {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell>{getNameById(data.technology, technology)}</TableCell>
-                  <TableCell>{getNameById(data.bandwidth, bandwidth)}</TableCell>
+                  <TableCell>{technology.find(tech => tech.id === data.technology)?.name || "N/A"}</TableCell>
+                  <TableCell>{bandwidth.find(band => band.id === data.bandwidth)?.name || "N/A"}</TableCell>
                   <TableCell>{data.total_population?.toLocaleString() || "N/A"}</TableCell>
-                  <TableCell>{data.socioeconomic_id || "N/A"}</TableCell>
-                  <TableCell>{getNameById(data.phase_id, phases)}</TableCell>
+                  <TableCell>
+                    {data.socioeconomic_id && data.socioeconomic_id.length > 0
+                      ? data.socioeconomic_id.map(id => socioEconomics.find(se => se.id === id)?.eng || "N/A").join(", ")
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>{phases.find(phase => phase.id === data.phase_id)?.name || "N/A"}</TableCell>
                   <TableCell>{data.cluster_id || "N/A"}</TableCell>
                   <TableCell>
                     {data.operate_date
@@ -187,9 +186,9 @@ const SiteDetail = () => {
               <TableBody>
                 <TableRow>
                   <TableHead className="w-1/4">Parliament RFID</TableHead>
-                  <TableCell>{getNameById(data.parliament_rfid, parliaments)}</TableCell>
+                  <TableCell>{parliaments.find(parliament => parliament.id === data.parliament_rfid)?.fullname || "N/A"}</TableCell>
                   <TableHead className="w-1/4">DUN RFID</TableHead>
-                  <TableCell>{getNameById(data.dun_rfid, duns)}</TableCell>
+                  <TableCell>{duns.find(dun => dun.id === data.dun_rfid)?.name || "N/A"}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead>UST ID</TableHead>
@@ -199,15 +198,19 @@ const SiteDetail = () => {
                 </TableRow>
                 <TableRow>
                   <TableHead>Space ID</TableHead>
-                  <TableCell>{getNameById(data.space_id, space)}</TableCell>
+                  <TableCell>
+                    {data.space_id && data.space_id.length > 0
+                      ? data.space_id.map(id => space.find(s => s.id === id)?.eng || "N/A").join(", ")
+                      : "N/A"}
+                  </TableCell>
                   <TableHead>Zone ID</TableHead>
-                  <TableCell>{getNameById(data.zone_id, zone)}</TableCell>
+                  <TableCell>{zone.find(z => z.id === data.zone_id)?.area || "N/A"}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead>Area ID</TableHead>
-                  <TableCell>{getNameById(data.area_id, categoryArea)}</TableCell>
+                  <TableCell>{categoryArea.find(area => area.id === data.area_id)?.name || "N/A"}</TableCell>
                   <TableHead>Level ID</TableHead>
-                  <TableCell>{getNameById(data.level_id, buildingLevel)}</TableCell>
+                  <TableCell>{buildingLevel.find(level => level.id === data.level_id)?.eng || "N/A"}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableHead>Created At</TableHead>
@@ -235,11 +238,11 @@ const SiteDetail = () => {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Street:</span>
+            <span className="text-muted-foreground">Address Line 1:</span>
             <span className="font-medium">{addressData.address1 || "N/A"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Address 2:</span>
+            <span className="text-muted-foreground">Address Line 2:</span>
             <span className="font-medium">{addressData.address2 || "N/A"}</span>
           </div>
           <div className="flex justify-between">
@@ -251,8 +254,8 @@ const SiteDetail = () => {
             <span className="font-medium">{addressData.postcode || "N/A"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Country:</span>
-            <span className="font-medium">{getNameById(addressData.state_id, states)}</span>
+            <span className="text-muted-foreground">State:</span>
+            <span className="font-medium">{states.find(state => state.id === addressData.state_id)?.name || "N/A"}</span>
           </div>
         </CardContent>
       </Card>
