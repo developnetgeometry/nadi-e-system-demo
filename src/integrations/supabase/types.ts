@@ -1702,7 +1702,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_closure_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_comment_votes: {
         Row: {
@@ -5486,10 +5494,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "nd_site_closure_nd_closure_status_fk"
+            foreignKeyName: "nd_site_closure_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
-            referencedRelation: "nd_closure_status"
+            referencedRelation: "nd_site_profile"
             referencedColumns: ["id"]
           },
           {

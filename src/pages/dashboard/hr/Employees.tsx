@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
@@ -26,64 +27,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHasPermission } from "@/hooks/use-has-permission";
 import { createStaffMember } from "@/lib/staff";
 import { useUserAccess } from "@/hooks/use-user-access";
-
-const staffData = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    userType: "Site Engineer",
-    employDate: "2023-05-15",
-    status: "Active",
-    siteLocation: "Kuala Lumpur Central",
-    phone_number: "+60123456789",
-    ic_number: "901234-56-7890",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    userType: "Site Manager",
-    employDate: "2022-11-03",
-    status: "Active",
-    siteLocation: "Penang Heights",
-    phone_number: "+60123456788",
-    ic_number: "890123-45-6789",
-  },
-  {
-    id: "3",
-    name: "Raj Patel",
-    email: "raj.patel@example.com",
-    userType: "Maintenance Specialist",
-    employDate: "2023-02-20",
-    status: "On Leave",
-    siteLocation: "Johor Bahru South",
-    phone_number: "+60123456787",
-    ic_number: "780912-34-5678",
-  },
-  {
-    id: "4",
-    name: "Lisa Wong",
-    email: "lisa.wong@example.com",
-    userType: "Technical Assistant",
-    employDate: "2021-07-12",
-    status: "Active",
-    siteLocation: "Ipoh Central",
-    phone_number: "+60123456786",
-    ic_number: "670891-23-4567",
-  },
-  {
-    id: "5",
-    name: "Ahmad Hassan",
-    email: "ahmad.hassan@example.com",
-    userType: "Site Coordinator",
-    employDate: "2022-09-08",
-    status: "Inactive",
-    siteLocation: "Kuching Main",
-    phone_number: "+60123456785",
-    ic_number: "560789-12-3456",
-  },
-];
+import { supabase } from "@/lib/supabase";
 
 const statusColors = {
   Active: "bg-green-100 text-green-800",
@@ -97,11 +41,14 @@ const Employees = () => {
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
-  const [staffList, setStaffList] = useState(staffData);
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const userMetadataString = useUserMetadata();
   const { user } = useAuth();
   const hasPermission = useHasPermission('create_users');
   const { userType } = useUserAccess();
+  const [locationOptions, setLocationOptions] = useState<string[]>([]);
+  const [statusOptions, setStatusOptions] = useState<string[]>([]);
   
   const [organizationInfo, setOrganizationInfo] = useState<{
     organization_id: string | null;
@@ -125,11 +72,110 @@ const Employees = () => {
     }
   }, [userMetadataString]);
 
+  // Fetch staff data from Supabase
+  useEffect(() => {
+    const fetchStaffData = async () => {
+      try {
+        if (!organizationInfo.organization_id) return;
+        
+        setIsLoading(true);
+        
+        // Get staff profiles associated with organization sites
+        const { data: sites, error: sitesError } = await supabase
+          .from('nd_site_profile')
+          .select('id')
+          .eq('dusp_tp_id', organizationInfo.organization_id);
+          
+        if (sitesError) throw sitesError;
+        
+        if (!sites || sites.length === 0) {
+          setStaffList([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        const siteIds = sites.map(site => site.id);
+        
+        // Get staff jobs at these sites
+        const { data: staffJobs, error: staffJobsError } = await supabase
+          .from('nd_staff_job')
+          .select(`
+            id,
+            staff_id,
+            site_id,
+            join_date,
+            is_active,
+            nd_site_profile(id, sitename),
+            nd_staff_profile(id, fullname, work_email, mobile_no, ic_no, is_active)
+          `)
+          .in('site_id', siteIds);
+          
+        if (staffJobsError) throw staffJobsError;
+        
+        if (!staffJobs || staffJobs.length === 0) {
+          setStaffList([]);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Get user types from profiles table
+        const staffIds = staffJobs.map(job => job.staff_id);
+        
+        const { data: userProfiles, error: userProfilesError } = await supabase
+          .from('profiles')
+          .select('id, user_type')
+          .in('id', staffIds);
+          
+        if (userProfilesError) throw userProfilesError;
+        
+        // Map the data to our staffList format
+        const formattedStaff = staffJobs.map(job => {
+          const userProfile = userProfiles?.find(p => p.id === job.staff_id);
+          const staffProfile = job.nd_staff_profile;
+          const siteProfile = job.nd_site_profile;
+          
+          return {
+            id: staffProfile?.id || job.staff_id,
+            name: staffProfile?.fullname || 'Unknown',
+            email: staffProfile?.work_email || '',
+            userType: userProfile?.user_type || 'Unknown',
+            employDate: job.join_date,
+            status: staffProfile?.is_active ? 'Active' : 'Inactive',
+            siteLocation: siteProfile?.sitename || 'Unknown site',
+            phone_number: staffProfile?.mobile_no || '',
+            ic_number: staffProfile?.ic_no || '',
+          };
+        });
+        
+        setStaffList(formattedStaff);
+        
+        // Extract location and status options
+        const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation))];
+        const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
+        
+        setLocationOptions(locations);
+        setStatusOptions(statuses);
+        
+      } catch (error) {
+        console.error('Error fetching staff data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load staff data. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStaffData();
+  }, [organizationInfo.organization_id, toast]);
+
   const filteredStaff = staffList.filter((staff) => {
     const matchesSearch =
       staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      staff.userType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (staff.userType && staff.userType.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (staff.siteLocation && staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (staff.email && staff.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesLocation =
@@ -139,9 +185,6 @@ const Employees = () => {
 
     return matchesSearch && matchesLocation && matchesStatus;
   });
-
-  const locationOptions = [...new Set(staffList.map((staff) => staff.siteLocation))];
-  const statusOptions = [...new Set(staffList.map((staff) => staff.status))];
 
   const handleAddStaff = () => {
     if (!organizationInfo.organization_id) {
@@ -307,11 +350,22 @@ const Employees = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStaff.length > 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                    </div>
+                    <p className="mt-2 text-muted-foreground">Loading staff data...</p>
+                  </TableCell>
+                </TableRow>
+              ) : filteredStaff.length > 0 ? (
                 filteredStaff.map((staff) => (
                   <TableRow key={staff.id}>
                     <TableCell className="font-medium">{staff.name}</TableCell>
-                    <TableCell>{staff.userType}</TableCell>
+                    <TableCell>
+                      {staff.userType?.replace(/_/g, ' ') || "Unknown"}
+                    </TableCell>
                     <TableCell>{formatDate(staff.employDate)}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[staff.status]}>
