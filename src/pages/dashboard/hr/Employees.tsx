@@ -1,3 +1,5 @@
+
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
   Table,
@@ -9,27 +11,167 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Search } from "lucide-react";
+import { UserPlus, Search, Filter } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { Badge } from "@/components/ui/badge";
+
+// Mock data for staff members
+const staffData = [
+  {
+    id: "1",
+    name: "John Doe",
+    position: "Site Engineer",
+    employDate: "2023-05-15",
+    status: "Active",
+    siteLocation: "Kuala Lumpur Central",
+  },
+  {
+    id: "2",
+    name: "Jane Smith",
+    position: "Site Manager",
+    employDate: "2022-11-03",
+    status: "Active",
+    siteLocation: "Penang Heights",
+  },
+  {
+    id: "3",
+    name: "Raj Patel",
+    position: "Maintenance Specialist",
+    employDate: "2023-02-20",
+    status: "On Leave",
+    siteLocation: "Johor Bahru South",
+  },
+  {
+    id: "4",
+    name: "Lisa Wong",
+    position: "Technical Assistant",
+    employDate: "2021-07-12",
+    status: "Active",
+    siteLocation: "Ipoh Central",
+  },
+  {
+    id: "5",
+    name: "Ahmad Hassan",
+    position: "Site Coordinator",
+    employDate: "2022-09-08",
+    status: "Inactive",
+    siteLocation: "Kuching Main",
+  },
+];
+
+// Status badge color mapping
+const statusColors = {
+  Active: "bg-green-100 text-green-800",
+  "On Leave": "bg-yellow-100 text-yellow-800",
+  Inactive: "bg-red-100 text-red-800",
+};
 
 const Employees = () => {
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Filter staff based on search query and filters
+  const filteredStaff = staffData.filter((staff) => {
+    const matchesSearch =
+      staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      staff.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesLocation =
+      locationFilter === "all" || staff.siteLocation === locationFilter;
+
+    const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
+
+    return matchesSearch && matchesLocation && matchesStatus;
+  });
+
+  // Get unique location and status options for filters
+  const locationOptions = [...new Set(staffData.map((staff) => staff.siteLocation))];
+  const statusOptions = [...new Set(staffData.map((staff) => staff.status))];
+
+  const handleAddStaff = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "The Add Staff feature is currently being developed.",
+    });
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-MY", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Employees</h1>
-          <Button>
+          <h1 className="text-3xl font-bold">Site Staff Management</h1>
+          <Button onClick={handleAddStaff}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Employee
+            Add Staff
           </Button>
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search employees..."
+              placeholder="Search staff by name, position, or location..."
               className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
+          
+          <div className="flex gap-2">
+            <Select
+              value={locationFilter}
+              onValueChange={setLocationFilter}
+            >
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locationOptions.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+            >
+              <SelectTrigger className="w-[150px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -37,22 +179,35 @@ const Employees = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee Name</TableHead>
-                <TableHead>Department</TableHead>
+                <TableHead>Staff Name</TableHead>
                 <TableHead>Position</TableHead>
+                <TableHead>Employ Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Join Date</TableHead>
+                <TableHead>Site Location</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>John Doe</TableCell>
-                <TableCell>Engineering</TableCell>
-                <TableCell>Senior Developer</TableCell>
-                <TableCell>Active</TableCell>
-                <TableCell>Jan 15, 2024</TableCell>
-              </TableRow>
-              {/* Add more employee rows as needed */}
+              {filteredStaff.length > 0 ? (
+                filteredStaff.map((staff) => (
+                  <TableRow key={staff.id}>
+                    <TableCell className="font-medium">{staff.name}</TableCell>
+                    <TableCell>{staff.position}</TableCell>
+                    <TableCell>{formatDate(staff.employDate)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={statusColors[staff.status]}>
+                        {staff.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{staff.siteLocation}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                    No staff members found matching your criteria
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
