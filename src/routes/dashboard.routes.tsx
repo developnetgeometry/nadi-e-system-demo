@@ -155,9 +155,10 @@ export const dashboardRoutes = [
   {
     path: "/dashboard/profile",
     element: (
-      <ProtectedRoute>
+      <Suspense fallback={<LoadingSpinner />}>
         <UserProfile />
-      </ProtectedRoute>
+      </Suspense>
+
     ),
   },
 ];
