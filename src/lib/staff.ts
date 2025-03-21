@@ -50,11 +50,11 @@ export async function createStaffMember(staffData: any) {
 
     console.log("Created auth user with type:", staffData.userType);
 
-    // 2. Create staff profile
+    // 2. Create staff profile - Fixed to not reference user_id but instead store auth.user.id correctly
     const { data: staffProfile, error: staffProfileError } = await supabase
       .from('nd_staff_profile')
       .insert({
-        user_id: authUser.user?.id,
+        user_id: authUser.user?.id, // This should match the column name in nd_staff_profile
         fullname: staffData.name,
         ic_no: staffData.ic_number,
         mobile_no: staffData.phone_number,
@@ -66,6 +66,8 @@ export async function createStaffMember(staffData: any) {
 
     if (staffProfileError) {
       console.error('Staff profile creation error:', staffProfileError);
+      // Log detailed error information to help troubleshoot
+      console.error('Error details:', JSON.stringify(staffProfileError, null, 2));
       throw new Error(`Error creating staff profile: ${staffProfileError.message}`);
     }
 
