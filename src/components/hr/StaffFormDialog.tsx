@@ -29,6 +29,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { createStaffMember } from "@/lib/staff";
+import { useAuth } from "@/hooks/useAuth";
 
 const staffFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -73,8 +74,13 @@ export function StaffFormDialog({
   const { toast } = useToast();
   const [availableSites, setAvailableSites] = useState<{id: string, sitename: string}[]>([]);
   const [userTypes, setUserTypes] = useState<string[]>([]);
+  const { user } = useAuth();
+  
+  const [currentUserCredentials, setCurrentUserCredentials] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
-  // Fetch available sites based on organization_id
   useEffect(() => {
     const fetchSites = async () => {
       try {
@@ -97,12 +103,8 @@ export function StaffFormDialog({
       }
     };
 
-    // Fetch user types from roles table (limit to staff roles)
     const fetchUserTypes = async () => {
       try {
-        // This is a placeholder - in a real app, this would fetch from the roles table
-        // Filtering for staff_manager and staff_assistant_manager
-        // For demo, we're hardcoding the values
         setUserTypes(['staff_manager', 'staff_assistant_manager']);
       } catch (err) {
         console.error('Error fetching user types:', err);
@@ -132,7 +134,6 @@ export function StaffFormDialog({
   const handleICNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/[^0-9-]/g, '');
     
-    // Format the IC number automatically
     if (value.length > 6 && value.charAt(6) !== '-') {
       value = value.slice(0, 6) + '-' + value.slice(6);
     }
@@ -140,7 +141,6 @@ export function StaffFormDialog({
       value = value.slice(0, 9) + '-' + value.slice(9);
     }
     
-    // Limit to correct format
     if (value.length > 14) {
       value = value.slice(0, 14);
     }
@@ -148,10 +148,29 @@ export function StaffFormDialog({
     form.setValue('ic_number', value);
   };
 
+  useEffect(() => {
+    const promptForPassword = async () => {
+      if (user?.email) {
+        setCurrentUserCredentials({
+          email: user.email,
+        });
+      }
+    };
+    
+    if (open && user) {
+      promptForPassword();
+    }
+  }, [open, user]);
+
   const onSubmit = async (data: StaffFormValues) => {
     setIsSubmitting(true);
     try {
-      // Call the createStaffMember function with the form data
+      const currentEmail = user?.email;
+      
+      if (data.userType !== 'staff_manager' && data.userType !== 'staff_assistant_manager') {
+        throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');
+      }
+      
       const result = await createStaffMember({
         ...data,
         organizationId,

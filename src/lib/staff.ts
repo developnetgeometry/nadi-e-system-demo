@@ -3,18 +3,26 @@ import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
   try {
-    // 1. Create auth user WITHOUT signing in
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    // 1. Create auth user through regular signup
+    const { data: authUser, error: authError } = await supabase.auth.signUp({
       email: staffData.email,
       password: generateTemporaryPassword(),
-      email_confirm: true,
-      user_metadata: {
-        full_name: staffData.name,
-        user_type: staffData.userType,
+      options: {
+        data: {
+          full_name: staffData.name,
+          user_type: staffData.userType,
+        },
+        // Don't require email verification for staff accounts
+        emailRedirectTo: `${window.location.origin}/dashboard/hr`,
       },
     });
 
     if (authError) throw authError;
+
+    // Verify that we're only creating staff_manager or staff_assistant_manager
+    if (staffData.userType !== 'staff_manager' && staffData.userType !== 'staff_assistant_manager') {
+      throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');
+    }
 
     // 2. Create staff profile
     const { data: staffProfile, error: profileError } = await supabase

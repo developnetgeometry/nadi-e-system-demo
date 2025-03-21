@@ -22,7 +22,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
-import { createStaffMember } from "@/lib/staff";
+import { useAuth } from "@/hooks/useAuth";
+import { useHasPermission } from "@/hooks/use-has-permission";
 
 const staffData = [
   {
@@ -96,6 +97,9 @@ const Employees = () => {
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [staffList, setStaffList] = useState(staffData);
   const userMetadataString = useUserMetadata();
+  const { user } = useAuth();
+  const hasPermission = useHasPermission('create_users');
+  
   const [organizationInfo, setOrganizationInfo] = useState<{
     organization_id: string | null;
     organization_name: string | null;
@@ -141,6 +145,15 @@ const Employees = () => {
       toast({
         title: "Organization Not Found",
         description: "You need to be associated with an organization to add staff.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!hasPermission) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to add staff members.",
         variant: "destructive",
       });
       return;
