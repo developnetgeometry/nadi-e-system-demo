@@ -83,7 +83,7 @@ const Employees = () => {
         // Get staff profiles associated with organization sites
         const { data: sites, error: sitesError } = await supabase
           .from('nd_site_profile')
-          .select('id')
+          .select('id, sitename')
           .eq('dusp_tp_id', organizationInfo.organization_id);
           
         if (sitesError) throw sitesError;
@@ -96,7 +96,14 @@ const Employees = () => {
         
         const siteIds = sites.map(site => site.id);
         
-        // Get staff jobs at these sites
+        // First get the staff profiles
+        const { data: staffProfiles, error: staffProfilesError } = await supabase
+          .from('nd_staff_profile')
+          .select('id, fullname, work_email, mobile_no, ic_no, is_active');
+          
+        if (staffProfilesError) throw staffProfilesError;
+        
+        // Then get the job info separately
         const { data: staffJobs, error: staffJobsError } = await supabase
           .from('nd_staff_job')
           .select(`
@@ -104,9 +111,7 @@ const Employees = () => {
             staff_id,
             site_id,
             join_date,
-            is_active,
-            nd_site_profile(id, sitename),
-            nd_staff_profile(id, fullname, work_email, mobile_no, ic_no, is_active)
+            is_active
           `)
           .in('site_id', siteIds);
           
@@ -118,7 +123,7 @@ const Employees = () => {
           return;
         }
         
-        // Get user types from profiles table
+        // Get user types from profiles table for the staff members
         const staffIds = staffJobs.map(job => job.staff_id);
         
         const { data: userProfiles, error: userProfilesError } = await supabase
@@ -128,24 +133,26 @@ const Employees = () => {
           
         if (userProfilesError) throw userProfilesError;
         
-        // Map the data to our staffList format
+        // Map the data to our staffList format by joining the data manually
         const formattedStaff = staffJobs.map(job => {
+          const staffProfile = staffProfiles?.find(profile => profile.id === job.staff_id);
           const userProfile = userProfiles?.find(p => p.id === job.staff_id);
-          const staffProfile = job.nd_staff_profile;
-          const siteProfile = job.nd_site_profile;
+          const site = sites?.find(s => s.id === job.site_id);
+          
+          if (!staffProfile) return null;
           
           return {
-            id: staffProfile?.id || job.staff_id,
-            name: staffProfile?.fullname || 'Unknown',
-            email: staffProfile?.work_email || '',
+            id: staffProfile.id,
+            name: staffProfile.fullname || 'Unknown',
+            email: staffProfile.work_email || '',
             userType: userProfile?.user_type || 'Unknown',
             employDate: job.join_date,
-            status: staffProfile?.is_active ? 'Active' : 'Inactive',
-            siteLocation: siteProfile?.sitename || 'Unknown site',
-            phone_number: staffProfile?.mobile_no || '',
-            ic_number: staffProfile?.ic_no || '',
+            status: staffProfile.is_active ? 'Active' : 'Inactive',
+            siteLocation: site?.sitename || 'Unknown site',
+            phone_number: staffProfile.mobile_no || '',
+            ic_number: staffProfile.ic_no || '',
           };
-        });
+        }).filter(Boolean);
         
         setStaffList(formattedStaff);
         
@@ -366,7 +373,7 @@ const Employees = () => {
                     <TableCell>
                       {staff.userType?.replace(/_/g, ' ') || "Unknown"}
                     </TableCell>
-                    <TableCell>{formatDate(staff.employDate)}</TableCell>
+                    <TableCell>{staff.employDate ? formatDate(staff.employDate) : "-"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={statusColors[staff.status]}>
                         {staff.status}
