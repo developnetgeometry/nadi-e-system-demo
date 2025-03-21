@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Settings,
@@ -62,7 +63,7 @@ export const menuItems = [
 
 export const hrMenuItems = [
   { title: "HR Dashboard", icon: Briefcase, path: "/hr" },
-  { title: "Employees", icon: UserPlus, path: "/hr/employees" },
+  { title: "Site Staff Management", icon: Users, path: "/hr/employees" },
   { title: "Attendance", icon: ClipboardCheck, path: "/hr/attendance" },
   { title: "Leave Management", icon: Clock, path: "/hr/leave" },
 ];
