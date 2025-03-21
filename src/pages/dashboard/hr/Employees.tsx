@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
   Table,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 // Mock data for staff members
 const staffData = [
@@ -78,6 +79,28 @@ const Employees = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const userMetadataString = useUserMetadata();
+  const [organizationInfo, setOrganizationInfo] = useState<{
+    organization_id: string | null;
+    organization_name: string | null;
+  }>({
+    organization_id: null,
+    organization_name: null,
+  });
+
+  useEffect(() => {
+    if (userMetadataString) {
+      try {
+        const metadata = JSON.parse(userMetadataString);
+        setOrganizationInfo({
+          organization_id: metadata.organization_id || null,
+          organization_name: metadata.organization_name || null,
+        });
+      } catch (error) {
+        console.error("Error parsing user metadata:", error);
+      }
+    }
+  }, [userMetadataString]);
 
   // Filter staff based on search query and filters
   const filteredStaff = staffData.filter((staff) => {
@@ -99,9 +122,18 @@ const Employees = () => {
   const statusOptions = [...new Set(staffData.map((staff) => staff.status))];
 
   const handleAddStaff = () => {
+    if (!organizationInfo.organization_id) {
+      toast({
+        title: "Organization Not Found",
+        description: "You need to be associated with an organization to add staff.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
-      title: "Feature Coming Soon",
-      description: "The Add Staff feature is currently being developed.",
+      title: "Add Staff for " + (organizationInfo.organization_name || "Your Organization"),
+      description: "The Add Staff feature is currently being developed. Staff will be linked to your organization.",
     });
   };
 
@@ -124,6 +156,14 @@ const Employees = () => {
             Add Staff
           </Button>
         </div>
+
+        {organizationInfo.organization_name && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-200">
+            <p className="text-blue-800">
+              Managing staff for organization: <strong>{organizationInfo.organization_name}</strong>
+            </p>
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
