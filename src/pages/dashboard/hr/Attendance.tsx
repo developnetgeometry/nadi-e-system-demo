@@ -1,57 +1,151 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { useState } from "react";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import AttendanceRecords from "@/components/hr/AttendanceRecords";
+import { format } from "date-fns";
+import { 
+  Building,
+  Clock,
+  UserCheck,
+  Users
+} from "lucide-react";
+import useStaffID from "@/hooks/use-staff-id";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const Attendance = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [activeTab, setActiveTab] = useState("daily");
+  const { staffID } = useStaffID();
+  const userMetadataString = useUserMetadata();
+  const [siteId, setSiteId] = useState<number | undefined>(undefined);
+  
+  // Extract organization info from metadata
+  useState(() => {
+    if (userMetadataString) {
+      try {
+        const metadata = JSON.parse(userMetadataString);
+        if (metadata.site_id) {
+          setSiteId(Number(metadata.site_id));
+        }
+      } catch (error) {
+        console.error("Error parsing user metadata:", error);
+      }
+    }
+  });
+
+  const attendanceStats = {
+    presentToday: 32,
+    onTime: 30,
+    late: 2,
+    absent: 3,
+    totalStaff: 35
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
 
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
-        <h1 className="text-3xl font-bold mb-8">Attendance Management</h1>
+        <h1 className="text-3xl font-bold mb-6">Attendance Management</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
-            <CardHeader>
-              <CardTitle>Attendance Calendar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                className="rounded-md border"
-              />
+            <CardContent className="p-4 flex items-center space-x-4">
+              <div className="bg-green-100 p-2 rounded-full">
+                <UserCheck className="h-6 w-6 text-green-700" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Present Today</p>
+                <h3 className="text-2xl font-bold">{attendanceStats.presentToday}</h3>
+              </div>
             </CardContent>
           </Card>
-
+          
           <Card>
-            <CardHeader>
-              <CardTitle>Daily Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Total Present</span>
-                  <span className="font-bold">45</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Total Absent</span>
-                  <span className="font-bold">3</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>On Leave</span>
-                  <span className="font-bold">2</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Late Arrivals</span>
-                  <span className="font-bold">5</span>
-                </div>
+            <CardContent className="p-4 flex items-center space-x-4">
+              <div className="bg-amber-100 p-2 rounded-full">
+                <Clock className="h-6 w-6 text-amber-700" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">On Time</p>
+                <h3 className="text-2xl font-bold">{attendanceStats.onTime}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 flex items-center space-x-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <Clock className="h-6 w-6 text-red-700" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Late</p>
+                <h3 className="text-2xl font-bold">{attendanceStats.late}</h3>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4 flex items-center space-x-4">
+              <div className="bg-blue-100 p-2 rounded-full">
+                <Users className="h-6 w-6 text-blue-700" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Staff</p>
+                <h3 className="text-2xl font-bold">{attendanceStats.totalStaff}</h3>
               </div>
             </CardContent>
           </Card>
         </div>
+        
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="daily">Daily Attendance</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly Report</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="daily">
+            <AttendanceRecords siteId={siteId} />
+          </TabsContent>
+          
+          <TabsContent value="monthly">
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Attendance Report</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  View and export monthly attendance reports for all staff members.
+                </p>
+                <div className="p-6 text-center text-muted-foreground">
+                  Monthly attendance report feature coming soon
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="stats">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Statistics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  View detailed attendance statistics and trends.
+                </p>
+                <div className="p-6 text-center text-muted-foreground">
+                  Attendance statistics feature coming soon
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
