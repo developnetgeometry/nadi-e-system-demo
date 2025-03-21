@@ -5444,7 +5444,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           duration?: number | null
-          id: number
+          id?: number
           remark?: string | null
           session?: string | null
           site_id?: number | null

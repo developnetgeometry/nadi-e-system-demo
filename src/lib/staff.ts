@@ -3,6 +3,36 @@ import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
   try {
+    // Get current user to check permissions
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser) {
+      throw new Error('Authentication required');
+    }
+    
+    // Get current user's type from profiles
+    const { data: currentUserProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', currentUser.id)
+      .single();
+      
+    if (profileError) {
+      throw new Error('Error fetching user profile');
+    }
+    
+    // Check if current user is authorized to create staff
+    const allowedCreatorTypes = ['tp_admin', 'tp_hr', 'super_admin'];
+    if (!allowedCreatorTypes.includes(currentUserProfile.user_type)) {
+      throw new Error('User not allowed to create staff members');
+    }
+    
+    // Verify that we're only creating staff_manager or staff_assistant_manager
+    const allowedStaffTypes = ['staff_manager', 'staff_assistant_manager'];
+    if (!allowedStaffTypes.includes(staffData.userType)) {
+      throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');
+    }
+
     // 1. Create auth user through regular signup
     const { data: authUser, error: authError } = await supabase.auth.signUp({
       email: staffData.email,
@@ -18,11 +48,6 @@ export async function createStaffMember(staffData: any) {
     });
 
     if (authError) throw authError;
-
-    // Verify that we're only creating staff_manager or staff_assistant_manager
-    if (staffData.userType !== 'staff_manager' && staffData.userType !== 'staff_assistant_manager') {
-      throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');
-    }
 
     // 2. Create staff profile
     const { data: staffProfile, error: profileError } = await supabase

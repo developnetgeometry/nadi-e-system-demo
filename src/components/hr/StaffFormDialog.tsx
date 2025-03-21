@@ -30,6 +30,7 @@ import { Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { createStaffMember } from "@/lib/staff";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserAccess } from "@/hooks/use-user-access";
 
 const staffFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -75,6 +76,7 @@ export function StaffFormDialog({
   const [availableSites, setAvailableSites] = useState<{id: string, sitename: string}[]>([]);
   const [userTypes, setUserTypes] = useState<string[]>([]);
   const { user } = useAuth();
+  const { userType: currentUserType } = useUserAccess();
   
   const [currentUserCredentials, setCurrentUserCredentials] = useState<{
     email?: string;
@@ -105,7 +107,8 @@ export function StaffFormDialog({
 
     const fetchUserTypes = async () => {
       try {
-        setUserTypes(['staff_manager', 'staff_assistant_manager']);
+        const allowedTypes = ['staff_manager', 'staff_assistant_manager'];
+        setUserTypes(allowedTypes);
       } catch (err) {
         console.error('Error fetching user types:', err);
       }
@@ -165,7 +168,10 @@ export function StaffFormDialog({
   const onSubmit = async (data: StaffFormValues) => {
     setIsSubmitting(true);
     try {
-      const currentEmail = user?.email;
+      const allowedCreatorTypes = ['tp_admin', 'tp_hr', 'super_admin'];
+      if (!currentUserType || !allowedCreatorTypes.includes(currentUserType)) {
+        throw new Error('You do not have permission to create staff members');
+      }
       
       if (data.userType !== 'staff_manager' && data.userType !== 'staff_assistant_manager') {
         throw new Error('Only staff_manager and staff_assistant_manager user types are allowed');

@@ -24,6 +24,8 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useHasPermission } from "@/hooks/use-has-permission";
+import { createStaffMember } from "@/lib/staff";
+import { useUserAccess } from "@/hooks/use-user-access";
 
 const staffData = [
   {
@@ -99,6 +101,7 @@ const Employees = () => {
   const userMetadataString = useUserMetadata();
   const { user } = useAuth();
   const hasPermission = useHasPermission('create_users');
+  const { userType } = useUserAccess();
   
   const [organizationInfo, setOrganizationInfo] = useState<{
     organization_id: string | null;
@@ -159,6 +162,16 @@ const Employees = () => {
       return;
     }
     
+    const allowedUserTypes = ['tp_admin', 'tp_hr', 'super_admin'];
+    if (!userType || !allowedUserTypes.includes(userType)) {
+      toast({
+        title: "Access Denied",
+        description: "Only TP Admin and HR users can add staff members.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsAddStaffOpen(true);
   };
 
@@ -170,11 +183,11 @@ const Employees = () => {
         title: "Staff Added",
         description: `${newStaff.name} has been added successfully.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding staff:', error);
       toast({
         title: "Error",
-        description: "Failed to add staff member. Please try again.",
+        description: error.message || "Failed to add staff member. Please try again.",
         variant: "destructive",
       });
     }
