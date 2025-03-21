@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import {
@@ -72,11 +71,11 @@ export const useMenuVisibility = (userId: string | undefined) => {
       setLoading(true);
       try {
         console.log("Fetching visibility settings for:", userType);
-        
-        // Fetch menu visibility - get all records, not just those containing the current userType
+        // Fetch menu visibility
         const { data: menuData, error: menuError } = await supabase
           .from("menu_visibility")
-          .select("*");
+          .select("*")
+          .contains("visible_to", [userType]);
 
         if (menuError) {
           console.error("Error fetching menu visibility:", menuError);
@@ -86,7 +85,7 @@ export const useMenuVisibility = (userId: string | undefined) => {
         console.log("Fetched menu visibility:", menuData);
         setMenuVisibility(menuData || []);
 
-        // Fetch submodule visibility - get all records, not just those containing the current userType
+        // Fetch submodule visibility
         const { data: submoduleData, error: submoduleError } = await supabase
           .from("submodule_visibility")
           .select("*");
