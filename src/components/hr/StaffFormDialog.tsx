@@ -32,7 +32,7 @@ import { Loader2, UserPlus } from "lucide-react";
 const staffFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  position: z.string().min(2, "Position is required"),
+  userType: z.string().min(2, "User type is required"),
   employDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: "Please enter a valid date",
   }),
@@ -72,12 +72,23 @@ export function StaffFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  // Available user types
+  const userTypes = [
+    "Admin",
+    "Manager",
+    "Supervisor",
+    "General Staff",
+    "Technician",
+    "Maintenance Staff",
+    "Customer Service"
+  ];
+
   const form = useForm<StaffFormValues>({
     resolver: zodResolver(staffFormSchema),
     defaultValues: {
       name: "",
       email: "",
-      position: "",
+      userType: "",
       employDate: new Date().toISOString().split("T")[0],
       status: "Active",
       siteLocation: siteLocations[0] || "",
@@ -116,6 +127,7 @@ export function StaffFormDialog({
       const newStaff = {
         id: Date.now().toString(),
         ...data,
+        position: data.userType, // Map userType to position for backward compatibility
         organizationId,
         user_group: "centre staff", // Fixed user group as specified
       };
@@ -218,13 +230,27 @@ export function StaffFormDialog({
 
               <FormField
                 control={form.control}
-                name="position"
+                name="userType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Position</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Site Engineer" />
-                    </FormControl>
+                    <FormLabel>User Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select user type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {userTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
