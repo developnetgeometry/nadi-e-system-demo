@@ -1702,7 +1702,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_closure_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_comment_votes: {
         Row: {
@@ -2039,7 +2047,15 @@ export type Database = {
           user_id?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_dusp_profile_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_education: {
         Row: {
@@ -3920,7 +3936,15 @@ export type Database = {
           user_id?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_mcmc_profile_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_member_address: {
         Row: {
@@ -5415,7 +5439,7 @@ export type Database = {
           remark: string | null
           session: string | null
           site_id: number | null
-          status: string | null
+          status: number | null
           subcategory_id: number | null
           updated_at: string | null
           updated_by: string | null
@@ -5428,11 +5452,11 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           duration?: number | null
-          id: number
+          id?: number
           remark?: string | null
           session?: string | null
           site_id?: number | null
-          status?: string | null
+          status?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -5449,17 +5473,45 @@ export type Database = {
           remark?: string | null
           session?: string | null
           site_id?: number | null
-          status?: string | null
+          status?: number | null
           subcategory_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "nd_site_closure_nd_closure_status_fk"
+            foreignKeyName: "nd_site_closure_affected_areas_id_fkey"
+            columns: ["affected_areas_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_affect_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_closure_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_closure_site_id_fkey"
             columns: ["site_id"]
             isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_closure_status_fkey"
+            columns: ["status"]
+            isOneToOne: false
             referencedRelation: "nd_closure_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_closure_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "nd_closure_subcategories"
             referencedColumns: ["id"]
           },
         ]
@@ -5554,7 +5606,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           dun_rfid: number | null
-          dusp_tp_id: number | null
+          dusp_tp_id: string | null
           email: string | null
           fullname: string | null
           id: number
@@ -5571,8 +5623,8 @@ export type Database = {
           region_id: number | null
           remark: string | null
           sitename: string | null
-          socioeconomic_id: number | null
-          space_id: number | null
+          socioeconomic_id: number[] | null
+          space_id: number[] | null
           state_id: number | null
           technology: number | null
           total_population: number | null
@@ -5593,7 +5645,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           dun_rfid?: number | null
-          dusp_tp_id?: number | null
+          dusp_tp_id?: string | null
           email?: string | null
           fullname?: string | null
           id?: number
@@ -5610,8 +5662,8 @@ export type Database = {
           region_id?: number | null
           remark?: string | null
           sitename?: string | null
-          socioeconomic_id?: number | null
-          space_id?: number | null
+          socioeconomic_id?: number[] | null
+          space_id?: number[] | null
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
@@ -5632,7 +5684,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           dun_rfid?: number | null
-          dusp_tp_id?: number | null
+          dusp_tp_id?: string | null
           email?: string | null
           fullname?: string | null
           id?: number
@@ -5649,8 +5701,8 @@ export type Database = {
           region_id?: number | null
           remark?: string | null
           sitename?: string | null
-          socioeconomic_id?: number | null
-          space_id?: number | null
+          socioeconomic_id?: number[] | null
+          space_id?: number[] | null
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
@@ -5687,6 +5739,13 @@ export type Database = {
             columns: ["building_type_id"]
             isOneToOne: false
             referencedRelation: "nd_building_type"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_dusp_tp_id_fkey"
+            columns: ["dusp_tp_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -5729,13 +5788,6 @@ export type Database = {
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "nd_region"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_site_profile_space_id_fkey"
-            columns: ["space_id"]
-            isOneToOne: false
-            referencedRelation: "nd_space"
             referencedColumns: ["id"]
           },
           {
@@ -5835,6 +5887,65 @@ export type Database = {
             columns: ["socioeconomic_id"]
             isOneToOne: false
             referencedRelation: "nd_socioeconomics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_site_space: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          site_id: number | null
+          space_id: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          site_id?: number | null
+          space_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          site_id?: number | null
+          space_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_space_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_space_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_space_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "nd_space"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_space_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -6022,7 +6133,15 @@ export type Database = {
           user_id?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_sso_profile_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_address: {
         Row: {
@@ -6124,6 +6243,7 @@ export type Database = {
           created_by: string | null
           id: number
           latitude: number | null
+          longitude: number | null
           longtitude: number | null
           photo_path: string | null
           remark: string | null
@@ -6144,6 +6264,7 @@ export type Database = {
           created_by?: string | null
           id: number
           latitude?: number | null
+          longitude?: number | null
           longtitude?: number | null
           photo_path?: string | null
           remark?: string | null
@@ -6164,6 +6285,7 @@ export type Database = {
           created_by?: string | null
           id?: number
           latitude?: number | null
+          longitude?: number | null
           longtitude?: number | null
           photo_path?: string | null
           remark?: string | null
@@ -6320,7 +6442,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_job_nd_site_profile_fk"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_leave: {
         Row: {
@@ -6574,6 +6704,7 @@ export type Database = {
           status: number | null
           updated_at: string | null
           updated_by: string | null
+          user_id: string | null
           work_email: string | null
         }
         Insert: {
@@ -6602,6 +6733,7 @@ export type Database = {
           status?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Update: {
@@ -6630,6 +6762,7 @@ export type Database = {
           status?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          user_id?: string | null
           work_email?: string | null
         }
         Relationships: [
@@ -6666,6 +6799,13 @@ export type Database = {
             columns: ["race_id"]
             isOneToOne: false
             referencedRelation: "nd_races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_profile_profiles_fk"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -6995,7 +7135,6 @@ export type Database = {
           race_id: number | null
           religion_id: number | null
           resign_date: string | null
-          site_id: number | null
           tech_partner_id: number | null
           updated_at: string | null
           updated_by: string | null
@@ -7021,7 +7160,6 @@ export type Database = {
           race_id?: number | null
           religion_id?: number | null
           resign_date?: string | null
-          site_id?: number | null
           tech_partner_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -7047,14 +7185,21 @@ export type Database = {
           race_id?: number | null
           religion_id?: number | null
           resign_date?: string | null
-          site_id?: number | null
           tech_partner_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_tech_partner_profile_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_technology: {
         Row: {
@@ -7293,7 +7438,7 @@ export type Database = {
       nd_type_utilities: {
         Row: {
           created_at: string | null
-          created_by: string
+          created_by: string | null
           id: number
           name: string | null
           updated_at: string | null
@@ -7301,15 +7446,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          created_by: string
-          id: number
+          created_by?: string | null
+          id?: number
           name?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           id?: number
           name?: string | null
           updated_at?: string | null
@@ -7498,7 +7643,7 @@ export type Database = {
         Row: {
           amount_bill: number | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           id: number
           month: number | null
           reference_no: string | null
@@ -7512,8 +7657,8 @@ export type Database = {
         Insert: {
           amount_bill?: number | null
           created_at?: string | null
-          created_by: string
-          id: number
+          created_by?: string | null
+          id?: number
           month?: number | null
           reference_no?: string | null
           remark?: string | null
@@ -7526,7 +7671,7 @@ export type Database = {
         Update: {
           amount_bill?: number | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           id?: number
           month?: number | null
           reference_no?: string | null
@@ -7537,7 +7682,15 @@ export type Database = {
           updated_by?: string | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_utilities_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_type_utilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_utilities_attachment: {
         Row: {
@@ -7553,7 +7706,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           file_path?: string | null
-          id: number
+          id?: number
           updated_at?: string | null
           updated_by?: string | null
           utilities_id?: number | null
@@ -7567,13 +7720,21 @@ export type Database = {
           updated_by?: string | null
           utilities_id?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_utilities_attachment_utilities_id_fkey"
+            columns: ["utilities_id"]
+            isOneToOne: false
+            referencedRelation: "nd_utilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_utilities_threshold: {
         Row: {
           amount: number | null
           created_at: string | null
-          created_by: string
+          created_by: string | null
           id: number
           tech_profile_id: number | null
           type_id: number | null
@@ -7583,8 +7744,8 @@ export type Database = {
         Insert: {
           amount?: number | null
           created_at?: string | null
-          created_by: string
-          id: number
+          created_by?: string | null
+          id?: number
           tech_profile_id?: number | null
           type_id?: number | null
           updated_at?: string | null
@@ -7593,14 +7754,22 @@ export type Database = {
         Update: {
           amount?: number | null
           created_at?: string | null
-          created_by?: string
+          created_by?: string | null
           id?: number
           tech_profile_id?: number | null
           type_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_utilities_threshold_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_type_utilities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_vendor_address: {
         Row: {
@@ -7858,7 +8027,15 @@ export type Database = {
           updated_by?: string | null
           work_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_vendor_staff_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "nd_position"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_vendor_staff_team: {
         Row: {
@@ -9045,7 +9222,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_type"]
       }
+      is_admin_role: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_current_user_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_staff_manager_role: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
@@ -9058,6 +9243,12 @@ export type Database = {
           p_ip_address?: string
         }
         Returns: string
+      }
+      user_has_role: {
+        Args: {
+          required_roles: string[]
+        }
+        Returns: boolean
       }
     }
     Enums: {

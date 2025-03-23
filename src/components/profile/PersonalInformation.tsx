@@ -198,40 +198,6 @@ const PersonalInformation = ({
             </div>
           </>
         ) : null}
-        {userType?.startsWith("vendor") && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="fullname">Full Name</Label>
-                <ViewOnlyField>{profileData?.fullname || ""}</ViewOnlyField>
-              </div>
-              <div>
-                <Label htmlFor="ic_no">IC Number</Label>
-                <ViewOnlyField>{profileData?.ic_no || ""}</ViewOnlyField>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="mobile_no">Mobile Number</Label>
-                <Input id="mobile_no" type="text" value={profileData?.mobile_no || ""} onChange={handleChange} />
-              </div>
-              <div>
-                <Label htmlFor="work_email">Work Email</Label>
-                <ViewOnlyField>{profileData?.work_email || ""}</ViewOnlyField>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="position_id">Position</Label>
-                <ViewOnlyField>{positionName}</ViewOnlyField>
-              </div>
-              <div>
-                <Label htmlFor="is_active">Status</Label>
-                <ViewOnlyField>{profileData?.is_active ? "Active" : "Inactive"}</ViewOnlyField>
-              </div>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

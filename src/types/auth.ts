@@ -50,7 +50,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: NotificationType;
+  type: "info" | "success" | "warning" | "error";
   read: boolean;
   created_at: string;
 }
