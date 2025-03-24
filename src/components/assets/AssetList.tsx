@@ -1,22 +1,11 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
 import { History, Settings } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { MaintenanceFormDialog } from "./MaintenanceFormDialog";
-
-interface Asset {
-  id: string;
-  name: string;
-  category: string;
-  status: "active" | "in_maintenance" | "retired" | "disposed";
-  purchase_date: string;
-  current_value: number;
-  purchase_cost: number;
-  depreciation_rate: number;
-  next_maintenance_date: string | null;
-  location: string;
-}
 
 export const AssetList = () => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -68,13 +57,17 @@ export const AssetList = () => {
                   <Button variant="outline" size="icon">
                     <History className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleMaintenanceClick(asset)}
+                  <Link
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "icon",
+                    })}
+                    to={{
+                      pathname: "/asset/detail/" + asset.id,
+                    }}
                   >
                     <Settings className="h-4 w-4" />
-                  </Button>
+                  </Link>
                 </div>
               </div>
             );

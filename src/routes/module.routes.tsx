@@ -1,33 +1,33 @@
-import { RouteObject } from "react-router-dom";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
-import Employees from "@/pages/dashboard/hr/Employees";
+import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
+import AssetDetails from "@/pages/dashboard/asset/AssetDetails";
+import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
+import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
+import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
+import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
+import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
+import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
+import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
+import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
+import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
+import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
+import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
+import Employees from "@/pages/dashboard/hr/Employees";
+import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Leave from "@/pages/dashboard/hr/Leave";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
-import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
-import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
-import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
-import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
-import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
-import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
-import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
-import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
-import Wallet from "@/pages/dashboard/financial/Wallet";
-import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
-import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
-import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
-import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
-import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import SiteManagement from "@/pages/dashboard/site/SiteManagement";
-import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
+import SiteDetails from "@/pages/dashboard/site/SiteDetail";
+import SiteManagement from "@/pages/dashboard/site/SiteManagement";
+import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
+import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
+import { RouteObject } from "react-router-dom";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -35,7 +35,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr",
     element: (
       // <ProtectedRoute requiredPermission="view_hr_dashboard">
-        <HRDashboard />
+      <HRDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -43,7 +43,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr/employees",
     element: (
       // <ProtectedRoute requiredPermission="manage_employees">
-        <Employees />
+      <Employees />
       // </ProtectedRoute>
     ),
   },
@@ -51,7 +51,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr/attendance",
     element: (
       // <ProtectedRoute requiredPermission="manage_attendance">
-        <Attendance />
+      <Attendance />
       // </ProtectedRoute>
     ),
   },
@@ -59,7 +59,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr/leave",
     element: (
       // <ProtectedRoute requiredPermission="manage_leave">
-        <Leave />
+      <Leave />
       // </ProtectedRoute>
     ),
   },
@@ -68,7 +68,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/pos",
     element: (
       // <ProtectedRoute requiredPermission="view_pos_dashboard">
-        <POSDashboard />
+      <POSDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -76,7 +76,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/pos/products",
     element: (
       // <ProtectedRoute requiredPermission="manage_products">
-        <Products />
+      <Products />
       // </ProtectedRoute>
     ),
   },
@@ -84,7 +84,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/pos/transactions",
     element: (
       // <ProtectedRoute requiredPermission="view_pos_transactions">
-        <POSTransactions />
+      <POSTransactions />
       // </ProtectedRoute>
     ),
   },
@@ -93,7 +93,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/claim",
     element: (
       // <ProtectedRoute requiredPermission="view_claims">
-        <ClaimDashboard />
+      <ClaimDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -101,7 +101,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/claim/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_claim_settings">
-        <ClaimSettings />
+      <ClaimSettings />
       // </ProtectedRoute>
     ),
   },
@@ -110,7 +110,15 @@ export const moduleRoutes: RouteObject[] = [
     path: "/asset",
     element: (
       // <ProtectedRoute requiredPermission="view_assets">
-        <AssetDashboard />
+      <AssetDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/asset/detail/:id",
+    element: (
+      // <ProtectedRoute requiredPermission="view_assets">
+      <AssetDetails />
       // </ProtectedRoute>
     ),
   },
@@ -118,7 +126,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/asset/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_asset_settings">
-        <AssetSettings />
+      <AssetSettings />
       // </ProtectedRoute>
     ),
   },
@@ -127,7 +135,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/finance",
     element: (
       // <ProtectedRoute requiredPermission="view_finance">
-        <FinanceDashboard />
+      <FinanceDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -135,7 +143,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/finance/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_finance_settings">
-        <FinanceSettings />
+      <FinanceSettings />
       // </ProtectedRoute>
     ),
   },
@@ -144,7 +152,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/programmes",
     element: (
       // <ProtectedRoute requiredPermission="view_programmes">
-        <ProgrammesDashboard />
+      <ProgrammesDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -152,7 +160,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/programmes/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
-        <ProgrammeSettings />
+      <ProgrammeSettings />
       // </ProtectedRoute>
     ),
   },
@@ -161,7 +169,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/services/info",
     element: (
       // <ProtectedRoute requiredPermission="view_services">
-        <ServiceInfo />
+      <ServiceInfo />
       // </ProtectedRoute>
     ),
   },
@@ -169,7 +177,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/services/transactions",
     element: (
       // <ProtectedRoute requiredPermission="view_service_transactions">
-        <ServiceTransactions />
+      <ServiceTransactions />
       // </ProtectedRoute>
     ),
   },
@@ -178,7 +186,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/community",
     element: (
       // <ProtectedRoute requiredPermission="view_community">
-        <CommunityDashboard />
+      <CommunityDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -186,7 +194,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/community/moderation",
     element: (
       // <ProtectedRoute requiredPermission="moderate_community">
-        <CommunityModeration />
+      <CommunityModeration />
       // </ProtectedRoute>
     ),
   },
@@ -195,7 +203,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/financial/wallet",
     element: (
       // <ProtectedRoute requiredPermission="view_wallet">
-        <Wallet />
+      <Wallet />
       // </ProtectedRoute>
     ),
   },
@@ -203,7 +211,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/financial/transactions",
     element: (
       // <ProtectedRoute requiredPermission="view_financial_transactions">
-        <FinancialTransactions />
+      <FinancialTransactions />
       // </ProtectedRoute>
     ),
   },
@@ -212,7 +220,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/compliance/audit",
     element: (
       // <ProtectedRoute requiredPermission="view_audit_logs">
-        <AuditLogs />
+      <AuditLogs />
       // </ProtectedRoute>
     ),
   },
@@ -220,7 +228,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/compliance/reports",
     element: (
       // <ProtectedRoute requiredPermission="view_compliance_reports">
-        <ComplianceReports />
+      <ComplianceReports />
       // </ProtectedRoute>
     ),
   },
@@ -229,7 +237,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/workflow",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflows">
-        <WorkflowDashboard />
+      <WorkflowDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -237,7 +245,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/workflow/configuration",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-        <WorkflowConfiguration />
+      <WorkflowConfiguration />
       // </ProtectedRoute>
     ),
   },
@@ -245,7 +253,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/workflow/configuration/:id",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-        <WorkflowConfiguration />
+      <WorkflowConfiguration />
       // </ProtectedRoute>
     ),
   },
@@ -255,7 +263,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site-management/main",
     element: (
       // <ProtectedRoute requiredPermission="site_management">
-        <SiteManagement />
+      <SiteManagement />
       // </ProtectedRoute>
     ),
   },
@@ -263,7 +271,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/:id",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-        <SiteDetails />
+      <SiteDetails />
       // </ProtectedRoute>
     ),
   },
@@ -271,7 +279,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/approval",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-        <SiteClosureApproval />
+      <SiteClosureApproval />
       // </ProtectedRoute>
     ),
   },
