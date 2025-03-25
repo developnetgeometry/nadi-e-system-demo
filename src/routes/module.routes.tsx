@@ -28,6 +28,8 @@ import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfigurat
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
+import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
+import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -35,7 +37,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr",
     element: (
       // <ProtectedRoute requiredPermission="view_hr_dashboard">
-        <HRDashboard />
+      <HRDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -43,7 +45,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr/employees",
     element: (
       // <ProtectedRoute requiredPermission="manage_employees">
-        <Employees />
+      <Employees />
       // </ProtectedRoute>
     ),
   },
@@ -51,7 +53,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr/attendance",
     element: (
       // <ProtectedRoute requiredPermission="manage_attendance">
-        <Attendance />
+      <Attendance />
       // </ProtectedRoute>
     ),
   },
@@ -59,7 +61,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/hr/leave",
     element: (
       // <ProtectedRoute requiredPermission="manage_leave">
-        <Leave />
+      <Leave />
       // </ProtectedRoute>
     ),
   },
@@ -68,7 +70,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/pos",
     element: (
       // <ProtectedRoute requiredPermission="view_pos_dashboard">
-        <POSDashboard />
+      <POSDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -76,7 +78,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/pos/products",
     element: (
       // <ProtectedRoute requiredPermission="manage_products">
-        <Products />
+      <Products />
       // </ProtectedRoute>
     ),
   },
@@ -84,7 +86,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/pos/transactions",
     element: (
       // <ProtectedRoute requiredPermission="view_pos_transactions">
-        <POSTransactions />
+      <POSTransactions />
       // </ProtectedRoute>
     ),
   },
@@ -93,7 +95,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/claim",
     element: (
       // <ProtectedRoute requiredPermission="view_claims">
-        <ClaimDashboard />
+      <ClaimDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -101,7 +103,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/claim/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_claim_settings">
-        <ClaimSettings />
+      <ClaimSettings />
       // </ProtectedRoute>
     ),
   },
@@ -110,7 +112,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/asset",
     element: (
       // <ProtectedRoute requiredPermission="view_assets">
-        <AssetDashboard />
+      <AssetDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -118,7 +120,24 @@ export const moduleRoutes: RouteObject[] = [
     path: "/asset/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_asset_settings">
-        <AssetSettings />
+      <AssetSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  // Inventory Routes
+  {
+    path: "/inventory",
+    element: (
+      // <ProtectedRoute requiredPermission="view_assets">
+      <InventoryDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/inventory/settings",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_asset_settings">
+      <InventorySettings />
       // </ProtectedRoute>
     ),
   },
@@ -127,7 +146,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/finance",
     element: (
       // <ProtectedRoute requiredPermission="view_finance">
-        <FinanceDashboard />
+      <FinanceDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -135,7 +154,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/finance/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_finance_settings">
-        <FinanceSettings />
+      <FinanceSettings />
       // </ProtectedRoute>
     ),
   },
@@ -144,7 +163,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/programmes",
     element: (
       // <ProtectedRoute requiredPermission="view_programmes">
-        <ProgrammesDashboard />
+      <ProgrammesDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -152,7 +171,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/programmes/settings",
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
-        <ProgrammeSettings />
+      <ProgrammeSettings />
       // </ProtectedRoute>
     ),
   },
@@ -161,7 +180,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/services/info",
     element: (
       // <ProtectedRoute requiredPermission="view_services">
-        <ServiceInfo />
+      <ServiceInfo />
       // </ProtectedRoute>
     ),
   },
@@ -169,7 +188,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/services/transactions",
     element: (
       // <ProtectedRoute requiredPermission="view_service_transactions">
-        <ServiceTransactions />
+      <ServiceTransactions />
       // </ProtectedRoute>
     ),
   },
@@ -178,7 +197,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/community",
     element: (
       // <ProtectedRoute requiredPermission="view_community">
-        <CommunityDashboard />
+      <CommunityDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -186,7 +205,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/community/moderation",
     element: (
       // <ProtectedRoute requiredPermission="moderate_community">
-        <CommunityModeration />
+      <CommunityModeration />
       // </ProtectedRoute>
     ),
   },
@@ -195,7 +214,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/financial/wallet",
     element: (
       // <ProtectedRoute requiredPermission="view_wallet">
-        <Wallet />
+      <Wallet />
       // </ProtectedRoute>
     ),
   },
@@ -203,7 +222,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/financial/transactions",
     element: (
       // <ProtectedRoute requiredPermission="view_financial_transactions">
-        <FinancialTransactions />
+      <FinancialTransactions />
       // </ProtectedRoute>
     ),
   },
@@ -212,7 +231,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/compliance/audit",
     element: (
       // <ProtectedRoute requiredPermission="view_audit_logs">
-        <AuditLogs />
+      <AuditLogs />
       // </ProtectedRoute>
     ),
   },
@@ -220,7 +239,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/compliance/reports",
     element: (
       // <ProtectedRoute requiredPermission="view_compliance_reports">
-        <ComplianceReports />
+      <ComplianceReports />
       // </ProtectedRoute>
     ),
   },
@@ -229,7 +248,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/workflow",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflows">
-        <WorkflowDashboard />
+      <WorkflowDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -237,7 +256,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/workflow/configuration",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-        <WorkflowConfiguration />
+      <WorkflowConfiguration />
       // </ProtectedRoute>
     ),
   },
@@ -245,7 +264,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/workflow/configuration/:id",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-        <WorkflowConfiguration />
+      <WorkflowConfiguration />
       // </ProtectedRoute>
     ),
   },
@@ -255,7 +274,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site-management/main",
     element: (
       // <ProtectedRoute requiredPermission="site_management">
-        <SiteManagement />
+      <SiteManagement />
       // </ProtectedRoute>
     ),
   },
@@ -263,7 +282,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/:id",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-        <SiteDetails />
+      <SiteDetails />
       // </ProtectedRoute>
     ),
   },
@@ -271,7 +290,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/approval",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-        <SiteClosureApproval />
+      <SiteClosureApproval />
       // </ProtectedRoute>
     ),
   },
