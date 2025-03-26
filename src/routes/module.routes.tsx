@@ -15,6 +15,8 @@ import Attendance from "@/pages/dashboard/hr/Attendance";
 import Employees from "@/pages/dashboard/hr/Employees";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Leave from "@/pages/dashboard/hr/Leave";
+import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
+import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
@@ -26,7 +28,7 @@ import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import WorkflowDashboard from "@/pages/dashboard/workflow/WorkflowDashboard";
+import WorkflowDashboard from "@/pages/workflow/Dashboard";
 import { RouteObject } from "react-router-dom";
 
 export const moduleRoutes: RouteObject[] = [
@@ -127,6 +129,23 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_asset_settings">
       <AssetSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  // Inventory Routes
+  {
+    path: "/inventory",
+    element: (
+      // <ProtectedRoute requiredPermission="view_assets">
+      <InventoryDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/inventory/settings",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_asset_settings">
+      <InventorySettings />
       // </ProtectedRoute>
     ),
   },
