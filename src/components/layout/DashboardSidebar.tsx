@@ -18,32 +18,32 @@ export const DashboardSidebar = () => {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className={cn("border-r border-gray-200 h-screen flex flex-col", sidebarStyles.sidebarBackground)}>
+    <Sidebar className={cn("border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col", sidebarStyles.sidebarBackground)}>
       <div className={cn(
         "p-4 flex items-center",
         isCollapsed && !isMobile ? "justify-center" : "justify-between"
       )}>
         {(!isCollapsed || isMobile) && (
-          <h1 className="text-2xl font-bold text-gray-800">{sidebarTitle}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{sidebarTitle}</h1>
         )}
         {isCollapsed && !isMobile && (
-          <h1 className="text-xl font-bold text-gray-800">N</h1>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">N</h1>
         )}
         
         {!isCollapsed && !isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 hover:bg-gray-100 rounded-full">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
             <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
         
         {isCollapsed && !isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 hover:bg-gray-100 rounded-full">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
             <ChevronRight className="h-5 w-5" />
           </Button>
         )}
         
         {isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 dark:text-gray-300">
             <X className="h-5 w-5" />
           </Button>
         )}

@@ -7,7 +7,7 @@ export const NotificationError = () => {
     <div className="flex h-[200px] items-center justify-center">
       <div className="flex items-center space-x-2 text-sm text-destructive dark:text-red-400">
         <XCircle className="h-4 w-4" />
-        <span>Error loading notifications</span>
+        <span className="dark:text-red-400">Error loading notifications</span>
       </div>
     </div>
   );

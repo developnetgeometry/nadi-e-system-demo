@@ -33,18 +33,18 @@ export const DashboardNavbar = () => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="mr-2 text-gray-700 dark:text-gray-300"
+            className="mr-2 text-gray-700 dark:text-gray-200"
           >
             <Menu className="h-5 w-5" />
           </Button>
         )}
         
         <div className="mr-4 hidden md:flex">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{navbarTitle}</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{navbarTitle}</h2>
         </div>
         
         {isMobile && (
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex-1">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white flex-1">
             {navbarTitle}
           </h2>
         )}

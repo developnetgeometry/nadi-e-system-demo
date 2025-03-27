@@ -28,7 +28,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="relative min-h-screen flex w-full bg-[#F7F9FC] dark:bg-gray-900">
+      <div className="relative min-h-screen flex w-full bg-[#F7F9FC] dark:bg-gray-900 text-gray-800 dark:text-white">
         {/* Overlay for mobile */}
         {isMobile && openMobile && (
           <div 
