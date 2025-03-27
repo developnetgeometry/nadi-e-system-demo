@@ -10,7 +10,7 @@ import { SidebarMenu } from "@/components/ui/sidebar";
 import { MenuItem } from "@/types/menu";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { getAccordionIcon } from "@/utils/sidebar-icons";
-import { sidebarStyles } from "@/utils/sidebar-styles";
+import { sidebarStyles, iconColors } from "@/utils/sidebar-styles";
 import { SidebarItem } from "./SidebarItem";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
@@ -27,18 +27,25 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
   const isActiveExact = items.some(item => location.pathname === item.path);
   const AccordionIcon = getAccordionIcon(label);
   const isCollapsed = state === "collapsed" && !isMobile;
+  
+  // Get the color for this accordion from our iconColors map
+  const iconColor = iconColors[label as keyof typeof iconColors] || "#6E41E2";
 
   // If sidebar is collapsed and not mobile, render a simpler version
   if (isCollapsed) {
     return (
-      <div className="mb-1 relative group">
+      <div className="mb-2 relative group">
         <div 
           className={cn(
-            "py-2 px-2 flex justify-center text-sm text-gray-700 rounded-md transition-all duration-200 hover:bg-gray-100",
-            isActive && "bg-gray-100"
+            sidebarStyles.collapsedIconWrapper,
+            "hover:bg-gray-50",
+            isActive && "bg-gray-50"
           )}
         >
-          <AccordionIcon className={sidebarStyles.iconWrapper} />
+          <AccordionIcon 
+            className={sidebarStyles.iconWrapper}
+            color={iconColor}
+          />
         </div>
         
         {/* Floating submenu on hover */}
@@ -52,6 +59,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                 path={item.path}
                 icon={item.icon}
                 isCollapsed={false}
+                iconColor={iconColor}
               />
             ))}
           </SidebarMenu>
@@ -65,14 +73,20 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
     <Accordion 
       type="single" 
       collapsible 
-      className="mb-1"
+      className="mb-2"
       defaultValue={isActive ? label : undefined}
     >
-      <AccordionItem value={label} className="border-none">
+      <AccordionItem 
+        value={label} 
+        className={cn(
+          "border-none",
+          isActive && sidebarStyles.accordionWrapper
+        )}
+      >
         <AccordionTrigger 
           className={cn(
-            "py-3 px-4 text-gray-700 rounded-lg transition-all duration-200 hover:bg-gray-50 group flex items-center gap-3 border border-transparent",
-            isActive && "text-gray-900 bg-gray-50 font-medium border-gray-100",
+            sidebarStyles.accordionTrigger,
+            isActive && sidebarStyles.accordionTriggerActive,
             isActiveExact && "text-primary"
           )}
           iconComponent={
@@ -82,8 +96,9 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
           <div className="flex items-center gap-3 min-w-0 w-full">
             <AccordionIcon className={cn(
               "h-5 w-5 flex-shrink-0",
-              isActive ? "text-primary" : "text-gray-400"
-            )} />
+            )} 
+            color={iconColor} 
+            />
             <span className="truncate flex-1">{label}</span>
           </div>
         </AccordionTrigger>
@@ -96,6 +111,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                 path={item.path}
                 icon={item.icon}
                 isCollapsed={false}
+                iconColor={iconColor}
               />
             ))}
           </SidebarMenu>

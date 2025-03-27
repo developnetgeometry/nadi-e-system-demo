@@ -12,6 +12,7 @@ interface SidebarItemProps {
   icon: LucideIcon;
   isCollapsed?: boolean;
   isInWhiteBackground?: boolean;
+  iconColor?: string;
 }
 
 export const SidebarItem = ({ 
@@ -19,7 +20,8 @@ export const SidebarItem = ({
   path, 
   icon: Icon, 
   isCollapsed,
-  isInWhiteBackground 
+  isInWhiteBackground,
+  iconColor = "#6E41E2"
 }: SidebarItemProps) => {
   const location = useLocation();
   const { isMobile } = useSidebar();
@@ -31,16 +33,24 @@ export const SidebarItem = ({
         <Link 
           to={path}
           className={cn(
-            "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-100",
-            isActive && "bg-gray-100 text-primary font-medium",
+            "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 rounded-md",
+            sidebarStyles.hoverTransition,
+            "hover:bg-gray-50",
+            isActive && "bg-gray-50 text-gray-900 font-medium",
             isCollapsed && !isMobile && "justify-center px-2"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
         >
           {isActive && (
-            <div className="absolute left-0 w-1 h-5 bg-primary rounded-r-full"/>
+            <div className={cn(
+              sidebarStyles.menuItemIndicator,
+              "bg-primary"
+            )}/>
           )}
-          <Icon className="h-5 w-5 flex-shrink-0" />
+          <Icon 
+            className="h-5 w-5 flex-shrink-0" 
+            color={iconColor}
+          />
           {(!isCollapsed || isMobile) && <span className="truncate">{title}</span>}
         </Link>
       </SidebarMenuButton>
