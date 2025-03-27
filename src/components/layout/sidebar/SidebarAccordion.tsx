@@ -38,14 +38,22 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
         <div 
           className={cn(
             sidebarStyles.collapsedIconWrapper,
-            "hover:bg-gray-50",
+            "hover:bg-gray-50 hover:scale-110 transition-transform duration-200",
             isActive && "bg-gray-50"
           )}
         >
-          <AccordionIcon 
-            className={sidebarStyles.iconWrapper}
-            color={iconColor}
-          />
+          <div className="relative">
+            {isActive && (
+              <div className={cn(
+                "absolute -left-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full",
+                "bg-primary"
+              )}/>
+            )}
+            <AccordionIcon 
+              className={sidebarStyles.iconWrapper}
+              color={iconColor}
+            />
+          </div>
         </div>
         
         {/* Floating submenu on hover */}
@@ -86,6 +94,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
         <AccordionTrigger 
           className={cn(
             sidebarStyles.accordionTrigger,
+            "hover:scale-105 transition-transform duration-200",
             isActive && sidebarStyles.accordionTriggerActive,
             isActiveExact && "text-primary"
           )}
@@ -94,11 +103,19 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
           }
         >
           <div className="flex items-center gap-3 min-w-0 w-full">
-            <AccordionIcon className={cn(
-              "h-5 w-5 flex-shrink-0",
-            )} 
-            color={iconColor} 
-            />
+            <div className="relative">
+              {isActive && (
+                <div className={cn(
+                  "absolute -left-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full",
+                  "bg-primary"
+                )}/>
+              )}
+              <AccordionIcon className={cn(
+                "h-5 w-5 flex-shrink-0",
+              )} 
+              color={iconColor} 
+              />
+            </div>
             <span className="truncate flex-1">{label}</span>
           </div>
         </AccordionTrigger>

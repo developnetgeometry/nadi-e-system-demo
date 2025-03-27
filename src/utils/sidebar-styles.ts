@@ -10,7 +10,6 @@ export const sidebarStyles = {
   
   // Icon styles
   iconWrapper: "h-5 w-5 flex-shrink-0 transition-transform",
-  activeIndicator: "absolute left-0 w-1 h-5 bg-primary rounded-r-full",
   
   // Background styles
   sidebarBackground: "bg-white",
@@ -20,7 +19,6 @@ export const sidebarStyles = {
   // New styles for the updated design
   accordionWrapper: "rounded-xl border border-[#6E41E2]/30 mb-2 overflow-hidden",
   collapsedIconWrapper: "h-10 w-10 flex items-center justify-center rounded-xl border border-[#6E41E2]/30 mb-2",
-  menuItemIndicator: "absolute left-0 w-1.5 h-5 rounded-r-full",
   hoverTransition: "transition-all duration-200",
 };
 

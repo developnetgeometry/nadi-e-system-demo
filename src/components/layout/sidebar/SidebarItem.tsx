@@ -35,22 +35,24 @@ export const SidebarItem = ({
           className={cn(
             "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 rounded-md",
             sidebarStyles.hoverTransition,
-            "hover:bg-gray-50",
+            "hover:bg-gray-50 hover:scale-105",
             isActive && "bg-gray-50 text-gray-900 font-medium",
             isCollapsed && !isMobile && "justify-center px-2"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
         >
-          {isActive && (
-            <div className={cn(
-              sidebarStyles.menuItemIndicator,
-              "bg-primary"
-            )}/>
-          )}
-          <Icon 
-            className="h-5 w-5 flex-shrink-0" 
-            color={iconColor}
-          />
+          <div className="relative flex items-center">
+            {isActive && (
+              <div className={cn(
+                "absolute -left-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full",
+                "bg-primary"
+              )}/>
+            )}
+            <Icon 
+              className={cn("h-5 w-5 flex-shrink-0", "transition-transform duration-200")} 
+              color={iconColor}
+            />
+          </div>
           {(!isCollapsed || isMobile) && <span className="truncate">{title}</span>}
         </Link>
       </SidebarMenuButton>
