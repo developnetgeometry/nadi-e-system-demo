@@ -38,8 +38,8 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
         <div 
           className={cn(
             sidebarStyles.collapsedIconWrapper,
-            "hover:bg-gray-50 hover:scale-110 transition-transform duration-200",
-            isActive && "bg-gray-50"
+            "hover:bg-gray-50 hover:scale-110 transition-transform duration-200 dark:hover:bg-gray-800/80",
+            isActive && "bg-gray-50 dark:bg-gray-800/90"
           )}
         >
           <div className="relative">
@@ -57,8 +57,8 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
         </div>
         
         {/* Floating submenu on hover */}
-        <div className="absolute left-full top-0 ml-2 bg-white rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-          <div className="p-2 text-gray-700 font-medium border-b border-gray-100">{label}</div>
+        <div className="absolute left-full top-0 ml-2 bg-white dark:bg-gray-900 rounded-md shadow-lg w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 border border-gray-100 dark:border-gray-700">
+          <div className="p-2 text-gray-700 dark:text-white font-medium border-b border-gray-100 dark:border-gray-700">{label}</div>
           <SidebarMenu>
             {items.map((item) => (
               <SidebarItem
@@ -100,9 +100,9 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
           )}
           iconComponent={({ open }) => (
             open ? (
-              <ChevronDown className="h-5 w-5 text-gray-400 transition-transform duration-200" />
+              <ChevronDown className="h-5 w-5 text-gray-400 dark:text-gray-300 transition-transform duration-200" />
             ) : (
-              <ChevronRight className="h-5 w-5 text-gray-400 transition-transform duration-200" />
+              <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-300 transition-transform duration-200" />
             )
           )}
         >
@@ -120,7 +120,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
               color={iconColor} 
               />
             </div>
-            <span className="truncate flex-1">{label}</span>
+            <span className="truncate flex-1 min-h-[1.25rem] leading-tight line-clamp-2">{label}</span>
           </div>
         </AccordionTrigger>
         <AccordionContent className="pb-1 pt-1 pl-6">

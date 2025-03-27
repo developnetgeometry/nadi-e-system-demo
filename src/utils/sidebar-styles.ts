@@ -1,15 +1,15 @@
 
 export const sidebarStyles = {
   // Accordion trigger styles
-  accordionTrigger: "py-3 px-4 text-gray-700 dark:text-gray-200 font-medium rounded-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 group flex items-center gap-3 border border-transparent",
-  accordionTriggerActive: "text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700",
+  accordionTrigger: "py-3 px-4 text-gray-700 dark:text-gray-200 font-medium rounded-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/80 group flex items-center gap-3 border border-transparent",
+  accordionTriggerActive: "text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800/90 border-gray-100 dark:border-gray-700",
   
   // Menu item styles
-  menuItem: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-200 rounded-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 relative",
-  menuItemActive: "bg-gray-50 dark:bg-gray-800 text-primary font-medium dark:text-white",
+  menuItem: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-200 rounded-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/80 relative",
+  menuItemActive: "bg-gray-50 dark:bg-gray-800/90 text-primary font-medium dark:text-white",
   
   // Icon styles
-  iconWrapper: "h-5 w-5 flex-shrink-0 transition-transform",
+  iconWrapper: "h-5 w-5 flex-shrink-0 transition-transform duration-200",
   
   // Background styles
   sidebarBackground: "bg-white dark:bg-gray-900",
