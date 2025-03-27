@@ -76,23 +76,12 @@ export const DashboardNavbar = () => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full border-b border-border/10 bg-white",
+        "sticky top-0 z-30 w-full border-b border-border/10 bg-white transition-all duration-300",
         sidebarStyles.navbarBackground
       )}
     >
       <div className="flex h-16 items-center px-4">
         {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="mr-2 text-gray-700"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        )}
-        
-        {(!isMobile && isCollapsed) && (
           <Button
             variant="ghost"
             size="icon"

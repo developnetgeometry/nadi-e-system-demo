@@ -7,7 +7,7 @@ import { SidebarContent as CustomSidebarContent } from "./sidebar/SidebarContent
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
-import { ChevronLeft, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sidebarStyles } from "@/utils/sidebar-styles";
 
@@ -33,6 +33,12 @@ export const DashboardSidebar = () => {
         {!isCollapsed && !isMobile && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 hover:bg-gray-100 rounded-full">
             <ChevronLeft className="h-5 w-5" />
+          </Button>
+        )}
+        
+        {isCollapsed && !isMobile && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 hover:bg-gray-100 rounded-full">
+            <ChevronRight className="h-5 w-5" />
           </Button>
         )}
         
