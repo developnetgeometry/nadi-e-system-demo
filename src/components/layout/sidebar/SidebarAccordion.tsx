@@ -13,7 +13,7 @@ import { getAccordionIcon } from "@/utils/sidebar-icons";
 import { sidebarStyles, iconColors } from "@/utils/sidebar-styles";
 import { SidebarItem } from "./SidebarItem";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface SidebarAccordionProps {
   label: string;
@@ -98,9 +98,13 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
             isActive && sidebarStyles.accordionTriggerActive,
             isActiveExact && "text-primary"
           )}
-          iconComponent={
-            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform duration-200" />
-          }
+          iconComponent={({ open }) => (
+            open ? (
+              <ChevronDown className="h-5 w-5 text-gray-400 transition-transform duration-200" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-gray-400 transition-transform duration-200" />
+            )
+          )}
         >
           <div className="flex items-center gap-3 min-w-0 w-full">
             <div className="relative">

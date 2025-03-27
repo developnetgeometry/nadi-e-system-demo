@@ -22,27 +22,38 @@ const AccordionItem = React.forwardRef<
 AccordionItem.displayName = "AccordionItem"
 
 interface AccordionTriggerProps extends React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> {
-  iconComponent?: React.ReactNode;
+  iconComponent?: React.ReactNode | (({ open }: { open: boolean }) => React.ReactNode);
 }
 
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   AccordionTriggerProps
->(({ className, children, iconComponent, ...props }, ref) => (
-  <AccordionPrimitive.Header className="flex">
-    <AccordionPrimitive.Trigger
-      ref={ref}
-      className={cn(
-        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
-        className
-      )}
-      {...props}
-    >
-      {children}
-      {iconComponent || <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />}
-    </AccordionPrimitive.Trigger>
-  </AccordionPrimitive.Header>
-))
+>(({ className, children, iconComponent, ...props }, ref) => {
+  const [open, setOpen] = React.useState(false);
+  
+  return (
+    <AccordionPrimitive.Header className="flex">
+      <AccordionPrimitive.Trigger
+        ref={ref}
+        className={cn(
+          "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+          className
+        )}
+        {...props}
+        onPointerDown={(e) => {
+          props.onPointerDown?.(e);
+          setOpen(!open);
+        }}
+        data-state={open ? "open" : "closed"}
+      >
+        {children}
+        {typeof iconComponent === 'function' 
+          ? iconComponent({ open }) 
+          : iconComponent || <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />}
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  )
+})
 AccordionTrigger.displayName = "AccordionTrigger"
 
 const AccordionContent = React.forwardRef<
