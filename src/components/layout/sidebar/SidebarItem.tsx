@@ -24,9 +24,8 @@ export const SidebarItem = ({
   iconColor = "#6E41E2"
 }: SidebarItemProps) => {
   const location = useLocation();
-  const { isMobile, state } = useSidebar();
+  const { isMobile } = useSidebar();
   const isActive = location.pathname === path;
-  const collapsed = state === "collapsed" && !isMobile;
 
   return (
     <SidebarMenuItem>
@@ -38,9 +37,9 @@ export const SidebarItem = ({
             sidebarStyles.hoverTransition,
             "hover:bg-gray-50 hover:scale-105",
             isActive && "bg-gray-50 text-gray-900 font-medium",
-            collapsed && "justify-center px-2"
+            isCollapsed && !isMobile && "justify-center px-2"
           )}
-          title={collapsed ? title : undefined}
+          title={isCollapsed && !isMobile ? title : undefined}
         >
           <div className="relative flex items-center">
             {isActive && (
@@ -54,7 +53,7 @@ export const SidebarItem = ({
               color={iconColor}
             />
           </div>
-          {(!collapsed || isMobile) && <span className="truncate">{title}</span>}
+          {(!isCollapsed || isMobile) && <span className="truncate">{title}</span>}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
