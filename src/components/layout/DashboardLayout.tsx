@@ -28,7 +28,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <div className="relative min-h-screen flex w-full bg-background">
+      <div className="relative min-h-screen flex w-full bg-[#F7F9FC]">
         {/* Overlay for mobile */}
         {isMobile && openMobile && (
           <div 
@@ -55,7 +55,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           )}
         >
           <DashboardNavbar />
-          <main className="flex-1 p-4 md:p-8 overflow-auto">
+          <main className="flex-1 p-6 overflow-auto">
             <div className="container mx-auto max-w-7xl">
               {children}
             </div>

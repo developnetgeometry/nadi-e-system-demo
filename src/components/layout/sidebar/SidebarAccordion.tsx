@@ -30,7 +30,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
   // If sidebar is collapsed and not mobile, render a simpler version
   if (isCollapsed) {
     return (
-      <div className="mb-2 relative group">
+      <div className="mb-1 relative group">
         <div 
           className={cn(
             "py-2 px-2 flex justify-center text-sm font-medium text-white rounded-md transition-all duration-200 hover:bg-white/10",
@@ -64,7 +64,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
     <Accordion 
       type="single" 
       collapsible 
-      className="mb-2"
+      className="mb-1"
       defaultValue={isActive ? label : undefined}
     >
       <AccordionItem value={label} className="border-none">
@@ -79,7 +79,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
             <span className="truncate flex-1 text-left">{label}</span>
           </div>
         </AccordionTrigger>
-        <AccordionContent className={cn("pb-1 pl-11", sidebarStyles.menuContentBackground, "rounded-md my-1")}>
+        <AccordionContent className="pb-1 pt-1 pl-8">
           <SidebarMenu>
             {items.map((item) => (
               <SidebarItem
@@ -88,7 +88,6 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                 path={item.path}
                 icon={item.icon}
                 isCollapsed={false}
-                isInWhiteBackground={true}
               />
             ))}
           </SidebarMenu>

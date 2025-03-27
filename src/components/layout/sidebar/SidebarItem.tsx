@@ -31,18 +31,18 @@ export const SidebarItem = ({
         <Link 
           to={path}
           className={cn(
-            sidebarStyles.menuItem,
-            isActive && sidebarStyles.menuItemActive,
+            "flex items-center gap-3 px-4 py-2 text-sm font-medium text-white rounded-md transition-all duration-200 hover:bg-white/10",
+            isActive && "bg-white/20",
             isCollapsed && !isMobile && "justify-center px-2",
-            isInWhiteBackground && "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            isInWhiteBackground && "text-gray-700 hover:bg-gray-100"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
         >
           <Icon className={cn(
-            sidebarStyles.iconWrapper,
-            isInWhiteBackground && "text-gray-700"
+            "h-5 w-5 flex-shrink-0",
+            isInWhiteBackground && "text-gray-500"
           )} />
-          {(!isCollapsed || isMobile) && <span className="break-words leading-tight truncate">{title}</span>}
+          {(!isCollapsed || isMobile) && <span className="truncate">{title}</span>}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
