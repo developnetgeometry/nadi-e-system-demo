@@ -1,4 +1,3 @@
-
 import { Bell, Settings, Menu, ChevronDown, Sun, ShoppingCart } from "lucide-react";
 import {
   DropdownMenu,
