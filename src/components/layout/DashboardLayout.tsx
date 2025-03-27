@@ -55,8 +55,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           )}
         >
           <DashboardNavbar />
-          <main className="flex-1 p-6 overflow-auto">
-            <div className="container mx-auto max-w-full">
+          <main className="flex-1 p-6 overflow-auto w-full">
+            <div className="w-full mx-auto">
               {children}
             </div>
           </main>
