@@ -49,7 +49,6 @@ export const AssetFormDialog = ({
     const formData = new FormData(e.currentTarget);
 
     const asset = {
-      id: formData.get("id"),
       name: formData.get("name"),
       type_id: formData.get("type"),
     };
@@ -107,10 +106,6 @@ export const AssetFormDialog = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="id">Asset ID</Label>
-            <Input id="id" name="id" required placeholder="Enter asset ID" />
-          </div>
           <div className="space-y-2">
             <Label htmlFor="name">Asset Name</Label>
             <Input
