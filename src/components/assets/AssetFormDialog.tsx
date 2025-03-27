@@ -15,11 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAssets } from "@/hooks/use-assets";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useAssetCategory } from "./hooks/useAssetCategory";
 
 interface AssetFormDialogProps {
   open: boolean;
@@ -34,56 +34,29 @@ export const AssetFormDialog = ({
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    data: categories = [],
-    isLoading: isLoadingAssetCategory,
-    error,
-  } = useAssetCategory();
+  const { useAssetTypesQuery } = useAssets();
 
-  const calculateDepreciation = (
-    purchaseCost: number,
-    depreciationRate: number,
-    purchaseDate: string
-  ) => {
-    const yearsSincePurchase =
-      (new Date().getTime() - new Date(purchaseDate).getTime()) /
-      (365 * 24 * 60 * 60 * 1000);
-    const depreciation =
-      purchaseCost * (depreciationRate / 100) * yearsSincePurchase;
-    const currentValue = Math.max(0, purchaseCost - depreciation);
-    return currentValue;
-  };
+  const {
+    data: assetTypes = [],
+    isLoading: isLoadingAssetType,
+    error,
+  } = useAssetTypesQuery();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    const purchaseCost = Number(formData.get("purchaseCost"));
-    const depreciationRate = Number(formData.get("depreciationRate"));
-    const purchaseDate = formData.get("purchaseDate") as string;
-
-    const currentValue = calculateDepreciation(
-      purchaseCost,
-      depreciationRate,
-      purchaseDate
-    );
 
     const asset = {
+      id: formData.get("id"),
       name: formData.get("name"),
-      description: formData.get("description"),
-      category: formData.get("category"),
-      purchase_date: purchaseDate,
-      purchase_cost: purchaseCost,
-      current_value: currentValue,
-      depreciation_rate: depreciationRate,
-      location: formData.get("location"),
-      status: "active",
+      type_id: formData.get("type"),
     };
 
     try {
       console.log("Creating new asset:", asset);
-      const { error } = await supabase.from("assets").insert([asset]);
+      const { error } = await supabase.from("nd_asset").insert([asset]);
 
       if (error) throw error;
 
@@ -107,7 +80,7 @@ export const AssetFormDialog = ({
     }
   };
 
-  if (isLoadingAssetCategory) {
+  if (isLoadingAssetType) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         Loading...
@@ -116,17 +89,17 @@ export const AssetFormDialog = ({
   }
 
   if (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Error fetching asset types:", error);
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        Failed to load categories
+        Failed to load asset types
       </Dialog>
     );
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2/3">
         <DialogHeader>
           <DialogTitle>Add New Asset</DialogTitle>
           <DialogDescription>
@@ -135,13 +108,8 @@ export const AssetFormDialog = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Asset ID</Label>
-            <Input
-              id="name"
-              name="name"
-              required
-              placeholder="Enter asset ID"
-            />
+            <Label htmlFor="id">Asset ID</Label>
+            <Input id="id" name="id" required placeholder="Enter asset ID" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Asset Name</Label>
@@ -153,33 +121,24 @@ export const AssetFormDialog = ({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Asset Type</Label>
-            <Select name="category" required>
+            <Label htmlFor="type">Asset Type</Label>
+            <Select name="type" required>
               <SelectTrigger>
                 <SelectValue placeholder="Select asset type" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((category, index) => (
-                  <SelectItem key={index} value={category}>
-                    {category}
+                {assetTypes.map((type, index) => (
+                  <SelectItem key={index} value={type.id.toString()}>
+                    {type.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Asset"}
-            </Button>
-          </div>
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? "Adding..." : "Add Asset"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
