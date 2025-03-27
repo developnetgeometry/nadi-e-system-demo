@@ -31,17 +31,16 @@ export const SidebarItem = ({
         <Link 
           to={path}
           className={cn(
-            "flex items-center gap-3 px-4 py-2 text-sm font-medium text-white rounded-md transition-all duration-200 hover:bg-white/10",
-            isActive && "bg-white/20",
-            isCollapsed && !isMobile && "justify-center px-2",
-            isInWhiteBackground && "text-gray-700 hover:bg-gray-100"
+            "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-100",
+            isActive && "bg-gray-100 text-primary font-medium",
+            isCollapsed && !isMobile && "justify-center px-2"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
         >
-          <Icon className={cn(
-            "h-5 w-5 flex-shrink-0",
-            isInWhiteBackground && "text-gray-500"
-          )} />
+          {isActive && (
+            <div className="absolute left-0 w-1 h-5 bg-primary rounded-r-full"/>
+          )}
+          <Icon className="h-5 w-5 flex-shrink-0" />
           {(!isCollapsed || isMobile) && <span className="truncate">{title}</span>}
         </Link>
       </SidebarMenuButton>

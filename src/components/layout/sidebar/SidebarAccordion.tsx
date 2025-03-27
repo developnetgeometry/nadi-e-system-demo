@@ -13,7 +13,7 @@ import { getAccordionIcon } from "@/utils/sidebar-icons";
 import { sidebarStyles } from "@/utils/sidebar-styles";
 import { SidebarItem } from "./SidebarItem";
 import { cn } from "@/lib/utils";
-import { ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 interface SidebarAccordionProps {
   label: string;
@@ -24,6 +24,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
   const location = useLocation();
   const { state, isMobile } = useSidebar();
   const isActive = items.some(item => location.pathname.startsWith(item.path));
+  const isActiveExact = items.some(item => location.pathname === item.path);
   const AccordionIcon = getAccordionIcon(label);
   const isCollapsed = state === "collapsed" && !isMobile;
 
@@ -33,16 +34,16 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
       <div className="mb-1 relative group">
         <div 
           className={cn(
-            "py-2 px-2 flex justify-center text-sm font-medium text-white rounded-md transition-all duration-200 hover:bg-white/10",
-            isActive && "bg-white/20"
+            "py-2 px-2 flex justify-center text-sm text-gray-700 rounded-md transition-all duration-200 hover:bg-gray-100",
+            isActive && "bg-gray-100"
           )}
         >
           <AccordionIcon className={sidebarStyles.iconWrapper} />
         </div>
         
         {/* Floating submenu on hover */}
-        <div className="absolute left-full top-0 ml-2 bg-[#000033] rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-          <div className="p-2 text-white font-medium border-b border-white/10">{label}</div>
+        <div className="absolute left-full top-0 ml-2 bg-white rounded-md shadow-lg w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <div className="p-2 text-gray-700 font-medium border-b border-gray-100">{label}</div>
           <SidebarMenu>
             {items.map((item) => (
               <SidebarItem
@@ -70,16 +71,23 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
       <AccordionItem value={label} className="border-none">
         <AccordionTrigger 
           className={cn(
-            sidebarStyles.accordionTrigger,
-            isActive && sidebarStyles.accordionTriggerActive
+            "py-3 px-4 text-gray-700 rounded-lg transition-all duration-200 hover:bg-gray-50 group flex items-center gap-3 border border-transparent",
+            isActive && "text-gray-900 bg-gray-50 font-medium border-gray-100",
+            isActiveExact && "text-primary"
           )}
+          iconComponent={
+            <ChevronDown className="h-5 w-5 text-gray-400 transition-transform duration-200" />
+          }
         >
-          <div className="flex items-center gap-3 min-w-0 w-full justify-start">
-            <AccordionIcon className={sidebarStyles.iconWrapper} />
-            <span className="truncate flex-1 text-left">{label}</span>
+          <div className="flex items-center gap-3 min-w-0 w-full">
+            <AccordionIcon className={cn(
+              "h-5 w-5 flex-shrink-0",
+              isActive ? "text-primary" : "text-gray-400"
+            )} />
+            <span className="truncate flex-1">{label}</span>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="pb-1 pt-1 pl-8">
+        <AccordionContent className="pb-1 pt-1 pl-6">
           <SidebarMenu>
             {items.map((item) => (
               <SidebarItem

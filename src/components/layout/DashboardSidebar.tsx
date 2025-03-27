@@ -18,26 +18,26 @@ export const DashboardSidebar = () => {
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar className={cn("border-r border-border/10 h-screen flex flex-col", sidebarStyles.sidebarBackground)}>
+    <Sidebar className={cn("border-r border-gray-200 h-screen flex flex-col", sidebarStyles.sidebarBackground)}>
       <div className={cn(
-        "p-4 border-b border-border/20 flex items-center",
+        "p-4 flex items-center",
         isCollapsed && !isMobile ? "justify-center" : "justify-between"
       )}>
         {(!isCollapsed || isMobile) && (
-          <h1 className="text-2xl font-bold text-white">{sidebarTitle}</h1>
+          <h1 className="text-2xl font-bold text-gray-800">{sidebarTitle}</h1>
         )}
         {isCollapsed && !isMobile && (
-          <h1 className="text-xl font-bold text-white">N</h1>
+          <h1 className="text-xl font-bold text-gray-800">N</h1>
         )}
         
         {!isCollapsed && !isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500 hover:bg-gray-100 rounded-full">
             <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
         
         {isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-white">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="text-gray-500">
             <X className="h-5 w-5" />
           </Button>
         )}
