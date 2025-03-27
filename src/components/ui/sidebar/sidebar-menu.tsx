@@ -1,4 +1,6 @@
+
 import React from "react";
+import { cn } from "@/lib/utils";
 
 export const SidebarMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <div className="sidebar-menu">{children}</div>;
