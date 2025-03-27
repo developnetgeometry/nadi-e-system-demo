@@ -1,12 +1,15 @@
-import { useAssetDetails } from "@/components/assets/hooks/useAssetDetails";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAssets } from "@/hooks/use-assets";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 const AssetDetails = () => {
-  const { asset, isLoading, error, navigate } = useAssetDetails();
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { useAssetQuery } = useAssets();
+  const { data: asset, isLoading, error } = useAssetQuery(id!);
 
   if (isLoading) {
     return (
@@ -54,19 +57,19 @@ const AssetDetails = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Type</p>
                   <p className="text-sm font-medium leading-none">
-                    {asset.category}
+                    {asset.type.name}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
                   <p className="text-sm font-medium leading-none">
-                    {asset.status}
+                    {asset.is_active ? "Active" : "Inactive"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Location</p>
                   <p className="text-sm font-medium leading-none">
-                    {asset.location}
+                    {asset.location_id}
                   </p>
                 </div>
               </div>
@@ -89,28 +92,20 @@ const AssetDetails = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Purchase Date</p>
                   <p className="text-sm font-medium leading-none">
-                    {asset.purchase_date}
+                    {asset.date_install}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
                     Last Maintenance
                   </p>
-                  <p className="text-sm font-medium leading-none">
-                    {asset.last_maintenance_date
-                      ? asset.last_maintenance_date
-                      : "N/A"}
-                  </p>
+                  <p className="text-sm font-medium leading-none">N/A</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
                     Next Maintenance
                   </p>
-                  <p className="text-sm font-medium leading-none">
-                    {asset.next_maintenance_date
-                      ? asset.next_maintenance_date
-                      : "N/A"}
-                  </p>
+                  <p className="text-sm font-medium leading-none">N/A</p>
                 </div>
               </div>
             </CardContent>
