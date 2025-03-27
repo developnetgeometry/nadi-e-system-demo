@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense } from "react";
 import Landing from "@/pages/Landing";
@@ -30,7 +31,7 @@ const LoadingSpinner = () => (
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <Router>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>

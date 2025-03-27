@@ -23,7 +23,7 @@ export const DashboardNavbar = () => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full border-b border-border/10 bg-white transition-all duration-300",
+        "sticky top-0 z-30 w-full border-b border-border/10 bg-white dark:bg-gray-900 dark:border-gray-800 transition-all duration-300",
         sidebarStyles.navbarBackground
       )}
     >
@@ -33,18 +33,18 @@ export const DashboardNavbar = () => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="mr-2 text-gray-700"
+            className="mr-2 text-gray-700 dark:text-gray-300"
           >
             <Menu className="h-5 w-5" />
           </Button>
         )}
         
         <div className="mr-4 hidden md:flex">
-          <h2 className="text-lg font-semibold text-gray-800">{navbarTitle}</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{navbarTitle}</h2>
         </div>
         
         {isMobile && (
-          <h2 className="text-lg font-semibold text-gray-800 flex-1">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 flex-1">
             {navbarTitle}
           </h2>
         )}

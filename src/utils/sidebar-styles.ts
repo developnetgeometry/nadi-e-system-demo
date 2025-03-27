@@ -1,24 +1,24 @@
 
 export const sidebarStyles = {
   // Accordion trigger styles
-  accordionTrigger: "py-3 px-4 text-gray-700 font-medium rounded-md transition-all duration-200 hover:bg-gray-50 group flex items-center gap-3 border border-transparent",
-  accordionTriggerActive: "text-gray-900 bg-gray-50 border-gray-100",
+  accordionTrigger: "py-3 px-4 text-gray-700 dark:text-gray-300 font-medium rounded-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 group flex items-center gap-3 border border-transparent",
+  accordionTriggerActive: "text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700",
   
   // Menu item styles
-  menuItem: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 rounded-md transition-all duration-200 hover:bg-gray-50 relative",
-  menuItemActive: "bg-gray-50 text-primary font-medium",
+  menuItem: "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-400 rounded-md transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800 relative",
+  menuItemActive: "bg-gray-50 dark:bg-gray-800 text-primary font-medium",
   
   // Icon styles
   iconWrapper: "h-5 w-5 flex-shrink-0 transition-transform",
   
   // Background styles
-  sidebarBackground: "bg-white",
-  navbarBackground: "bg-white border-b border-gray-200",
-  menuContentBackground: "bg-white border border-[#E4E4E7]",
+  sidebarBackground: "bg-white dark:bg-gray-900",
+  navbarBackground: "bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800",
+  menuContentBackground: "bg-white dark:bg-gray-900 border border-[#E4E4E7] dark:border-gray-800",
   
   // New styles for the updated design
-  accordionWrapper: "rounded-xl border border-[#6E41E2]/30 mb-2 overflow-hidden",
-  collapsedIconWrapper: "h-10 w-10 flex items-center justify-center rounded-xl border border-[#6E41E2]/30 mb-2",
+  accordionWrapper: "rounded-xl border border-[#6E41E2]/30 dark:border-[#6E41E2]/50 mb-2 overflow-hidden",
+  collapsedIconWrapper: "h-10 w-10 flex items-center justify-center rounded-xl border border-[#6E41E2]/30 dark:border-[#6E41E2]/50 mb-2",
   hoverTransition: "transition-all duration-200",
 };
 
