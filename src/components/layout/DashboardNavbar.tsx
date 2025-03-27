@@ -1,4 +1,3 @@
-
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSettings } from "@/hooks/use-app-settings";
@@ -38,23 +37,26 @@ export const DashboardNavbar = () => {
             <Menu className="h-5 w-5" />
           </Button>
         )}
-        
+
         <div className="mr-4 hidden md:flex">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{navbarTitle}</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+            {navbarTitle}
+          </h2>
         </div>
-        
+
         {isMobile && (
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white flex-1">
             {navbarTitle}
           </h2>
         )}
-        
-        <div className={cn(
-          "flex items-center space-x-4",
-          !isMobile && "flex-1 justify-end"
-        )}>
+
+        <div
+          className={cn(
+            "flex items-center space-x-4",
+            !isMobile && "flex-1 justify-end"
+          )}
+        >
           <ThemeToggle />
-          <CartToggle />
           <NotificationToggle />
           <SettingsToggle />
           <HeaderProfile />
