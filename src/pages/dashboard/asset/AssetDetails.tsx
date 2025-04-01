@@ -1,11 +1,15 @@
+import { MaintenanceFormDialog } from "@/components/assets/MaintenanceFormDialog";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAssets } from "@/hooks/use-assets";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Calendar, Wrench } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 const AssetDetails = () => {
+  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { useAssetQuery } = useAssets();
@@ -111,7 +115,26 @@ const AssetDetails = () => {
             </CardContent>
           </Card>
         </div>
+        <div className="flex items-center gap-2">
+          <Button
+            className="w-1/2"
+            variant="outline"
+            onClick={() => setIsMaintenanceDialogOpen(true)}
+          >
+            <Wrench className="h-6 w-6" />
+            <p>Make Maintenance</p>
+          </Button>
+          <Button className="w-1/2" variant="outline" onClick={() => {}}>
+            <Calendar className="h-6 w-6" />
+            <p>View History</p>
+          </Button>
+        </div>
       </div>
+      <MaintenanceFormDialog
+        open={isMaintenanceDialogOpen}
+        onOpenChange={setIsMaintenanceDialogOpen}
+        asset={asset}
+      />
     </DashboardLayout>
   );
 };
