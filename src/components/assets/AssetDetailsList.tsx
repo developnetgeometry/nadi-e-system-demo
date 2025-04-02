@@ -10,30 +10,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import { useAssets } from "@/hooks/use-assets";
+import { Asset } from "@/types/asset";
+import { AssetDetailsDialog } from "./AssetDetailsDialog";
 
 export const AssetDetailsList = () => {
+  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+
   const { useAssetsQuery, useAssetTypesQuery } = useAssets();
 
   const { data: assets, isLoading, error } = useAssetsQuery();
-  console.log("assets", assets);
 
-  // Hooks must be called unconditionally
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<number | string>("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const navigate = useNavigate();
 
   const { data: assetTypes = [], isLoading: isLoadingAssetType } =
     useAssetTypesQuery();
@@ -161,7 +157,13 @@ export const AssetDetailsList = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button variant="outline" onClick={() => {}}>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsViewDetailsDialogOpen(true);
+                            setSelectedAsset(asset);
+                          }}
+                        >
                           View Detail
                         </Button>
                         <Button variant="default" onClick={() => {}}>
@@ -187,11 +189,11 @@ export const AssetDetailsList = () => {
         />
       )}
 
-      {/* <SiteFormDialog
-        open={isEditDialogOpen}
-        onOpenChange={handleEditDialogClose}
-        asset={siteToEdit} // Pass the asset to edit
-      /> */}
+      <AssetDetailsDialog
+        open={isViewDetailsDialogOpen}
+        onOpenChange={setIsViewDetailsDialogOpen}
+        asset={selectedAsset}
+      />
     </div>
   );
 };
