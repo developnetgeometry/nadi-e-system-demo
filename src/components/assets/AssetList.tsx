@@ -23,7 +23,10 @@ export const AssetList = () => {
         <div className="flex flex-col gap-2">
           {assets.map((asset) => {
             return (
-              <div className="flex justify-between rounded-sm border bg-slate-50 p-2">
+              <div
+                key={asset.id}
+                className="flex justify-between rounded-sm border bg-slate-50 p-2"
+              >
                 <div className="flex flex-col p-1">
                   <h2 className="text-md font-semibold">{asset.name}</h2>
                   <p className="text-xs text-muted-foreground">
