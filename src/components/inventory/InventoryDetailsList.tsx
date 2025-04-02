@@ -13,17 +13,17 @@ import {
 import { Search } from "lucide-react";
 import { useState } from "react";
 
-import { useAssets } from "@/hooks/use-assets";
-import { Asset } from "@/types/asset";
-import { AssetDetailsDialog } from "./AssetDetailsDialog";
+import { useInventories } from "@/hooks/use-inventories";
+import { Inventory } from "@/types/inventory";
+import { InventoryDetailsDialog } from "./InventoryDetailsDialog";
 
-export const AssetDetailsList = () => {
+export const InventoryDetailsList = () => {
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Asset | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Inventory | null>(null);
 
-  const { useAssetsQuery, useAssetTypesQuery } = useAssets();
+  const { useInventoriesQuery, useInventoryTypesQuery } = useInventories();
 
-  const { data: assets, isLoading, error } = useAssetsQuery();
+  const { data: inventories, isLoading, error } = useInventoriesQuery();
 
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<number | string>("");
@@ -31,32 +31,43 @@ export const AssetDetailsList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data: assetTypes = [], isLoading: isLoadingAssetType } =
-    useAssetTypesQuery();
+  const { data: inventoryTypes = [], isLoading: isLoadingInventoryType } =
+    useInventoryTypesQuery();
 
   if (error) {
-    console.error("Error fetching assets:", error);
-    return <div>Error fetching assets</div>;
+    console.error("Error fetching inventories:", error);
+    return <div>Error fetching inventories</div>;
   }
 
-  const filteredAssets = assets
-    .filter((asset) => asset.name.toLowerCase().includes(filter.toLowerCase()))
-    .filter((asset) => (typeFilter ? asset.type.id === typeFilter : true));
+  if (isLoading || isLoadingInventoryType) {
+    return <div>Loading inventories...</div>;
+  }
 
-  const paginatedSites = filteredAssets.slice(
+  const filteredInventories = inventories
+    .filter((inventory) =>
+      inventory.name.toLowerCase().includes(filter.toLowerCase())
+    )
+    .filter((inventory) =>
+      typeFilter ? inventory.type.id === typeFilter : true
+    );
+
+  const paginatedSites = filteredInventories.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredInventories.length / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, filteredAssets.length);
+  const endItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredInventories.length
+  );
 
   return (
     <div className="space-y-4">
       <div className="relative mb-4 flex space-x-4">
         <Input
-          placeholder="Search asset.."
+          placeholder="Search inventory.."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="pl-10"
@@ -69,7 +80,7 @@ export const AssetDetailsList = () => {
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             <option value="">All</option>
-            {assetTypes.map((type) => (
+            {inventoryTypes.map((type) => (
               <option key={type.id} value={type.id}>
                 {type.name}
               </option>
@@ -141,27 +152,25 @@ export const AssetDetailsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedSites.map((asset, index) => {
+              {paginatedSites.map((inventory, index) => {
                 return (
-                  <TableRow key={asset.id}>
+                  <TableRow key={inventory.id}>
                     <TableCell>
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </TableCell>
-                    <TableCell>{asset?.name || ""}</TableCell>
-                    <TableCell>{asset?.type.name || ""}</TableCell>
-                    <TableCell>{asset?.qty_unit || ""}</TableCell>
-                    <TableCell>{asset?.location_id || ""}</TableCell>
-                    <TableCell>{asset?.created_at || ""}</TableCell>
-                    <TableCell>
-                      {asset?.is_active ? "Active" : "Inactive"}
-                    </TableCell>
+                    <TableCell>{inventory?.name || ""}</TableCell>
+                    <TableCell>{inventory?.type.name || ""}</TableCell>
+                    <TableCell>{inventory?.quantity || ""}</TableCell>
+                    <TableCell>{inventory?.created_at || ""}</TableCell>
+                    <TableCell>{"LOCATION"}</TableCell>
+                    <TableCell>{"Status"}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           onClick={() => {
                             setIsViewDetailsDialogOpen(true);
-                            setSelectedItem(asset);
+                            setSelectedItem(inventory);
                           }}
                         >
                           View Detail
@@ -185,14 +194,14 @@ export const AssetDetailsList = () => {
           onPageChange={setCurrentPage}
           startItem={startItem}
           endItem={endItem}
-          totalItems={filteredAssets.length}
+          totalItems={filteredInventories.length}
         />
       )}
 
-      <AssetDetailsDialog
+      <InventoryDetailsDialog
         open={isViewDetailsDialogOpen}
         onOpenChange={setIsViewDetailsDialogOpen}
-        asset={selectedItem}
+        inventory={selectedItem}
       />
     </div>
   );

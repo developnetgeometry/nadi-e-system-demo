@@ -15,7 +15,7 @@ import Attendance from "@/pages/dashboard/hr/Attendance";
 import Employees from "@/pages/dashboard/hr/Employees";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Leave from "@/pages/dashboard/hr/Leave";
-import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
+import InventoryManagement from "@/pages/dashboard/inventory/InventoryManagement";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
@@ -137,7 +137,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/inventory",
     element: (
       // <ProtectedRoute requiredPermission="view_assets">
-      <InventoryDashboard />
+      <InventoryManagement />
       // </ProtectedRoute>
     ),
   },
