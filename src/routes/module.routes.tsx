@@ -1,5 +1,5 @@
-import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
 import AssetDetails from "@/pages/dashboard/asset/AssetDetails";
+import AssetManagement from "@/pages/dashboard/asset/AssetManagement";
 import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
 import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
 import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
@@ -112,7 +112,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/asset",
     element: (
       // <ProtectedRoute requiredPermission="view_assets">
-      <AssetDashboard />
+      <AssetManagement />
       // </ProtectedRoute>
     ),
   },

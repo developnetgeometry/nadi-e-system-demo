@@ -1,14 +1,9 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAssets } from "@/hooks/use-assets";
-import { Asset } from "@/types/asset";
 import { History, Settings } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export const AssetList = () => {
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
-
   const { useAssetsQuery } = useAssets();
   const { data: assets, isLoading, error } = useAssetsQuery();
 
@@ -56,12 +51,6 @@ export const AssetList = () => {
           })}
         </div>
       </div>
-
-      {/* <MaintenanceFormDialog
-        open={isMaintenanceDialogOpen}
-        onOpenChange={setIsMaintenanceDialogOpen}
-        asset={selectedAsset}
-      /> */}
     </div>
   );
 };
