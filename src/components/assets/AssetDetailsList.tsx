@@ -142,6 +142,10 @@ export const AssetDetailsList = () => {
             </TableHeader>
             <TableBody>
               {paginatedSites.map((asset, index) => {
+                const requestDate = asset.created_at
+                  ? asset.created_at.split("T")[0]
+                  : "";
+
                 return (
                   <TableRow key={asset.id}>
                     <TableCell>
@@ -151,7 +155,7 @@ export const AssetDetailsList = () => {
                     <TableCell>{asset?.type.name || ""}</TableCell>
                     <TableCell>{asset?.qty_unit || ""}</TableCell>
                     <TableCell>{asset?.location_id || ""}</TableCell>
-                    <TableCell>{asset?.created_at || ""}</TableCell>
+                    <TableCell>{requestDate || ""}</TableCell>
                     <TableCell>
                       {asset?.is_active ? "Active" : "Inactive"}
                     </TableCell>

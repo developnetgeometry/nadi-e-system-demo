@@ -153,6 +153,10 @@ export const InventoryDetailsList = () => {
             </TableHeader>
             <TableBody>
               {paginatedSites.map((inventory, index) => {
+                const requestDate = inventory.created_at
+                  ? inventory.created_at.split("T")[0]
+                  : "";
+
                 return (
                   <TableRow key={inventory.id}>
                     <TableCell>
@@ -161,8 +165,8 @@ export const InventoryDetailsList = () => {
                     <TableCell>{inventory?.name || ""}</TableCell>
                     <TableCell>{inventory?.type.name || ""}</TableCell>
                     <TableCell>{inventory?.quantity || ""}</TableCell>
-                    <TableCell>{inventory?.created_at || ""}</TableCell>
                     <TableCell>{"LOCATION"}</TableCell>
+                    <TableCell>{requestDate || ""}</TableCell>
                     <TableCell>{"Status"}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">

@@ -39,6 +39,8 @@ export const AssetDetailsDialog = ({
     return new Error("Function not implemented.");
   };
 
+  const requestDate = asset.created_at ? asset.created_at.split("T")[0] : "";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[60vw] max-h-[90vh] overflow-y-auto">
@@ -57,7 +59,7 @@ export const AssetDetailsDialog = ({
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Request Date</span>
-              <span>{asset.created_at}</span>
+              <span>{requestDate}</span>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Requested By</span>

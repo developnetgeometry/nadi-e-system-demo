@@ -38,6 +38,9 @@ export const InventoryDetailsDialog = ({
   const handleApprove = async () => {
     return new Error("Function not implemented.");
   };
+  const requestDate = inventory.created_at
+    ? inventory.created_at.split("T")[0]
+    : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,7 +60,7 @@ export const InventoryDetailsDialog = ({
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Request Date</span>
-              <span>{inventory.created_at}</span>
+              <span>{requestDate}</span>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Requested By</span>
