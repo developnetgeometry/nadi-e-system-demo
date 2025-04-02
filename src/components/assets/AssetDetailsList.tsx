@@ -39,6 +39,16 @@ export const AssetDetailsList = () => {
     return <div>Error fetching assets</div>;
   }
 
+  if (isLoading || isLoadingAssetType) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
   const filteredAssets = assets
     .filter((asset) => asset.name.toLowerCase().includes(filter.toLowerCase()))
     .filter((asset) => (typeFilter ? asset.type.id === typeFilter : true));

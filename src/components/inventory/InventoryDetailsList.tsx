@@ -40,7 +40,13 @@ export const InventoryDetailsList = () => {
   }
 
   if (isLoading || isLoadingInventoryType) {
-    return <div>Loading inventories...</div>;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
   }
 
   const filteredInventories = inventories
