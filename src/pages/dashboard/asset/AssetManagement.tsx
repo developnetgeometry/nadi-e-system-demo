@@ -35,13 +35,13 @@ const AssetManagement = () => {
   }
 
   // Render the appropriate asset management page based on user type
-  switch (userType) {
-    case "tp":
-    case typeof userType === "string" && userType.match(/^tp.*/)?.input:
+  if (typeof userType === "string") {
+    if (userType.startsWith("tp") || userType.startsWith("staff")) {
       return <AdminAssetDashboard />;
-    default:
-      return <AssetDashboard />;
+    }
   }
+
+  return <AssetDashboard />;
 };
 
 export default AssetManagement;
