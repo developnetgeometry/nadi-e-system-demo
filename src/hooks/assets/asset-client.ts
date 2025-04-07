@@ -1,13 +1,21 @@
+import { fetchSites } from "@/components/site/component/site-utils";
 import { supabase } from "@/lib/supabase";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
 
 export const assetClient = {
-  fetchAssets: async (): Promise<Asset[]> => {
+  fetchAssets: async (organizationId: string | null): Promise<Asset[]> => {
+    const allSites = await fetchSites(organizationId);
+
     const { data, error } = await supabase
       .from("nd_asset")
       .select(
         `*,
-        nd_asset_type ( id, name )`
+        nd_asset_type ( id, name ),
+        site:nd_site (
+          id,
+          standard_code,
+          site_profile_id
+        )`
       )
       .order("id");
 
@@ -15,17 +23,35 @@ export const assetClient = {
       console.error("Error fetching assets:", error);
       throw error;
     }
-    return data.map((item) => ({
-      ...item,
-      type: item.nd_asset_type,
-    }));
+
+    return data.map((item) => {
+      const profile = allSites.find((s) => s.id === item.site?.site_profile_id);
+
+      return {
+        ...item,
+        type: item.nd_asset_type,
+        site: profile
+          ? {
+              ...profile,
+              dusp_tp_id_display:
+                profile.dusp_tp && profile.dusp_tp.parent
+                  ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
+                  : profile.dusp_tp?.name ?? "N/A",
+            }
+          : undefined,
+      };
+    });
   },
   fetchAssetById: async (id: string): Promise<Asset> => {
     const { data, error } = await supabase
       .from("nd_asset")
       .select(
         `*,
-        nd_asset_type ( id, name )`
+        nd_asset_type ( id, name ),
+        site:nd_site (
+          id,
+          standard_code
+        )`
       )
       .eq("id", id)
       .single();
@@ -37,6 +63,7 @@ export const assetClient = {
     return {
       ...data,
       type: data.nd_asset_type,
+      site: data.site,
     };
   },
 

@@ -1,7 +1,10 @@
+import { Site } from "./site";
+
 export interface Asset {
   id: number;
   name: string;
   site_id?: number;
+  site?: Site;
   brand_id?: number;
   is_active?: boolean;
   remark?: string;

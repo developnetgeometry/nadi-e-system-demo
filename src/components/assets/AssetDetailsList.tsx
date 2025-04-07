@@ -49,7 +49,7 @@ export const AssetDetailsList = () => {
     );
   }
 
-  const filteredAssets = assets
+  const filteredAssets = (assets ?? [])
     .filter((asset) => asset.name.toLowerCase().includes(filter.toLowerCase()))
     .filter((asset) => (typeFilter ? asset.type.id === typeFilter : true));
 
@@ -75,7 +75,9 @@ export const AssetDetailsList = () => {
         <div className="relative">
           <select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={(e) =>
+              setTypeFilter(e.target.value ? Number(e.target.value) : "")
+            }
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             <option value="">All</option>
@@ -151,43 +153,44 @@ export const AssetDetailsList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedSites.map((asset, index) => {
-                const requestDate = asset.created_at
-                  ? asset.created_at.split("T")[0]
-                  : "";
+              {paginatedSites &&
+                paginatedSites.map((asset, index) => {
+                  const requestDate = asset.created_at
+                    ? asset.created_at.split("T")[0]
+                    : "";
 
-                return (
-                  <TableRow key={asset.id}>
-                    <TableCell>
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell>{asset?.name || ""}</TableCell>
-                    <TableCell>{asset?.type.name || ""}</TableCell>
-                    <TableCell>{asset?.qty_unit || ""}</TableCell>
-                    <TableCell>{asset?.location_id || ""}</TableCell>
-                    <TableCell>{requestDate || ""}</TableCell>
-                    <TableCell>
-                      {asset?.is_active ? "Active" : "Inactive"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsViewDetailsDialogOpen(true);
-                            setSelectedItem(asset);
-                          }}
-                        >
-                          View Detail
-                        </Button>
-                        <Button variant="default" onClick={() => {}}>
-                          Generate Report
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                  return (
+                    <TableRow key={asset.id}>
+                      <TableCell>
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>{asset?.name || ""}</TableCell>
+                      <TableCell>{asset?.type.name || ""}</TableCell>
+                      <TableCell>{asset?.qty_unit || ""}</TableCell>
+                      <TableCell>{asset?.site.sitename || ""}</TableCell>
+                      <TableCell>{requestDate || ""}</TableCell>
+                      <TableCell>
+                        {asset?.is_active ? "Active" : "Inactive"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsViewDetailsDialogOpen(true);
+                              setSelectedItem(asset);
+                            }}
+                          >
+                            View Detail
+                          </Button>
+                          <Button variant="default" onClick={() => {}}>
+                            Generate Report
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         )}
