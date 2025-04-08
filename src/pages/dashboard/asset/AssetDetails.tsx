@@ -73,7 +73,7 @@ const AssetDetails = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Location</p>
                   <p className="text-sm font-medium leading-none">
-                    {asset.location_id}
+                    {asset.site ? asset.site.standard_code : "N/A"}
                   </p>
                 </div>
               </div>

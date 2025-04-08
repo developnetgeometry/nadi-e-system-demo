@@ -1,6 +1,7 @@
 export interface Site {
   id: string;
   sitename: string;
+  standard_code?: string;
   phase_id: string;
   region_id: string;
   active_status: number;
