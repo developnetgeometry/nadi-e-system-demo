@@ -4,10 +4,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { fetchUserProfileNameById } from "@/hooks/auth/utils/profile-handler";
 import { useToast } from "@/hooks/use-toast";
 import { Inventory } from "@/types/inventory";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 interface InventoryDetailsDialogProps {
   open: boolean;
@@ -23,6 +24,28 @@ export const InventoryDetailsDialog = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [requestedByName, setRequestedByName] = useState("N/A");
+
+  useEffect(() => {
+    if (!open) {
+      setRequestedByName("N/A");
+      return;
+    }
+    const fetchName = async () => {
+      if (inventory?.created_by) {
+        try {
+          const name = await fetchUserProfileNameById(inventory.created_by);
+          setRequestedByName(name);
+        } catch (error) {
+          console.error("Failed to fetch user name:", error);
+          setRequestedByName("Error fetching name");
+        }
+      }
+    };
+
+    fetchName();
+  }, [inventory?.created_by, open]);
 
   if (!inventory) return null;
 
@@ -64,8 +87,7 @@ export const InventoryDetailsDialog = ({
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Requested By</span>
-              {/* TODO: Created By */}
-              <span>{inventory.created_by}</span>
+              <span>{requestedByName}</span>
             </div>
           </div>
           <div className="flex-1 space-y-4">
@@ -75,7 +97,7 @@ export const InventoryDetailsDialog = ({
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Nadi Center</span>
-              <span>{"TODO"}</span>
+              <span>{inventory.site.sitename}</span>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Status</span>

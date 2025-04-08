@@ -1,3 +1,5 @@
+import { Site } from "@/types/site";
+
 export interface Inventory {
   id: number;
   name: string;
@@ -7,6 +9,8 @@ export interface Inventory {
   price?: number;
   quantity?: number;
   barcode?: number;
+  site_id?: number;
+  site?: Site;
   created_by?: string;
   created_at?: string;
   updated_by?: string;

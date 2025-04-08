@@ -171,7 +171,7 @@ export const InventoryDetailsList = () => {
                     <TableCell>{inventory?.name || ""}</TableCell>
                     <TableCell>{inventory?.type.name || ""}</TableCell>
                     <TableCell>{inventory?.quantity || ""}</TableCell>
-                    <TableCell>{"LOCATION"}</TableCell>
+                    <TableCell>{inventory?.site.sitename || ""}</TableCell>
                     <TableCell>{requestDate || ""}</TableCell>
                     <TableCell>{"Status"}</TableCell>
                     <TableCell>
