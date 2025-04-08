@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserDashboard } from "@/hooks/use-user-dashboard";
 import { AlertCircle } from "lucide-react";
 import AdminInventoryDashboard from "./AdminInventoryDashboard";
+import InventoryDashboard from "./InventoryDashboard";
 
 const InventoryManagement = () => {
   const { userType, isLoading, error } = useUserDashboard();
@@ -33,7 +34,14 @@ const InventoryManagement = () => {
     );
   }
 
-  return <AdminInventoryDashboard />;
+  // Render the appropriate asset management page based on user type
+  if (typeof userType === "string") {
+    if (userType.startsWith("tp") || userType.startsWith("staff")) {
+      return <AdminInventoryDashboard />;
+    }
+  }
+
+  return <InventoryDashboard />;
 };
 
 export default InventoryManagement;

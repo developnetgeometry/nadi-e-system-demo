@@ -48,8 +48,7 @@ export const InventoryDetailsList = () => {
       </div>
     );
   }
-
-  const filteredInventories = inventories
+  const filteredInventories = (inventories ?? [])
     .filter((inventory) =>
       inventory.name.toLowerCase().includes(filter.toLowerCase())
     )

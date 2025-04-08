@@ -21,37 +21,38 @@ export const InventoryList = () => {
       <div className="rounded-md border p-4">
         <h1 className="text-2xl font-bold mb-4">Inventory List</h1>
         <div className="flex flex-col gap-2">
-          {inventories.map((asset) => {
-            return (
-              <div
-                key={asset.id}
-                className="flex justify-between rounded-sm border bg-slate-50 p-2"
-              >
-                <div className="flex flex-col p-1">
-                  <h2 className="text-md font-semibold">{asset.name}</h2>
-                  <p className="text-xs text-muted-foreground">
-                    {asset.type.name}
-                  </p>
+          {inventories &&
+            inventories.map((inventory) => {
+              return (
+                <div
+                  key={inventory.id}
+                  className="flex justify-between rounded-sm border bg-slate-50 p-2"
+                >
+                  <div className="flex flex-col p-1">
+                    <h2 className="text-md font-semibold">{inventory.name}</h2>
+                    <p className="text-xs text-muted-foreground">
+                      {inventory.type.name}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2 p-1">
+                    <Button variant="outline" size="icon">
+                      <History className="h-4 w-4" />
+                    </Button>
+                    <Link
+                      className={buttonVariants({
+                        variant: "outline",
+                        size: "icon",
+                      })}
+                      to={{
+                        pathname: "/inventory/detail/" + inventory.id,
+                      }}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
-                <div className="flex space-x-2 p-1">
-                  <Button variant="outline" size="icon">
-                    <History className="h-4 w-4" />
-                  </Button>
-                  <Link
-                    className={buttonVariants({
-                      variant: "outline",
-                      size: "icon",
-                    })}
-                    to={{
-                      pathname: "/inventory/detail/" + asset.id,
-                    }}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
     </div>
