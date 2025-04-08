@@ -17,6 +17,21 @@ const Card = React.forwardRef<
 ));
 Card.displayName = "Card";
 
+const CardHover = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white dark:border dark:border-gray-700",
+      className
+    )}
+    {...props}
+  />
+));
+CardHover.displayName = "CardHover";
+
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -78,6 +93,7 @@ CardFooter.displayName = "CardFooter";
 
 export {
   Card,
+  CardHover,
   CardHeader,
   CardFooter,
   CardTitle,
