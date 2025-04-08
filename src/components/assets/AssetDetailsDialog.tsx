@@ -4,10 +4,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { fetchUserProfileNameById } from "@/hooks/auth/utils/profile-handler";
 import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/asset";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 interface AssetDetailsDialogProps {
   open: boolean;
@@ -23,6 +24,28 @@ export const AssetDetailsDialog = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [requestedByName, setRequestedByName] = useState("N/A");
+
+  useEffect(() => {
+    if (!open) {
+      setRequestedByName("N/A");
+      return;
+    }
+    const fetchName = async () => {
+      if (asset?.created_by) {
+        try {
+          const name = await fetchUserProfileNameById(asset.created_by);
+          setRequestedByName(name);
+        } catch (error) {
+          console.error("Failed to fetch user name:", error);
+          setRequestedByName("Error fetching name");
+        }
+      }
+    };
+
+    fetchName();
+  }, [asset?.created_by, open]);
 
   if (!asset) return null;
 
@@ -63,8 +86,7 @@ export const AssetDetailsDialog = ({
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Requested By</span>
-              {/* TODO: Created By */}
-              <span>{asset.created_by}</span>
+              <span>{requestedByName}</span>
             </div>
           </div>
           <div className="flex-1 space-y-4">
