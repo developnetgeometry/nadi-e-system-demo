@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase, SUPABASE_URL } from '@/integrations/supabase/client';
+import { BUCKET_NAME_PROFILEIMAGE, supabase, SUPABASE_URL } from '@/integrations/supabase/client';
 import useMemberID from '@/hooks/use-member-id';
 
 const useProfilePictureUpload = () => {
@@ -22,12 +22,12 @@ const useProfilePictureUpload = () => {
             if (!user) throw new Error("User not authenticated");
 
             const fileExt = file.name.split('.').pop();
-            const filePath = `member/${user.id}/profile.${fileExt}`;
+            const filePath = `member/${user.id}/profile_${Date.now()}.${fileExt}`;
             const fileSize = file.size / 1024; // size in KB
 
             // Upload file to storage
             const { error: uploadError } = await supabase.storage
-                .from('profileimage')
+                .from(BUCKET_NAME_PROFILEIMAGE)
                 .upload(filePath, file, { upsert: true });
 
             if (uploadError) throw uploadError;
@@ -44,7 +44,7 @@ const useProfilePictureUpload = () => {
             // Delete the existing file in the bucket if it exists
             if (existingProfile && existingProfile.photo) {
                 const { error: deleteError } = await supabase.storage
-                    .from('profileimage')
+                    .from(BUCKET_NAME_PROFILEIMAGE)
                     .remove([existingProfile.photo]);
 
                 if (deleteError) throw deleteError;
@@ -79,7 +79,7 @@ const useProfilePictureUpload = () => {
                 if (insertError) throw insertError;
             }
 
-            return `${SUPABASE_URL}/storage/v1/object/public/profileimage/${filePath}`;
+            return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME_PROFILEIMAGE}/${filePath}`;
         } catch (err) {
             setError(err.message);
             throw err;
