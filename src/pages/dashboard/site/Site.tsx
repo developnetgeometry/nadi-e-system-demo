@@ -8,9 +8,9 @@ const Site = () => {
   const siteId = useSiteId();
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const userType = parsedMetadata?.user_type;
+  const userGroup = parsedMetadata?.user_group_name;
 
-  if (!userType?.startsWith("staff")) {
+  if (!userGroup?.startsWith("Centre Staff")) {
     return <div>You do not have access to this dashboard.</div>;
   }
 
