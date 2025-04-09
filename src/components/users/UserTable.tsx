@@ -1,7 +1,9 @@
+
 import { Table, TableBody } from "@/components/ui/table";
 import { UserTableHeader } from "./UserTableHeader";
 import { UserTableRow } from "./UserTableRow";
 import { Profile } from "@/types/auth";
+import { TableRowNumber } from "@/components/ui/TableRowNumber";
 
 interface UserTableProps {
   users: Profile[];
@@ -28,22 +30,23 @@ export const UserTable = ({
         <UserTableHeader
           onSelectAll={onSelectAll}
           allSelected={users.length ? selectedUsers.length === users.length : false}
+          showRowNumbers={true}
         />
         <TableBody>
           {isLoading ? (
             <tr>
-              <td colSpan={6} className="text-center py-8">
+              <td colSpan={7} className="text-center py-8">
                 Loading users...
               </td>
             </tr>
           ) : users.length === 0 ? (
             <tr>
-              <td colSpan={6} className="text-center py-8">
+              <td colSpan={7} className="text-center py-8">
                 No users found
               </td>
             </tr>
           ) : (
-            users.map((user) => (
+            users.map((user, index) => (
               <UserTableRow
                 key={user.id}
                 user={user}
@@ -51,6 +54,7 @@ export const UserTable = ({
                 onSelect={onSelectUser}
                 onEdit={onEditUser}
                 onDelete={onDeleteUser}
+                rowIndex={index}
               />
             ))
           )}

@@ -1,3 +1,4 @@
+
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, UserCog, Trash2 } from "lucide-react";
 import { Profile } from "@/types/auth";
+import { TableRowNumber } from "@/components/ui/TableRowNumber";
 
 interface UserTableRowProps {
   user: Profile;
@@ -16,6 +18,7 @@ interface UserTableRowProps {
   onSelect: (userId: string, checked: boolean) => void;
   onEdit: (user: Profile) => void;
   onDelete: (userId: string) => void;
+  rowIndex: number;
 }
 
 export const UserTableRow = ({
@@ -24,9 +27,11 @@ export const UserTableRow = ({
   onSelect,
   onEdit,
   onDelete,
+  rowIndex,
 }: UserTableRowProps) => {
   return (
     <TableRow key={user.id}>
+      <TableRowNumber index={rowIndex} />
       <TableCell>
         <Checkbox
           checked={isSelected}

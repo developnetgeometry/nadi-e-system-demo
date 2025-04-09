@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { LookupItem } from "../types";
 import { FieldDefinition } from "./types";
+import { TableRowNumber } from "@/components/ui/TableRowNumber";
 
 interface LookupTableProps {
   items: LookupItem[];
@@ -33,6 +34,7 @@ export const LookupTable = ({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[60px] text-center">No.</TableHead>
             {fields.map((field) => (
               <TableHead key={field.name}>{field.label}</TableHead>
             ))}
@@ -42,19 +44,20 @@ export const LookupTable = ({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={fields.length + 1} className="text-center py-8">
+              <TableCell colSpan={fields.length + 2} className="text-center py-8">
                 Loading...
               </TableCell>
             </TableRow>
           ) : items.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={fields.length + 1} className="text-center py-8">
+              <TableCell colSpan={fields.length + 2} className="text-center py-8">
                 No items found
               </TableCell>
             </TableRow>
           ) : (
-            items.map((item) => (
+            items.map((item, index) => (
               <TableRow key={item.id}>
+                <TableRowNumber index={index} />
                 {fields.map((field) => (
                   <TableCell key={`${item.id}-${field.name}`}>
                     {item[field.name] || "-"}

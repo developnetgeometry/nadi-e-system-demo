@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Shield, Users, Pencil } from "lucide-react";
+import { TableRowNumber } from "@/components/ui/TableRowNumber";
 
 interface Role {
   id: string;
@@ -32,6 +33,7 @@ export const RoleTable = ({ roles, onEdit }: RoleTableProps) => {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-muted/50">
+            <TableHead className="w-[60px] text-center">No.</TableHead>
             <TableHead className="w-[250px]">Role Name</TableHead>
             <TableHead className="max-w-[400px]">Description</TableHead>
             <TableHead className="w-[100px]">Users</TableHead>
@@ -40,8 +42,9 @@ export const RoleTable = ({ roles, onEdit }: RoleTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {roles.map((role) => (
+          {roles.map((role, index) => (
             <TableRow key={role.id} className="hover:bg-muted/50">
+              <TableRowNumber index={index} />
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
                   <Shield className="h-4 w-4 text-muted-foreground" />
