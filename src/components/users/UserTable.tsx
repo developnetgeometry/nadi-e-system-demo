@@ -13,6 +13,9 @@ import {
   PaginationPrevious 
 } from "@/components/ui/pagination";
 
+type SortDirection = "asc" | "desc" | null;
+type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "created_at" | null;
+
 interface UserTableProps {
   users: Profile[];
   isLoading: boolean;
@@ -24,6 +27,9 @@ interface UserTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onSort: (field: SortField) => void;
+  sortField: SortField;
+  sortDirection: SortDirection;
 }
 
 export const UserTable = ({
@@ -37,6 +43,9 @@ export const UserTable = ({
   currentPage,
   totalPages,
   onPageChange,
+  onSort,
+  sortField,
+  sortDirection
 }: UserTableProps) => {
   const renderPaginationItems = () => {
     const items = [];
@@ -110,6 +119,9 @@ export const UserTable = ({
           onSelectAll={onSelectAll}
           allSelected={users.length ? selectedUsers.length === users.length : false}
           showRowNumbers={false}
+          onSort={onSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
         />
         <TableBody>
           {isLoading ? (

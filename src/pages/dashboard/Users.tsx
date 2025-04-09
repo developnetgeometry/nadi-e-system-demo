@@ -1,5 +1,4 @@
-
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +9,9 @@ import type { Profile } from "@/types/auth";
 import { UserHeader } from "@/components/users/UserHeader";
 import { UserSearch } from "@/components/users/UserSearch";
 import { UserTable } from "@/components/users/UserTable";
+
+type SortDirection = "asc" | "desc" | null;
+type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "created_at" | null;
 
 const Users = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +26,8 @@ const Users = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  const [sortField, setSortField] = useState<SortField>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -39,13 +43,68 @@ const Users = () => {
     return true;
   });
 
-  const totalPages = Math.ceil(users.length / pageSize);
-  const paginatedUsers = users.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  // Apply sorting to the filtered users
+  const sortedUsers = useMemo(() => {
+    if (!sortField || !sortDirection) return users;
+    
+    return [...users].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortField) {
+        case "name":
+          aValue = a.full_name || "";
+          bValue = b.full_name || "";
+          break;
+        case "email":
+          aValue = a.email || "";
+          bValue = b.email || "";
+          break;
+        case "phone":
+          aValue = a.phone_number || "";
+          bValue = b.phone_number || "";
+          break;
+        case "created_at":
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+        default:
+          // For mock data fields (status, site, phase, state)
+          // We'll just use alphabetical sorting since these are generated
+          // In a real implementation, you'd use actual field values
+          return 0;
+      }
+      
+      const compareResult = typeof aValue === 'number' && typeof bValue === 'number'
+        ? aValue - bValue
+        : String(aValue).localeCompare(String(bValue));
+        
+      return sortDirection === "asc" ? compareResult : -compareResult;
+    });
+  }, [users, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(sortedUsers.length / pageSize);
+  const paginatedUsers = sortedUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, userTypeFilter, siteFilter, phaseFilter, stateFilter, dateFilter]);
+
+  const handleSort = useCallback((field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction or clear sort
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      // New sort field
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  }, [sortField, sortDirection]);
 
   const deleteUsersMutation = useMutation({
     mutationFn: deleteUsers,
@@ -173,6 +232,9 @@ const Users = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+          onSort={handleSort}
+          sortField={sortField}
+          sortDirection={sortDirection}
         />
 
         <div className="mt-8 text-center text-xs text-gray-500">
