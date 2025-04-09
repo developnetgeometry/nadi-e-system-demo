@@ -17,7 +17,7 @@ export function useUserManagement() {
   const [dateFilter, setDateFilter] = useState<string>("all_dates");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(20); // Set page size to 20
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 

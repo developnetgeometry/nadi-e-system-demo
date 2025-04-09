@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -11,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Shield, Users, Pencil } from "lucide-react";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
 
 interface Role {
   id: string;
@@ -27,6 +29,11 @@ interface RoleTableProps {
 
 export const RoleTable = ({ roles, onEdit }: RoleTableProps) => {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+  
+  const totalPages = Math.ceil(roles.length / pageSize);
+  const paginatedRoles = roles.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="rounded-lg border bg-card">
@@ -42,9 +49,9 @@ export const RoleTable = ({ roles, onEdit }: RoleTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {roles.map((role, index) => (
+          {paginatedRoles.map((role, index) => (
             <TableRow key={role.id} className="hover:bg-muted/50">
-              <TableRowNumber index={index} />
+              <TableRowNumber index={(currentPage - 1) * pageSize + index} />
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
                   <Shield className="h-4 w-4 text-muted-foreground" />
@@ -86,6 +93,17 @@ export const RoleTable = ({ roles, onEdit }: RoleTableProps) => {
           ))}
         </TableBody>
       </Table>
+      
+      {roles.length > pageSize && (
+        <div className="p-4 border-t">
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={roles.length}
+          />
+        </div>
+      )}
     </div>
   );
 };

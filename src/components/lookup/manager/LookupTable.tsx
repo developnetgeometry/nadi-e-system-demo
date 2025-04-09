@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 import { LookupItem } from "../types";
 import { FieldDefinition } from "./types";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
 
 interface LookupTableProps {
   items: LookupItem[];
@@ -29,6 +30,12 @@ export const LookupTable = ({
   onEdit,
   onDelete,
 }: LookupTableProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+  
+  const totalPages = Math.ceil(items.length / pageSize);
+  const paginatedItems = items.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="border rounded-md">
       <Table>
@@ -48,16 +55,16 @@ export const LookupTable = ({
                 Loading...
               </TableCell>
             </TableRow>
-          ) : items.length === 0 ? (
+          ) : paginatedItems.length === 0 ? (
             <TableRow>
               <TableCell colSpan={fields.length + 2} className="text-center py-8">
                 No items found
               </TableCell>
             </TableRow>
           ) : (
-            items.map((item, index) => (
+            paginatedItems.map((item, index) => (
               <TableRow key={item.id}>
-                <TableRowNumber index={index} />
+                <TableRowNumber index={(currentPage - 1) * pageSize + index} />
                 {fields.map((field) => (
                   <TableCell key={`${item.id}-${field.name}`}>
                     {item[field.name] || "-"}
@@ -87,6 +94,17 @@ export const LookupTable = ({
           )}
         </TableBody>
       </Table>
+      
+      {items.length > pageSize && (
+        <div className="p-4 border-t">
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={items.length}
+          />
+        </div>
+      )}
     </div>
   );
 };
