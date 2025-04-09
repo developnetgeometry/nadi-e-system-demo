@@ -114,7 +114,7 @@ export const UserSearch = ({
           </SelectTrigger>
           <SelectContent>
             {sites.map((site) => (
-              <SelectItem key={site} value={site === "All Sites" ? "" : site}>
+              <SelectItem key={site} value={site === "All Sites" ? "all_sites" : site}>
                 {site}
               </SelectItem>
             ))}
@@ -130,7 +130,7 @@ export const UserSearch = ({
           </SelectTrigger>
           <SelectContent>
             {phases.map((phase) => (
-              <SelectItem key={phase} value={phase === "All Phases" ? "" : phase}>
+              <SelectItem key={phase} value={phase === "All Phases" ? "all_phases" : phase}>
                 {phase}
               </SelectItem>
             ))}
@@ -146,7 +146,7 @@ export const UserSearch = ({
           </SelectTrigger>
           <SelectContent>
             {states.map((state) => (
-              <SelectItem key={state} value={state === "All States" ? "" : state}>
+              <SelectItem key={state} value={state === "All States" ? "all_states" : state}>
                 {state}
               </SelectItem>
             ))}
@@ -161,7 +161,7 @@ export const UserSearch = ({
             <SelectValue placeholder="Date Registered" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Dates</SelectItem>
+            <SelectItem value="all_dates">All Dates</SelectItem>
             <SelectItem value="newest">Newest First</SelectItem>
             <SelectItem value="oldest">Oldest First</SelectItem>
           </SelectContent>

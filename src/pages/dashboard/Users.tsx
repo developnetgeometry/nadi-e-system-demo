@@ -139,13 +139,13 @@ const Users = () => {
             onUserTypeFilterChange={setUserTypeFilter}
             onExport={handleExportUsers}
             onApplyFilters={handleApplyFilters}
-            siteFilter={siteFilter}
+            siteFilter={siteFilter || "all_sites"}
             onSiteFilterChange={setSiteFilter}
-            phaseFilter={phaseFilter}
+            phaseFilter={phaseFilter || "all_phases"}
             onPhaseFilterChange={setPhaseFilter}
-            stateFilter={stateFilter}
+            stateFilter={stateFilter || "all_states"}
             onStateFilterChange={setStateFilter}
-            dateFilter={dateFilter}
+            dateFilter={dateFilter || "all_dates"}
             onDateFilterChange={setDateFilter}
             onReset={handleResetFilters}
           />
