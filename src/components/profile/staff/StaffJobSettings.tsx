@@ -65,7 +65,7 @@ export const StaffJobSettings = () => {
 
       <CardContent className="p-6">
         <div className="space-y-8 mt-6">
-          <h2 className="text-lg font-semibold text-gray-800">Current Job</h2>
+          <h2 className="text-lg font-semibold">Current Job</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
               { id: "position", label: "Position", value: getPositionName(staffJob.position_id) },
@@ -74,7 +74,7 @@ export const StaffJobSettings = () => {
               { id: "is_active", label: "Job Status", value: staffJob.is_active ? "Active" : "Inactive" },
             ].map((field) => (
               <div key={field.id} className={field.id === "join_date" || field.id === "resign_date" ? "" : "col-span-2"}>
-                <Label htmlFor={field.id} className="block text-gray-700 font-medium mb-2">
+                <Label htmlFor={field.id}>
                   {field.label}
                 </Label>
                 <Input
