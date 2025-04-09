@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
-import { supabase } from "@/lib/supabase";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import StaffProfileSettings from "@/components/profile/staff/StaffProfileSettings";
 import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
@@ -12,37 +10,14 @@ import DuspProfileSettings from "@/components/profile/DuspProfileSettings";
 import SsoProfileSettings from "@/components/profile/SsoProfileSettings";
 import TpProfileSettings from "@/components/profile/TpProfileSettings";
 import VendorProfileSettings from "@/components/profile/VendorProfileSettings";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const UserProfile = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [userType, setUserType] = useState<string | null>(null);
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const userType = parsedMetadata?.user_type;
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("user_type")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-
-        setUserType(profile?.user_type || null);
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  if (isLoading) {
+  if (!userType) {
     return <SettingsLoading />;
   }
 
@@ -80,55 +55,56 @@ const UserProfile = () => {
     );
   }
 
-  if (userType?.startsWith("mcmc")){
+  if (userType?.startsWith("mcmc")) {
     return (
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-          <McmcProfileSettings/>
-        </div>
-      </DashboardLayout>
-    );
-  }
-  if (userType?.startsWith("dusp")){
-    return (
-      <DashboardLayout>
-        <ProfileHeader />
-        <div className="space-y-8">
-          <DuspProfileSettings/>
+          <McmcProfileSettings />
         </div>
       </DashboardLayout>
     );
   }
 
-  if (userType?.startsWith("sso")){
+  if (userType?.startsWith("dusp")) {
     return (
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-          <SsoProfileSettings/>
+          <DuspProfileSettings />
         </div>
       </DashboardLayout>
     );
   }
 
-  if (userType?.startsWith("tp")){
+  if (userType?.startsWith("sso")) {
     return (
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-          <TpProfileSettings/>
+          <SsoProfileSettings />
         </div>
       </DashboardLayout>
     );
   }
 
-  if (userType?.startsWith("vendor")){
+  if (userType?.startsWith("tp")) {
     return (
       <DashboardLayout>
         <ProfileHeader />
         <div className="space-y-8">
-          <VendorProfileSettings/>
+          <TpProfileSettings />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (userType?.startsWith("vendor")) {
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <VendorProfileSettings />
         </div>
       </DashboardLayout>
     );

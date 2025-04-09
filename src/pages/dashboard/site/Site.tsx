@@ -1,0 +1,28 @@
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import SiteDetail from "@/components/site/SiteDetail";
+import { SettingsLoading } from "@/components/settings/SettingsLoading";
+import { useSiteId } from "@/hooks/use-site-id";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+
+const Site = () => {
+  const siteId = useSiteId();
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const userType = parsedMetadata?.user_type;
+
+  if (!userType?.startsWith("staff")) {
+    return <div>You do not have access to this dashboard.</div>;
+  }
+
+  if (!siteId) {
+    return <SettingsLoading />;
+  }
+
+  return (
+    <DashboardLayout>
+      <SiteDetail siteId={siteId} />
+    </DashboardLayout>
+  );
+};
+
+export default Site;
