@@ -16,17 +16,18 @@ export const UserTableHeader = ({
   return (
     <TableHeader>
       <TableRow>
-        {showRowNumbers && (
-          <TableHead className="w-[60px] text-center">No.</TableHead>
-        )}
-        <TableHead className="w-[50px]">
+        <TableHead className="w-[50px] pl-4">
           <Checkbox checked={allSelected} onCheckedChange={onSelectAll} />
         </TableHead>
+        <TableHead className="w-[60px]">ID</TableHead>
         <TableHead>Name</TableHead>
         <TableHead>Email</TableHead>
-        <TableHead>Type</TableHead>
-        <TableHead>Created</TableHead>
-        <TableHead className="w-[100px]">Actions</TableHead>
+        <TableHead>Phone</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead>Site</TableHead>
+        <TableHead>Phase</TableHead>
+        <TableHead>State</TableHead>
+        <TableHead className="text-right">Reg. Date</TableHead>
       </TableRow>
     </TableHeader>
   );
