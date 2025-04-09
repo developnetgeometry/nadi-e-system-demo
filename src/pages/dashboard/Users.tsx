@@ -82,7 +82,7 @@ const Users = () => {
             <UserToolbar
               selectedCount={selectedUsers.length}
               onExport={handleExportUsers}
-              onDelete={handleDeleteSelected}
+              onDelete={() => handleDeleteSelected()}
             />
           )}
         </div>
@@ -97,7 +97,11 @@ const Users = () => {
             setUserToEdit(user);
             setIsEditDialogOpen(true);
           }}
-          onDeleteUser={(userId) => handleDeleteSelected([userId])}
+          onDeleteUser={(userId) => {
+            // Here we're passing an array with a single ID
+            const idsToDelete = [userId];
+            handleDeleteSelected(idsToDelete);
+          }}
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}

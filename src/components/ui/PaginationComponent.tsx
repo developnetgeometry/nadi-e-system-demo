@@ -8,6 +8,8 @@ interface PaginationProps {
     onPageChange: (page: number) => void;
     pageSize?: number;
     totalItems: number;
+    startItem?: number;
+    endItem?: number;
 }
 
 export const PaginationComponent = ({ 
@@ -15,7 +17,9 @@ export const PaginationComponent = ({
     totalPages, 
     onPageChange, 
     pageSize = 20,
-    totalItems 
+    totalItems,
+    startItem: customStartItem,
+    endItem: customEndItem
 }: PaginationProps) => {
     const handlePrevious = () => {
         if (currentPage > 1) {
@@ -29,8 +33,8 @@ export const PaginationComponent = ({
         }
     };
 
-    const startItem = Math.min(((currentPage - 1) * pageSize) + 1, totalItems);
-    const endItem = Math.min(currentPage * pageSize, totalItems);
+    const startItem = customStartItem !== undefined ? customStartItem : Math.min(((currentPage - 1) * pageSize) + 1, totalItems);
+    const endItem = customEndItem !== undefined ? customEndItem : Math.min(currentPage * pageSize, totalItems);
 
     return (
         <div className="flex justify-between items-center mt-4">

@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -24,19 +23,15 @@ export function useUserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch users with search query and user type filter
   const { data: fetchedUsers = [], isLoading } = useQuery({
     queryKey: ["users", searchQuery, userTypeFilter],
     queryFn: () => fetchUsers(searchQuery, userTypeFilter),
   });
 
-  // Apply frontend filtering based on additional filters
   const users = fetchedUsers.filter(user => {
-    // Add filtering logic here when we have actual data with these fields
     return true;
   });
 
-  // Apply sorting to the filtered users
   const sortedUsers = useMemo(() => {
     if (!sortField || !sortDirection) return users;
     
@@ -61,7 +56,6 @@ export function useUserManagement() {
           bValue = new Date(b.created_at).getTime();
           break;
         default:
-          // For mock data fields (status, site, phase, state)
           return 0;
       }
       
@@ -76,14 +70,12 @@ export function useUserManagement() {
   const totalPages = Math.ceil(sortedUsers.length / pageSize);
   const paginatedUsers = sortedUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, userTypeFilter, siteFilter, phaseFilter, stateFilter, dateFilter]);
 
   const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
-      // Toggle direction or clear sort
       if (sortDirection === "asc") {
         setSortDirection("desc");
       } else if (sortDirection === "desc") {
@@ -91,13 +83,11 @@ export function useUserManagement() {
         setSortDirection(null);
       }
     } else {
-      // New sort field
       setSortField(field);
       setSortDirection("asc");
     }
   }, [sortField, sortDirection]);
 
-  // Delete users mutation
   const deleteUsersMutation = useMutation({
     mutationFn: deleteUsers,
     onSuccess: () => {
@@ -128,9 +118,10 @@ export function useUserManagement() {
     );
   }, []);
 
-  const handleDeleteSelected = useCallback(() => {
-    if (selectedUsers.length > 0) {
-      deleteUsersMutation.mutate(selectedUsers);
+  const handleDeleteSelected = useCallback((userIds?: string[]) => {
+    const idsToDelete = userIds || selectedUsers;
+    if (idsToDelete.length > 0) {
+      deleteUsersMutation.mutate(idsToDelete);
     }
   }, [selectedUsers, deleteUsersMutation]);
 
@@ -166,7 +157,6 @@ export function useUserManagement() {
   }, [toast]);
 
   return {
-    // State
     searchQuery,
     userTypeFilter,
     siteFilter,
@@ -180,10 +170,8 @@ export function useUserManagement() {
     sortDirection,
     isLoading,
     
-    // Data
     users: paginatedUsers,
     
-    // Actions
     setSearchQuery,
     setUserTypeFilter,
     setSiteFilter,
@@ -198,7 +186,6 @@ export function useUserManagement() {
     handleApplyFilters,
     handleResetFilters,
     
-    // Mutations
     deleteUsersMutation
   };
 }
