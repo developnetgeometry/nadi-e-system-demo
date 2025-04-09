@@ -14,10 +14,10 @@ import { UserTable } from "@/components/users/UserTable";
 const Users = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [userTypeFilter, setUserTypeFilter] = useState<string>("");
-  const [siteFilter, setSiteFilter] = useState<string>("");
-  const [phaseFilter, setPhaseFilter] = useState<string>("");
-  const [stateFilter, setStateFilter] = useState<string>("");
-  const [dateFilter, setDateFilter] = useState<string>("");
+  const [siteFilter, setSiteFilter] = useState<string>("all_sites");
+  const [phaseFilter, setPhaseFilter] = useState<string>("all_phases");
+  const [stateFilter, setStateFilter] = useState<string>("all_states");
+  const [dateFilter, setDateFilter] = useState<string>("all_dates");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [userToEdit, setUserToEdit] = useState<Profile | undefined>();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -114,10 +114,10 @@ const Users = () => {
   const handleResetFilters = useCallback(() => {
     setSearchQuery("");
     setUserTypeFilter("");
-    setSiteFilter("");
-    setPhaseFilter("");
-    setStateFilter("");
-    setDateFilter("");
+    setSiteFilter("all_sites");
+    setPhaseFilter("all_phases");
+    setStateFilter("all_states");
+    setDateFilter("all_dates");
     setCurrentPage(1);
     
     toast({
@@ -139,13 +139,13 @@ const Users = () => {
             onUserTypeFilterChange={setUserTypeFilter}
             onExport={handleExportUsers}
             onApplyFilters={handleApplyFilters}
-            siteFilter={siteFilter || "all_sites"}
+            siteFilter={siteFilter}
             onSiteFilterChange={setSiteFilter}
-            phaseFilter={phaseFilter || "all_phases"}
+            phaseFilter={phaseFilter}
             onPhaseFilterChange={setPhaseFilter}
-            stateFilter={stateFilter || "all_states"}
+            stateFilter={stateFilter}
             onStateFilterChange={setStateFilter}
-            dateFilter={dateFilter || "all_dates"}
+            dateFilter={dateFilter}
             onDateFilterChange={setDateFilter}
             onReset={handleResetFilters}
           />
