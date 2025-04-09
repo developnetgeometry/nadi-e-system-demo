@@ -24,6 +24,7 @@ import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboar
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
+import Site from "@/pages/dashboard/site/Site";
 import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
@@ -291,6 +292,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <SiteDetails />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Site />
       // </ProtectedRoute>
     ),
   },

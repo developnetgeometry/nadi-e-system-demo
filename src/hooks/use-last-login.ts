@@ -14,20 +14,20 @@ const useLastLogin = () => {
         if (!user) return;
 
         const { data: sessions, error: sessionError } = await supabase
-          .from("usage_sessions")
-          .select("start_time")
+          .from("audit_logs")
+          .select("created_at")
           .eq("user_id", user.id)
-          .eq("session_type", "login")
-          .order("start_time", { ascending: false })
-          .limit(3);
+          .eq("action", "logout")
+          .order("created_at", { ascending: false })
+          .limit(2);
 
         if (sessionError) throw sessionError;
         if (!sessions || sessions.length === 0) {
           throw new Error("No login session data found");
         }
 
-        setLastLogin(sessions[0]?.start_time || null);
-        setSecondLastLogin(sessions[2]?.start_time || null);
+        setLastLogin(sessions[0]?.created_at || null);
+        setSecondLastLogin(sessions[1]?.created_at || null);
       } catch (error) {
         console.error("Error fetching last login time:", error);
         setError(error.message);

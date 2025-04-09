@@ -22,7 +22,9 @@ import {
 } from "@/types/site";
 
 export const fetchSites = async (
-  organizationId: string | null
+  organizationId: string | null,
+  isTPUser: boolean = false,
+  isDUSPUser: boolean = false
 ): Promise<Site[]> => {
   try {
     let query = supabase
@@ -46,7 +48,25 @@ export const fetchSites = async (
       .order("created_at", { ascending: false });
 
     if (organizationId) {
-      query = query.eq("dusp_tp_id", organizationId);
+      if (isTPUser) {
+        // Directly filter by TP organization ID
+        query = query.eq("dusp_tp_id", organizationId);
+      } else if (isDUSPUser) {
+        // Fetch all TP organizations under the given DUSP organization
+        const { data: childOrganizations, error: childError } = await supabase
+          .from("organizations")
+          .select("id")
+          .eq("parent_id", organizationId);
+
+        if (childError) throw childError;
+
+        const childOrganizationIds = childOrganizations.map((org) => org.id);
+
+        query = query.in("dusp_tp_id", [
+          organizationId,
+          ...childOrganizationIds,
+        ]);
+      }
     }
 
     const { data, error } = await query;
