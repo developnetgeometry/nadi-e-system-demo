@@ -4,7 +4,7 @@ import { AssetStatsCard } from "@/components/dashboard/asset/AssetStatsCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { AssetStatsCardProps } from "@/types/asset";
+import { AssetStatsCardProps, AssetStatsData } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
@@ -14,7 +14,7 @@ const AssetDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const {
-    data: assetStats = { total: 0, active: 0, maintenance: 0, value: 0 },
+    data: assetStats = { total: 0, active: 0, maintenance: 0 },
     isLoading,
   } = useQuery({
     queryKey: ["asset-stats"],
@@ -22,20 +22,15 @@ const AssetDashboard = () => {
       console.log("Fetching asset statistics...");
       try {
         const { data: assets, error } = await supabase
-          .from("assets")
-          .select("status, current_value");
+          .from("nd_asset")
+          .select("is_active");
 
         if (error) throw error;
 
-        const stats = {
+        const stats: AssetStatsData = {
           total: assets.length,
-          active: assets.filter((a) => a.status === "active").length,
-          maintenance: assets.filter((a) => a.status === "in_maintenance")
-            .length,
-          value: assets.reduce(
-            (sum, asset) => sum + (Number(asset.current_value) || 0),
-            0
-          ),
+          active: assets.filter((a) => a.is_active).length,
+          maintenance: assets.filter((a) => !a.is_active).length,
         };
 
         return stats;

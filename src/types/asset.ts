@@ -27,10 +27,9 @@ export interface Asset {
 }
 
 export interface AssetStatsData {
-  totalUsers: number;
-  totalRoles: number;
-  activeUsers: number;
-  lastActivity: string;
+  total: number;
+  active: number;
+  maintenance: number;
 }
 
 export interface AssetStatsCardProps {
