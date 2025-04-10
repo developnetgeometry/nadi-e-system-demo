@@ -1,4 +1,4 @@
-import { AssetDetailsList } from "@/components/assets/AssetDetailsList";
+import { AssetList } from "@/components/assets/AssetList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const AdminAssetDashboard = () => {
@@ -10,7 +10,7 @@ const AdminAssetDashboard = () => {
             <h1 className="text-3xl font-bold">Asset Management</h1>
           </div>
         </div>
-        <AssetDetailsList />
+        <AssetList />
       </div>
     </DashboardLayout>
   );

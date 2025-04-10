@@ -18,21 +18,38 @@ import {
 import { useAssets } from "@/hooks/use-assets";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { Asset } from "@/types/asset";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Textarea } from "../ui/textarea";
 
 interface AssetFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  asset?: Asset | null;
 }
 
 export const AssetFormDialog = ({
   open,
   onOpenChange,
+  asset,
 }: AssetFormDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [assetName, setAssetName] = useState("");
+  const [assetType, setAssetType] = useState("");
+  const [assetBrandId, setAssetBrandId] = useState("");
+  const [assetDescription, setAssetDescription] = useState("");
+  const [assetLocationId, setAssetLocationId] = useState("");
+
+  useEffect(() => {
+    if (asset) {
+      setAssetName(asset.name);
+      setAssetType(String(asset.type_id));
+    }
+  }, [asset]);
 
   const { useAssetTypesQuery } = useAssets();
 
@@ -41,6 +58,19 @@ export const AssetFormDialog = ({
     isLoading: isLoadingAssetType,
     error,
   } = useAssetTypesQuery();
+
+  // TODO: Replace with actual data
+  const brands = [
+    { id: "1", name: "Brand 1" },
+    { id: "2", name: "Brand 2" },
+    { id: "3", name: "Brand 3" },
+  ];
+
+  const locations = [
+    { id: "1", name: "Location 1" },
+    { id: "2", name: "Location 2" },
+    { id: "3", name: "Location 3" },
+  ];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,6 +81,9 @@ export const AssetFormDialog = ({
     const asset = {
       name: formData.get("name"),
       type_id: formData.get("type"),
+      brand_id: formData.get("brand"),
+      description: formData.get("description"),
+      location_id: formData.get("location"),
     };
 
     try {
@@ -113,11 +146,71 @@ export const AssetFormDialog = ({
               name="name"
               required
               placeholder="Enter asset name"
+              value={assetName}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="type">Brand</Label>
+            <Select
+              name="brand"
+              required
+              value={assetBrandId}
+              onValueChange={setAssetBrandId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select brand" />
+              </SelectTrigger>
+              <SelectContent>
+                {brands.map((brand, index) => (
+                  <SelectItem key={index} value={brand.id.toString()}>
+                    {brand.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="name">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              required
+              placeholder="Enter asset description"
+              value={assetDescription}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="type">Asset Location</Label>
+            <Select
+              name="location"
+              required
+              value={assetLocationId}
+              onValueChange={setAssetLocationId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select asset location" />
+              </SelectTrigger>
+              <SelectContent>
+                {locations.map((location, index) => (
+                  <SelectItem key={index} value={location.id.toString()}>
+                    {location.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="type">Asset Type</Label>
-            <Select name="type" required>
+            <Select
+              name="type"
+              required
+              value={assetType}
+              onValueChange={setAssetType}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select asset type" />
               </SelectTrigger>
@@ -132,7 +225,13 @@ export const AssetFormDialog = ({
           </div>
 
           <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Adding..." : "Add Asset"}
+            {isSubmitting
+              ? asset
+                ? "Updating..."
+                : "Adding..."
+              : asset
+              ? "Update Asset"
+              : "Add Asset"}
           </Button>
         </form>
       </DialogContent>
