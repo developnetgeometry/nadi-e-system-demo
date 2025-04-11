@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserTable } from "@/components/users/UserTable";
 import { SortDirection, SortField } from "@/hooks/use-user-management";
+import { UserFormDialog } from "@/components/users/UserFormDialog";
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +27,9 @@ const Users = () => {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<Profile | undefined>(undefined);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const pageSize = 20;
@@ -92,10 +97,8 @@ const Users = () => {
   };
 
   const handleEditUser = (user: Profile) => {
-    toast({
-      title: "Edit User",
-      description: `Editing user: ${user.full_name}`,
-    });
+    setUserToEdit(user);
+    setIsEditDialogOpen(true);
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -124,45 +127,7 @@ const Users = () => {
     }
   };
 
-  const deleteSelectedUsers = async (userIds: string[]) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .in("id", userIds);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Selected users deleted successfully",
-      });
-      refetch();
-    } catch (error) {
-      console.error("Error deleting selected users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete selected users",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleDeleteSelectedUsers = async () => {
-    try {
-      await deleteSelectedUsers(selectedUsers);
-      setSelectedUsers([]);
-    } catch (error) {
-      console.error("Error deleting selected users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete selected users",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteSelected = () => {
     if (selectedUsers.length === 0) {
       toast({
         title: "No users selected",
@@ -173,8 +138,33 @@ const Users = () => {
     }
 
     if (confirm(`Are you sure you want to delete ${selectedUsers.length} selected users?`)) {
-      handleDeleteSelectedUsers();
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .delete()
+          .in("id", selectedUsers);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Selected users deleted successfully",
+        });
+        setSelectedUsers([]);
+        refetch();
+      } catch (error) {
+        console.error("Error deleting selected users:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete selected users",
+          variant: "destructive",
+        });
+      }
     }
+  };
+
+  const handleAddUser = () => {
+    setIsCreateDialogOpen(true);
   };
 
   return (
@@ -206,11 +196,11 @@ const Users = () => {
                 />
               </div>
               <div className="flex justify-between items-center">
-                <Button onClick={handleDeleteSelected} variant="destructive">
+                <Button onClick={handleDeleteSelectedUsers} variant="destructive">
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Selected
                 </Button>
-                <Button>
+                <Button onClick={handleAddUser}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add User
                 </Button>
@@ -234,6 +224,26 @@ const Users = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add User Form Dialog */}
+      <UserFormDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={() => {
+          refetch();
+        }}
+      />
+
+      {/* Edit User Form Dialog */}
+      <UserFormDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        user={userToEdit}
+        onSuccess={() => {
+          setUserToEdit(undefined);
+          refetch();
+        }}
+      />
     </DashboardLayout>
   );
 };
