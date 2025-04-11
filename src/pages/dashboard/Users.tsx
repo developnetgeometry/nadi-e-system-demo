@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UserTable } from "@/components/users/UserTable";
 
 type SortDirection = "asc" | "desc" | null;
-type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "created_at" | null;
+type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "role" | "created_at" | null;
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,7 +94,6 @@ const Users = () => {
   };
 
   const handleEditUser = (user: Profile) => {
-    // Implement edit functionality here
     toast({
       title: "Edit User",
       description: `Editing user: ${user.full_name}`,
@@ -116,7 +114,7 @@ const Users = () => {
           title: "Success",
           description: "User deleted successfully",
         });
-        refetch(); // Refresh the user list
+        refetch();
       } catch (error) {
         console.error("Error deleting user:", error);
         toast({
@@ -141,7 +139,7 @@ const Users = () => {
         title: "Success",
         description: "Selected users deleted successfully",
       });
-      refetch(); // Refresh the user list
+      refetch();
     } catch (error) {
       console.error("Error deleting selected users:", error);
       toast({
@@ -155,7 +153,7 @@ const Users = () => {
   const handleDeleteSelectedUsers = async () => {
     try {
       await deleteSelectedUsers(selectedUsers);
-      setSelectedUsers([]); // Clear selected users after deletion
+      setSelectedUsers([]);
     } catch (error) {
       console.error("Error deleting selected users:", error);
       toast({
@@ -205,7 +203,7 @@ const Users = () => {
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setPage(1); // Reset to first page on search
+                    setPage(1);
                   }}
                 />
               </div>

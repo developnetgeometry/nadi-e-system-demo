@@ -37,7 +37,13 @@ export const UserTableRow = ({
     site: ['East Branch', 'South Branch', 'Main Center'][rowIndex % 3],
     phase: ['Onboarding', 'Senior', 'Active', 'Advanced'][rowIndex % 4],
     state: ['California', 'Florida', 'New York', 'Texas'][rowIndex % 4],
+    role: ['admin', 'member', 'moderator', 'vendor'][rowIndex % 4],
   };
+
+  // Format the user_group and role as requested
+  const userGroupRole = user.user_group ? 
+    `${user.user_group}(${mockData.role})` : 
+    `-(${mockData.role})`;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -77,6 +83,7 @@ export const UserTableRow = ({
       <TableCell className="text-gray-600">{mockData.site}</TableCell>
       <TableCell className="text-gray-600">{mockData.phase}</TableCell>
       <TableCell className="text-gray-600">{mockData.state}</TableCell>
+      <TableCell className="text-gray-600">{userGroupRole}</TableCell>
       <TableCell className="text-right text-gray-600">
         {new Date(user.created_at).toLocaleDateString('en-US', { 
           year: 'numeric',

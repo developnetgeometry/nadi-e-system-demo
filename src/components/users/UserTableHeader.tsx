@@ -5,7 +5,7 @@ import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type SortDirection = "asc" | "desc" | null;
-type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "created_at" | null;
+type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "role" | "created_at" | null;
 
 interface UserTableHeaderProps {
   onSelectAll: (checked: boolean) => void;
@@ -99,6 +99,15 @@ export const UserTableHeader = ({
             className="p-0 hover:bg-transparent font-medium flex items-center"
           >
             State{renderSortIcon("state")}
+          </Button>
+        </TableHead>
+        <TableHead>
+          <Button 
+            variant="ghost" 
+            onClick={() => onSort("role")}
+            className="p-0 hover:bg-transparent font-medium flex items-center"
+          >
+            Role{renderSortIcon("role")}
           </Button>
         </TableHead>
         <TableHead className="text-right">
