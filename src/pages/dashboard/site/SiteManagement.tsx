@@ -39,7 +39,7 @@ const SiteDashboard = () => {
   }
 
   const handleViewDetailsClick = () => {
-    navigate(`/site-management/main`);
+    navigate(`/site-management/approval`);
   };
 
   return (
