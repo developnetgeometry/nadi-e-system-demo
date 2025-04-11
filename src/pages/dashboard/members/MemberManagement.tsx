@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -30,30 +29,44 @@ const MemberManagement = () => {
 
   // Fetch members data
   const { data: membersData, isLoading } = useQuery({
-    queryKey: ["members"],
+    queryKey: ["members", searchTerm, sortField, sortDirection, currentPage],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("profiles")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq('user_type', 'member')
-        .order('created_at', { ascending: false });
+        
+      if (searchTerm) {
+        query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+      }
+      
+      if (sortField && sortDirection) {
+        query = query.order(sortField, { ascending: sortDirection === "asc" });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+      
+      // Apply pagination
+      query = query.range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
+      
+      const { data, error, count } = await query;
 
       if (error) {
         console.error("Error fetching members:", error);
         throw error;
       }
 
-      return data as Profile[];
+      return { data: data as Profile[], count: count || 0 };
     },
   });
 
   // Mock data for statistics
   const stats = {
-    totalMembers: membersData?.length || 0,
+    totalMembers: membersData?.count || 0,
     premiumMembers: 0,
-    activeMembers: membersData?.filter(m => m.user_type === 'member').length || 0,
-    lastRegistration: membersData && membersData.length > 0 
-      ? new Date(membersData[0].created_at).toLocaleString() 
+    activeMembers: membersData?.data?.length || 0,
+    lastRegistration: membersData && membersData.data.length > 0 
+      ? new Date(membersData.data[0].created_at).toLocaleString() 
       : "N/A"
   };
 
@@ -66,34 +79,9 @@ const MemberManagement = () => {
     }
   };
 
-  // Filter and sort members
-  const filteredMembers = membersData
-    ? membersData
-        .filter(member => 
-          !searchTerm || 
-          member.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.email?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .sort((a, b) => {
-          if (!sortField || !sortDirection) return 0;
-          
-          let valA = (a as any)[sortField];
-          let valB = (b as any)[sortField];
-          
-          if (typeof valA === 'string') valA = valA.toLowerCase();
-          if (typeof valB === 'string') valB = valB.toLowerCase();
-          
-          if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-          if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-          return 0;
-        })
-    : [];
-
   // Calculate pagination
-  const totalPages = Math.ceil((filteredMembers?.length || 0) / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedMembers = filteredMembers.slice(startIndex, endIndex);
+  const totalPages = Math.ceil((membersData?.count || 0) / pageSize);
+  const paginatedMembers = membersData?.data || [];
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -318,15 +306,15 @@ const MemberManagement = () => {
         </div>
 
         {/* Pagination */}
-        {filteredMembers.length > 0 && (
+        {membersData?.data?.length > 0 && (
           <PaginationComponent
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
-            totalItems={filteredMembers.length}
+            totalItems={membersData?.count || 0}
             pageSize={pageSize}
-            startItem={startIndex + 1}
-            endItem={Math.min(endIndex, filteredMembers.length)}
+            startItem={(currentPage - 1) * pageSize + 1}
+            endItem={Math.min(currentPage * pageSize, membersData?.count || 0)}
           />
         )}
       </div>
