@@ -1,4 +1,6 @@
+
 import React, { useState } from "react";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
 
 interface SiteClosureFormProps {
   siteId: string;
