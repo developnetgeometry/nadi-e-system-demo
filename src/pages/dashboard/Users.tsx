@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,8 +40,6 @@ const Users = () => {
         .from("profiles")
         .select("*, nd_user_group(group_name)", { count: 'exact' })
         .neq('user_type', 'member')
-        .not('id', 'eq', '7')
-        .not('nd_user_group.group_name', 'eq', 'Member')
         .ilike('full_name', `%${searchTerm}%`)
         .range((page - 1) * pageSize, page * pageSize - 1);
 
