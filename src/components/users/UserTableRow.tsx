@@ -39,12 +39,9 @@ export const UserTableRow = ({
     state: ['California', 'Florida', 'New York', 'Texas'][rowIndex % 4],
     role: ['admin', 'member', 'moderator', 'vendor'][rowIndex % 4],
   };
-
-  // Get the group name from the joined table or provide a fallback
-  const groupName = user.nd_user_group?.group_name || "-";
   
-  // Format the user_group and role as requested
-  const userGroupRole = `${groupName}(${mockData.role})`;
+  // Just display the role without the group name
+  const userRole = mockData.role;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -84,7 +81,7 @@ export const UserTableRow = ({
       <TableCell className="text-gray-600">{mockData.site}</TableCell>
       <TableCell className="text-gray-600">{mockData.phase}</TableCell>
       <TableCell className="text-gray-600">{mockData.state}</TableCell>
-      <TableCell className="text-gray-600">{userGroupRole}</TableCell>
+      <TableCell className="text-gray-600">{userRole}</TableCell>
       <TableCell className="text-right text-gray-600">
         {new Date(user.created_at).toLocaleDateString('en-US', { 
           year: 'numeric',
