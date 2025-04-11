@@ -3,9 +3,7 @@ import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-type SortDirection = "asc" | "desc" | null;
-type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "role" | "created_at" | null;
+import { SortDirection, SortField } from "@/hooks/use-user-management";
 
 interface UserTableHeaderProps {
   onSelectAll: (checked: boolean) => void;

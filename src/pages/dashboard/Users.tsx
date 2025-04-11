@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,9 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserTable } from "@/components/users/UserTable";
-
-type SortDirection = "asc" | "desc" | null;
-type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "role" | "created_at" | null;
+import { SortDirection, SortField } from "@/hooks/use-user-management";
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
