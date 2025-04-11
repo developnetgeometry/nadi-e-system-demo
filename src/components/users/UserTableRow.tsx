@@ -37,11 +37,10 @@ export const UserTableRow = ({
     site: ['East Branch', 'South Branch', 'Main Center'][rowIndex % 3],
     phase: ['Onboarding', 'Senior', 'Active', 'Advanced'][rowIndex % 4],
     state: ['California', 'Florida', 'New York', 'Texas'][rowIndex % 4],
-    role: ['admin', 'member', 'moderator', 'vendor'][rowIndex % 4],
   };
   
-  // Just display the role without the group name
-  const userRole = mockData.role;
+  // Get the actual user_type from the profile data
+  const userRole = user.user_type || '';
 
   const getStatusBadge = (status: string) => {
     switch (status) {
