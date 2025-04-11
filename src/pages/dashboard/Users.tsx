@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +37,7 @@ const Users = () => {
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq('user_type', 'member')
         .ilike('full_name', `%${searchTerm}%`)
         .range((page - 1) * pageSize, page * pageSize - 1);
@@ -48,17 +49,16 @@ const Users = () => {
       }
 
       const { data, error, count } = await query
-        .returns<Profile[]>()
-        .count();
+        .returns<Profile[]>();
 
       if (error) {
         console.error("Error fetching users:", error);
         throw error;
       }
 
-      return { data, count };
+      return { data: data || [], count: count || 0 };
     },
-    keepPreviousData: true,
+    staleTime: 5000,
   });
 
   const totalUsers = usersData?.count || 0;
