@@ -5664,8 +5664,6 @@ export type Database = {
           region_id: number | null
           remark: string | null
           sitename: string | null
-          socioeconomic_id: number[] | null
-          space_id: number[] | null
           state_id: number | null
           technology: number | null
           total_population: number | null
@@ -5703,8 +5701,6 @@ export type Database = {
           region_id?: number | null
           remark?: string | null
           sitename?: string | null
-          socioeconomic_id?: number[] | null
-          space_id?: number[] | null
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
@@ -5742,8 +5738,6 @@ export type Database = {
           region_id?: number | null
           remark?: string | null
           sitename?: string | null
-          socioeconomic_id?: number[] | null
-          space_id?: number[] | null
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
@@ -8784,6 +8778,90 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      staging_table: {
+        Row: {
+          address: string | null
+          category: string | null
+          district: string | null
+          district_id: number | null
+          dun: string | null
+          dun_id: number | null
+          dusp: number | null
+          latitude: number | null
+          longtitude: number | null
+          "NADI SITENAME": string | null
+          NO: number | null
+          parliament: string | null
+          parliament_id: number | null
+          phase: string | null
+          phase_id: number | null
+          "REFID MCMC": string | null
+          "REFID TP": string | null
+          remark: string | null
+          "START OPERATION DATE": string | null
+          state: number | null
+          state_id: number | null
+          status: string | null
+          status_id: number | null
+          ZONE: string | null
+          zone_id: number | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          district?: string | null
+          district_id?: number | null
+          dun?: string | null
+          dun_id?: number | null
+          dusp?: number | null
+          latitude?: number | null
+          longtitude?: number | null
+          "NADI SITENAME"?: string | null
+          NO?: number | null
+          parliament?: string | null
+          parliament_id?: number | null
+          phase?: string | null
+          phase_id?: number | null
+          "REFID MCMC"?: string | null
+          "REFID TP"?: string | null
+          remark?: string | null
+          "START OPERATION DATE"?: string | null
+          state?: number | null
+          state_id?: number | null
+          status?: string | null
+          status_id?: number | null
+          ZONE?: string | null
+          zone_id?: number | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          district?: string | null
+          district_id?: number | null
+          dun?: string | null
+          dun_id?: number | null
+          dusp?: number | null
+          latitude?: number | null
+          longtitude?: number | null
+          "NADI SITENAME"?: string | null
+          NO?: number | null
+          parliament?: string | null
+          parliament_id?: number | null
+          phase?: string | null
+          phase_id?: number | null
+          "REFID MCMC"?: string | null
+          "REFID TP"?: string | null
+          remark?: string | null
+          "START OPERATION DATE"?: string | null
+          state?: number | null
+          state_id?: number | null
+          status?: string | null
+          status_id?: number | null
+          ZONE?: string | null
+          zone_id?: number | null
         }
         Relationships: []
       }
