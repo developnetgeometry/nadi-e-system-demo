@@ -40,7 +40,9 @@ const Users = () => {
       let query = supabase
         .from("profiles")
         .select("*, nd_user_group(group_name)", { count: 'exact' })
-        .eq('user_type', 'member')
+        .neq('user_type', 'member')
+        .not('id', 'eq', '7')
+        .not('nd_user_group.group_name', 'eq', 'Member')
         .ilike('full_name', `%${searchTerm}%`)
         .range((page - 1) * pageSize, page * pageSize - 1);
 
