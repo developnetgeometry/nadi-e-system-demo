@@ -39,7 +39,7 @@ const Users = () => {
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("*, nd_user_group(group_name)")
+        .select("*, nd_user_group(group_name)", { count: 'exact' })
         .eq('user_type', 'member')
         .ilike('full_name', `%${searchTerm}%`)
         .range((page - 1) * pageSize, page * pageSize - 1);
@@ -219,6 +219,7 @@ const Users = () => {
                 onSort={handleSort}
                 sortField={sortField}
                 sortDirection={sortDirection}
+                totalItems={totalUsers}
               />
             </div>
           </CardContent>
