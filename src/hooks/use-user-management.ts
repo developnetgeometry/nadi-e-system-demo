@@ -5,7 +5,7 @@ import { fetchUsers, deleteUsers } from "@/utils/users-utils";
 import type { Profile } from "@/types/auth";
 
 export type SortDirection = "asc" | "desc" | null;
-export type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "created_at" | null;
+export type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "role" | "created_at" | null;
 
 export function useUserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
