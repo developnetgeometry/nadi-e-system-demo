@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -282,7 +283,7 @@ const MemberManagement = () => {
                         <Checkbox />
                       </TableCell>
                       <TableCell className="font-medium">
-                        {`M${String(index + startIndex + 1).padStart(3, '0')}`}
+                        {`M${String((currentPage - 1) * pageSize + index + 1).padStart(3, '0')}`}
                       </TableCell>
                       <TableCell>{member.full_name || "N/A"}</TableCell>
                       <TableCell>{member.email || "N/A"}</TableCell>
