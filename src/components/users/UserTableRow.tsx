@@ -40,10 +40,11 @@ export const UserTableRow = ({
     role: ['admin', 'member', 'moderator', 'vendor'][rowIndex % 4],
   };
 
+  // Get the group name from the joined table or provide a fallback
+  const groupName = user.nd_user_group?.group_name || "-";
+  
   // Format the user_group and role as requested
-  const userGroupRole = user.user_group ? 
-    `${user.user_group}(${mockData.role})` : 
-    `-(${mockData.role})`;
+  const userGroupRole = `${groupName}(${mockData.role})`;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
