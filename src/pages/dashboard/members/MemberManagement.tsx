@@ -1,6 +1,6 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { Users, UserPlus, Clock, Activity, UserCheck } from "lucide-react";
@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
 
 const MemberManagement = () => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string | null>(null);
@@ -47,7 +48,6 @@ const MemberManagement = () => {
         query = query.order('created_at', { ascending: false });
       }
       
-      // Apply pagination
       query = query.range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
       
       const { data, error, count } = await query;
@@ -89,6 +89,10 @@ const MemberManagement = () => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString();
+  };
+
+  const handleAddNewMember = () => {
+    navigate("/dashboard/members/registration");
   };
 
   return (
@@ -172,7 +176,10 @@ const MemberManagement = () => {
               </svg>
               Export
             </Button>
-            <Button className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2">
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2" 
+              onClick={handleAddNewMember}
+            >
               <UserPlus className="h-4 w-4" />
               Add New Member
             </Button>
