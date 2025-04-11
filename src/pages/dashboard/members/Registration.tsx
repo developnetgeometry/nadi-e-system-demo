@@ -54,6 +54,7 @@ const Registration = () => {
           id: authData.user?.id,
           ...data,
           user_type: "member", // Always set as member
+          user_group: 7, // Set user_group to 7 by default
         });
 
         if (profileError) throw profileError;
@@ -65,6 +66,8 @@ const Registration = () => {
             full_name: data.full_name,
             ic_number: data.ic_number,
             phone_number: data.phone_number,
+            user_type: "member", // Always set as member
+            user_group: 7, // Set user_group to 7 by default
           })
           .eq("id", authData.user?.id);
 
