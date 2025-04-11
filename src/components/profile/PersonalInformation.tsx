@@ -1,17 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import styled from "styled-components";
-
-const ViewOnlyField = styled.div`
-  padding: 0.5rem;
-  border: 1px dotted #ccc;
-  border-radius: 0.375rem;
-  background-color: #f9f9f9;
-  color: #333;
-  font-size: 1rem;
-  line-height: 1.5;
-`;
 
 const PersonalInformation = ({
   profileData,
@@ -59,21 +48,21 @@ const PersonalInformation = ({
                 ? "Vendor ID"
                 : "DUSP ID"}
             </Label>
-            <ViewOnlyField>{profileData?.id || ""}</ViewOnlyField>
+            <Input id="id" type="text" value={profileData?.id || ""} readOnly />
           </div>
           <div>
             <Label htmlFor="is_active">Status</Label>
-            <ViewOnlyField>{profileData?.is_active ? "Active" : "Inactive"}</ViewOnlyField>
+            <Input id="is_active" type="text" value={profileData?.is_active ? "Active" : "Inactive"} readOnly />
           </div>
         </div>
         <div>
           <Label htmlFor="fullname">Full Name</Label>
-          <ViewOnlyField>{profileData?.fullname || ""}</ViewOnlyField>
+          <Input id="fullname" type="text" value={profileData?.fullname || ""} readOnly />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="ic_no">IC No</Label>
-            <ViewOnlyField>{profileData?.ic_no || ""}</ViewOnlyField>
+            <Input id="ic_no" type="text" value={profileData?.ic_no || ""} readOnly />
           </div>
           <div>
             <Label htmlFor="mobile_no">Mobile No</Label>
@@ -83,22 +72,22 @@ const PersonalInformation = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="position_id">Position</Label>
-            <ViewOnlyField>{positionName}</ViewOnlyField>
+            <Input id="position_id" type="text" value={positionName} readOnly />
           </div>
           <div>
             <Label htmlFor="work_email">Work Email</Label>
-            <ViewOnlyField>{profileData?.work_email || ""}</ViewOnlyField>
+            <Input id="work_email" type="text" value={profileData?.work_email || ""} readOnly />
           </div>
         </div>
         {userType?.startsWith("dusp") || userType?.startsWith("sso") ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="join_date">Join Date</Label>
-              <ViewOnlyField>{formatDate(profileData?.join_date)}</ViewOnlyField>
+              <Input id="join_date" type="text" value={formatDate(profileData?.join_date)} readOnly />
             </div>
             <div>
               <Label htmlFor="resign_date">Resign Date</Label>
-              <ViewOnlyField>{formatDate(profileData?.resign_date)}</ViewOnlyField>
+              <Input id="resign_date" type="text" value={formatDate(profileData?.resign_date)} readOnly />
             </div>
           </div>
         ) : null}
