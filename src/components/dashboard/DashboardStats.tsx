@@ -16,30 +16,39 @@ export const DashboardStats = ({ stats, isLoading }: DashboardStatsProps) => {
       value: isLoading ? "Loading..." : stats?.totalUsers.toString() || "0",
       icon: Users,
       description: "Total registered users in the system",
+      iconBgColor: "bg-blue-100",
+      iconTextColor: "text-blue-600",
     },
     {
       title: "Total Roles",
       value: isLoading ? "Loading..." : stats?.totalRoles.toString() || "0",
       icon: Shield,
       description: "Number of defined roles",
+      iconBgColor: "bg-purple-100",
+      iconTextColor: "text-purple-600",
     },
     {
       title: "Active Users",
       value: isLoading ? "Loading..." : stats?.activeUsers.toString() || "0",
       icon: UserCog,
       description: "Currently active users",
+      iconBgColor: "bg-green-100",
+      iconTextColor: "text-green-600",
     },
     {
       title: "Last Activity",
-      value: isLoading 
-        ? "Loading..." 
-        : stats?.lastActivity 
-          ? new Date(stats.lastActivity).toLocaleDateString() 
-          : "No activity",
+      value: isLoading
+        ? "Loading..."
+        : stats?.lastActivity
+        ? new Date(stats.lastActivity).toLocaleDateString()
+        : "No activity",
       icon: Activity,
       description: "Most recent system activity",
+      iconBgColor: "bg-orange-100",
+      iconTextColor: "text-orange-600",
     },
   ];
+  
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
