@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAssets } from "@/hooks/use-assets";
+import { useBrand } from "@/hooks/use-brand";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { Asset } from "@/types/asset";
@@ -48,6 +49,8 @@ export const AssetFormDialog = ({
     if (asset) {
       setAssetName(asset.name);
       setAssetType(String(asset.type_id));
+      setAssetBrandId(String(asset.brand_id));
+      setAssetDescription(asset.remark);
     }
   }, [asset]);
 
@@ -55,17 +58,17 @@ export const AssetFormDialog = ({
 
   const {
     data: assetTypes = [],
-    isLoading: isLoadingAssetType,
-    error,
+    isLoading: assetTypeIsLoading,
+    error: assetTypeError,
   } = useAssetTypesQuery();
 
-  // TODO: Replace with actual data
-  const brands = [
-    { id: "1", name: "Brand 1" },
-    { id: "2", name: "Brand 2" },
-    { id: "3", name: "Brand 3" },
-  ];
+  const {
+    data: brands,
+    isLoading: brandIsLoading,
+    error: brandError,
+  } = useBrand();
 
+  // TODO: Replace with actual data
   const locations = [
     { id: "1", name: "Location 1" },
     { id: "2", name: "Location 2" },
@@ -82,7 +85,7 @@ export const AssetFormDialog = ({
       name: formData.get("name"),
       type_id: formData.get("type"),
       brand_id: formData.get("brand"),
-      description: formData.get("description"),
+      remark: formData.get("description"),
       location_id: formData.get("location"),
     };
 
@@ -112,7 +115,7 @@ export const AssetFormDialog = ({
     }
   };
 
-  if (isLoadingAssetType) {
+  if (assetTypeIsLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         Loading...
@@ -120,11 +123,28 @@ export const AssetFormDialog = ({
     );
   }
 
-  if (error) {
-    console.error("Error fetching asset types:", error);
+  if (assetTypeError) {
+    console.error("Error fetching asset types:", assetTypeError);
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         Failed to load asset types
+      </Dialog>
+    );
+  }
+
+  if (brandIsLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        Loading...
+      </Dialog>
+    );
+  }
+
+  if (brandError) {
+    console.error("Error fetching brands:", brandError);
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        Failed to load brands
       </Dialog>
     );
   }
@@ -133,9 +153,11 @@ export const AssetFormDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3">
         <DialogHeader>
-          <DialogTitle>Add New Asset</DialogTitle>
+          <DialogTitle>{asset ? "Edit Asset" : "Add New Asset"}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to register a new asset
+            {asset
+              ? "Update asset details"
+              : "Fill in the details to create a new asset"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -147,6 +169,7 @@ export const AssetFormDialog = ({
               required
               placeholder="Enter asset name"
               value={assetName}
+              onChange={(e) => setAssetName(e.target.value)}
             />
           </div>
 
@@ -179,6 +202,7 @@ export const AssetFormDialog = ({
               required
               placeholder="Enter asset description"
               value={assetDescription}
+              onChange={(e) => setAssetDescription(e.target.value)}
             />
           </div>
 

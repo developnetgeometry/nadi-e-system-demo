@@ -1,3 +1,4 @@
+import { Brand } from "./brand";
 import { Site } from "./site";
 
 export interface Asset {
@@ -6,6 +7,7 @@ export interface Asset {
   site_id?: number;
   site?: Site;
   brand_id?: number;
+  brand?: Brand;
   is_active?: boolean;
   remark?: string;
   asset_group?: string;

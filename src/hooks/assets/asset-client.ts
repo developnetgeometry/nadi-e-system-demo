@@ -11,6 +11,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
+        nd_brand ( id, name ),
         site:nd_site (
           id,
           standard_code,
@@ -30,6 +31,7 @@ export const assetClient = {
       return {
         ...item,
         type: item.nd_asset_type,
+        brand: item.nd_brand,
         site: profile
           ? {
               ...profile,
@@ -48,6 +50,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
+        brand:nd_brand ( id, name ),
         site:nd_site (
           id,
           standard_code
@@ -63,6 +66,7 @@ export const assetClient = {
     return {
       ...data,
       type: data.nd_asset_type,
+      brand: data.brand,
       site: data.site,
     };
   },
