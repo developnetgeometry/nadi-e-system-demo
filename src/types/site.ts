@@ -26,6 +26,7 @@ export interface Site {
     id: string;
     name: string;
     parent?: {
+      id: string;
       name: string;
     };
   }; // Add dusp_tp field for organization details

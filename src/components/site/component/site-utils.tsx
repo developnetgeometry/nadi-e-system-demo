@@ -42,7 +42,7 @@ export const fetchSites = async (
         nd_parliament:nd_parliaments(id),
         nd_dun:nd_duns(id),
         nd_mukim:nd_mukims(id),
-        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(name))
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name))
       `
       )
       .order("created_at", { ascending: false });

@@ -14,12 +14,32 @@ import { Eye, EyeOff, Search, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { useAssets } from "@/hooks/use-assets";
+import { useOrganizations } from "@/hooks/use-organizations";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSites } from "../site/component/site-utils";
 import { AssetDeleteDialog } from "./AssetDeleteDialog";
 import { AssetDetailsDialog } from "./AssetDetailsDialog";
 import { AssetFormDialog } from "./AssetFormDialog";
 
 export const AssetList = () => {
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPUser =
+    parsedMetadata?.user_group_name === "TP" &&
+    !!parsedMetadata?.organization_id;
+  const isDUSPUser =
+    parsedMetadata?.user_group_name === "DUSP" &&
+    !!parsedMetadata?.organization_id;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    (isTPUser || isDUSPUser) &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
+
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Asset | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -29,8 +49,25 @@ export const AssetList = () => {
 
   const { data: assets, isLoading, error, refetch } = useAssetsQuery();
 
+  const { useOrganizationsByTypeQuery } = useOrganizations();
+
+  const { data: tps = [], isLoading: isLoadingTPs } =
+    useOrganizationsByTypeQuery("tp");
+
+  const { data: dusps = [], isLoading: isLoadingDusps } =
+    useOrganizationsByTypeQuery("dusp");
+
+  const { data: sites = [], isLoading: isLoadingSites } = useQuery({
+    queryKey: ["sites", organizationId],
+    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
+    enabled: !!organizationId || isSuperAdmin,
+  });
+
   const [filter, setFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState<number | string>("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [duspFilter, setDuspFilter] = useState<string>("");
+  const [tpFilter, setTpFilter] = useState<string>("");
+  const [siteFilter, setSiteFilter] = useState<string>("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -55,7 +92,20 @@ export const AssetList = () => {
 
   const filteredAssets = (assets ?? [])
     .filter((asset) => asset.name.toLowerCase().includes(filter.toLowerCase()))
-    .filter((asset) => (typeFilter ? asset.type.id === typeFilter : true));
+    .filter((asset) =>
+      typeFilter ? String(asset.type.id) === String(typeFilter) : true
+    )
+    .filter((asset) =>
+      duspFilter
+        ? String(asset?.site.dusp_tp.parent.id) === String(duspFilter)
+        : true
+    )
+    .filter((asset) =>
+      tpFilter ? String(asset?.site.dusp_tp_id) === String(tpFilter) : true
+    )
+    .filter((asset) =>
+      siteFilter ? String(asset?.site.id) === String(siteFilter) : true
+    );
 
   const paginatedSites = filteredAssets.slice(
     (currentPage - 1) * itemsPerPage,
@@ -79,12 +129,10 @@ export const AssetList = () => {
         <div className="relative">
           <select
             value={typeFilter}
-            onChange={(e) =>
-              setTypeFilter(e.target.value ? Number(e.target.value) : "")
-            }
+            onChange={(e) => setTypeFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
-            <option value="">All</option>
+            <option value="">All Types</option>
             {assetTypes.map((type) => (
               <option key={type.id} value={type.id}>
                 {type.name}
@@ -92,6 +140,57 @@ export const AssetList = () => {
             ))}
           </select>
         </div>
+        {isSuperAdmin && (
+          <div className="relative">
+            <select
+              value={duspFilter}
+              onChange={(e) => setDuspFilter(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isLoadingDusps}
+            >
+              <option value="">All DUSP</option>
+              {dusps.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {isSuperAdmin && (
+          <div className="relative">
+            <select
+              value={tpFilter}
+              onChange={(e) => setTpFilter(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isLoadingTPs}
+            >
+              <option value="">All TP</option>
+              {tps.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {isSuperAdmin && (
+          <div className="relative">
+            <select
+              value={siteFilter}
+              onChange={(e) => setSiteFilter(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isLoadingSites}
+            >
+              <option value="">All Sites</option>
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>
+                  {site.sitename}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
       <div className="rounded-md border">
         {isLoading ? (
@@ -102,6 +201,8 @@ export const AssetList = () => {
                 <TableHead>Item Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Quantity</TableHead>
+                {/* Add DUSP TP column for super admin */}
+                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
                 <TableHead>Nadi Center</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -150,6 +251,8 @@ export const AssetList = () => {
                 <TableHead>Item Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Quantity</TableHead>
+                {/* Add DUSP TP column for super admin */}
+                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
                 <TableHead>Nadi Center</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -168,11 +271,16 @@ export const AssetList = () => {
                       <TableCell>
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell>{asset?.name || ""}</TableCell>
-                      <TableCell>{asset?.type.name || ""}</TableCell>
-                      <TableCell>{asset?.qty_unit || ""}</TableCell>
-                      <TableCell>{asset?.site.sitename || ""}</TableCell>
-                      <TableCell>{requestDate || ""}</TableCell>
+                      <TableCell>{asset?.name || "N/A"}</TableCell>
+                      <TableCell>{asset?.type.name || "N/A"}</TableCell>
+                      <TableCell>{asset?.qty_unit || "N/A"}</TableCell>
+                      {isSuperAdmin && (
+                        <TableCell>
+                          {asset?.site.dusp_tp_id_display || "N/A"}
+                        </TableCell>
+                      )}
+                      <TableCell>{asset?.site.sitename || "N/A"}</TableCell>
+                      <TableCell>{requestDate || "N/A"}</TableCell>
                       <TableCell>
                         {asset?.is_active ? "Active" : "Inactive"}
                       </TableCell>
