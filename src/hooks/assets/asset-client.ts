@@ -18,6 +18,7 @@ export const assetClient = {
           site_profile_id
         )`
       )
+      .is("deleted_at", null)
       .order("id");
 
     if (error) {

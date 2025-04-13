@@ -24,7 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Textarea } from "../ui/textarea";
 
-interface AssetFormDialogProps {
+export interface AssetFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   asset?: Asset | null;
@@ -115,27 +115,11 @@ export const AssetFormDialog = ({
     }
   };
 
-  if (assetTypeIsLoading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        Loading...
-      </Dialog>
-    );
-  }
-
   if (assetTypeError) {
     console.error("Error fetching asset types:", assetTypeError);
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         Failed to load asset types
-      </Dialog>
-    );
-  }
-
-  if (brandIsLoading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        Loading...
       </Dialog>
     );
   }
@@ -180,6 +164,7 @@ export const AssetFormDialog = ({
               required
               value={assetBrandId}
               onValueChange={setAssetBrandId}
+              disabled={brandIsLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select brand" />
@@ -234,6 +219,7 @@ export const AssetFormDialog = ({
               required
               value={assetType}
               onValueChange={setAssetType}
+              disabled={assetTypeIsLoading}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select asset type" />

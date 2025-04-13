@@ -15,6 +15,7 @@ import { useState } from "react";
 
 import { useAssets } from "@/hooks/use-assets";
 import { Asset } from "@/types/asset";
+import { AssetDeleteDialog } from "./AssetDeleteDialog";
 import { AssetDetailsDialog } from "./AssetDetailsDialog";
 import { AssetFormDialog } from "./AssetFormDialog";
 
@@ -22,10 +23,11 @@ export const AssetList = () => {
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Asset | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { useAssetsQuery, useAssetTypesQuery } = useAssets();
 
-  const { data: assets, isLoading, error } = useAssetsQuery();
+  const { data: assets, isLoading, error, refetch } = useAssetsQuery();
 
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<number | string>("");
@@ -175,45 +177,50 @@ export const AssetList = () => {
                         {asset?.is_active ? "Active" : "Inactive"}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {}}
-                        >
-                          {asset.is_active ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setIsEditDialogOpen(true);
-                            setSelectedItem(asset);
-                          }}
-                        >
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => {}}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setIsViewDetailsDialogOpen(true);
-                            setSelectedItem(asset);
-                          }}
-                        >
-                          <Search className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {}}
+                          >
+                            {asset.is_active ? (
+                              <Eye className="h-4 w-4" />
+                            ) : (
+                              <EyeOff className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setIsEditDialogOpen(true);
+                              setSelectedItem(asset);
+                            }}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setIsDeleteDialogOpen(true);
+                              setSelectedItem(asset);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setIsViewDetailsDialogOpen(true);
+                              setSelectedItem(asset);
+                            }}
+                          >
+                            <Search className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -241,7 +248,20 @@ export const AssetList = () => {
       {isEditDialogOpen && (
         <AssetFormDialog
           open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) refetch();
+          }}
+          asset={selectedItem}
+        />
+      )}
+      {isDeleteDialogOpen && (
+        <AssetDeleteDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={(open) => {
+            setIsDeleteDialogOpen(open);
+            if (!open) refetch();
+          }}
           asset={selectedItem}
         />
       )}
