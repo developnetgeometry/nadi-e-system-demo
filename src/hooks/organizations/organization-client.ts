@@ -21,12 +21,21 @@ export const organizationClient = {
   /**
    * Fetch all organizations by type (dusp or tp)
    */
-  fetchOrganizationsByType: async (type: string): Promise<Organization[]> => {
-    const { data, error } = await supabase
+  fetchOrganizationsByType: async (
+    type: string,
+    dusp_id?: string
+  ): Promise<Organization[]> => {
+    let query = supabase
       .from("organizations")
       .select("*")
       .eq("type", type)
       .order("name");
+
+    if (dusp_id) {
+      query = query.eq("parent_id", dusp_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data as Organization[];

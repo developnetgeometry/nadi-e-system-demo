@@ -18,10 +18,15 @@ export const useOrganizationQueries = () => {
   /**
    * Query hook for fetching all organizations by type (dusp or tp)
    */
-  const useOrganizationsByTypeQuery = (type: string) =>
+  const useOrganizationsByTypeQuery = (
+    type: string,
+    enabled: boolean,
+    dusp_id?: string
+  ) =>
     useQuery({
       queryKey: ["organizations", type],
-      queryFn: () => organizationClient.fetchOrganizationsByType(type),
+      queryFn: () => organizationClient.fetchOrganizationsByType(type, dusp_id),
+      enabled: !!type && enabled,
     });
 
   /**

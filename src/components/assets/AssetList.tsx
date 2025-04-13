@@ -51,16 +51,20 @@ export const AssetList = () => {
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
-  const { data: tps = [], isLoading: isLoadingTPs } =
-    useOrganizationsByTypeQuery("tp");
-
   const { data: dusps = [], isLoading: isLoadingDusps } =
-    useOrganizationsByTypeQuery("dusp");
+    useOrganizationsByTypeQuery("dusp", isSuperAdmin);
+
+  const { data: tps = [], isLoading: isLoadingTPs } =
+    useOrganizationsByTypeQuery(
+      "tp",
+      isSuperAdmin || isDUSPUser,
+      organizationId
+    );
 
   const { data: sites = [], isLoading: isLoadingSites } = useQuery({
     queryKey: ["sites", organizationId],
     queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || isSuperAdmin,
+    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
   });
 
   const [filter, setFilter] = useState("");
@@ -157,7 +161,7 @@ export const AssetList = () => {
             </select>
           </div>
         )}
-        {isSuperAdmin && (
+        {(isSuperAdmin || isDUSPUser) && (
           <div className="relative">
             <select
               value={tpFilter}
@@ -174,7 +178,7 @@ export const AssetList = () => {
             </select>
           </div>
         )}
-        {isSuperAdmin && (
+        {(isSuperAdmin || isDUSPUser || isTPUser) && (
           <div className="relative">
             <select
               value={siteFilter}
