@@ -23,7 +23,8 @@ const AssetDashboard = () => {
       try {
         const { data: assets, error } = await supabase
           .from("nd_asset")
-          .select("is_active");
+          .select("is_active")
+          .is("deleted_at", null);
 
         if (error) throw error;
 
