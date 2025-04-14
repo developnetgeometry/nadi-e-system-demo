@@ -17,12 +17,15 @@ import {
 } from "@/components/ui/select";
 import { useAssets } from "@/hooks/use-assets";
 import { useBrand } from "@/hooks/use-brand";
+import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { supabase } from "@/lib/supabase";
 import { Asset } from "@/types/asset";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
+import { fetchSites } from "../site/component/site-utils";
 import { Textarea } from "../ui/textarea";
 
 export interface AssetFormDialogProps {
@@ -40,12 +43,52 @@ export const AssetFormDialog = ({
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  console.log(parsedMetadata);
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPUser =
+    parsedMetadata?.user_group_name === "TP" &&
+    !!parsedMetadata?.organization_id;
+  const isDUSPUser =
+    parsedMetadata?.user_group_name === "DUSP" &&
+    !!parsedMetadata?.organization_id;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    (isTPUser || isDUSPUser) &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
+
+  const { useOrganizationsByTypeQuery } = useOrganizations();
+
+  const { data: dusps = [], isLoading: duspsIsLoading } =
+    useOrganizationsByTypeQuery("dusp", isSuperAdmin);
+
+  const { data: tps = [], isLoading: tpsIsLoading } =
+    useOrganizationsByTypeQuery(
+      "tp",
+      isSuperAdmin || isDUSPUser,
+      organizationId
+    );
+
+  const { data: sites = [], isLoading: sitesIsLoading } = useQuery({
+    queryKey: ["sites", organizationId],
+    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
+    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
+  });
+
   const [assetId, setAssetId] = useState<string>(String(asset?.id) || null);
   const [assetName, setAssetName] = useState("");
   const [assetType, setAssetType] = useState("");
   const [assetBrandId, setAssetBrandId] = useState("");
   const [assetDescription, setAssetDescription] = useState("");
+  const [assetQuantity, setAssetQuantity] = useState("");
   const [assetLocationId, setAssetLocationId] = useState("");
+
+  const [duspId, setDuspId] = useState("");
+  const [tpId, setTpId] = useState("");
+  const [siteId, setSiteId] = useState("");
 
   const { useAssetTypesQuery } = useAssets();
 
@@ -72,25 +115,90 @@ export const AssetFormDialog = ({
     if (asset) {
       setAssetName(asset.name);
       setAssetDescription(asset.remark);
-      if (!brandIsLoading && !assetTypeIsLoading) {
+      setAssetQuantity(String(asset.qty_unit));
+      if (
+        !brandIsLoading &&
+        !assetTypeIsLoading &&
+        !duspsIsLoading &&
+        !tpsIsLoading &&
+        !sitesIsLoading
+      ) {
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
+        setDuspId(String(asset.site?.dusp_tp?.parent?.id));
+        setTpId(String(asset.site?.dusp_tp_id));
+        setSiteId(String(asset.site?.id));
       }
     }
-  }, [asset, brandIsLoading, assetTypeIsLoading]);
+  }, [
+    asset,
+    brandIsLoading,
+    assetTypeIsLoading,
+    duspsIsLoading,
+    tpsIsLoading,
+    sitesIsLoading,
+  ]);
+
+  useEffect(() => {
+    if (duspId) {
+      tps?.filter((tp) => tp?.parent_id?.toString() === duspId);
+    }
+
+    if (tpId) {
+      sites?.filter((site) => site?.dusp_tp_id?.toString() === tpId);
+    }
+  }, [duspId, tps, tpId, sites]);
+
+  useEffect(() => {
+    if (!open) {
+      setAssetId("");
+      setAssetName("");
+      setAssetType("");
+      setAssetBrandId("");
+      setAssetDescription("");
+      setAssetQuantity("");
+      setAssetLocationId("");
+      setDuspId("");
+      setTpId("");
+      setSiteId("");
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
 
+    setIsSubmitting(true);
+
+    let site_id = null;
+
+    if (!siteId) {
+      toast({
+        title: "Error",
+        description: "Please select a Site.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    } else {
+      const { data: site } = await supabase
+        .from("nd_site")
+        .select("id")
+        .eq("site_profile_id", siteId)
+        .single();
+
+      site_id = site?.id;
+    }
+
     const asset = {
       name: formData.get("name"),
-      type_id: formData.get("type"),
-      brand_id: formData.get("brand"),
+      type_id: assetType,
+      brand_id: assetBrandId,
       remark: formData.get("description"),
-      location_id: formData.get("location"),
+      qty_unit: formData.get("quantity"),
+      location_id: assetLocationId,
+      site_id: site_id,
     };
 
     try {
@@ -98,7 +206,10 @@ export const AssetFormDialog = ({
         console.log("Updating asset:", asset);
         const { error: updateError } = await supabase
           .from("nd_asset")
-          .update(asset)
+          .update({
+            ...asset,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", assetId);
 
         if (updateError) throw updateError;
@@ -109,9 +220,12 @@ export const AssetFormDialog = ({
         });
       } else {
         console.log("Creating new asset:", asset);
-        const { error: insertError } = await supabase
-          .from("nd_asset")
-          .insert([asset]);
+        const { error: insertError } = await supabase.from("nd_asset").insert([
+          {
+            ...asset,
+            created_at: new Date().toISOString(),
+          },
+        ]);
 
         if (insertError) throw insertError;
 
@@ -158,7 +272,7 @@ export const AssetFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2/3">
+      <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
         {brandIsLoading || assetTypeIsLoading ? (
           <LoadingSpinner />
         ) : (
@@ -185,6 +299,78 @@ export const AssetFormDialog = ({
                   onChange={(e) => setAssetName(e.target.value)}
                 />
               </div>
+
+              {isSuperAdmin && (
+                <div className="space-y-2">
+                  <Label htmlFor="type">DUSP</Label>
+                  <Select
+                    name="dusp"
+                    required
+                    value={duspId}
+                    onValueChange={setDuspId}
+                    disabled={dusps ? false : true}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select DUSP" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dusps.map((dusp, index) => (
+                        <SelectItem key={index} value={dusp.id.toString()}>
+                          {dusp.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {(isSuperAdmin || isDUSPUser) && (
+                <div className="space-y-2">
+                  <Label htmlFor="type">TP</Label>
+                  <Select
+                    name="tp"
+                    required
+                    value={tpId}
+                    onValueChange={setTpId}
+                    disabled={tps ? false : true}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select TP" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tps.map((tp, index) => (
+                        <SelectItem key={index} value={tp.id.toString()}>
+                          {tp.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {(isSuperAdmin || isDUSPUser || isTPUser) && (
+                <div className="space-y-2">
+                  <Label htmlFor="type">Site</Label>
+                  <Select
+                    name="site"
+                    required
+                    value={siteId}
+                    onValueChange={setSiteId}
+                    disabled={sites ? false : true}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select site" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sites.map((site, index) => (
+                        <SelectItem key={index} value={site.id.toString()}>
+                          {site.sitename}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="type">Brand</Label>
@@ -213,10 +399,22 @@ export const AssetFormDialog = ({
                 <Textarea
                   id="description"
                   name="description"
-                  required
                   placeholder="Enter asset description"
                   value={assetDescription}
                   onChange={(e) => setAssetDescription(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Quantity</Label>
+                <Input
+                  id="quantity"
+                  name="quantity"
+                  type="number"
+                  required
+                  placeholder="Enter asset quantity"
+                  value={assetQuantity}
+                  onChange={(e) => setAssetQuantity(e.target.value)}
+                  min={0}
                 />
               </div>
 
