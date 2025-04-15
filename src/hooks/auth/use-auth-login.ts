@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -50,16 +49,13 @@ export const useLogin = () => {
         throw profileError;
       }
 
-      console.log("Profile retrieved:", profile);
-
-      // Handle organization details for allowed user groups
+      // Handle organization details for tp_admin
       const { organizationId, organizationName } =
         await fetchOrganizationDetails(authData.user.id, profile);
 
       // Create user metadata
       const userMetadata: Record<string, any> = {
         user_type: profile?.user_type || "member",
-        user_group: profile?.user_group || 7,
         organization_id: organizationId,
         organization_name: organizationName,
       };
@@ -70,7 +66,7 @@ export const useLogin = () => {
           profile.nd_user_group?.group_name || null;
       }
 
-      console.log("User metadata prepared:", userMetadata);
+      console.log("User metadata:", userMetadata);
 
       // Store user session
       createUserSession(authData.user, profile, userMetadata);
