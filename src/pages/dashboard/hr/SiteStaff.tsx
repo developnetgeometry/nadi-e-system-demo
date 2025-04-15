@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UserPlus, Search, Filter } from "lucide-react";
+import { UserPlus, Search, Filter, Building } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -35,7 +35,7 @@ const statusColors = {
   Inactive: "bg-red-100 text-red-800",
 };
 
-const Employees = () => {
+const SiteStaff = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -292,17 +292,18 @@ const Employees = () => {
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Staff Management</h1>
+          <h1 className="text-3xl font-bold">Site Staff Management</h1>
           <Button onClick={handleAddStaff}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Add Staff
+            Add Site Staff
           </Button>
         </div>
 
         {organizationInfo.organization_name && (
           <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-200">
-            <p className="text-blue-800">
-              Managing staff for organization: <strong>{organizationInfo.organization_name}</strong>
+            <p className="text-blue-800 flex items-center">
+              <Building className="h-4 w-4 mr-2" />
+              Managing site staff for organization: <strong className="ml-1">{organizationInfo.organization_name}</strong>
             </p>
           </div>
         )}
@@ -420,4 +421,4 @@ const Employees = () => {
   );
 };
 
-export default Employees;
+export default SiteStaff;

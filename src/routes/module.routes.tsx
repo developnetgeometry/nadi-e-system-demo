@@ -2,6 +2,7 @@ import { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Employees from "@/pages/dashboard/hr/Employees";
+import SiteStaff from "@/pages/dashboard/hr/SiteStaff";
 import Attendance from "@/pages/dashboard/hr/Attendance";
 import Leave from "@/pages/dashboard/hr/Leave";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
@@ -47,6 +48,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_employees">
       <Employees />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hr/site-staff",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_site_staff">
+      <SiteStaff />
       // </ProtectedRoute>
     ),
   },
