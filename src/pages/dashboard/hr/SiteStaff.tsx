@@ -1,4 +1,5 @@
 
+// Replace imports
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PlusCircle, Search, UserCog, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
-import StaffFormDialog from "@/components/hr/StaffFormDialog";
+import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const SiteStaff = () => {

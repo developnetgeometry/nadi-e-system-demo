@@ -13,30 +13,25 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { getStatusMap } from "@/constants/status";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 const SiteClosureApproval = () => {
+    const navigate = useNavigate();
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const { userMetadata, isLoading: isMetadataLoading } = useUserMetadata();
-    const [userOrganizationId, setUserOrganizationId] = useState<string | undefined>(undefined);
+    const { parsedMetadata, isLoading: isMetadataLoading } = useUserMetadata();
+    const [organizationId, setOrganizationId] = useState<string | undefined>(undefined);
 
     useEffect(() => {
-        if (userMetadata) {
-            try {
-                const metadata = JSON.parse(userMetadata);
-                if (metadata?.organization_id) {
-                    setUserOrganizationId(metadata.organization_id);
-                }
-            } catch (error) {
-                console.error("Error parsing user metadata:", error);
-            }
+        if (parsedMetadata?.organization_id) {
+            setOrganizationId(parsedMetadata.organization_id);
         }
-    }, [userMetadata]);
+    }, [parsedMetadata]);
 
-    const isSuperAdmin = userMetadata?.user_type === "super_admin";
-    const isTPUser = userMetadata?.user_group_name === "TP" && !!userMetadata?.organization_id;
-    const isDUSPUser = userMetadata?.user_group_name === "DUSP" && !!userMetadata?.organization_id;
-    const organizationId = isTPUser || isDUSPUser ? userOrganizationId : null;
+    const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+    const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
+    const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
+    const organizationId = isTPUser || isDUSPUser ? organizationId : null;
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [STATUS, setSTATUS] = useState<Record<string, number>>({});

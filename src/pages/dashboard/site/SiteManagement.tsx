@@ -17,32 +17,25 @@ import { Badge } from "@/components/ui/badge";
 const SiteManagement = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { userMetadata, isLoading: isMetadataLoading } = useUserMetadata();
+  const { parsedMetadata, isLoading: isMetadataLoading } = useUserMetadata();
   const [userOrganizationId, setUserOrganizationId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (userMetadata) {
-      try {
-        const metadata = JSON.parse(userMetadata);
-        if (metadata?.organization_id) {
-          setUserOrganizationId(metadata.organization_id);
-        }
-      } catch (error) {
-        console.error("Error parsing user metadata:", error);
-      }
+    if (parsedMetadata?.organization_id) {
+      setUserOrganizationId(parsedMetadata.organization_id);
     }
-  }, [userMetadata]);
+  }, [parsedMetadata]);
 
   const { data: siteStats, isLoading } = useQuery({
     queryKey: ['site-stats', userOrganizationId],
-    queryFn: () => fetchSites(userOrganizationId, user?.user_group_name === "TP", user?.user_group_name === "DUSP"),
-    enabled: !!userOrganizationId || user?.user_type === "super_admin",
+    queryFn: () => fetchSites(userOrganizationId, parsedMetadata?.user_group_name === "TP", parsedMetadata?.user_group_name === "DUSP"),
+    enabled: !!userOrganizationId || parsedMetadata?.user_type === "super_admin",
   });
 
   const { data: actionableCount = 0, isLoading: isActionableLoading, refetch: refetchActionableCount } = useQuery({
     queryKey: ["actionable-request-count", userOrganizationId],
-    queryFn: () => fetchActionableRequestCount(userOrganizationId, user?.user_group_name === "TP", user?.user_group_name === "DUSP"),
-    enabled: !!userOrganizationId || user?.user_type === "super_admin",
+    queryFn: () => fetchActionableRequestCount(userOrganizationId, parsedMetadata?.user_group_name === "TP", parsedMetadata?.user_group_name === "DUSP"),
+    enabled: !!userOrganizationId || parsedMetadata?.user_type === "super_admin",
   });
 
   useEffect(() => {
@@ -73,7 +66,7 @@ const SiteManagement = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  if (user?.user_type !== "super_admin" && !userOrganizationId) {
+  if (parsedMetadata?.user_type !== "super_admin" && !userOrganizationId) {
     return <div>You do not have access to this dashboard.</div>;
   }
 

@@ -22,9 +22,12 @@ import { useNavigate } from 'react-router-dom';
 import { Skeleton } from "../ui/skeleton";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
+interface SiteListProps {
+  onEdit?: (site: Site) => void;
+}
+
 export function SiteList({ onEdit }: SiteListProps) {
-  const userMetadata = useUserMetadata();
-  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const { parsedMetadata } = useUserMetadata();
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
   const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
@@ -56,6 +59,7 @@ export function SiteList({ onEdit }: SiteListProps) {
     queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
     enabled: !!organizationId || isSuperAdmin,
   });
+
   const { data: phases = [] } = useQuery({
     queryKey: ['phases'],
     queryFn: fetchPhase,
@@ -236,7 +240,7 @@ export function SiteList({ onEdit }: SiteListProps) {
         </div>
       </div>
       <div className="rounded-md border">
-        {isLoading ? (
+        {isSitesLoading ? (
           <Table>
             <TableHeader>
               <TableRow>

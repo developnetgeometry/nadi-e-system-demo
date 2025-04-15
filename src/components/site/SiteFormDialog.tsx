@@ -1,7 +1,3 @@
-//FORM STILL NOT COMPLETE
-// TODO DUSP_TP UST CLUSTER
-// 
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,21 +32,14 @@ export function SiteFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Retrieve user metadata
-  const { userMetadata, isLoading: isMetadataLoading } = useUserMetadata();
+  const { parsedMetadata, isLoading: isMetadataLoading } = useUserMetadata();
   const [userOrganizationId, setUserOrganizationId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (userMetadata) {
-      try {
-        const metadata = JSON.parse(userMetadata);
-        if (metadata?.organization_id) {
-          setUserOrganizationId(metadata.organization_id);
-        }
-      } catch (error) {
-        console.error("Error parsing user metadata:", error);
-      }
+    if (parsedMetadata?.organization_id) {
+      setUserOrganizationId(parsedMetadata.organization_id);
     }
-  }, [userMetadata]);
+  }, [parsedMetadata]);
 
   // Hooks must be called unconditionally
   const [formState, setFormState] = useState({
@@ -388,7 +377,6 @@ export function SiteFormDialog({
     setIsSubmitting(true);
 
     try {
-
       // Check if the site code already exists (case-insensitive)
       const { data: existingSite, error: codeCheckError } = await supabase
         .from('nd_site')
@@ -442,7 +430,7 @@ export function SiteFormDialog({
         oku_friendly: formState.oku ?? null,
         operate_date: formState.operate_date || null,
         dusp_tp_id: formState.dusp_tp_id === '' ? null : formState.dusp_tp_id, // Add dusp_tp_id to site_profile
-        ...(site ? {} : organizationId ? { dusp_tp_id: organizationId } : {}), // Add dusp_tp_id only for creation and non-super_admin and TP group only
+        ...(site ? {} : userOrganizationId ? { dusp_tp_id: userOrganizationId } : {}), // Add dusp_tp_id only for creation and non-super_admin and TP group only
       };
 
       const site_address = {
@@ -580,6 +568,10 @@ export function SiteFormDialog({
         });
       }
 
+      if (onSuccess) {
+        onSuccess();
+      }
+      
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ['site-stats'] });
       queryClient.invalidateQueries({ queryKey: ['sites'] });
@@ -599,7 +591,7 @@ export function SiteFormDialog({
   };
 
   // Access control logic moved to the return statement
-  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
+  if (parsedMetadata?.user_type !== "super_admin" && !userOrganizationId) {
     return <div>You do not have access to create or edit sites.</div>;
   }
 
@@ -788,235 +780,4 @@ export function SiteFormDialog({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="building_level">Building level</Label>
-                <Select name="building_level" value={formState.building_level ?? undefined} onValueChange={(value) => setField('building_level', value)} disabled={isBuildingLevelLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select building level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                    {siteBuildingLevel.map((level) => (
-                      <SelectItem key={level.id} value={String(level.id)}>
-                        {level.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="oku">OKU Friendly</Label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="oku"
-                      checked={formState.oku === true}
-                      onChange={() => setField('oku', true)}
-                    />
-                    <span>Yes</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="oku"
-                      checked={formState.oku === false}
-                      onChange={() => setField('oku', false)}
-                    />
-                    <span>No</span>
-                  </label>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="socio_economic">Socio-Economic</Label>
-                <SelectMany
-                  options={socioEconomicOptions.map((option) => ({
-                    id: option.id,
-                    label: option.eng,
-                  }))}
-                  value={formState.socio_economic}
-                  onChange={(value) => setField("socio_economic", value)}
-                  placeholder="Select socio-economic"
-                  disabled={isSocioEconomicLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="space">Space</Label>
-                <SelectMany
-                  options={siteSpaceOptions.map((option) => ({
-                    id: option.id,
-                    label: option.eng,
-                  }))}
-                  value={formState.space}
-                  onChange={(value) => setField("space", value)}
-                  placeholder="Select space"
-                  disabled={isSiteSpaceLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select name="status" value={formState.status ?? undefined} onValueChange={(value) => setField('status', value)} disabled={isStatusLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {siteStatus.map((status) => (
-                      <SelectItem key={status.id} value={String(status.id)}>
-                        {status.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="operate_date">Operate Date</Label>
-                <DateInput
-                  id="operate_date"
-                  name="operate_date"
-                  value={formState.operate_date}
-                  onChange={(e) => setField('operate_date', e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="border-l border-gray-300"></div>
-            {/* Section 2 */}
-            <div className="flex-1 space-y-4">
-              <DialogTitle>Address Information</DialogTitle>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea id="address" name="address" value={formState.address} onChange={(e) => setField('address', e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address2">Address 2 (Optional)</Label>
-                <Textarea id="address2" name="address2" value={formState.address2} onChange={(e) => setField('address2', e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input id="city" name="city" value={formState.city} onChange={(e) => setField('city', e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="postCode">Postcode</Label>
-                <Input id="postCode" name="postCode" value={formState.postCode} onChange={(e) => setField('postCode', e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="region">Region</Label>
-                <Select name="region" value={formState.region ?? undefined} onValueChange={(value) => setField('region', value)} disabled={isRegionLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
-                    {siteRegion.map((region) => (
-                      <SelectItem key={region.id} value={String(region.id)}>
-                        {region.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Select name="state" value={formState.state ?? ''} onValueChange={(value) => setField('state', value)} disabled={isStateLoading || !formState.region}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
-                    {siteState.map((state) => (
-                      <SelectItem key={state.id} value={String(state.id)}>
-                        {state.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="district">District</Label>
-                <Select name="district" value={formState.district ?? ''} onValueChange={(value) => setField('district', value)} disabled={isDistrictLoading || !formState.state}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select district" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
-                    {siteDistrict.map((district) => (
-                      <SelectItem key={district.id} value={String(district.id)}>
-                        {district.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mukim">Mukim</Label>
-                <Select name="mukim" value={formState.mukim ?? ''} onValueChange={(value) => setField('mukim', value)} disabled={isMukimLoading || !formState.district}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select mukim" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
-                    {siteMukim.map((mukim) => (
-                      <SelectItem key={mukim.id} value={String(mukim.id)}>
-                        {mukim.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="parliament">Parliament</Label>
-                <Select name="parliament" value={formState.parliament ?? ''} onValueChange={(value) => setField('parliament', value)} disabled={isParliamentLoading || !formState.state}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parliament" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
-                    {siteParliament.map((parliament) => (
-                      <SelectItem key={parliament.id} value={String(parliament.id)}>
-                        {parliament.fullname}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dun">Dun</Label>
-                <Select name="dun" value={formState.dun ?? ''} onValueChange={(value) => setField('dun', value)} disabled={isDunLoading || !formState.parliament}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select dun" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem> {/* Add clearable option */}
-                    {siteDun.map((dun) => (
-                      <SelectItem key={dun.id} value={String(dun.id)}>
-                        {dun.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {/* <div className="border-l border-gray-300"></div> */}
-            {/* Section 3 */}
-            {/* <div className="flex-1 space-y-4">
-
-            </div> */}
-          </div>
-          {/* <div className="border-t border-gray-300"></div> */}
-
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (site ? "Updating..." : "Adding...") : (site ? "Update Site" : "Add Site")}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default SiteFormDialog;
+                <Select name="

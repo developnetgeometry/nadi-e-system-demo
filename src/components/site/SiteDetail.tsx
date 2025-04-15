@@ -610,46 +610,68 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBillingData.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.year}</TableCell>
-                    <TableCell>{item.month}</TableCell>
-                    <TableCell>{item.type_name}</TableCell>
-                    <TableCell>
-                      {item.file_path ? (
-                        <a
-                          href={item.file_path}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View PDF
-                        </a>
-                      ) : (
-                        "N/A"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedBillingData(item);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="text-destructive"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                {billingLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      Loading billing data...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : !billingData || billingData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No billing data found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  (() => {
+                    const filteredBillingData = billingData.filter(item => 
+                      (!yearFilter || item.year.toString() === yearFilter) &&
+                      (!monthFilter || item.month.toString() === monthFilter) &&
+                      (!typeFilter || (item.type_name && item.type_name.toLowerCase().includes(typeFilter.toLowerCase())))
+                    );
+                    
+                    return filteredBillingData.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.year}</TableCell>
+                        <TableCell>{item.month}</TableCell>
+                        <TableCell>{item.type_name}</TableCell>
+                        <TableCell>
+                          {item.file_path ? (
+                            <a
+                              href={item.file_path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View PDF
+                            </a>
+                          ) : (
+                            "N/A"
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedBillingData(item);
+                              setIsDialogOpen(true);
+                            }}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => handleDelete(item.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ));
+                  })()
+                )}
               </TableBody>
             </Table>
           </div>
