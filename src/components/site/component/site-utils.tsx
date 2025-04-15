@@ -85,6 +85,39 @@ export const fetchSites = async (
   }
 };
 
+export const fetchSiteBySiteProfileId = async (
+  siteProfileId: string
+): Promise<Site | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(
+        `
+        *,
+        nd_site_status:nd_site_status(eng),
+        nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
+        nd_site_socioeconomic:nd_site_socioeconomic(nd_socioeconomics:nd_socioeconomics(id,eng)),
+        nd_site_space:nd_site_space(nd_space:nd_space(id,eng)),
+        nd_phases:nd_phases(name),
+        nd_region:nd_region(eng),
+        nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
+        nd_parliament:nd_parliaments(id),
+        nd_dun:nd_duns(id),
+        nd_mukim:nd_mukims(id),
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name))
+      `
+      )
+      .eq("id", siteProfileId)
+      .single();
+
+    if (error) throw error;
+    return data as Site | null;
+  } catch (error) {
+    console.error("Error fetching site profile:", error);
+    throw error;
+  }
+};
+
 export const fetchSiteStatus = async (): Promise<SiteStatus[]> => {
   try {
     const { data, error } = await supabase.from("nd_site_status").select("*");

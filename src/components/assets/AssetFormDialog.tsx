@@ -32,12 +32,14 @@ export interface AssetFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   asset?: Asset | null;
+  defaultSiteId?: string | null;
 }
 
 export const AssetFormDialog = ({
   open,
   onOpenChange,
   asset,
+  defaultSiteId,
 }: AssetFormDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,7 +47,6 @@ export const AssetFormDialog = ({
 
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  console.log(parsedMetadata);
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const isTPUser =
     parsedMetadata?.user_group_name === "TP" &&
@@ -59,6 +60,7 @@ export const AssetFormDialog = ({
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
@@ -88,7 +90,7 @@ export const AssetFormDialog = ({
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
-  const [siteId, setSiteId] = useState("");
+  const [siteId, setSiteId] = useState(String(defaultSiteId) || "");
 
   const { useAssetTypesQuery } = useAssets();
 
@@ -173,7 +175,7 @@ export const AssetFormDialog = ({
 
     let site_id = null;
 
-    if (!siteId) {
+    if (!siteId && !isStaffUser) {
       toast({
         title: "Error",
         description: "Please select a Site.",
@@ -181,7 +183,12 @@ export const AssetFormDialog = ({
       });
       setIsSubmitting(false);
       return;
+    }
+
+    if (isStaffUser) {
+      site_id = defaultSiteId;
     } else {
+      //  site_idfrom asset data is actually site_profile_id, so we need to fetch the site_id
       const { data: site } = await supabase
         .from("nd_site")
         .select("id")
@@ -198,7 +205,7 @@ export const AssetFormDialog = ({
       remark: formData.get("description"),
       qty_unit: formData.get("quantity"),
       location_id: assetLocationId,
-      site_id: site_id,
+      site_id: String(site_id),
     };
 
     try {

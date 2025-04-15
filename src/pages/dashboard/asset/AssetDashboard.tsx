@@ -3,60 +3,79 @@ import { AssetList } from "@/components/assets/AssetList";
 import { AssetStatsCard } from "@/components/dashboard/asset/AssetStatsCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { useAssets } from "@/hooks/use-assets";
+import { useSiteId } from "@/hooks/use-site-id";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { AssetStatsCardProps, AssetStatsData } from "@/types/asset";
-import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const AssetDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const siteId = useSiteId();
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+
+  let assetStats: AssetStatsData = {
+    total: 0,
+    active: 0,
+    maintenance: 0,
+  };
+
+  const { useAssetsQuery } = useAssets();
+
   const {
-    data: assetStats = { total: 0, active: 0, maintenance: 0 },
-    isLoading,
-  } = useQuery({
-    queryKey: ["asset-stats"],
-    queryFn: async () => {
-      console.log("Fetching asset statistics...");
-      try {
-        const { data: assets, error } = await supabase
-          .from("nd_asset")
-          .select("is_active")
-          .is("deleted_at", null);
+    data: assets,
+    isLoading: isLoadingAssets,
+    error: errorAssets,
+    refetch,
+  } = useAssetsQuery();
 
-        if (error) throw error;
+  useEffect(() => {
+    if (!isDialogOpen) {
+      refetch();
+    }
+  }, [isDialogOpen, refetch]);
 
-        const stats: AssetStatsData = {
-          total: assets.length,
-          active: assets.filter((a) => a.is_active).length,
-          maintenance: assets.filter((a) => !a.is_active).length,
-        };
+  if (errorAssets) {
+    console.error(errorAssets);
+    return <div>Error fetching assets</div>;
+  }
 
-        return stats;
-      } catch (error) {
-        console.error("Error fetching asset stats:", error);
-        throw error;
-      }
-    },
-  });
+  const displayAssets = isStaffUser && !siteId ? [] : assets;
+
+  if (!isLoadingAssets && assets) {
+    if (displayAssets.length > 0) {
+      assetStats = {
+        total: displayAssets.length,
+        active: displayAssets.filter((a) => a?.is_active).length,
+        maintenance: displayAssets.filter((a) => !a?.is_active).length,
+      };
+    }
+  }
 
   const items: AssetStatsCardProps[] = [
     {
       title: "Total Assets",
-      value: isLoading ? "Loading..." : assetStats?.total.toString() || "0",
+      value: isLoadingAssets
+        ? "Loading..."
+        : assetStats?.total.toString() || "0",
       description: "Asset registered",
     },
     {
       title: "Active Assets",
-      value: isLoading ? "Loading..." : assetStats?.active.toString() || "0",
+      value: isLoadingAssets
+        ? "Loading..."
+        : assetStats?.active.toString() || "0",
       color: "green-600",
       description: "Currently in use",
     },
     {
       title: "Under Maintenance",
-      value: isLoading
+      value: isLoadingAssets
         ? "Loading..."
         : assetStats?.maintenance.toString() || "0",
       color: "red-600",
@@ -83,8 +102,16 @@ const AssetDashboard = () => {
           ))}
         </div>
 
-        <AssetList />
-        <AssetFormDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+        <AssetList
+          assets={displayAssets}
+          isLoadingAssets={isLoadingAssets}
+          refetch={refetch}
+        />
+        <AssetFormDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          defaultSiteId={isStaffUser && siteId ? siteId : null}
+        />
       </div>
     </DashboardLayout>
   );

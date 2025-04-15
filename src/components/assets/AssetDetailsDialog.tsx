@@ -96,7 +96,7 @@ export const AssetDetailsDialog = ({
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Nadi Center</span>
-              <span>{asset.site.sitename}</span>
+              <span>{asset.site?.sitename}</span>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Status</span>

@@ -15,6 +15,7 @@ import { useState } from "react";
 
 import { useAssets } from "@/hooks/use-assets";
 import { useOrganizations } from "@/hooks/use-organizations";
+import { useSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
@@ -23,7 +24,18 @@ import { AssetDeleteDialog } from "./AssetDeleteDialog";
 import { AssetDetailsDialog } from "./AssetDetailsDialog";
 import { AssetFormDialog } from "./AssetFormDialog";
 
-export const AssetList = () => {
+interface AssetListProps {
+  assets: Asset[];
+  isLoadingAssets: boolean;
+  refetch: () => void;
+}
+
+export const AssetList = ({
+  assets,
+  isLoadingAssets,
+  refetch,
+}: AssetListProps) => {
+  const siteId = useSiteId();
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
@@ -39,15 +51,14 @@ export const AssetList = () => {
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
 
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Asset | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { useAssetsQuery, useAssetTypesQuery } = useAssets();
-
-  const { data: assets, isLoading, error, refetch } = useAssetsQuery();
+  const { useAssetTypesQuery } = useAssets();
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
@@ -79,12 +90,7 @@ export const AssetList = () => {
   const { data: assetTypes = [], isLoading: isLoadingAssetType } =
     useAssetTypesQuery();
 
-  if (error) {
-    console.error("Error fetching assets:", error);
-    return <div>Error fetching assets</div>;
-  }
-
-  if (isLoading || isLoadingAssetType) {
+  if (isLoadingAssets || isLoadingAssetType) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
@@ -95,20 +101,20 @@ export const AssetList = () => {
   }
 
   const filteredAssets = (assets ?? [])
-    .filter((asset) => asset.name.toLowerCase().includes(filter.toLowerCase()))
+    .filter((asset) => asset?.name.toLowerCase().includes(filter.toLowerCase()))
     .filter((asset) =>
-      typeFilter ? String(asset.type.id) === String(typeFilter) : true
+      typeFilter ? String(asset?.type.id) === String(typeFilter) : true
     )
     .filter((asset) =>
       duspFilter
-        ? String(asset?.site.dusp_tp.parent.id) === String(duspFilter)
+        ? String(asset?.site?.dusp_tp.parent.id) === String(duspFilter)
         : true
     )
     .filter((asset) =>
-      tpFilter ? String(asset?.site.dusp_tp_id) === String(tpFilter) : true
+      tpFilter ? String(asset?.site?.dusp_tp_id) === String(tpFilter) : true
     )
     .filter((asset) =>
-      siteFilter ? String(asset?.site.id) === String(siteFilter) : true
+      siteFilter ? String(asset?.site?.id) === String(siteFilter) : true
     );
 
   const paginatedSites = filteredAssets.slice(
@@ -188,8 +194,8 @@ export const AssetList = () => {
             >
               <option value="">All Sites</option>
               {sites.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {site.sitename}
+                <option key={site?.id} value={site?.id}>
+                  {site?.sitename}
                 </option>
               ))}
             </select>
@@ -197,7 +203,7 @@ export const AssetList = () => {
         )}
       </div>
       <div className="rounded-md border">
-        {isLoading ? (
+        {isLoadingAssets ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -280,10 +286,10 @@ export const AssetList = () => {
                       <TableCell>{asset?.qty_unit || "N/A"}</TableCell>
                       {isSuperAdmin && (
                         <TableCell>
-                          {asset?.site.dusp_tp_id_display || "N/A"}
+                          {asset?.site?.dusp_tp_id_display || "N/A"}
                         </TableCell>
                       )}
-                      <TableCell>{asset?.site.sitename || "N/A"}</TableCell>
+                      <TableCell>{asset?.site?.sitename || "N/A"}</TableCell>
                       <TableCell>{requestDate || "N/A"}</TableCell>
                       <TableCell>
                         {asset?.is_active ? "Active" : "Inactive"}

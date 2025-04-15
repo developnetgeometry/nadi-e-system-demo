@@ -1,12 +1,19 @@
-import { fetchSites } from "@/components/site/component/site-utils";
+import {
+  fetchSiteBySiteProfileId,
+  fetchSites,
+} from "@/components/site/component/site-utils";
 import { supabase } from "@/lib/supabase";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
 
 export const assetClient = {
-  fetchAssets: async (organizationId: string | null): Promise<Asset[]> => {
+  fetchAssets: async (
+    organizationId: string | null,
+    siteId: string | null,
+    siteProfileId: string | null
+  ): Promise<Asset[]> => {
     const allSites = await fetchSites(organizationId);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("nd_asset")
       .select(
         `*,
@@ -18,33 +25,59 @@ export const assetClient = {
           site_profile_id
         )`
       )
-      .is("deleted_at", null)
-      .order("id");
+      .is("deleted_at", null);
+
+    if (siteId) {
+      query = query.eq("site_id", siteId);
+    }
+
+    query = query.order("id");
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching assets:", error);
       throw error;
     }
 
-    return data.map((item) => {
-      const profile = allSites.find((s) => s.id === item.site?.site_profile_id);
+    const filteredData = await Promise.all(
+      data.map(async (item) => {
+        if (organizationId) {
+          const profile = allSites.find(
+            (s) => s.id === item.site?.site_profile_id
+          );
 
-      return {
-        ...item,
-        type: item.nd_asset_type,
-        brand: item.nd_brand,
-        site: profile
-          ? {
+          return {
+            ...item,
+            type: item.nd_asset_type,
+            brand: item.nd_brand,
+            site: {
               ...profile,
               dusp_tp_id_display:
                 profile.dusp_tp && profile.dusp_tp.parent
                   ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
                   : profile.dusp_tp?.name ?? "N/A",
-            }
-          : undefined,
-      };
-    });
+            },
+          };
+        }
+
+        if (siteId) {
+          const profile = await fetchSiteBySiteProfileId(siteProfileId);
+          return {
+            ...item,
+            type: item.nd_asset_type,
+            brand: item.nd_brand,
+            site: {
+              ...profile,
+            },
+          };
+        }
+      })
+    );
+
+    return filteredData;
   },
+
   fetchAssetById: async (id: string): Promise<Asset> => {
     const { data, error } = await supabase
       .from("nd_asset")
