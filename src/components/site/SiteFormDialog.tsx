@@ -22,22 +22,35 @@ interface SiteFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   site?: Site | null; // Add optional site prop for editing
+  onSuccess?: () => void;
 }
 
-export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps) => {
+export function SiteFormDialog({
+  open,
+  onOpenChange,
+  site,
+  onSuccess,
+}: SiteFormDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Retrieve user metadata
-  const userMetadata = useUserMetadata();
-  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const organizationId =
-    parsedMetadata?.user_type !== "super_admin" &&
-    parsedMetadata?.user_group_name === "TP" &&
-    parsedMetadata?.organization_id
-      ? parsedMetadata.organization_id
-      : null;
+  const { userMetadata, isLoading: isMetadataLoading } = useUserMetadata();
+  const [userOrganizationId, setUserOrganizationId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (userMetadata) {
+      try {
+        const metadata = JSON.parse(userMetadata);
+        if (metadata?.organization_id) {
+          setUserOrganizationId(metadata.organization_id);
+        }
+      } catch (error) {
+        console.error("Error parsing user metadata:", error);
+      }
+    }
+  }, [userMetadata]);
 
   // Hooks must be called unconditionally
   const [formState, setFormState] = useState({

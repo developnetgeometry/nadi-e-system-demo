@@ -11,66 +11,69 @@ import { SiteFormDialog } from "@/components/site/SiteFormDialog";
 import { fetchSites } from "@/components/site/component/site-utils";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { useNavigate } from 'react-router-dom';
-import { fetchActionableRequestCount } from "@/components/site/queries/site-closure"; // Import the new query
-import { Badge } from "@/components/ui/badge"; // Import Badge component
+import { fetchActionableRequestCount } from "@/components/site/queries/site-closure";
+import { Badge } from "@/components/ui/badge";
 
-const SiteDashboard = () => {
+const SiteManagement = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const userMetadata = useUserMetadata();
-  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
-  const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
-  const organizationId =
-    parsedMetadata?.user_type !== "super_admin" &&
-    (isTPUser || isDUSPUser) &&
-    parsedMetadata?.organization_id
-      ? parsedMetadata.organization_id
-      : null;
+  const { userMetadata, isLoading: isMetadataLoading } = useUserMetadata();
+  const [userOrganizationId, setUserOrganizationId] = useState<string | undefined>(undefined);
 
-  // Hooks must be called unconditionally
+  useEffect(() => {
+    if (userMetadata) {
+      try {
+        const metadata = JSON.parse(userMetadata);
+        if (metadata?.organization_id) {
+          setUserOrganizationId(metadata.organization_id);
+        }
+      } catch (error) {
+        console.error("Error parsing user metadata:", error);
+      }
+    }
+  }, [userMetadata]);
+
   const { data: siteStats, isLoading } = useQuery({
-    queryKey: ['site-stats', organizationId],
-    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser), // Pass isTPUser and isDUSPUser flags
-    enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Disable query if no access
+    queryKey: ['site-stats', userOrganizationId],
+    queryFn: () => fetchSites(userOrganizationId, user?.user_group_name === "TP", user?.user_group_name === "DUSP"),
+    enabled: !!userOrganizationId || user?.user_type === "super_admin",
   });
 
   const { data: actionableCount = 0, isLoading: isActionableLoading, refetch: refetchActionableCount } = useQuery({
-    queryKey: ["actionable-request-count", organizationId],
-    queryFn: () => fetchActionableRequestCount(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Enable only if organizationId or super admin
+    queryKey: ["actionable-request-count", userOrganizationId],
+    queryFn: () => fetchActionableRequestCount(userOrganizationId, user?.user_group_name === "TP", user?.user_group_name === "DUSP"),
+    enabled: !!userOrganizationId || user?.user_type === "super_admin",
   });
 
   useEffect(() => {
-    // if (!organizationId) return; // Ensure organizationId is available before subscribing
+    if (!userOrganizationId) return;
 
     console.log("Subscribing to actionable request count changes");
     const channel = supabase
-      .channel("actionable_request_changes") // Create a channel for real-time updates
+      .channel("actionable_request_changes")
       .on(
         "postgres_changes",
         {
-          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
+          event: "*",
           schema: "public",
           table: "nd_site_closure"
         },
         (payload) => {
-          console.log("Database change detected for actionable requests:", payload); // Log the payload for debugging
-          refetchActionableCount(); // Refetch the actionable request count
+          console.log("Database change detected for actionable requests:", payload);
+          refetchActionableCount();
         }
       )
       .subscribe();
 
     return () => {
       console.log("Unsubscribing from actionable request count changes");
-      supabase.removeChannel(channel); // Cleanup the subscription when the component unmounts
+      supabase.removeChannel(channel);
     };
-  }, [organizationId, refetchActionableCount]); // Ensure dependencies are correct
+  }, [userOrganizationId, refetchActionableCount]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Access control logic moved to the return statement
-  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
+  if (user?.user_type !== "super_admin" && !userOrganizationId) {
     return <div>You do not have access to this dashboard.</div>;
   }
 
@@ -95,11 +98,6 @@ const SiteDashboard = () => {
                 </Badge>
               )}
             </Button>
-            {!isDUSPUser && ( // Hide "Add Site" button for DUSP users
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Add Site
-              </Button>
-            )}
           </div>
         </div>
         <div className="flex flex-col md:flex-row flex-wrap gap-4">
@@ -161,7 +159,7 @@ const SiteDashboard = () => {
         </div>
 
         <SiteList />
-        {isDialogOpen && ( // Render SiteFormDialog only when isDialogOpen is true
+        {isDialogOpen && (
           <SiteFormDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
         )}
       </div>
@@ -169,4 +167,4 @@ const SiteDashboard = () => {
   );
 };
 
-export default SiteDashboard;
+export default SiteManagement;

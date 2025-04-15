@@ -35,7 +35,7 @@ import useSiteGeneralData from "@/hooks/use-site-general-data";
 import useGeoData from "@/hooks/use-geo-data";
 import BillingFormDialog from "./BillingFormDialog";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import SiteClosure from "./SiteClosure"; // Adjust the path as necessary
+import SiteClosure from "./SiteClosure";
 import { useSiteBilling } from "./hook/use-site-billing";
 import { supabase } from "@/lib/supabase";
 import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
@@ -53,7 +53,7 @@ interface SiteDetailProps {
 const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBillingData, setSelectedBillingData] = useState(null);
-  const [refreshBilling, setRefreshBilling] = useState(false); // Add this state
+  const [refreshBilling, setRefreshBilling] = useState(false);
   const [isSiteClosureDialogOpen, setIsSiteClosureDialogOpen] = useState(false);
 
   const { data, loading, error } = useSiteProfile(siteId);
@@ -71,7 +71,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
     data: billingData,
     loading: billingLoading,
     error: billingError,
-  } = useSiteBilling(siteId, refreshBilling); // Pass refreshBilling state
+  } = useSiteBilling(siteId, refreshBilling);
   const {
     siteStatus,
     technology,
@@ -88,22 +88,26 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
   const [monthFilter, setMonthFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [activeTab, setActiveTab] = useState("details");
-  const userMetadata = useUserMetadata();
-  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const filteredBillingData = billingData.filter((item) => {
-    return (
-      (yearFilter ? item.year === parseInt(yearFilter) : true) &&
-      (monthFilter ? item.month === parseInt(monthFilter) : true) &&
-      (typeFilter ? item.type_name === typeFilter : true)
-    );
-  });
+  const { userMetadata, isLoading: isMetadataLoading } = useUserMetadata();
+  const [userType, setUserType] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userMetadata) {
+      try {
+        const metadata = JSON.parse(userMetadata);
+        setUserType(metadata?.user_type);
+      } catch (error) {
+        console.error("Error parsing user metadata:", error);
+      }
+    }
+  }, [userMetadata]);
+
   useEffect(() => {
     if (!isDialogOpen) {
-      setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
+      setRefreshBilling((prev) => !prev);
     }
   }, [isDialogOpen]);
 
-  // Function to handle delete a record
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this record?"
@@ -112,9 +116,9 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
 
     try {
       const { data: attachmentData, error: attachmentError } = await supabase
-        .from("nd_utilities_attachment") // Replace with your actual table name
+        .from("nd_utilities_attachment")
         .select("file_path")
-        .eq("utilities_id", id) // Assuming `utilities_id` links the file to the record
+        .eq("utilities_id", id)
         .single();
 
       if (attachmentError) {
@@ -122,18 +126,15 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
           "No associated file found or error fetching file path:",
           attachmentError
         );
-        // Proceed with record deletion even if the file path is not found
       } else if (attachmentData?.file_path) {
         const filePath = attachmentData.file_path;
 
-        // Extract the part of the file path after "//"
         const relativeFilePath = filePath.split("//")[2];
 
         console.log("File path translated:", relativeFilePath);
 
-        // Delete the file from storage
         const { error: storageError } = await supabase.storage
-          .from(BUCKET_NAME_UTILITIES) // Replace with your storage bucket name
+          .from(BUCKET_NAME_UTILITIES)
           .remove([relativeFilePath]);
 
         if (storageError) {
@@ -143,7 +144,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         }
       }
 
-      // Proceed with record deletion
       const { error } = await supabase
         .from("nd_utilities")
         .delete()
@@ -156,7 +156,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
       }
 
       alert("Record and associated file deleted successfully.");
-      setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
+      setRefreshBilling((prev) => !prev);
     } catch (error) {
       console.error("Error deleting record:", error);
       alert("An unexpected error occurred. Please try again.");
@@ -171,8 +171,8 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
     ReactDOM.render(
       <SiteClosure
         siteId={siteId}
-        siteDetails={data} // Pass the site details
-        location={addressData} // Pass the location data
+        siteDetails={data}
+        location={addressData}
         onSubmit={(closureData) => {
           console.log("Closure submitted:", closureData);
           ReactDOM.unmountComponentAtNode(modal);
@@ -218,7 +218,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
           </div>
         </div>
         <div className="flex gap-2">
-          {parsedMetadata?.user_type?.startsWith("staff") && (
+          {userType?.startsWith("staff") && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
@@ -236,7 +236,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
                 <DropdownMenuItem
                   onClick={() => {
                     console.log("Temporary Closure selected");
-                    // Add logic for Temporary Closure here
                   }}
                 >
                   Temporary Closure
@@ -244,7 +243,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {parsedMetadata?.user_type?.startsWith("staff") && (
+          {userType?.startsWith("staff") && (
             <Button
               onClick={() => {
                 setSelectedBillingData(null);
@@ -657,7 +656,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         </div>
       )}
 
-      {/* Render the BillingFormDialog independently */}
       <BillingFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -668,8 +666,8 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
       {isSiteClosureDialogOpen && (
         <SiteClosure
           siteId={siteId}
-          siteDetails={data} // Pass the site details
-          location={addressData} // Pass the location data
+          siteDetails={data}
+          location={addressData}
           onSubmit={(closureData) => {
             console.log("Closure submitted:", closureData);
             setIsSiteClosureDialogOpen(false);

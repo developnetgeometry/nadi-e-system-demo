@@ -13,7 +13,7 @@ import VendorProfileSettings from "@/components/profile/VendorProfileSettings";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const UserProfile = () => {
-  const userMetadata = useUserMetadata();
+  const { userMetadata, isLoading } = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const userType = parsedMetadata?.user_type;
 
