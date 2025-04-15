@@ -10,12 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, EyeOff, Search, Settings, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, Search, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { useAssets } from "@/hooks/use-assets";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useSiteId } from "@/hooks/use-site-id";
+import { useSpace } from "@/hooks/use-space";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
@@ -78,6 +79,12 @@ export const AssetList = ({
     enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
   });
 
+  const {
+    data: spaces,
+    isLoading: spacesIsLoading,
+    error: spaceError,
+  } = useSpace();
+
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [duspFilter, setDuspFilter] = useState<string>("");
@@ -117,7 +124,7 @@ export const AssetList = ({
       siteFilter ? String(asset?.site?.id) === String(siteFilter) : true
     );
 
-  const paginatedSites = filteredAssets.slice(
+  const paginatedAssets = filteredAssets.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -125,6 +132,76 @@ export const AssetList = ({
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, filteredAssets.length);
+
+  const exportAssetsAsCSV = (assets: Asset[]) => {
+    if (!assets || assets.length === 0) {
+      console.warn("No assets to export.");
+      return;
+    }
+
+    const headers = [
+      "No.",
+      "Name",
+      "Type",
+      "Brand",
+      "Quantity",
+      "Remark",
+      "NADI Centre",
+      "Location",
+    ];
+
+    if (isSuperAdmin) {
+      const insertIndex = headers.indexOf("NADI Centre");
+      headers.splice(insertIndex, 0, "TP (DUSP)");
+    }
+
+    // Convert assets to rows
+    const rows = assets.map((asset, index) => {
+      const location = spaces.find(
+        (space) => String(space.id) === String(asset.location_id)
+      );
+
+      const row = [
+        index + 1,
+        asset.name,
+        asset.type?.name ?? "",
+        asset.brand?.name ?? "",
+        asset.qty_unit ?? "",
+        asset.remark ?? "",
+        // we'll insert "TP (DUSP)" before sitename if isSuperAdmin is true
+        asset.site?.sitename ?? "",
+        location?.eng ?? "",
+      ];
+
+      if (isSuperAdmin) {
+        const insertIndex = row.length - 2; // before "NADI Centre"
+        row.splice(insertIndex, 0, asset.site?.dusp_tp_id_display ?? "");
+      }
+
+      return row;
+    });
+
+    const csvContent = [headers, ...rows]
+      .map((e) => e.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    return csvContent;
+  };
+
+  const handleExportAssets = () => {
+    const csvContent = exportAssetsAsCSV(filteredAssets);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "assets.csv");
+    link.style.display = "none";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-4">
@@ -201,6 +278,15 @@ export const AssetList = ({
             </select>
           </div>
         )}
+        <div className="relative">
+          <Button
+            disabled={spacesIsLoading}
+            onClick={() => handleExportAssets()}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download CSV
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         {isLoadingAssets ? (
@@ -213,7 +299,7 @@ export const AssetList = ({
                 <TableHead>Quantity</TableHead>
                 {/* Add DUSP TP column for super admin */}
                 {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
-                <TableHead>Nadi Center</TableHead>
+                <TableHead>Nadi Centre</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -263,15 +349,15 @@ export const AssetList = ({
                 <TableHead>Quantity</TableHead>
                 {/* Add DUSP TP column for super admin */}
                 {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
-                <TableHead>Nadi Center</TableHead>
+                <TableHead>Nadi Centre</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedSites &&
-                paginatedSites.map((asset, index) => {
+              {paginatedAssets &&
+                paginatedAssets.map((asset, index) => {
                   const requestDate = asset.created_at
                     ? asset.created_at.split("T")[0]
                     : "";
