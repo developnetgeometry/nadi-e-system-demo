@@ -1,7 +1,12 @@
 
 import { useState, useEffect } from "react";
 
-export const useUserMetadata = () => {
+export interface UserMetadataResult {
+  userMetadata: string | null;
+  isLoading: boolean;
+}
+
+export const useUserMetadata = (): UserMetadataResult => {
   const [userMetadata, setUserMetadata] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

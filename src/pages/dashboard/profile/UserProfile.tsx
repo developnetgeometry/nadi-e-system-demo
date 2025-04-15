@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
@@ -13,7 +14,12 @@ import VendorProfileSettings from "@/components/profile/VendorProfileSettings";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const UserProfile = () => {
-  const userMetadata = useUserMetadata();
+  const { userMetadata, isLoading } = useUserMetadata();
+  
+  if (isLoading) {
+    return <SettingsLoading />;
+  }
+  
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const userType = parsedMetadata?.user_type;
 

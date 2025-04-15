@@ -1,3 +1,4 @@
+
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import SiteDetail from "@/components/site/SiteDetail";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
@@ -6,7 +7,12 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const Site = () => {
   const siteId = useSiteId();
-  const userMetadata = useUserMetadata();
+  const { userMetadata, isLoading } = useUserMetadata();
+  
+  if (isLoading) {
+    return <SettingsLoading />;
+  }
+  
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const userGroup = parsedMetadata?.user_group_name;
 
