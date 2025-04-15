@@ -24,11 +24,7 @@ export async function createStaffMember(staffData: any) {
     }
 
     // Check if current user is authorized to create staff
-    const allowedCreatorTypes = [
-      "tp_admin", "tp_hr", "tp_management", "tp_finance", 
-      "dusp_admin", "dusp_management", "dusp_operation"
-    ];
-    
+    const allowedCreatorTypes = ["tp_admin", "tp_hr", "super_admin"];
     if (!allowedCreatorTypes.includes(currentUserProfile.user_type)) {
       throw new Error("User not allowed to create staff members");
     }
@@ -105,8 +101,12 @@ export async function createStaffMember(staffData: any) {
     }
 
     // 3. Create staff job record with the site location
-    // Ensure siteLocation is properly handled as a number (bigint)
-    const siteLocationId = parseInt(staffData.siteLocation, 10);
+    // The site_id column expects a bigint, make sure staffData.siteLocation is a number
+    // If it's a string, convert it to an integer
+    const siteLocationId =
+      typeof staffData.siteLocation === "string"
+        ? parseInt(staffData.siteLocation, 10)
+        : staffData.siteLocation;
 
     if (isNaN(siteLocationId)) {
       console.error("Invalid site location ID:", staffData.siteLocation);
@@ -123,7 +123,7 @@ export async function createStaffMember(staffData: any) {
     const { error: jobError } = await supabase.from("nd_staff_job").insert({
       staff_id: staffProfile.id, // This is a UUID
       site_id: siteLocationId, // Make sure this is properly converted to a bigint
-      join_date: staffData.employDate || new Date().toISOString().split("T")[0],
+      join_date: staffData.employDate,
       is_active: true,
       ...metaData  // Add standard metadata
     });
@@ -133,7 +133,7 @@ export async function createStaffMember(staffData: any) {
       throw jobError;
     }
 
-    // Initialize other staff-related tables as needed
+    // Initialize other staff-related tables that we want to provision with this staff member
     
     // Create empty staff pay info record
     const { error: payInfoError } = await supabase.from("nd_staff_pay_info").insert({
@@ -174,7 +174,7 @@ export async function createStaffMember(staffData: any) {
       staff_id: staffProfile.id,
       is_active: true,
       site_id: siteLocationId,
-      contract_start: staffData.employDate || new Date().toISOString().split("T")[0],
+      contract_start: staffData.employDate,
       user_id: authUser.id,
       ...metaData
     });
