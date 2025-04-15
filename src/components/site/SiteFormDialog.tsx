@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site, fetchSocioecomic, fetchSiteSpace, fetchOrganization } from "@/components/site/component/site-utils";
+import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchDun, fetchMukim, fetchState, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site, fetchSocioecomic, fetchSiteSpace, fetchOrganization } from "@/components/site/component/site-utils";
 import { Textarea } from "../ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
@@ -672,112 +673,213 @@ export function SiteFormDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="technology">Internet Technology</Label>
-                <Select name="technology" value={formState.technology ?? undefined} onValueChange={(value) => setField('technology', value)} disabled={isTechnologyLoading}>
+                <Label htmlFor="operate_date">Operation Date</Label>
+                <DateInput
+                  id="operate_date"
+                  value={formState.operate_date}
+                  onChange={(date) => setField('operate_date', date)}
+                />
+              </div>
+            </div>
+
+            {/* Section 2 */}
+            <div className="flex-1 space-y-4">
+              <DialogTitle>Address Information</DialogTitle>
+              <div className="space-y-2">
+                <Label htmlFor="region">Region</Label>
+                <Select name="region" value={formState.region ?? undefined} onValueChange={(value) => setField('region', value)} disabled={isRegionLoading}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select technology" />
+                    <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                    {siteTechnology.map((tech) => (
-                      <SelectItem key={tech.id} value={String(tech.id)}>
-                        {tech.name}
+                    {siteRegion.map((region) => (
+                      <SelectItem key={region.id} value={String(region.id)}>
+                        {region.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bandwidth">Internet Speed (Mbps)</Label>
-                <Select name="bandwidth" value={formState.bandwidth ?? undefined} onValueChange={(value) => setField('bandwidth', value)} disabled={isBandwidthLoading}>
+                <Label htmlFor="state">State</Label>
+                <Select name="state" value={formState.state ?? undefined} onValueChange={(value) => setField('state', value)} disabled={isStateLoading || !formState.region}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select bandwidth" />
+                    <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                    {siteBandwidth.map((bandwidth) => (
-                      <SelectItem key={bandwidth.id} value={String(bandwidth.id)}>
-                        {bandwidth.name}
+                    {siteState.map((state) => (
+                      <SelectItem key={state.id} value={String(state.id)}>
+                        {state.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="building_type">Building type</Label>
-                <Select name="building_type" value={formState.building_type ?? undefined} onValueChange={(value) => setField('building_type', value)} disabled={isBuildingTypeLoading}>
+                <Label htmlFor="district">District</Label>
+                <Select name="district" value={formState.district ?? undefined} onValueChange={(value) => setField('district', value)} disabled={isDistrictLoading || !formState.state}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select building type" />
+                    <SelectValue placeholder="Select district" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                    {siteBuildingType.map((type) => (
-                      <SelectItem key={type.id} value={String(type.id)}>
-                        {type.eng}
+                    {siteDistrict.map((district) => (
+                      <SelectItem key={district.id} value={String(district.id)}>
+                        {district.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="building_area">Building Area (sqft)</Label>
-                <Input id="building_area" name="building_area" type="number" placeholder="0" value={formState.building_area} onChange={(e) => setField('building_area', e.target.value)} />
+                <Label htmlFor="address">Address Line 1</Label>
+                <Input id="address" name="address" value={formState.address} onChange={(e) => setField('address', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="building_rental">Building rental</Label>
+                <Label htmlFor="address2">Address Line 2</Label>
+                <Input id="address2" name="address2" value={formState.address2} onChange={(e) => setField('address2', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input id="city" name="city" value={formState.city} onChange={(e) => setField('city', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="postCode">Postal Code</Label>
+                <Input id="postCode" name="postCode" value={formState.postCode} onChange={(e) => setField('postCode', e.target.value)} />
+              </div>
+            </div>
+
+            {/* Section 3 */}
+            <div className="flex-1 space-y-4">
+              <DialogTitle>Technical Information</DialogTitle>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select name="status" value={formState.status ?? undefined} onValueChange={(value) => setField('status', value)} disabled={isStatusLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
+                    {siteStatus.map((status) => (
+                      <SelectItem key={status.id} value={String(status.id)}>
+                        {status.status_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="parliament">Parliament</Label>
+                <Select name="parliament" value={formState.parliament ?? undefined} onValueChange={(value) => setField('parliament', value)} disabled={isParliamentLoading || !formState.state}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select parliament" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
+                    {siteParliament.map((parliament) => (
+                      <SelectItem key={parliament.id} value={String(parliament.id)}>
+                        {parliament.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dun">DUN</Label>
+                <Select name="dun" value={formState.dun ?? undefined} onValueChange={(value) => setField('dun', value)} disabled={isDunLoading || !formState.parliament}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select DUN" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
+                    {siteDun.map((dun) => (
+                      <SelectItem key={dun.id} value={String(dun.id)}>
+                        {dun.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mukim">Mukim</Label>
+                <Select name="mukim" value={formState.mukim ?? undefined} onValueChange={(value) => setField('mukim', value)} disabled={isMukimLoading || !formState.district}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select mukim" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
+                    {siteMukim.map((mukim) => (
+                      <SelectItem key={mukim.id} value={String(mukim.id)}>
+                        {mukim.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="oku">OKU Friendly</Label>
                 <div className="flex space-x-4">
                   <label className="flex items-center space-x-2">
                     <input
                       type="radio"
-                      name="building_rental"
-                      checked={formState.building_rental === true}
-                      onChange={() => setField('building_rental', true)}
+                      name="oku"
+                      checked={formState.oku === true}
+                      onChange={() => setField('oku', true)}
                     />
                     <span>Yes</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
                       type="radio"
-                      name="building_rental"
-                      checked={formState.building_rental === false}
-                      onChange={() => setField('building_rental', false)}
+                      name="oku"
+                      checked={formState.oku === false}
+                      onChange={() => setField('oku', false)}
                     />
                     <span>No</span>
                   </label>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="zone">Zone</Label>
-                <Select name="zone" value={formState.zone ?? undefined} onValueChange={(value) => setField('zone', value)} disabled={isZoneLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select zone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                    {siteZone.map((zone) => (
-                      <SelectItem key={zone.id} value={String(zone.id)}>
-                        {zone.area}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="socio_economic">Socio Economic Aspects</Label>
+                <SelectMany
+                  options={socioEconomicOptions.map((option) => ({
+                    value: option.id,
+                    label: option.type,
+                  }))}
+                  selected={formState.socio_economic}
+                  onChange={(values) => setField('socio_economic', values)}
+                  placeholder="Select socio-economic aspects"
+                  loading={isSocioEconomicLoading}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="area">Category Area</Label>
-                <Select name="area" value={formState.category_area ?? undefined} onValueChange={(value) => setField('category_area', value)} disabled={isCategoryAreaLoading}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Category Area" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                    {siteCategoryArea.map((catA) => (
-                      <SelectItem key={catA.id} value={String(catA.id)}>
-                        {catA.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="space">Site Space Usage</Label>
+                <SelectMany
+                  options={siteSpaceOptions.map((option) => ({
+                    value: option.id,
+                    label: option.space_name,
+                  }))}
+                  selected={formState.space}
+                  onChange={(values) => setField('space', values)}
+                  placeholder="Select site space usage"
+                  loading={isSiteSpaceLoading}
+                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="building_level">Building level</Label>
-                <Select name="
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-4 pt-4 border-t">
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : site ? "Update Site" : "Add Site"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
