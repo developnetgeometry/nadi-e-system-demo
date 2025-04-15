@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
@@ -19,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
@@ -27,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHasPermission } from "@/hooks/use-has-permission";
 import { useUserAccess } from "@/hooks/use-user-access";
 import { supabase } from "@/lib/supabase";
+import { createStaffMember } from "@/lib/staff";
 
 const SiteStaff = () => {
   const { toast } = useToast();
@@ -65,7 +65,6 @@ const SiteStaff = () => {
     }
   }, [userMetadata]);
 
-  // Fetch staff data from Supabase
   useEffect(() => {
     const fetchStaffData = async () => {
       try {
@@ -73,7 +72,6 @@ const SiteStaff = () => {
         
         setIsLoading(true);
         
-        // Get sites associated with organization
         const { data: sites, error: sitesError } = await supabase
           .from('nd_site_profile')
           .select('id, sitename')
@@ -94,8 +92,6 @@ const SiteStaff = () => {
         
         const siteIds = sites.map(site => site.id);
         
-        // Get staff contracts for the center staff user group
-        // And only staff_manager and staff_assistant_manager user types
         const { data: userProfiles, error: userProfilesError } = await supabase
           .from('profiles')
           .select('id, full_name, email, phone_number, ic_number, user_type')
@@ -110,10 +106,8 @@ const SiteStaff = () => {
           return;
         }
 
-        // Get user IDs from profiles to fetch their contracts and site association
         const userIds = userProfiles.map(profile => profile.id);
         
-        // Get staff contracts to associate users with sites
         const { data: staffContracts, error: contractsError } = await supabase
           .from('nd_staff_contract')
           .select('id, user_id, site_id, contract_start, is_active')
@@ -128,7 +122,6 @@ const SiteStaff = () => {
           return;
         }
 
-        // Get staff profiles for additional details
         const { data: staffProfiles, error: staffProfilesError } = await supabase
           .from('nd_staff_profile')
           .select('id, user_id, fullname, mobile_no, work_email, ic_no, is_active')
@@ -136,10 +129,8 @@ const SiteStaff = () => {
           
         if (staffProfilesError) throw staffProfilesError;
         
-        // Create a mapping of site IDs to site names
         const siteMap = new Map(sites.map(site => [site.id, site.sitename]));
         
-        // Combine the data to create the staff list
         const formattedStaff = staffContracts.map(contract => {
           const userProfile = userProfiles.find(profile => profile.id === contract.user_id);
           const staffProfile = staffProfiles?.find(profile => profile.user_id === contract.user_id);
@@ -162,7 +153,6 @@ const SiteStaff = () => {
         
         setStaffList(formattedStaff);
         
-        // Extract status options
         const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
         setStatusOptions(statuses);
         
