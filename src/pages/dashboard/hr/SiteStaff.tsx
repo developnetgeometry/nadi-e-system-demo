@@ -19,21 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/toast";
 import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useHasPermission } from "@/hooks/use-has-permission";
-import { createStaffMember } from "@/lib/staff";
 import { useUserAccess } from "@/hooks/use-user-access";
 import { supabase } from "@/lib/supabase";
-
-const statusColors = {
-  Active: "bg-green-100 text-green-800",
-  "On Leave": "bg-yellow-100 text-yellow-800",
-  Inactive: "bg-red-100 text-red-800",
-};
 
 const SiteStaff = () => {
   const { toast } = useToast();
@@ -102,10 +95,12 @@ const SiteStaff = () => {
         const siteIds = sites.map(site => site.id);
         
         // Get staff contracts for the center staff user group
+        // And only staff_manager and staff_assistant_manager user types
         const { data: userProfiles, error: userProfilesError } = await supabase
           .from('profiles')
           .select('id, full_name, email, phone_number, ic_number, user_type')
-          .like('user_group_name', '%Centre Staff%');
+          .like('user_group_name', '%Centre Staff%')
+          .in('user_type', ['staff_manager', 'staff_assistant_manager']);
           
         if (userProfilesError) throw userProfilesError;
         
@@ -386,7 +381,13 @@ const SiteStaff = () => {
                     </TableCell>
                     <TableCell>{staff.employDate ? formatDate(staff.employDate) : "-"}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={statusColors[staff.status]}>
+                      <Badge variant="outline" className={
+                        staff.status === "Active" 
+                          ? "bg-green-100 text-green-700 border-green-200" 
+                          : staff.status === "On Leave"
+                          ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                          : "bg-red-100 text-red-700 border-red-200"
+                      }>
                         {staff.status}
                       </Badge>
                     </TableCell>

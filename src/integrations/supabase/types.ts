@@ -738,17 +738,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_nd_asset_location"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "nd_location"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_site"
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_asset_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "nd_space"
             referencedColumns: ["id"]
           },
         ]
@@ -2033,7 +2033,6 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
-          dob: string | null
           dusp_id: number | null
           fullname: string | null
           ic_no: string | null
@@ -2043,7 +2042,6 @@ export type Database = {
           mobile_no: string | null
           position_id: number | null
           resign_date: string | null
-          site_id: number | null
           updated_at: string | null
           updated_by: string | null
           user_id: string | null
@@ -2052,7 +2050,6 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          dob?: string | null
           dusp_id?: number | null
           fullname?: string | null
           ic_no?: string | null
@@ -2062,7 +2059,6 @@ export type Database = {
           mobile_no?: string | null
           position_id?: number | null
           resign_date?: string | null
-          site_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
@@ -2071,7 +2067,6 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
-          dob?: string | null
           dusp_id?: number | null
           fullname?: string | null
           ic_no?: string | null
@@ -2081,13 +2076,19 @@ export type Database = {
           mobile_no?: string | null
           position_id?: number | null
           resign_date?: string | null
-          site_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
           work_email?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "nd_dusp_profile_dusp_id_fkey"
+            columns: ["dusp_id"]
+            isOneToOne: false
+            referencedRelation: "nd_dusp"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "nd_dusp_profile_position_id_fkey"
             columns: ["position_id"]
@@ -4017,6 +4018,13 @@ export type Database = {
             referencedRelation: "nd_position"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_mcmc_profile_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_member_address: {
@@ -4176,7 +4184,22 @@ export type Database = {
           updated_by?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_member_photo_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "nd_member_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_photo_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_member_profile: {
         Row: {
@@ -6603,6 +6626,7 @@ export type Database = {
           phase_id: number | null
           remark: string | null
           site_id: number | null
+          site_profile_id: number | null
           staff_id: number | null
           updated_at: string | null
           updated_by: string | null
@@ -6620,6 +6644,7 @@ export type Database = {
           phase_id?: number | null
           remark?: string | null
           site_id?: number | null
+          site_profile_id?: number | null
           staff_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -6637,12 +6662,35 @@ export type Database = {
           phase_id?: number | null
           remark?: string | null
           site_id?: number | null
+          site_profile_id?: number | null
           staff_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_contract_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_contract_site_profile_id_fkey"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_contract_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_job: {
         Row: {
@@ -6917,7 +6965,22 @@ export type Database = {
           updated_by?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_photo_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_photo_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_staff_profile: {
         Row: {
