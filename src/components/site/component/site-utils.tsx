@@ -33,7 +33,7 @@ export const fetchSites = async (
         `
         *,
         nd_site_status:nd_site_status(eng),
-        nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
+        nd_site:nd_site(id,standard_code,refid_tp,refid_mcmc),
         nd_site_socioeconomic:nd_site_socioeconomic(nd_socioeconomics:nd_socioeconomics(id,eng)),
         nd_site_space:nd_site_space(nd_space:nd_space(id,eng)),
         nd_phases:nd_phases(name),
@@ -85,17 +85,31 @@ export const fetchSites = async (
   }
 };
 
-export const fetchSiteBySiteProfileId = async (
-  siteProfileId: string
+export const fetchSiteBySiteId = async (
+  siteId: string
 ): Promise<Site | null> => {
+  if (!siteId || String(siteId).trim() === "" || siteId === "null") {
+    return null;
+  }
   try {
+    const { data: site } = await supabase
+      .from("nd_site")
+      .select("site_profile_id")
+      .eq("id", siteId)
+      .single();
+
+    if (!site) {
+      return null;
+    }
+    const siteProfileId = site.site_profile_id;
+
     const { data, error } = await supabase
       .from("nd_site_profile")
       .select(
         `
         *,
         nd_site_status:nd_site_status(eng),
-        nd_site:nd_site(standard_code,refid_tp,refid_mcmc),
+        nd_site:nd_site(id,standard_code,refid_tp,refid_mcmc),
         nd_site_socioeconomic:nd_site_socioeconomic(nd_socioeconomics:nd_socioeconomics(id,eng)),
         nd_site_space:nd_site_space(nd_space:nd_space(id,eng)),
         nd_phases:nd_phases(name),
@@ -113,7 +127,46 @@ export const fetchSiteBySiteProfileId = async (
     if (error) throw error;
     return data as Site | null;
   } catch (error) {
-    console.error("Error fetching site profile:", error);
+    console.error("Error fetching site profile by site ID:", error);
+    throw error;
+  }
+};
+export const fetchSiteBySiteProfileId = async (
+  siteProfileId: string
+): Promise<Site | null> => {
+  if (
+    !siteProfileId ||
+    String(siteProfileId).trim() === "" ||
+    siteProfileId === "null"
+  ) {
+    return null;
+  }
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(
+        `
+        *,
+        nd_site_status:nd_site_status(eng),
+        nd_site:nd_site(id,standard_code,refid_tp,refid_mcmc),
+        nd_site_socioeconomic:nd_site_socioeconomic(nd_socioeconomics:nd_socioeconomics(id,eng)),
+        nd_site_space:nd_site_space(nd_space:nd_space(id,eng)),
+        nd_phases:nd_phases(name),
+        nd_region:nd_region(eng),
+        nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
+        nd_parliament:nd_parliaments(id),
+        nd_dun:nd_duns(id),
+        nd_mukim:nd_mukims(id),
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name))
+      `
+      )
+      .eq("id", siteProfileId)
+      .single();
+
+    if (error) throw error;
+    return data as Site | null;
+  } catch (error) {
+    console.error("Error fetching site profile by site profile ID:", error);
     throw error;
   }
 };

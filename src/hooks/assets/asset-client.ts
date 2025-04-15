@@ -1,5 +1,5 @@
 import {
-  fetchSiteBySiteProfileId,
+  fetchSiteBySiteId,
   fetchSites,
 } from "@/components/site/component/site-utils";
 import { supabase } from "@/lib/supabase";
@@ -9,8 +9,7 @@ import { Site } from "@/types/site";
 export const assetClient = {
   fetchAssets: async (
     organizationId: string | null,
-    siteId: string | null,
-    siteProfileId: string | null
+    siteId: string | null
   ): Promise<Asset[]> => {
     const allSites = await fetchSites(organizationId);
 
@@ -52,8 +51,8 @@ export const assetClient = {
       data.map(async (item) => {
         let profile = null;
 
-        if (siteId && siteProfileId) {
-          profile = await fetchSiteBySiteProfileId(siteProfileId);
+        if (siteId) {
+          profile = await fetchSiteBySiteId(siteId);
         } else {
           profile = allSites.find((s) => s.id === item.site?.site_profile_id);
           profile = formatProfile(profile);

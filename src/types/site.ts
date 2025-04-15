@@ -34,6 +34,7 @@ export interface Site {
     eng: string;
   };
   nd_site: {
+    id: string;
     standard_code: string;
     refid_tp: string;
     refid_mcmc: string;

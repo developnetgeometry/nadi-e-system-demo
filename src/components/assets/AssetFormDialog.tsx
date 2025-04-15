@@ -17,23 +17,23 @@ import {
 } from "@/components/ui/select";
 import { useAssets } from "@/hooks/use-assets";
 import { useBrand } from "@/hooks/use-brand";
-import { useLocation } from "@/hooks/use-location";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { supabase } from "@/lib/supabase";
 import { Asset } from "@/types/asset";
+import { Site, Space } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { fetchSites } from "../site/component/site-utils";
+import { fetchSiteBySiteId, fetchSites } from "../site/component/site-utils";
 import { Textarea } from "../ui/textarea";
 
 export interface AssetFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   asset?: Asset | null;
-  defaultSiteId?: string | null;
+  defaultSiteId?: string | null; // default site id passed from parent componenet in site.id form not site_profile.id
 }
 
 export const AssetFormDialog = ({
@@ -91,7 +91,11 @@ export const AssetFormDialog = ({
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
-  const [siteId, setSiteId] = useState(String(defaultSiteId) || "");
+  const [siteId, setSiteId] = useState<string>(
+    String(defaultSiteId) || String(asset?.site_id) || ""
+  );
+  const [selectedSite, setSelectedSite] = useState<Site | null>(null);
+  const [locations, setLocations] = useState<Space[]>([]);
 
   const { useAssetTypesQuery } = useAssets();
 
@@ -107,37 +111,30 @@ export const AssetFormDialog = ({
     error: brandError,
   } = useBrand();
 
-  const {
-    data: locations,
-    isLoading: locationIsLoading,
-    error: locationError,
-  } = useLocation();
-
   useEffect(() => {
     if (asset) {
+      console.log("asset", asset);
       setAssetName(asset.name);
       setAssetDescription(asset.remark);
       setAssetQuantity(String(asset.qty_unit));
-      if (
-        !brandIsLoading &&
-        !locationIsLoading &&
-        !assetTypeIsLoading &&
-        !duspsIsLoading &&
-        !tpsIsLoading &&
-        !sitesIsLoading
-      ) {
+      setLocations(
+        (asset.site?.nd_site_space ?? []).map((s): Space => s.nd_space)
+      );
+      if (!brandIsLoading && !assetTypeIsLoading) {
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
         setAssetLocationId(String(asset.location_id));
+        console.log("asset.location_id", asset.location_id);
+      }
+      if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading) {
         setDuspId(String(asset.site?.dusp_tp?.parent?.id));
         setTpId(String(asset.site?.dusp_tp_id));
-        setSiteId(String(asset.site?.id));
+        setSiteId(String(asset.site_id));
       }
     }
   }, [
     asset,
     brandIsLoading,
-    locationIsLoading,
     assetTypeIsLoading,
     duspsIsLoading,
     tpsIsLoading,
@@ -169,14 +166,41 @@ export const AssetFormDialog = ({
     }
   }, [open]);
 
+  useEffect(() => {
+    const fetchSite = async () => {
+      const site = await fetchSiteBySiteId(siteId!); // this in nd_site.id form
+      if (site) {
+        setSelectedSite(site);
+        if (!isStaffUser) {
+          const locations = (site.nd_site_space ?? []).map(
+            (s): Space => s.nd_space
+          );
+          setLocations(locations);
+        }
+
+        if (asset) {
+          const match = (site.nd_site_space ?? []).find(
+            (s) => String(s.nd_space.id) === String(asset.location_id)
+          );
+          setAssetLocationId(match ? String(asset.location_id) : "");
+        }
+      }
+    };
+
+    if (siteId) {
+      if (!isStaffUser) {
+        setLocations([]);
+      }
+      fetchSite();
+    }
+  }, [siteId, isStaffUser, asset]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
 
     setIsSubmitting(true);
-
-    let site_id = null;
 
     if (!siteId && !isStaffUser) {
       toast({
@@ -188,19 +212,6 @@ export const AssetFormDialog = ({
       return;
     }
 
-    if (isStaffUser) {
-      site_id = defaultSiteId;
-    } else {
-      //  site_idfrom asset data is actually site_profile_id, so we need to fetch the site_id
-      const { data: site } = await supabase
-        .from("nd_site")
-        .select("id")
-        .eq("site_profile_id", siteId)
-        .single();
-
-      site_id = site?.id;
-    }
-
     const asset = {
       name: formData.get("name"),
       type_id: assetType,
@@ -208,7 +219,7 @@ export const AssetFormDialog = ({
       remark: formData.get("description"),
       qty_unit: formData.get("quantity"),
       location_id: assetLocationId,
-      site_id: String(site_id),
+      site_id: String(selectedSite?.nd_site?.[0]?.id),
     };
 
     try {
@@ -284,7 +295,9 @@ export const AssetFormDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
         {brandIsLoading || assetTypeIsLoading ? (
-          <LoadingSpinner />
+          <DialogTitle>
+            <LoadingSpinner />
+          </DialogTitle>
         ) : (
           <div>
             <DialogHeader className="mb-2">
@@ -373,7 +386,10 @@ export const AssetFormDialog = ({
                     </SelectTrigger>
                     <SelectContent>
                       {sites.map((site, index) => (
-                        <SelectItem key={index} value={site.id.toString()}>
+                        <SelectItem
+                          key={index}
+                          value={site.nd_site[0].id.toString()}
+                        >
                           {site.sitename}
                         </SelectItem>
                       ))}
@@ -435,16 +451,24 @@ export const AssetFormDialog = ({
                   required
                   value={assetLocationId}
                   onValueChange={setAssetLocationId}
+                  disabled={locations && locations.length > 0 ? false : true}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select asset location" />
+                    <SelectValue
+                      placeholder={
+                        locations && locations.length > 0
+                          ? "Select asset location"
+                          : "No locations found for this site"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {locations.map((location, index) => (
-                      <SelectItem key={index} value={location.id.toString()}>
-                        {location.name}
-                      </SelectItem>
-                    ))}
+                    {locations &&
+                      locations.map((location, index) => (
+                        <SelectItem key={index} value={location.id.toString()}>
+                          {location.eng}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
