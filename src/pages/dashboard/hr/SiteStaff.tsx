@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
   Table,
@@ -80,6 +80,26 @@ const SiteStaff = () => {
         
         setIsLoading(true);
         
+        // First, get profiles with staff_manager or staff_assistant_manager user_type
+        // or with user_group = 6
+        const { data: staffProfiles, error: staffProfilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, phone_number, ic_number, user_type, user_group, created_at')
+          .or('user_type.eq.staff_manager,user_type.eq.staff_assistant_manager,user_group.eq.6');
+          
+        if (staffProfilesError) throw staffProfilesError;
+        
+        if (!staffProfiles || staffProfiles.length === 0) {
+          setStaffList([]);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log("Found staff profiles:", staffProfiles.length);
+        
+        // Get the user IDs from staff profiles
+        const userIds = staffProfiles.map(profile => profile.id);
+        
         // Get sites associated with organization
         const { data: sites, error: sitesError } = await supabase
           .from('nd_site_profile')
@@ -89,89 +109,43 @@ const SiteStaff = () => {
         if (sitesError) throw sitesError;
         
         if (!sites || sites.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
+          console.log("No sites found for organization");
         }
         
-        const siteIds = sites.map(site => site.id);
+        const siteIds = sites?.map(site => site.id) || [];
         
-        // Get staff jobs for these sites
-        const { data: staffJobs, error: staffJobsError } = await supabase
-          .from('nd_staff_job')
-          .select('id, staff_id, site_id, join_date, is_active')
-          .in('site_id', siteIds);
+        // Get staff contracts to link staff to sites
+        const { data: staffContracts, error: contractsError } = await supabase
+          .from('nd_staff_contract')
+          .select('user_id, site_id, contract_start, is_active')
+          .in('user_id', userIds)
+          .in('site_id', siteIds.length > 0 ? siteIds : [0]); // Fallback to impossible ID if no sites
           
-        if (staffJobsError) throw staffJobsError;
+        if (contractsError) throw contractsError;
         
-        if (!staffJobs || staffJobs.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // Get the staff IDs from the jobs to fetch staff profiles
-        const staffIds = staffJobs.map(job => job.staff_id);
-
-        // Fetch staff profiles by ID
-        const { data: staffProfiles, error: staffProfilesError } = await supabase
-          .from('nd_staff_profile')
-          .select('id, fullname, work_email, mobile_no, ic_no, is_active, user_id')
-          .in('id', staffIds);
-          
-        if (staffProfilesError) throw staffProfilesError;
-        
-        if (!staffProfiles || staffProfiles.length === 0) {
-          console.log("No staff profiles found for the given jobs");
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // Get the user IDs from staff profiles to fetch user types
-        const userIds = staffProfiles
-          .map(profile => profile.user_id)
-          .filter(id => id !== null && id !== undefined);
-        
-        let userTypesData = [];
-        if (userIds.length > 0) {
-          // Fetch user types from profiles table
-          const { data: userProfiles, error: userProfilesError } = await supabase
-            .from('profiles')
-            .select('id, user_type')
-            .eq('user_group', 6)
-            .in('id', userIds);
-          
-          if (userProfilesError) throw userProfilesError;
-          userTypesData = userProfiles || [];
-        }
-        
-        // Map the data to our staffList format by joining the data manually
-        const formattedStaff = staffJobs.map(job => {
-          const staffProfile = staffProfiles.find(profile => profile.id === job.staff_id);
-          if (!staffProfile) return null;
-
-          const userProfile = userTypesData.find(p => p.id === staffProfile.user_id);
-          const site = sites.find(s => s.id === job.site_id);
+        // Map the data to our staffList format
+        const formattedStaff = staffProfiles.map(profile => {
+          const contract = staffContracts?.find(c => c.user_id === profile.id);
+          const site = sites?.find(s => s.id === contract?.site_id);
           
           return {
-            id: staffProfile.id,
-            name: staffProfile.fullname || 'Unknown',
-            email: staffProfile.work_email || '',
-            userType: userProfile?.user_type || 'Unknown',
-            employDate: job.join_date,
-            status: staffProfile.is_active ? 'Active' : 'Inactive',
-            siteLocation: site?.sitename || 'Unknown site',
-            phone_number: staffProfile.mobile_no || '',
-            ic_number: staffProfile.ic_no || '',
+            id: profile.id,
+            name: profile.full_name || 'Unknown',
+            email: profile.email || '',
+            userType: profile.user_type || 'Unknown',
+            employDate: contract?.contract_start || null,
+            status: contract?.is_active ? 'Active' : 'Inactive',
+            siteLocation: site?.sitename || 'Unassigned',
+            phone_number: profile.phone_number || '',
+            ic_number: profile.ic_number || '',
           };
-        }).filter(Boolean);
+        });
         
         setStaffList(formattedStaff);
         
         // Extract location and status options
-        const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation))];
-        const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
+        const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation).filter(Boolean))];
+        const statuses = [...new Set(formattedStaff.map(staff => staff.status).filter(Boolean))];
         
         setLocationOptions(locations);
         setStatusOptions(statuses);
@@ -191,20 +165,22 @@ const SiteStaff = () => {
     fetchStaffData();
   }, [organizationInfo.organization_id, toast]);
 
-  const filteredStaff = staffList.filter((staff) => {
-    const matchesSearch =
-      staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (staff.userType && staff.userType.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (staff.siteLocation && staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (staff.email && staff.email.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredStaff = useMemo(() => {
+    return staffList.filter((staff) => {
+      const matchesSearch =
+        staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (staff.userType && staff.userType.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (staff.siteLocation && staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (staff.email && staff.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesLocation =
-      locationFilter === "all" || staff.siteLocation === locationFilter;
+      const matchesLocation =
+        locationFilter === "all" || staff.siteLocation === locationFilter;
 
-    const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
-    return matchesSearch && matchesLocation && matchesStatus;
-  });
+      return matchesSearch && matchesLocation && matchesStatus;
+    });
+  }, [staffList, searchQuery, locationFilter, statusFilter]);
 
   const handleAddStaff = () => {
     if (!organizationInfo.organization_id) {
@@ -281,6 +257,7 @@ const SiteStaff = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-MY", {
       year: "numeric",
