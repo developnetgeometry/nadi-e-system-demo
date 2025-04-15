@@ -38,7 +38,6 @@ const statusColors = {
 const Employees = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
@@ -47,7 +46,6 @@ const Employees = () => {
   const { user } = useAuth();
   const hasPermission = useHasPermission('create_users');
   const { userType } = useUserAccess();
-  const [locationOptions, setLocationOptions] = useState<string[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
   
   const [organizationInfo, setOrganizationInfo] = useState<{
@@ -80,99 +78,69 @@ const Employees = () => {
         
         setIsLoading(true);
         
-        // Get sites associated with organization
-        const { data: sites, error: sitesError } = await supabase
-          .from('nd_site_profile')
-          .select('id, sitename')
-          .eq('dusp_tp_id', organizationInfo.organization_id);
-          
-        if (sitesError) throw sitesError;
-        
-        if (!sites || sites.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-        
-        const siteIds = sites.map(site => site.id);
-        
-        // Get staff jobs for these sites
-        const { data: staffJobs, error: staffJobsError } = await supabase
-          .from('nd_staff_job')
-          .select('id, staff_id, site_id, join_date, is_active')
-          .in('site_id', siteIds);
-          
-        if (staffJobsError) throw staffJobsError;
-        
-        if (!staffJobs || staffJobs.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // Get the staff IDs from the jobs to fetch staff profiles
-        const staffIds = staffJobs.map(job => job.staff_id);
-
-        // Fetch staff profiles by ID
+        // Fetch users with user_group=3 (TP users) under the same organization_id
         const { data: staffProfiles, error: staffProfilesError } = await supabase
-          .from('nd_staff_profile')
-          .select('id, fullname, work_email, mobile_no, ic_no, is_active, user_id')
-          .in('id', staffIds);
+          .from('profiles')
+          .select('id, full_name, email, phone_number, ic_number, user_type, created_at, user_group')
+          .eq('user_group', 3)
+          .neq('id', user?.id); // Exclude current user
           
         if (staffProfilesError) throw staffProfilesError;
         
         if (!staffProfiles || staffProfiles.length === 0) {
-          console.log("No staff profiles found for the given jobs");
           setStaffList([]);
           setIsLoading(false);
           return;
         }
 
-        // Get the user IDs from staff profiles to fetch user types
-        const userIds = staffProfiles
-          .map(profile => profile.user_id)
-          .filter(id => id !== null && id !== undefined);
+        console.log("Found staff profiles:", staffProfiles.length);
         
-        let userTypesData = [];
-        if (userIds.length > 0) {
-          // Fetch user types from profiles table
-          const { data: userProfiles, error: userProfilesError } = await supabase
-            .from('profiles')
-            .select('id, user_type')
-            .in('id', userIds);
+        // Get the user IDs from staff profiles
+        const userIds = staffProfiles.map(profile => profile.id);
+        
+        // Check which users are associated with the same organization
+        const { data: orgUsers, error: orgUsersError } = await supabase
+          .from('organization_users')
+          .select('user_id, role')
+          .eq('organization_id', organizationInfo.organization_id)
+          .in('user_id', userIds);
           
-          if (userProfilesError) throw userProfilesError;
-          userTypesData = userProfiles || [];
+        if (orgUsersError) throw orgUsersError;
+        
+        // If no org users found, return empty list
+        if (!orgUsers || orgUsers.length === 0) {
+          setStaffList([]);
+          setIsLoading(false);
+          return;
         }
         
-        // Map the data to our staffList format by joining the data manually
-        const formattedStaff = staffJobs.map(job => {
-          const staffProfile = staffProfiles.find(profile => profile.id === job.staff_id);
-          if (!staffProfile) return null;
-
-          const userProfile = userTypesData.find(p => p.id === staffProfile.user_id);
-          const site = sites.find(s => s.id === job.site_id);
+        // Filter staff profiles to only include those associated with the organization
+        const orgUserIds = orgUsers.map(ou => ou.user_id);
+        const filteredStaffProfiles = staffProfiles.filter(profile => 
+          orgUserIds.includes(profile.id)
+        );
+        
+        // Map the data to our staffList format
+        const formattedStaff = filteredStaffProfiles.map(profile => {
+          const orgUser = orgUsers.find(ou => ou.user_id === profile.id);
           
           return {
-            id: staffProfile.id,
-            name: staffProfile.fullname || 'Unknown',
-            email: staffProfile.work_email || '',
-            userType: userProfile?.user_type || 'Unknown',
-            employDate: job.join_date,
-            status: staffProfile.is_active ? 'Active' : 'Inactive',
-            siteLocation: site?.sitename || 'Unknown site',
-            phone_number: staffProfile.mobile_no || '',
-            ic_number: staffProfile.ic_no || '',
+            id: profile.id,
+            name: profile.full_name || 'Unknown',
+            email: profile.email || '',
+            userType: profile.user_type || 'Unknown',
+            employDate: profile.created_at,
+            status: 'Active', // Default status since we don't have that data
+            phone_number: profile.phone_number || '',
+            ic_number: profile.ic_number || '',
+            role: orgUser?.role || 'Member',
           };
-        }).filter(Boolean);
+        });
         
         setStaffList(formattedStaff);
         
-        // Extract location and status options
-        const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation))];
+        // Extract status options
         const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
-        
-        setLocationOptions(locations);
         setStatusOptions(statuses);
         
       } catch (error) {
@@ -188,21 +156,17 @@ const Employees = () => {
     };
     
     fetchStaffData();
-  }, [organizationInfo.organization_id, toast]);
+  }, [organizationInfo.organization_id, toast, user?.id]);
 
   const filteredStaff = staffList.filter((staff) => {
     const matchesSearch =
       staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (staff.userType && staff.userType.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (staff.siteLocation && staff.siteLocation.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (staff.email && staff.email.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesLocation =
-      locationFilter === "all" || staff.siteLocation === locationFilter;
 
     const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
-    return matchesSearch && matchesLocation && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   const handleAddStaff = () => {
@@ -240,14 +204,13 @@ const Employees = () => {
           userType: newStaff.userType,
           employDate: newStaff.join_date || new Date().toISOString().split("T")[0],
           status: newStaff.is_active ? "Active" : "Inactive",
-          siteLocation: newStaff.siteLocationName || "Unknown site",
           phone_number: newStaff.mobile_no || newStaff.phone_number,
           ic_number: newStaff.ic_no || newStaff.ic_number,
         }, ...prevStaff]);
         
         toast({
           title: "Staff Added",
-          description: `${newStaff.name || newStaff.fullname} has been added successfully as ${(newStaff.userType || "").replace(/_/g, ' ')} at ${newStaff.siteLocationName || "Unknown site"}.`,
+          description: `${newStaff.name || newStaff.fullname} has been added successfully as ${(newStaff.userType || "").replace(/_/g, ' ')}.`,
         });
       } else {
         const result = await createStaffMember(newStaff);
@@ -259,14 +222,13 @@ const Employees = () => {
           userType: newStaff.userType,
           employDate: newStaff.employDate,
           status: newStaff.status,
-          siteLocation: newStaff.siteLocationName || "Unknown site",
           phone_number: newStaff.phone_number,
           ic_number: newStaff.ic_number,
         }, ...prevStaff]);
         
         toast({
           title: "Staff Added",
-          description: `${newStaff.name} has been added successfully as ${newStaff.userType.replace(/_/g, ' ')} at ${newStaff.siteLocationName || "Unknown site"}.`,
+          description: `${newStaff.name} has been added successfully as ${newStaff.userType.replace(/_/g, ' ')}.`,
         });
       }
     } catch (error: any) {
@@ -311,7 +273,7 @@ const Employees = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search staff by name, email, user type, or location..."
+              placeholder="Search staff by name, email, or user type..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -319,24 +281,6 @@ const Employees = () => {
           </div>
           
           <div className="flex gap-2">
-            <Select
-              value={locationFilter}
-              onValueChange={setLocationFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                {locationOptions.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
             <Select
               value={statusFilter}
               onValueChange={setStatusFilter}
@@ -365,7 +309,7 @@ const Employees = () => {
                 <TableHead>User Type</TableHead>
                 <TableHead>Employ Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Site Location</TableHead>
+                <TableHead>Role</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -391,7 +335,7 @@ const Employees = () => {
                         {staff.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{staff.siteLocation}</TableCell>
+                    <TableCell>{staff.role}</TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -413,7 +357,7 @@ const Employees = () => {
           organizationId={organizationInfo.organization_id}
           organizationName={organizationInfo.organization_name || "Your Organization"}
           onStaffAdded={handleStaffAdded}
-          siteLocations={locationOptions}
+          siteLocations={[]}
         />
       )}
     </DashboardLayout>

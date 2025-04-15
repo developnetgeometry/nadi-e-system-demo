@@ -6684,6 +6684,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_staff_contract_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_staff_contract_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
