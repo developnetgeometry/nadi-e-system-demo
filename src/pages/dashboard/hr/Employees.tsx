@@ -1,33 +1,15 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { UserPlus, Search, Filter } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useHasPermission } from "@/hooks/use-has-permission";
-import { createStaffMember } from "@/lib/staff";
 import { useUserAccess } from "@/hooks/use-user-access";
-import { supabase } from "@/lib/supabase";
+import { createStaffMember } from "@/lib/staff";
+import { StaffHeader } from "@/components/hr/StaffHeader";
+import { StaffFilters } from "@/components/hr/StaffFilters";
+import { StaffTable } from "@/components/hr/StaffTable";
+import { useStaffData } from "@/hooks/hr/use-staff-data";
 
 const statusColors = {
   Active: "bg-green-100 text-green-800",
@@ -40,13 +22,9 @@ const Employees = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
-  const [staffList, setStaffList] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const userMetadataString = useUserMetadata();
   const { user } = useAuth();
-  const hasPermission = useHasPermission('create_users');
   const { userType } = useUserAccess();
-  const [statusOptions, setStatusOptions] = useState<string[]>([]);
   
   const [organizationInfo, setOrganizationInfo] = useState<{
     organization_id: string | null;
@@ -70,93 +48,7 @@ const Employees = () => {
     }
   }, [userMetadataString]);
 
-  // Fetch staff data from Supabase
-  useEffect(() => {
-    const fetchStaffData = async () => {
-      try {
-        if (!organizationInfo.organization_id) return;
-        
-        setIsLoading(true);
-        
-        // Fetch users with user_group=3 (TP users) under the same organization_id
-        const { data: staffProfiles, error: staffProfilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, phone_number, ic_number, user_type, created_at, user_group')
-          .eq('user_group', 3)
-          .neq('id', user?.id); // Exclude current user
-          
-        if (staffProfilesError) throw staffProfilesError;
-        
-        if (!staffProfiles || staffProfiles.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-
-        console.log("Found staff profiles:", staffProfiles.length);
-        
-        // Get the user IDs from staff profiles
-        const userIds = staffProfiles.map(profile => profile.id);
-        
-        // Check which users are associated with the same organization
-        const { data: orgUsers, error: orgUsersError } = await supabase
-          .from('organization_users')
-          .select('user_id, role')
-          .eq('organization_id', organizationInfo.organization_id)
-          .in('user_id', userIds);
-          
-        if (orgUsersError) throw orgUsersError;
-        
-        // If no org users found, return empty list
-        if (!orgUsers || orgUsers.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-        
-        // Filter staff profiles to only include those associated with the organization
-        const orgUserIds = orgUsers.map(ou => ou.user_id);
-        const filteredStaffProfiles = staffProfiles.filter(profile => 
-          orgUserIds.includes(profile.id)
-        );
-        
-        // Map the data to our staffList format
-        const formattedStaff = filteredStaffProfiles.map(profile => {
-          const orgUser = orgUsers.find(ou => ou.user_id === profile.id);
-          
-          return {
-            id: profile.id,
-            name: profile.full_name || 'Unknown',
-            email: profile.email || '',
-            userType: profile.user_type || 'Unknown',
-            employDate: profile.created_at,
-            status: 'Active', // Default status since we don't have that data
-            phone_number: profile.phone_number || '',
-            ic_number: profile.ic_number || '',
-            role: orgUser?.role || 'Member',
-          };
-        });
-        
-        setStaffList(formattedStaff);
-        
-        // Extract status options
-        const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
-        setStatusOptions(statuses);
-        
-      } catch (error) {
-        console.error('Error fetching staff data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load staff data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchStaffData();
-  }, [organizationInfo.organization_id, toast, user?.id]);
+  const { staffList, isLoading, statusOptions } = useStaffData(user, organizationInfo);
 
   const filteredStaff = staffList.filter((staff) => {
     const matchesSearch =
@@ -253,101 +145,25 @@ const Employees = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Staff Management</h1>
-          <Button onClick={handleAddStaff}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add Staff
-          </Button>
-        </div>
+        <StaffHeader 
+          organizationName={organizationInfo.organization_name}
+          onAddStaff={handleAddStaff}
+        />
 
-        {organizationInfo.organization_name && (
-          <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-200">
-            <p className="text-blue-800">
-              Managing staff for organization: <strong>{organizationInfo.organization_name}</strong>
-            </p>
-          </div>
-        )}
+        <StaffFilters
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          statusOptions={statusOptions}
+        />
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search staff by name, email, or user type..."
-              className="pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-[150px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Staff Name</TableHead>
-                <TableHead>User Type</TableHead>
-                <TableHead>Employ Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Role</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                    </div>
-                    <p className="mt-2 text-muted-foreground">Loading staff data...</p>
-                  </TableCell>
-                </TableRow>
-              ) : filteredStaff.length > 0 ? (
-                filteredStaff.map((staff) => (
-                  <TableRow key={staff.id}>
-                    <TableCell className="font-medium">{staff.name}</TableCell>
-                    <TableCell>
-                      {staff.userType?.replace(/_/g, ' ') || "Unknown"}
-                    </TableCell>
-                    <TableCell>{staff.employDate ? formatDate(staff.employDate) : "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={statusColors[staff.status]}>
-                        {staff.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{staff.role}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                    No staff members found matching your criteria
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <StaffTable
+          isLoading={isLoading}
+          filteredStaff={filteredStaff}
+          formatDate={formatDate}
+          statusColors={statusColors}
+        />
       </div>
 
       {organizationInfo.organization_id && (
