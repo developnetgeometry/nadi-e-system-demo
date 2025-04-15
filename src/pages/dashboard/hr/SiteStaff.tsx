@@ -24,10 +24,9 @@ import { Badge } from "@/components/ui/badge";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useHasPermission } from "@/hooks/use-has-permission";
-import { createStaffMember } from "@/lib/staff";
 import { useUserAccess } from "@/hooks/use-user-access";
-import { supabase } from "@/lib/supabase";
+import { createStaffMember } from "@/lib/staff";
+import { useSiteStaffData } from "@/hooks/hr/use-site-staff-data";
 
 const statusColors = {
   Active: "bg-green-100 text-green-800",
@@ -41,14 +40,9 @@ const SiteStaff = () => {
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
-  const [staffList, setStaffList] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const userMetadataString = useUserMetadata();
   const { user } = useAuth();
-  const hasPermission = useHasPermission('create_users');
   const { userType } = useUserAccess();
-  const [locationOptions, setLocationOptions] = useState<string[]>([]);
-  const [statusOptions, setStatusOptions] = useState<string[]>([]);
   
   const [organizationInfo, setOrganizationInfo] = useState<{
     organization_id: string | null;
@@ -72,98 +66,13 @@ const SiteStaff = () => {
     }
   }, [userMetadataString]);
 
-  // Fetch staff data from Supabase
-  useEffect(() => {
-    const fetchStaffData = async () => {
-      try {
-        if (!organizationInfo.organization_id) return;
-        
-        setIsLoading(true);
-        
-        // First, get profiles with staff_manager or staff_assistant_manager user_type
-        // or with user_group = 6
-        const { data: staffProfiles, error: staffProfilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, phone_number, ic_number, user_type, user_group, created_at')
-          .or('user_type.eq.staff_manager,user_type.eq.staff_assistant_manager,user_group.eq.6');
-          
-        if (staffProfilesError) throw staffProfilesError;
-        
-        if (!staffProfiles || staffProfiles.length === 0) {
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-
-        console.log("Found staff profiles:", staffProfiles.length);
-        
-        // Get the user IDs from staff profiles
-        const userIds = staffProfiles.map(profile => profile.id);
-        
-        // Get sites associated with organization
-        const { data: sites, error: sitesError } = await supabase
-          .from('nd_site_profile')
-          .select('id, sitename')
-          .eq('dusp_tp_id', organizationInfo.organization_id);
-          
-        if (sitesError) throw sitesError;
-        
-        if (!sites || sites.length === 0) {
-          console.log("No sites found for organization");
-        }
-        
-        const siteIds = sites?.map(site => site.id) || [];
-        
-        // Get staff contracts to link staff to sites
-        const { data: staffContracts, error: contractsError } = await supabase
-          .from('nd_staff_contract')
-          .select('user_id, site_id, contract_start, is_active')
-          .in('user_id', userIds)
-          .in('site_id', siteIds.length > 0 ? siteIds : [0]); // Fallback to impossible ID if no sites
-          
-        if (contractsError) throw contractsError;
-        
-        // Map the data to our staffList format
-        const formattedStaff = staffProfiles.map(profile => {
-          const contract = staffContracts?.find(c => c.user_id === profile.id);
-          const site = sites?.find(s => s.id === contract?.site_id);
-          
-          return {
-            id: profile.id,
-            name: profile.full_name || 'Unknown',
-            email: profile.email || '',
-            userType: profile.user_type || 'Unknown',
-            employDate: contract?.contract_start || null,
-            status: contract?.is_active ? 'Active' : 'Inactive',
-            siteLocation: site?.sitename || 'Unassigned',
-            phone_number: profile.phone_number || '',
-            ic_number: profile.ic_number || '',
-          };
-        });
-        
-        setStaffList(formattedStaff);
-        
-        // Extract location and status options
-        const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation).filter(Boolean))];
-        const statuses = [...new Set(formattedStaff.map(staff => staff.status).filter(Boolean))];
-        
-        setLocationOptions(locations);
-        setStatusOptions(statuses);
-        
-      } catch (error) {
-        console.error('Error fetching staff data:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load staff data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchStaffData();
-  }, [organizationInfo.organization_id, toast]);
+  const { 
+    staffList, 
+    isLoading, 
+    locationOptions, 
+    statusOptions,
+    addStaffMember
+  } = useSiteStaffData(user, organizationInfo);
 
   const filteredStaff = useMemo(() => {
     return staffList.filter((staff) => {
@@ -207,39 +116,24 @@ const SiteStaff = () => {
 
   const handleStaffAdded = async (newStaff: any) => {
     try {
-      console.log("Adding new staff member with data:", newStaff);
+      console.log("Adding new site staff member with data:", newStaff);
       
       if (newStaff.id) {
-        setStaffList((prevStaff) => [{
-          id: newStaff.id,
-          name: newStaff.name || newStaff.fullname,
-          email: newStaff.work_email || newStaff.email,
-          userType: newStaff.userType,
-          employDate: newStaff.join_date || new Date().toISOString().split("T")[0],
-          status: newStaff.is_active ? "Active" : "Inactive",
-          siteLocation: newStaff.siteLocationName || "Unknown site",
-          phone_number: newStaff.mobile_no || newStaff.phone_number,
-          ic_number: newStaff.ic_no || newStaff.ic_number,
-        }, ...prevStaff]);
+        // If the staff already has an ID, it was created on the server
+        addStaffMember(newStaff);
         
         toast({
           title: "Staff Added",
           description: `${newStaff.name || newStaff.fullname} has been added successfully as ${(newStaff.userType || "").replace(/_/g, ' ')} at ${newStaff.siteLocationName || "Unknown site"}.`,
         });
       } else {
+        // Create staff member on the server
         const result = await createStaffMember(newStaff);
         
-        setStaffList((prevStaff) => [{
-          id: result.data.id,
-          name: newStaff.name,
-          email: newStaff.email,
-          userType: newStaff.userType,
-          employDate: newStaff.employDate,
-          status: newStaff.status,
-          siteLocation: newStaff.siteLocationName || "Unknown site",
-          phone_number: newStaff.phone_number,
-          ic_number: newStaff.ic_number,
-        }, ...prevStaff]);
+        addStaffMember({
+          ...newStaff,
+          id: result.data.id
+        });
         
         toast({
           title: "Staff Added",
