@@ -135,8 +135,7 @@ const SiteStaff = () => {
         const { data: userProfiles, error: userProfilesError } = await supabase
           .from('profiles')
           .select('id, full_name, email, phone_number, ic_number, user_type')
-          .where('user_group', 7)
-          .in('user_type', ['staff_manager', 'staff_assistant_manager']);
+          .eq('user_group', 7);
           
         if (userProfilesError) throw userProfilesError;
         
@@ -617,7 +616,6 @@ const SiteStaff = () => {
               </Table>
             </div>
             
-            {/* Pagination controls */}
             {totalPages > 1 && (
               <div className="flex justify-between items-center mt-4">
                 <div className="text-sm text-muted-foreground">
