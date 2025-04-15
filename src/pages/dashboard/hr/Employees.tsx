@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
@@ -42,7 +43,7 @@ const Employees = () => {
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { userMetadata, isLoading: metadataLoading } = useUserMetadata();
+  const userMetadataString = useUserMetadata();
   const { user } = useAuth();
   const hasPermission = useHasPermission('create_users');
   const { userType } = useUserAccess();
@@ -58,9 +59,9 @@ const Employees = () => {
   });
 
   useEffect(() => {
-    if (userMetadata) {
+    if (userMetadataString) {
       try {
-        const metadata = JSON.parse(userMetadata);
+        const metadata = JSON.parse(userMetadataString);
         setOrganizationInfo({
           organization_id: metadata.organization_id || null,
           organization_name: metadata.organization_name || null,
@@ -69,8 +70,9 @@ const Employees = () => {
         console.error("Error parsing user metadata:", error);
       }
     }
-  }, [userMetadata]);
+  }, [userMetadataString]);
 
+  // Fetch staff data from Supabase
   useEffect(() => {
     const fetchStaffData = async () => {
       try {
@@ -78,6 +80,7 @@ const Employees = () => {
         
         setIsLoading(true);
         
+        // Get sites associated with organization
         const { data: sites, error: sitesError } = await supabase
           .from('nd_site_profile')
           .select('id, sitename')
@@ -93,6 +96,7 @@ const Employees = () => {
         
         const siteIds = sites.map(site => site.id);
         
+        // Get staff jobs for these sites
         const { data: staffJobs, error: staffJobsError } = await supabase
           .from('nd_staff_job')
           .select('id, staff_id, site_id, join_date, is_active')
@@ -106,8 +110,10 @@ const Employees = () => {
           return;
         }
 
+        // Get the staff IDs from the jobs to fetch staff profiles
         const staffIds = staffJobs.map(job => job.staff_id);
 
+        // Fetch staff profiles by ID
         const { data: staffProfiles, error: staffProfilesError } = await supabase
           .from('nd_staff_profile')
           .select('id, fullname, work_email, mobile_no, ic_no, is_active, user_id')
@@ -122,12 +128,14 @@ const Employees = () => {
           return;
         }
 
+        // Get the user IDs from staff profiles to fetch user types
         const userIds = staffProfiles
           .map(profile => profile.user_id)
           .filter(id => id !== null && id !== undefined);
         
         let userTypesData = [];
         if (userIds.length > 0) {
+          // Fetch user types from profiles table
           const { data: userProfiles, error: userProfilesError } = await supabase
             .from('profiles')
             .select('id, user_type')
@@ -137,6 +145,7 @@ const Employees = () => {
           userTypesData = userProfiles || [];
         }
         
+        // Map the data to our staffList format by joining the data manually
         const formattedStaff = staffJobs.map(job => {
           const staffProfile = staffProfiles.find(profile => profile.id === job.staff_id);
           if (!staffProfile) return null;
@@ -159,6 +168,7 @@ const Employees = () => {
         
         setStaffList(formattedStaff);
         
+        // Extract location and status options
         const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation))];
         const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
         

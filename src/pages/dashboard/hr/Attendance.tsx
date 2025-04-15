@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { AttendanceRecords } from "@/components/hr/AttendanceRecords";
+import AttendanceRecords from "@/components/hr/AttendanceRecords";
 import { format } from "date-fns";
 import { 
   Building,
@@ -18,14 +19,15 @@ const Attendance = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [activeTab, setActiveTab] = useState("daily");
   const { staffID } = useStaffID();
-  const { userMetadata, isLoading: metadataLoading } = useUserMetadata();
+  const userMetadataString = useUserMetadata();
   const [siteId, setSiteId] = useState<number | undefined>(undefined);
   const [organizationId, setOrganizationId] = useState<string | undefined>(undefined);
   
+  // Extract organization info from metadata
   useEffect(() => {
-    if (userMetadata) {
+    if (userMetadataString) {
       try {
-        const metadata = JSON.parse(userMetadata);
+        const metadata = JSON.parse(userMetadataString);
         if (metadata.site_id) {
           setSiteId(Number(metadata.site_id));
         }
@@ -37,7 +39,7 @@ const Attendance = () => {
         console.error("Error parsing user metadata:", error);
       }
     }
-  }, [userMetadata]);
+  }, [userMetadataString]);
 
   const attendanceStats = {
     presentToday: 32,

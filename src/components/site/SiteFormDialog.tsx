@@ -30,7 +30,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Retrieve user metadata
-  const { userMetadata } = useUserMetadata();
+  const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const organizationId =
     parsedMetadata?.user_type !== "super_admin" &&
