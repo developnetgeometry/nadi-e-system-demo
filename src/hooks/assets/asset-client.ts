@@ -4,6 +4,7 @@ import {
 } from "@/components/site/component/site-utils";
 import { supabase } from "@/lib/supabase";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
+import { Site } from "@/types/site";
 
 export const assetClient = {
   fetchAssets: async (
@@ -40,38 +41,30 @@ export const assetClient = {
       throw error;
     }
 
+    const formatProfile = (profile: Site) => ({
+      ...profile,
+      dusp_tp_id_display: profile?.dusp_tp?.parent
+        ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
+        : profile?.dusp_tp?.name ?? "N/A",
+    });
+
     const filteredData = await Promise.all(
       data.map(async (item) => {
-        if (organizationId) {
-          const profile = allSites.find(
-            (s) => s.id === item.site?.site_profile_id
-          );
+        let profile = null;
 
-          return {
-            ...item,
-            type: item.nd_asset_type,
-            brand: item.nd_brand,
-            site: {
-              ...profile,
-              dusp_tp_id_display:
-                profile.dusp_tp && profile.dusp_tp.parent
-                  ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
-                  : profile.dusp_tp?.name ?? "N/A",
-            },
-          };
+        if (siteId && siteProfileId) {
+          profile = await fetchSiteBySiteProfileId(siteProfileId);
+        } else {
+          profile = allSites.find((s) => s.id === item.site?.site_profile_id);
+          profile = formatProfile(profile);
         }
 
-        if (siteId) {
-          const profile = await fetchSiteBySiteProfileId(siteProfileId);
-          return {
-            ...item,
-            type: item.nd_asset_type,
-            brand: item.nd_brand,
-            site: {
-              ...profile,
-            },
-          };
-        }
+        return {
+          ...item,
+          type: item.nd_asset_type,
+          brand: item.nd_brand,
+          site: profile ? { ...profile } : null,
+        };
       })
     );
 
