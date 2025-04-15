@@ -116,9 +116,28 @@ export const useStaffData = (
     fetchStaffData();
   }, [organizationInfo.organization_id, toast, user?.id]);
 
+  // Add method to update staff list
+  const addStaffMember = (newStaff: any) => {
+    // Create a staff member object in the expected format
+    const staffMember: StaffMember = {
+      id: newStaff.id,
+      name: newStaff.name || newStaff.fullname,
+      email: newStaff.work_email || newStaff.email,
+      userType: newStaff.userType,
+      employDate: newStaff.join_date || new Date().toISOString().split("T")[0],
+      status: newStaff.is_active ? "Active" : "Inactive",
+      phone_number: newStaff.mobile_no || newStaff.phone_number,
+      ic_number: newStaff.ic_no || newStaff.ic_number,
+      role: newStaff.role || "Member",
+    };
+    
+    setStaffList(prevStaff => [staffMember, ...prevStaff]);
+  };
+
   return {
     staffList,
     isLoading,
     statusOptions,
+    addStaffMember,
   };
 };

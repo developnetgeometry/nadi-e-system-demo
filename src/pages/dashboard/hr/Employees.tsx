@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useToast } from "@/components/ui/use-toast";
@@ -48,7 +49,7 @@ const Employees = () => {
     }
   }, [userMetadataString]);
 
-  const { staffList, isLoading, statusOptions } = useStaffData(user, organizationInfo);
+  const { staffList, isLoading, statusOptions, addStaffMember } = useStaffData(user, organizationInfo);
 
   const filteredStaff = staffList.filter((staff) => {
     const matchesSearch =
@@ -89,34 +90,21 @@ const Employees = () => {
       console.log("Adding new staff member with data:", newStaff);
       
       if (newStaff.id) {
-        setStaffList((prevStaff) => [{
-          id: newStaff.id,
-          name: newStaff.name || newStaff.fullname,
-          email: newStaff.work_email || newStaff.email,
-          userType: newStaff.userType,
-          employDate: newStaff.join_date || new Date().toISOString().split("T")[0],
-          status: newStaff.is_active ? "Active" : "Inactive",
-          phone_number: newStaff.mobile_no || newStaff.phone_number,
-          ic_number: newStaff.ic_no || newStaff.ic_number,
-        }, ...prevStaff]);
+        // If the staff already has an ID, it was created on the server
+        addStaffMember(newStaff);
         
         toast({
           title: "Staff Added",
           description: `${newStaff.name || newStaff.fullname} has been added successfully as ${(newStaff.userType || "").replace(/_/g, ' ')}.`,
         });
       } else {
+        // Create staff member on the server
         const result = await createStaffMember(newStaff);
         
-        setStaffList((prevStaff) => [{
-          id: result.data.id,
-          name: newStaff.name,
-          email: newStaff.email,
-          userType: newStaff.userType,
-          employDate: newStaff.employDate,
-          status: newStaff.status,
-          phone_number: newStaff.phone_number,
-          ic_number: newStaff.ic_number,
-        }, ...prevStaff]);
+        addStaffMember({
+          ...newStaff,
+          id: result.data.id
+        });
         
         toast({
           title: "Staff Added",
