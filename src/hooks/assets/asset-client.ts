@@ -135,4 +135,22 @@ export const assetClient = {
       category: item.nd_asset_categories,
     }));
   },
+
+  toggleAssetActiveStatus: async (
+    assetId: string,
+    currentStatus: boolean
+  ): Promise<void> => {
+    try {
+      const newStatus = currentStatus ? 0 : 1;
+      const { error } = await supabase
+        .from("nd_asset")
+        .update({ is_active: newStatus })
+        .eq("id", assetId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error toggling site active status:", error);
+      throw error;
+    }
+  },
 };

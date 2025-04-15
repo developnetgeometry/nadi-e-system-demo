@@ -13,10 +13,12 @@ import {
 import { Download, Eye, EyeOff, Search, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { assetClient } from "@/hooks/assets/asset-client";
 import { useAssets } from "@/hooks/use-assets";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useSpace } from "@/hooks/use-space";
+import { toast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
@@ -132,6 +134,27 @@ export const AssetList = ({
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, filteredAssets.length);
+
+  const handleToggleStatus = async (asset: Asset) => {
+    try {
+      await assetClient.toggleAssetActiveStatus(
+        String(asset.id),
+        asset.is_active
+      );
+      refetch();
+      toast({
+        title: `Asset visibility updated`,
+        description: `Asset ${asset.name} visibility has been successfully updated.`,
+      });
+    } catch (error) {
+      console.error("Failed to update asset visibility:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update the asset visibility. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const exportAssetsAsCSV = (assets: Asset[]) => {
     if (!assets || assets.length === 0) {
@@ -385,7 +408,7 @@ export const AssetList = ({
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => {}}
+                            onClick={() => handleToggleStatus(asset)}
                           >
                             {asset.is_active ? (
                               <Eye className="h-4 w-4" />
