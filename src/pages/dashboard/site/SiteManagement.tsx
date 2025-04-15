@@ -1,3 +1,5 @@
+
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Box, Package, Settings, DollarSign, Plus, CheckCircle, Clock, PauseCircle, XCircle, Building2, Bell } from "lucide-react";
@@ -17,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 const SiteDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { userMetadata } = useUserMetadata();
+  const { userMetadata, isLoading: metadataLoading } = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
   const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
