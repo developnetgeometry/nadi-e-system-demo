@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useAssets } from "@/hooks/use-assets";
 import { useBrand } from "@/hooks/use-brand";
+import { useLocation } from "@/hooks/use-location";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
@@ -106,12 +107,11 @@ export const AssetFormDialog = ({
     error: brandError,
   } = useBrand();
 
-  // TODO: Replace with actual data
-  const locations = [
-    { id: "1", name: "Location 1" },
-    { id: "2", name: "Location 2" },
-    { id: "3", name: "Location 3" },
-  ];
+  const {
+    data: locations,
+    isLoading: locationIsLoading,
+    error: locationError,
+  } = useLocation();
 
   useEffect(() => {
     if (asset) {
@@ -120,6 +120,7 @@ export const AssetFormDialog = ({
       setAssetQuantity(String(asset.qty_unit));
       if (
         !brandIsLoading &&
+        !locationIsLoading &&
         !assetTypeIsLoading &&
         !duspsIsLoading &&
         !tpsIsLoading &&
@@ -127,6 +128,7 @@ export const AssetFormDialog = ({
       ) {
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
+        setAssetLocationId(String(asset.location_id));
         setDuspId(String(asset.site?.dusp_tp?.parent?.id));
         setTpId(String(asset.site?.dusp_tp_id));
         setSiteId(String(asset.site?.id));
@@ -135,6 +137,7 @@ export const AssetFormDialog = ({
   }, [
     asset,
     brandIsLoading,
+    locationIsLoading,
     assetTypeIsLoading,
     duspsIsLoading,
     tpsIsLoading,
