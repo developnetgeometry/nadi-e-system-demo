@@ -8,26 +8,23 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Settings, Eye, EyeOff, Trash2, Search } from "lucide-react";
+import { Settings, Eye, EyeOff, Trash2, Search } from "lucide-react"; // Import Search icon
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MaintenanceFormDialog } from "./MaintenanceFormDialog";
-import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus } from "./component/site-utils";
+import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus } from "./component/site-utils"; // Import fetchPhase, fetchRegion, and fetchStatus
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { SiteFormDialog } from "./SiteFormDialog";
-import { Input } from "@/components/ui/input";
-import { PaginationComponent } from "../ui/PaginationComponent";
+import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
+import { Input } from "@/components/ui/input"; // Import Input component
+import { PaginationComponent } from "../ui/PaginationComponent"; // Correct import path
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from "../ui/skeleton";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useUserMetadata } from "@/hooks/use-user-metadata"; // Import useUserMetadata
 
-interface SiteListProps {
-  onEdit?: (site: Site) => void;
-}
-
-export function SiteList({ onEdit }: SiteListProps) {
-  const { parsedMetadata } = useUserMetadata();
+export const SiteList = () => {
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
   const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
@@ -38,6 +35,7 @@ export function SiteList({ onEdit }: SiteListProps) {
       ? parsedMetadata.organization_id
       : null;
 
+  // Hooks must be called unconditionally
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -54,12 +52,12 @@ export function SiteList({ onEdit }: SiteListProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const { data: sites = [], isLoading: isSitesLoading } = useQuery({
+  const { data: sites = [], isLoading } = useQuery({
     queryKey: ['sites', organizationId],
-    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || isSuperAdmin,
+    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser), // Pass isTPUser and isDUSPUser flags
+    enabled: !!organizationId || isSuperAdmin, // Disable query if no access
   });
-
+  console.log(sites);
   const { data: phases = [] } = useQuery({
     queryKey: ['phases'],
     queryFn: fetchPhase,
@@ -74,21 +72,6 @@ export function SiteList({ onEdit }: SiteListProps) {
     queryKey: ['statuses'],
     queryFn: fetchSiteStatus,
   });
-
-  const [userOrganizationId, setUserOrganizationId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    if (userMetadata) {
-      try {
-        const metadata = JSON.parse(userMetadata);
-        if (metadata?.organization_id) {
-          setUserOrganizationId(metadata.organization_id);
-        }
-      } catch (error) {
-        console.error("Error parsing user metadata:", error);
-      }
-    }
-  }, [userMetadata]);
 
   const handleToggleStatus = async (site: Site) => {
     try {
@@ -120,7 +103,7 @@ export function SiteList({ onEdit }: SiteListProps) {
     try {
       await deleteSite(siteToDelete);
       queryClient.invalidateQueries({ queryKey: ['sites'] });
-      queryClient.invalidateQueries({ queryKey: ['site-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['site-stats'] }); // Invalidate site-stats query
       toast({
         title: "Site deleted",
         description: `The site has been successfully deleted.`,
@@ -159,7 +142,7 @@ export function SiteList({ onEdit }: SiteListProps) {
   };
 
   const getStatusBadge = (status: Site['nd_site_status']['eng']) => {
-    if (!status) return "Unknown";
+    if (!status) return "Unknown"; // Handle null or undefined status
     const variants: Record<string, "default" | "destructive" | "outline" | "secondary"> = {
       "In Operation": "default",
       "Permanently Close": "outline",
@@ -188,6 +171,7 @@ export function SiteList({ onEdit }: SiteListProps) {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, filteredSites.length);
 
+  // Access control logic moved to the return statement
   if (!isSuperAdmin && !organizationId) {
     return <div>You do not have access to view this list.</div>;
   }
@@ -199,7 +183,7 @@ export function SiteList({ onEdit }: SiteListProps) {
           placeholder="Search by site name or code"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="pl-10"
+          className="pl-10" // Add padding to the left for the icon
         />
         <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         <div className="relative">
@@ -240,7 +224,7 @@ export function SiteList({ onEdit }: SiteListProps) {
         </div>
       </div>
       <div className="rounded-md border">
-        {isSitesLoading ? (
+        {isLoading ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -249,7 +233,7 @@ export function SiteList({ onEdit }: SiteListProps) {
                 <TableHead>Site Name</TableHead>
                 <TableHead>Phase</TableHead>
                 <TableHead>Region</TableHead>
-                {isSuperAdmin && <TableHead>DUSP TP</TableHead>}
+                {isSuperAdmin && <TableHead>DUSP TP</TableHead>} {/* Add DUSP TP column for super admin */}
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -272,7 +256,7 @@ export function SiteList({ onEdit }: SiteListProps) {
                   <TableCell>
                     <Skeleton className="h-4 w-24" />
                   </TableCell>
-                  {isSuperAdmin && <TableCell><Skeleton className="h-4 w-24" /></TableCell>}
+                  {isSuperAdmin && <TableCell><Skeleton className="h-4 w-24" /></TableCell>} {/* Add DUSP TP column for super admin */}
                   <TableCell>
                     <Skeleton className="h-4 w-20" />
                   </TableCell>
@@ -297,7 +281,7 @@ export function SiteList({ onEdit }: SiteListProps) {
                 <TableHead>Site Name</TableHead>
                 <TableHead>Phase</TableHead>
                 <TableHead>Region</TableHead>
-                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
+                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>} {/* Add DUSP TP column for super admin */}
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -330,7 +314,7 @@ export function SiteList({ onEdit }: SiteListProps) {
                             <EyeOff className="h-4 w-4" />
                           )}
                         </Button>
-                        {!isDUSPUser && (
+                        {!isDUSPUser && ( // Hide "Edit" button for DUSP users
                           <Button
                             variant="outline"
                             size="icon"
@@ -352,7 +336,7 @@ export function SiteList({ onEdit }: SiteListProps) {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => handleViewDetailsClick(site.id)}
+                          onClick={() => handleViewDetailsClick(site.id)} // Add view details button
                         >
                           <Search className="h-4 w-4" />
                         </Button>
@@ -403,13 +387,13 @@ export function SiteList({ onEdit }: SiteListProps) {
         </DialogContent>
       </Dialog>
 
-      {isEditDialogOpen && (
+      {isEditDialogOpen && ( // Render SiteFormDialog only when isEditDialogOpen is true
         <SiteFormDialog
           open={isEditDialogOpen}
           onOpenChange={handleEditDialogClose}
-          site={siteToEdit}
+          site={siteToEdit} // Pass the site to edit
         />
       )}
     </div>
   );
-}
+};

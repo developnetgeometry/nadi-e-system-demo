@@ -11,31 +11,23 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { formatDate } from "@/utils/date-utils";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { getStatusMap } from "@/constants/status";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/ui/switch"; // Import a toggle switch component
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "react-router-dom";
 
 const SiteClosureApproval = () => {
-    const navigate = useNavigate();
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const { parsedMetadata, isLoading: isMetadataLoading } = useUserMetadata();
-    const [organizationId, setOrganizationId] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        if (parsedMetadata?.organization_id) {
-            setOrganizationId(parsedMetadata.organization_id);
-        }
-    }, [parsedMetadata]);
+    const userMetadata = useUserMetadata();
+    const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
 
     const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
     const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
     const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
-    const organizationId = isTPUser || isDUSPUser ? organizationId : null;
+    const organizationId = isTPUser || isDUSPUser ? parsedMetadata.organization_id : null;
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [STATUS, setSTATUS] = useState<Record<string, number>>({});
-    const [showOnlyActionable, setShowOnlyActionable] = useState(true);
+    const [showOnlyActionable, setShowOnlyActionable] = useState(true); // Default to showing actionable requests
 
     useEffect(() => {
         const loadStatuses = async () => {
@@ -52,44 +44,47 @@ const SiteClosureApproval = () => {
     useEffect(() => {
         console.log('Subscribing to site closure changes');
         const channel = supabase
-            .channel('site_closure_changes')
+            .channel('site_closure_changes') // Create a channel for real-time updates
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'nd_site_closure'},
                 (payload) => {
-                    console.log('Database change detected on status column:', payload);
-                    queryClient.invalidateQueries({ queryKey: ["site-closure-requests", organizationId] });
+                    console.log('Database change detected on status column:', payload); // Log the payload for debugging
+                    queryClient.invalidateQueries({ queryKey: ["site-closure-requests", organizationId] }); // Invalidate the query to refetch data
                 }
             )
             .subscribe();
 
         return () => {
             console.log('Unsubscribing from site closure changes');
-            supabase.removeChannel(channel);
+            supabase.removeChannel(channel); // Cleanup the subscription when the component unmounts
         };
-    }, [organizationId, queryClient]);
+    }, [organizationId, queryClient]); // Ensure dependencies are correct
 
+    // Define role-based allowed statuses
     const ROLE_STATUS_MAPPING = {
-        TP: [STATUS.APPROVED, STATUS.REJECTED, STATUS.RECOMMENDED].filter(Boolean),
+        TP: [STATUS.APPROVED, STATUS.REJECTED, STATUS.RECOMMENDED].filter(Boolean), // Filter out undefined values
         DUSP: [STATUS.AUTHORIZED, STATUS.DECLINED].filter(Boolean),
     };
 
+    // Helper function to check if a user can act on a request
     const canActOnRequest = (role: string, currentStatus: number, duration: number | null): boolean => {
         if (role === "TP" && currentStatus === STATUS.SUBMITTED) {
-            return true;
+            return true; // TP can act on submitted requests
         }
         if (role === "DUSP" && currentStatus === STATUS.RECOMMENDED) {
-            return true;
+            return true; // DUSP can act on recommended requests
         }
         return false;
     };
 
+    // Helper function to filter allowed statuses for a role
     const getAllowedStatuses = (role: string, currentStatus: number, duration: number | null): number[] => {
         if (role === "TP" && currentStatus === STATUS.SUBMITTED) {
-            if (duration && duration > 2) {
-                return ROLE_STATUS_MAPPING.TP;
-            }
-            return ROLE_STATUS_MAPPING.TP.filter((status) => status !== STATUS.RECOMMENDED);
+            // TP can recommend only if duration > 2 days
+            return duration && duration > 2
+                ? ROLE_STATUS_MAPPING.TP
+                : ROLE_STATUS_MAPPING.TP.filter((status) => status !== STATUS.RECOMMENDED);
         }
         if (role === "DUSP" && currentStatus === STATUS.RECOMMENDED) {
             return ROLE_STATUS_MAPPING.DUSP;
@@ -97,25 +92,28 @@ const SiteClosureApproval = () => {
         return [];
     };
 
+    // Helper function to determine if a request needs action
     const needsAction = (request: SiteClosureRequest): boolean => {
         if (isSuperAdmin) {
-            return true;
+            return true; // Super admins can act on all requests
         }
         if (isTPUser && request.nd_closure_status?.id === STATUS.SUBMITTED) {
-            return true;
+            return true; // TP needs to act on submitted requests
         }
         if (isDUSPUser && request.nd_closure_status?.id === STATUS.RECOMMENDED) {
-            return true;
+            return true; // DUSP needs to act on recommended requests
         }
         return false;
     };
 
+    // Fetch site closure requests
     const { data: requests = [], isLoading: isRequestsLoading, isError: isRequestsError } = useQuery({
         queryKey: ["site-closure-requests", organizationId],
         queryFn: () => fetchSiteClosureRequests(organizationId, isDUSPUser),
         enabled: isSuperAdmin || !!organizationId,
     });
 
+    // Fetch closure statuses
     const { data: statuses = [], isLoading: isStatusesLoading, isError: isStatusesError } = useQuery({
         queryKey: ["closure-statuses"],
         queryFn: fetchClosure_Status,
@@ -124,6 +122,7 @@ const SiteClosureApproval = () => {
     const handleUpdateStatus = async (id: string, status_id: string | number) => {
         const numericStatusId = typeof status_id === "string" ? parseInt(status_id, 10) : status_id;
 
+        // Restrict actions based on role and status
         if (
             (isTPUser && !ROLE_STATUS_MAPPING.TP.includes(numericStatusId)) ||
             (isDUSPUser && !ROLE_STATUS_MAPPING.DUSP.includes(numericStatusId))
@@ -172,7 +171,7 @@ const SiteClosureApproval = () => {
         return <Badge variant={variant}>{statusObj.name}</Badge>;
     };
 
-    if (isRequestsLoading || isStatusesLoading || isMetadataLoading) {
+    if (isRequestsLoading || isStatusesLoading) {
         return <div>Loading...</div>;
     }
 
@@ -225,7 +224,7 @@ const SiteClosureApproval = () => {
                                         (isDUSPUser &&
                                             request.nd_site_profile?.organizations?.parent_id?.id === organizationId)
                                     )
-                                    .filter(request => showOnlyActionable ? needsAction(request) : true)
+                                    .filter(request => showOnlyActionable ? needsAction(request) : true) // Apply the filter based on toggle
                                     .map((request: SiteClosureRequest, index) => (
                                         <TableRow key={request.id}>
                                             <TableCell>{index + 1}</TableCell>
@@ -274,7 +273,7 @@ const SiteClosureApproval = () => {
                                                         <DropdownMenuContent align="end">
                                                             {statuses
                                                                 .filter(status =>
-                                                                    isSuperAdmin ||
+                                                                    isSuperAdmin || // Super admins can see all statuses
                                                                     (isTPUser &&
                                                                         getAllowedStatuses("TP", request.nd_closure_status?.id, request.duration).includes(status.id)) ||
                                                                     (isDUSPUser &&
