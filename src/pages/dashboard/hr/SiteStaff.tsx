@@ -135,7 +135,7 @@ const SiteStaff = () => {
         const { data: userProfiles, error: userProfilesError } = await supabase
           .from('profiles')
           .select('id, full_name, email, phone_number, ic_number, user_type')
-          .like('user_group', 7)
+          .where('user_group', 7)
           .in('user_type', ['staff_manager', 'staff_assistant_manager']);
           
         if (userProfilesError) throw userProfilesError;
