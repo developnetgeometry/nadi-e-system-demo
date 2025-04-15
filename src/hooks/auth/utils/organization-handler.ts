@@ -33,6 +33,7 @@ export const fetchOrganizationDetails = async (
 
     if (!orgAdminError && orgAdminData?.organization_id) {
       organizationId = orgAdminData.organization_id;
+      console.log("Found organization ID:", organizationId);
 
       // Update profile with organization_id if found
       const { error: updateError } = await supabase
@@ -46,11 +47,12 @@ export const fetchOrganizationDetails = async (
           updateError
         );
       }
+    } else if (orgAdminError) {
+      console.error("Error fetching organization user data:", orgAdminError);
     }
 
     // Fetch organization name if we have an organization_id
     if (organizationId) {
-      // Use maybeSingle() instead of single() to avoid 406 errors
       const { data: orgData, error: orgError } = await supabase
         .from("organizations")
         .select("name")
@@ -59,11 +61,15 @@ export const fetchOrganizationDetails = async (
 
       if (!orgError && orgData) {
         organizationName = orgData.name;
+        console.log("Found organization name:", organizationName);
       } else if (orgError) {
         console.error("Error fetching organization:", orgError);
       }
     }
+  } else {
+    console.log("User not in allowed groups or profile missing");
   }
 
+  console.log("Returning organization details:", { organizationId, organizationName });
   return { organizationId, organizationName };
 };
