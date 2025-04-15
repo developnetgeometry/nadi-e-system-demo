@@ -43,11 +43,11 @@ const SiteStaff = () => {
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [staffList, setStaffList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const userMetadataString = useUserMetadata();
+  const { userMetadata, isLoading: metadataLoading } = useUserMetadata();
   const { user } = useAuth();
   const hasPermission = useHasPermission('create_users');
   const { userType } = useUserAccess();
-  const [locationOptions, setLocationOptions] = useState<string[]>([]);
+  const [locationOptions, setLocationOptions] = useState<any[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
   
   const [organizationInfo, setOrganizationInfo] = useState<{
@@ -59,9 +59,9 @@ const SiteStaff = () => {
   });
 
   useEffect(() => {
-    if (userMetadataString) {
+    if (userMetadata) {
       try {
-        const metadata = JSON.parse(userMetadataString);
+        const metadata = JSON.parse(userMetadata);
         setOrganizationInfo({
           organization_id: metadata.organization_id || null,
           organization_name: metadata.organization_name || null,
@@ -70,7 +70,7 @@ const SiteStaff = () => {
         console.error("Error parsing user metadata:", error);
       }
     }
-  }, [userMetadataString]);
+  }, [userMetadata]);
 
   // Fetch staff data from Supabase
   useEffect(() => {
@@ -94,85 +94,81 @@ const SiteStaff = () => {
           return;
         }
         
+        setLocationOptions(sites.map(site => ({
+          id: site.id,
+          name: site.sitename
+        })));
+        
         const siteIds = sites.map(site => site.id);
         
-        // Get staff jobs for these sites
-        const { data: staffJobs, error: staffJobsError } = await supabase
-          .from('nd_staff_job')
-          .select('id, staff_id, site_id, join_date, is_active')
-          .in('site_id', siteIds);
+        // Get staff contracts for the center staff user group
+        const { data: userProfiles, error: userProfilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, phone_number, ic_number, user_type')
+          .like('user_group_name', '%Centre Staff%');
           
-        if (staffJobsError) throw staffJobsError;
+        if (userProfilesError) throw userProfilesError;
         
-        if (!staffJobs || staffJobs.length === 0) {
+        if (!userProfiles || userProfiles.length === 0) {
           setStaffList([]);
           setIsLoading(false);
           return;
         }
 
-        // Get the staff IDs from the jobs to fetch staff profiles
-        const staffIds = staffJobs.map(job => job.staff_id);
+        // Get user IDs from profiles to fetch their contracts and site association
+        const userIds = userProfiles.map(profile => profile.id);
+        
+        // Get staff contracts to associate users with sites
+        const { data: staffContracts, error: contractsError } = await supabase
+          .from('nd_staff_contract')
+          .select('id, user_id, site_id, contract_start, is_active')
+          .in('user_id', userIds)
+          .in('site_id', siteIds);
+          
+        if (contractsError) throw contractsError;
+        
+        if (!staffContracts || staffContracts.length === 0) {
+          setStaffList([]);
+          setIsLoading(false);
+          return;
+        }
 
-        // Fetch staff profiles by ID
+        // Get staff profiles for additional details
         const { data: staffProfiles, error: staffProfilesError } = await supabase
           .from('nd_staff_profile')
-          .select('id, fullname, work_email, mobile_no, ic_no, is_active, user_id')
-          .in('id', staffIds);
+          .select('id, user_id, fullname, mobile_no, work_email, ic_no, is_active')
+          .in('user_id', userIds);
           
         if (staffProfilesError) throw staffProfilesError;
         
-        if (!staffProfiles || staffProfiles.length === 0) {
-          console.log("No staff profiles found for the given jobs");
-          setStaffList([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // Get the user IDs from staff profiles to fetch user types
-        const userIds = staffProfiles
-          .map(profile => profile.user_id)
-          .filter(id => id !== null && id !== undefined);
+        // Create a mapping of site IDs to site names
+        const siteMap = new Map(sites.map(site => [site.id, site.sitename]));
         
-        let userTypesData = [];
-        if (userIds.length > 0) {
-          // Fetch user types from profiles table
-          const { data: userProfiles, error: userProfilesError } = await supabase
-            .from('profiles')
-            .select('id, user_type')
-            .in('id', userIds);
+        // Combine the data to create the staff list
+        const formattedStaff = staffContracts.map(contract => {
+          const userProfile = userProfiles.find(profile => profile.id === contract.user_id);
+          const staffProfile = staffProfiles?.find(profile => profile.user_id === contract.user_id);
           
-          if (userProfilesError) throw userProfilesError;
-          userTypesData = userProfiles || [];
-        }
-        
-        // Map the data to our staffList format by joining the data manually
-        const formattedStaff = staffJobs.map(job => {
-          const staffProfile = staffProfiles.find(profile => profile.id === job.staff_id);
-          if (!staffProfile) return null;
-
-          const userProfile = userTypesData.find(p => p.id === staffProfile.user_id);
-          const site = sites.find(s => s.id === job.site_id);
+          if (!userProfile) return null;
           
           return {
-            id: staffProfile.id,
-            name: staffProfile.fullname || 'Unknown',
-            email: staffProfile.work_email || '',
-            userType: userProfile?.user_type || 'Unknown',
-            employDate: job.join_date,
-            status: staffProfile.is_active ? 'Active' : 'Inactive',
-            siteLocation: site?.sitename || 'Unknown site',
-            phone_number: staffProfile.mobile_no || '',
-            ic_number: staffProfile.ic_no || '',
+            id: userProfile.id,
+            name: staffProfile?.fullname || userProfile.full_name || 'Unknown',
+            email: staffProfile?.work_email || userProfile.email || '',
+            userType: userProfile.user_type || 'Unknown',
+            employDate: contract.contract_start,
+            status: (staffProfile?.is_active || contract.is_active) ? 'Active' : 'Inactive',
+            siteLocation: siteMap.get(contract.site_id) || 'Unknown site',
+            siteId: contract.site_id,
+            phone_number: staffProfile?.mobile_no || userProfile.phone_number || '',
+            ic_number: staffProfile?.ic_no || userProfile.ic_number || '',
           };
         }).filter(Boolean);
         
         setStaffList(formattedStaff);
         
-        // Extract location and status options
-        const locations = [...new Set(formattedStaff.map(staff => staff.siteLocation))];
+        // Extract status options
         const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
-        
-        setLocationOptions(locations);
         setStatusOptions(statuses);
         
       } catch (error) {
@@ -241,6 +237,7 @@ const SiteStaff = () => {
           employDate: newStaff.join_date || new Date().toISOString().split("T")[0],
           status: newStaff.is_active ? "Active" : "Inactive",
           siteLocation: newStaff.siteLocationName || "Unknown site",
+          siteId: newStaff.siteLocation,
           phone_number: newStaff.mobile_no || newStaff.phone_number,
           ic_number: newStaff.ic_no || newStaff.ic_number,
         }, ...prevStaff]);
@@ -260,6 +257,7 @@ const SiteStaff = () => {
           employDate: newStaff.employDate,
           status: newStaff.status,
           siteLocation: newStaff.siteLocationName || "Unknown site",
+          siteId: newStaff.siteLocation,
           phone_number: newStaff.phone_number,
           ic_number: newStaff.ic_number,
         }, ...prevStaff]);
@@ -279,7 +277,7 @@ const SiteStaff = () => {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-MY", {
       year: "numeric",
@@ -331,8 +329,8 @@ const SiteStaff = () => {
               <SelectContent>
                 <SelectItem value="all">All Locations</SelectItem>
                 {locationOptions.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
+                  <SelectItem key={location.id} value={location.name}>
+                    {location.name}
                   </SelectItem>
                 ))}
               </SelectContent>
