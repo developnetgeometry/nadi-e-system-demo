@@ -1,6 +1,5 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import SiteDetail from "@/components/site/SiteDetail";
+import { SiteDetail } from "@/components/site/SiteDetail";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";

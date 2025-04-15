@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { SiteList } from "@/components/site/SiteList";
-import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { SiteFormDialog } from "@/components/site/SiteFormDialog";
 import { fetchSites } from "@/components/site/component/site-utils";

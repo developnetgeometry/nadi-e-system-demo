@@ -1,6 +1,7 @@
+
 import { useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import SiteDetail from "@/components/site/SiteDetail";
+import { SiteDetail } from "@/components/site/SiteDetail";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
 
 const SiteDetails = () => {

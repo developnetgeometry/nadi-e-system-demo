@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import AttendanceRecords from "@/components/hr/AttendanceRecords";
+import { AttendanceRecords } from "@/components/hr/AttendanceRecords";
 import { format } from "date-fns";
 import { 
   Building,
