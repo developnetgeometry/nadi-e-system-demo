@@ -22,7 +22,6 @@ const Attendance = () => {
   const [siteId, setSiteId] = useState<number | undefined>(undefined);
   const [organizationId, setOrganizationId] = useState<string | undefined>(undefined);
   
-  // Extract organization info from metadata
   useEffect(() => {
     if (userMetadata) {
       try {
