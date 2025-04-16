@@ -6,6 +6,7 @@ export interface Inventory {
   description?: string;
   type_id: number;
   type: InventoryType;
+  retail_type?: number;
   price?: number;
   quantity?: number;
   barcode?: number;
@@ -24,4 +25,17 @@ export interface InventoryType {
   updated_at?: string;
   created_by?: string;
   updated_by?: string;
+}
+
+export interface InventoryStatsData {
+  total: number;
+  active: number;
+  maintenance: number;
+}
+
+export interface InventoryStatsCardProps {
+  title: string;
+  value: string;
+  color?: string;
+  description: string;
 }

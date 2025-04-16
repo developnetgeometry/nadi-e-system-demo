@@ -3,8 +3,10 @@ import { InventoryFormDialog } from "@/components/inventory/InventoryFormDialog"
 import { InventoryList } from "@/components/inventory/InventoryList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { useSiteId } from "@/hooks/use-site-id";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { supabase } from "@/lib/supabase";
-import { AssetStatsCardProps } from "@/types/asset";
+import { InventoryStatsCardProps } from "@/types/inventory";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
@@ -13,27 +15,31 @@ import { useState } from "react";
 const AssetDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const siteId = useSiteId();
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+
   const {
-    data: assetStats = { total: 0, active: 0, maintenance: 0, value: 0 },
+    data: inventoryStats = { total: 0, active: 0, maintenance: 0, value: 0 },
     isLoading,
   } = useQuery({
-    queryKey: ["asset-stats"],
+    queryKey: ["inventory-stats"],
     queryFn: async () => {
-      console.log("Fetching asset statistics...");
+      console.log("Fetching inventory statistics...");
       try {
-        const { data: assets, error } = await supabase
-          .from("assets")
-          .select("status, current_value");
+        const { data: inventories, error } = await supabase
+          .from("nd_inventory")
+          .select("quantity, price");
 
         if (error) throw error;
 
         const stats = {
-          total: assets.length,
-          active: assets.filter((a) => a.status === "active").length,
-          maintenance: assets.filter((a) => a.status === "in_maintenance")
-            .length,
-          value: assets.reduce(
-            (sum, asset) => sum + (Number(asset.current_value) || 0),
+          total: inventories.length,
+          active: inventories.filter((asset) => asset.quantity > 0).length,
+          value: inventories.reduce(
+            (sum, asset) =>
+              sum + (Number(asset.quantity) || 0) * (Number(asset.price) || 0),
             0
           ),
         };
@@ -46,25 +52,27 @@ const AssetDashboard = () => {
     },
   });
 
-  const items: AssetStatsCardProps[] = [
+  const items: InventoryStatsCardProps[] = [
     {
-      title: "Total Assets",
-      value: isLoading ? "Loading..." : assetStats?.total.toString() || "0",
+      title: "Total Inventories",
+      value: isLoading ? "Loading..." : inventoryStats?.total.toString() || "0",
       description: "Inventory registered",
     },
     {
-      title: "Active Assets",
-      value: isLoading ? "Loading..." : assetStats?.active.toString() || "0",
+      title: "Active Inventories",
+      value: isLoading
+        ? "Loading..."
+        : inventoryStats?.active.toString() || "0",
       color: "green-600",
       description: "Currently in use",
     },
     {
-      title: "Under Maintenance",
+      title: "Value of Inventories",
       value: isLoading
         ? "Loading..."
-        : assetStats?.maintenance.toString() || "0",
+        : "RM " + inventoryStats?.value.toString() || "0",
       color: "red-600",
-      description: "Being serviced",
+      description: "Total value of all inventories",
     },
   ];
 
