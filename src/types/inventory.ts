@@ -16,6 +16,7 @@ export interface Inventory {
   created_at?: string;
   updated_by?: string;
   updated_at?: string;
+  deleted_at?: string;
 }
 
 export interface InventoryType {
@@ -31,6 +32,7 @@ export interface InventoryStatsData {
   total: number;
   active: number;
   maintenance: number;
+  value: number;
 }
 
 export interface InventoryStatsCardProps {

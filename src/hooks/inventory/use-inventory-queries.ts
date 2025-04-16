@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { useSiteId } from "../use-site-id";
 import { useUserMetadata } from "../use-user-metadata";
 import { inventoryClient } from "./inventory-client";
 
 export const useInventoryQueries = () => {
   const userMetadata = useUserMetadata();
+  const siteId = useSiteId();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const organizationId =
     parsedMetadata?.user_type !== "super_admin" &&
@@ -12,11 +14,20 @@ export const useInventoryQueries = () => {
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+
+  let site_id: string | null = null;
+  if (isStaffUser) {
+    site_id = siteId;
+  }
   const useInventoriesQuery = () =>
     useQuery({
-      queryKey: ["inventories", organizationId],
-      queryFn: () => inventoryClient.fetchInventories(organizationId),
-      enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Disable query if no access
+      queryKey: ["inventories", organizationId, site_id],
+      queryFn: () => inventoryClient.fetchInventories(organizationId, site_id),
+      enabled:
+        (!!organizationId && !isStaffUser) ||
+        parsedMetadata?.user_type === "super_admin" ||
+        (isStaffUser && !!siteId),
     });
 
   const useInventoryQuery = (id: string) =>

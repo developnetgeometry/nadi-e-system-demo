@@ -3,14 +3,13 @@ import { InventoryFormDialog } from "@/components/inventory/InventoryFormDialog"
 import { InventoryList } from "@/components/inventory/InventoryList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { useInventories } from "@/hooks/use-inventories";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { supabase } from "@/lib/supabase";
-import { InventoryStatsCardProps } from "@/types/inventory";
-import { useQuery } from "@tanstack/react-query";
+import { InventoryStatsCardProps, InventoryStatsData } from "@/types/inventory";
 import { Plus } from "lucide-react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const AssetDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -20,47 +19,59 @@ const AssetDashboard = () => {
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
 
+  let inventoryStats: InventoryStatsData = {
+    total: 0,
+    active: 0,
+    maintenance: 0,
+    value: 0,
+  };
+
+  const { useInventoriesQuery } = useInventories();
+
   const {
-    data: inventoryStats = { total: 0, active: 0, maintenance: 0, value: 0 },
-    isLoading,
-  } = useQuery({
-    queryKey: ["inventory-stats"],
-    queryFn: async () => {
-      console.log("Fetching inventory statistics...");
-      try {
-        const { data: inventories, error } = await supabase
-          .from("nd_inventory")
-          .select("quantity, price");
+    data: inventories,
+    isLoading: isLoadingInventories,
+    error: errorInventories,
+    refetch,
+  } = useInventoriesQuery();
 
-        if (error) throw error;
+  useEffect(() => {
+    if (!isDialogOpen) {
+      refetch();
+    }
+  }, [isDialogOpen, refetch]);
 
-        const stats = {
-          total: inventories.length,
-          active: inventories.filter((asset) => asset.quantity > 0).length,
-          value: inventories.reduce(
-            (sum, asset) =>
-              sum + (Number(asset.quantity) || 0) * (Number(asset.price) || 0),
-            0
-          ),
-        };
+  if (errorInventories) {
+    console.error("Error fetching inventories:", errorInventories);
+  }
 
-        return stats;
-      } catch (error) {
-        console.error("Error fetching asset stats:", error);
-        throw error;
-      }
-    },
-  });
+  const displayInventories = isStaffUser && !siteId ? [] : inventories;
+
+  if (!isLoadingInventories && inventories) {
+    if (displayInventories.length > 0) {
+      inventoryStats = {
+        total: displayInventories.length,
+        active: displayInventories.filter((a) => a?.quantity > 0).length,
+        maintenance: displayInventories.filter((a) => a?.quantity === 0).length,
+        value: displayInventories.reduce(
+          (sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.price) || 0),
+          0
+        ),
+      };
+    }
+  }
 
   const items: InventoryStatsCardProps[] = [
     {
       title: "Total Inventories",
-      value: isLoading ? "Loading..." : inventoryStats?.total.toString() || "0",
+      value: isLoadingInventories
+        ? "Loading..."
+        : inventoryStats?.total.toString() || "0",
       description: "Inventory registered",
     },
     {
       title: "Active Inventories",
-      value: isLoading
+      value: isLoadingInventories
         ? "Loading..."
         : inventoryStats?.active.toString() || "0",
       color: "green-600",
@@ -68,7 +79,7 @@ const AssetDashboard = () => {
     },
     {
       title: "Value of Inventories",
-      value: isLoading
+      value: isLoadingInventories
         ? "Loading..."
         : "RM " + inventoryStats?.value.toString() || "0",
       color: "red-600",
@@ -95,7 +106,11 @@ const AssetDashboard = () => {
           ))}
         </div>
 
-        <InventoryList />
+        <InventoryList
+          inventories={inventories}
+          isLoadingInventories={isLoadingInventories}
+          refetch={refetch}
+        />
         <InventoryFormDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
