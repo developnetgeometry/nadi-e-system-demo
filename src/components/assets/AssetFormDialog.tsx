@@ -86,6 +86,7 @@ export const AssetFormDialog = ({
   const [assetType, setAssetType] = useState("");
   const [assetBrandId, setAssetBrandId] = useState("");
   const [assetDescription, setAssetDescription] = useState("");
+  const [assetSerialNumber, setAssetSerialNumber] = useState("");
   const [assetQuantity, setAssetQuantity] = useState("");
   const [assetLocationId, setAssetLocationId] = useState("");
 
@@ -116,6 +117,7 @@ export const AssetFormDialog = ({
       console.log("asset", asset);
       setAssetName(asset.name);
       setAssetDescription(asset.remark);
+      setAssetSerialNumber(asset.serial_number);
       setAssetQuantity(String(asset.qty_unit));
       setLocations(
         (asset.site?.nd_site_space ?? []).map((s): Space => s.nd_space)
@@ -217,6 +219,7 @@ export const AssetFormDialog = ({
       type_id: assetType,
       brand_id: assetBrandId,
       remark: formData.get("description"),
+      serial_number: assetSerialNumber,
       qty_unit: formData.get("quantity"),
       location_id: assetLocationId,
       site_id: String(selectedSite?.nd_site?.[0]?.id),
@@ -430,6 +433,18 @@ export const AssetFormDialog = ({
                   onChange={(e) => setAssetDescription(e.target.value)}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Barcode / SKU</Label>
+                <Input
+                  id="serial_number"
+                  name="serial_number"
+                  placeholder="Enter barcode / sku"
+                  value={assetSerialNumber}
+                  onChange={(e) => setAssetSerialNumber(e.target.value)}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="name">Quantity</Label>
                 <Input

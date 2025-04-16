@@ -167,6 +167,7 @@ export const AssetList = ({
       "Name",
       "Type",
       "Brand",
+      "Barcode / SKU",
       "Quantity",
       "Remark",
       "NADI Centre",
@@ -189,6 +190,7 @@ export const AssetList = ({
         asset.name,
         asset.type?.name ?? "",
         asset.brand?.name ?? "",
+        asset.serial_number ?? "",
         asset.qty_unit ?? "",
         asset.remark ?? "",
         // we'll insert "TP (DUSP)" before sitename if isSuperAdmin is true
