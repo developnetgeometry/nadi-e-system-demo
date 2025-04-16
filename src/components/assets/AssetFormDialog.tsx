@@ -81,12 +81,20 @@ export const AssetFormDialog = ({
     enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
   });
 
+  // TODO: use real data
+  const retail_types = [
+    { id: 1, name: "Retail Type 1" },
+    { id: 2, name: "Retail Type 2" },
+    { id: 3, name: "Retail Type 3" },
+  ];
+
   const [assetId, setAssetId] = useState<string>(String(asset?.id) || null);
   const [assetName, setAssetName] = useState("");
   const [assetType, setAssetType] = useState("");
   const [assetBrandId, setAssetBrandId] = useState("");
   const [assetDescription, setAssetDescription] = useState("");
   const [assetSerialNumber, setAssetSerialNumber] = useState("");
+  const [assetRetailType, setAssetRetailType] = useState("");
   const [assetQuantity, setAssetQuantity] = useState("");
   const [assetLocationId, setAssetLocationId] = useState("");
 
@@ -122,6 +130,7 @@ export const AssetFormDialog = ({
       setLocations(
         (asset.site?.nd_site_space ?? []).map((s): Space => s.nd_space)
       );
+      setAssetRetailType(String(asset.retail_type));
       if (!brandIsLoading && !assetTypeIsLoading) {
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
@@ -162,6 +171,8 @@ export const AssetFormDialog = ({
       setAssetDescription("");
       setAssetQuantity("");
       setAssetLocationId("");
+      setAssetSerialNumber("");
+      setAssetRetailType("");
       setDuspId("");
       setTpId("");
       setSiteId("");
@@ -220,6 +231,7 @@ export const AssetFormDialog = ({
       brand_id: assetBrandId,
       remark: formData.get("description"),
       serial_number: assetSerialNumber,
+      retail_type: assetRetailType,
       qty_unit: formData.get("quantity"),
       location_id: assetLocationId,
       site_id: String(selectedSite?.nd_site?.[0]?.id),
@@ -502,6 +514,26 @@ export const AssetFormDialog = ({
                   </SelectTrigger>
                   <SelectContent>
                     {assetTypes.map((type, index) => (
+                      <SelectItem key={index} value={type.id.toString()}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Retail Category / Type</Label>
+                <Select
+                  name="retail_type"
+                  value={assetRetailType}
+                  onValueChange={setAssetRetailType}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select retail type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {retail_types.map((type, index) => (
                       <SelectItem key={index} value={type.id.toString()}>
                         {type.name}
                       </SelectItem>

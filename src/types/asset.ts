@@ -13,6 +13,7 @@ export interface Asset {
   asset_group?: string;
   type_id: number;
   type: AssetType;
+  retail_type?: number;
   subtype_id?: number;
   serial_number?: string;
   qty_unit?: number;

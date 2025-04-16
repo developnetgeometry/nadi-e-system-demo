@@ -16,7 +16,6 @@ import { useState } from "react";
 import { assetClient } from "@/hooks/assets/asset-client";
 import { useAssets } from "@/hooks/use-assets";
 import { useOrganizations } from "@/hooks/use-organizations";
-import { useSiteId } from "@/hooks/use-site-id";
 import { useSpace } from "@/hooks/use-space";
 import { toast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
@@ -38,7 +37,6 @@ export const AssetList = ({
   isLoadingAssets,
   refetch,
 }: AssetListProps) => {
-  const siteId = useSiteId();
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
@@ -54,7 +52,6 @@ export const AssetList = ({
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
-  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
 
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Asset | null>(null);
