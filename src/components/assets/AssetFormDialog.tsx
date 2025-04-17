@@ -122,7 +122,6 @@ export const AssetFormDialog = ({
 
   useEffect(() => {
     if (asset) {
-      console.log("asset", asset);
       setAssetName(asset.name);
       setAssetDescription(asset.remark);
       setAssetSerialNumber(asset.serial_number);
@@ -135,7 +134,6 @@ export const AssetFormDialog = ({
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
         setAssetLocationId(String(asset.location_id));
-        console.log("asset.location_id", asset.location_id);
       }
       if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading) {
         setDuspId(String(asset.site?.dusp_tp?.parent?.id));

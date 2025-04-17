@@ -4,20 +4,23 @@ import { useOrganizations } from "@/hooks/use-organizations";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Inventory } from "@/types/inventory";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Table } from "lucide-react";
+import { Download, Search, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { fetchSites } from "../site/component/site-utils";
 import { Input } from "../ui/input";
 import { PaginationComponent } from "../ui/PaginationComponent";
 import { Skeleton } from "../ui/skeleton";
 import {
+  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { InventoryDeleteDialog } from "./InventoryDeleteDialog";
 import { InventoryDetailsDialog } from "./InventoryDetailsDialog";
+import { InventoryFormDialog } from "./InventoryFormDialog";
 
 interface InventoryListProps {
   inventories: Inventory[];
@@ -147,9 +150,66 @@ export const InventoryList = ({
             ))}
           </select>
         </div>
+        {isSuperAdmin && (
+          <div className="relative">
+            <select
+              value={duspFilter}
+              onChange={(e) => setDuspFilter(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isLoadingDusps}
+            >
+              <option value="">All DUSP</option>
+              {dusps.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {(isSuperAdmin || isDUSPUser) && (
+          <div className="relative">
+            <select
+              value={tpFilter}
+              onChange={(e) => setTpFilter(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isLoadingTPs}
+            >
+              <option value="">All TP</option>
+              {tps.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        {(isSuperAdmin || isDUSPUser || isTPUser) && (
+          <div className="relative">
+            <select
+              value={siteFilter}
+              onChange={(e) => setSiteFilter(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              disabled={isLoadingSites}
+            >
+              <option value="">All Sites</option>
+              {sites.map((site) => (
+                <option key={site?.id} value={site?.id}>
+                  {site?.sitename}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+        <div className="relative">
+          <Button disabled={isLoadingSites} onClick={() => {}}>
+            <Download className="h-4 w-4 mr-2" />
+            Download CSV
+          </Button>
+        </div>
       </div>
       <div className="rounded-md border">
-        {isLoadingSites ? (
+        {isLoadingInventories ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -205,6 +265,8 @@ export const InventoryList = ({
                 <TableHead>Item Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Quantity</TableHead>
+                {/* Add DUSP TP column for super admin */}
+                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
                 <TableHead>Nadi Center</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -212,41 +274,66 @@ export const InventoryList = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedInventories.map((inventory, index) => {
-                const requestDate = inventory.created_at
-                  ? inventory.created_at.split("T")[0]
-                  : "";
+              {paginatedInventories &&
+                paginatedInventories.map((inventory, index) => {
+                  const requestDate = inventory.created_at
+                    ? inventory.created_at.split("T")[0]
+                    : "";
 
-                return (
-                  <TableRow key={inventory.id}>
-                    <TableCell>
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell>{inventory?.name || ""}</TableCell>
-                    <TableCell>{inventory?.type?.name || ""}</TableCell>
-                    <TableCell>{inventory?.quantity || ""}</TableCell>
-                    <TableCell>{inventory?.site.sitename || ""}</TableCell>
-                    <TableCell>{requestDate || ""}</TableCell>
-                    <TableCell>{"Status"}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsViewDetailsDialogOpen(true);
-                            setSelectedItem(inventory);
-                          }}
-                        >
-                          View Detail
-                        </Button>
-                        <Button variant="default" onClick={() => {}}>
-                          Generate Report
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                  return (
+                    <TableRow key={inventory.id}>
+                      <TableCell>
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>{inventory?.name || ""}</TableCell>
+                      <TableCell>{inventory?.type?.name || ""}</TableCell>
+                      <TableCell>{inventory?.quantity || ""}</TableCell>
+                      {isSuperAdmin && (
+                        <TableCell>
+                          {inventory?.site?.dusp_tp_id_display || "N/A"}
+                        </TableCell>
+                      )}
+                      <TableCell>{inventory?.site.sitename || ""}</TableCell>
+                      <TableCell>{requestDate || ""}</TableCell>
+                      <TableCell>{"Status"}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setIsEditDialogOpen(true);
+                              setSelectedItem(inventory);
+                            }}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setIsDeleteDialogOpen(true);
+                              setSelectedItem(inventory);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setIsViewDetailsDialogOpen(true);
+                              setSelectedItem(inventory);
+                            }}
+                          >
+                            <Search className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         )}
@@ -267,6 +354,26 @@ export const InventoryList = ({
         onOpenChange={setIsViewDetailsDialogOpen}
         inventory={selectedItem}
       />
+      {isEditDialogOpen && (
+        <InventoryFormDialog
+          open={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) refetch();
+          }}
+          inventory={selectedItem}
+        />
+      )}
+      {isDeleteDialogOpen && (
+        <InventoryDeleteDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={(open) => {
+            setIsDeleteDialogOpen(open);
+            if (!open) refetch();
+          }}
+          inventory={selectedItem}
+        />
+      )}
     </div>
   );
 };

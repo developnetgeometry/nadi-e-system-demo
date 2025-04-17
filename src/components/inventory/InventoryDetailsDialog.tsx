@@ -93,11 +93,11 @@ export const InventoryDetailsDialog = ({
           <div className="flex-1 space-y-4">
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Type</span>
-              <span>{inventory.type.name}</span>
+              <span>{inventory?.type?.name}</span>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Nadi Center</span>
-              <span>{inventory.site.sitename}</span>
+              <span>{inventory?.site?.sitename}</span>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Status</span>

@@ -1,4 +1,4 @@
-import { AssetStatsCard } from "@/components/dashboard/asset/AssetStatsCard";
+import { InventoryStatsCard } from "@/components/dashboard/inventory/InventoryStatsCard";
 import { InventoryFormDialog } from "@/components/inventory/InventoryFormDialog";
 import { InventoryList } from "@/components/inventory/InventoryList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -11,7 +11,7 @@ import { Plus } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
-const AssetDashboard = () => {
+const InventoryDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const siteId = useSiteId();
@@ -43,6 +43,7 @@ const AssetDashboard = () => {
 
   if (errorInventories) {
     console.error("Error fetching inventories:", errorInventories);
+    return <div>Error fetching inventories</div>;
   }
 
   const displayInventories = isStaffUser && !siteId ? [] : inventories;
@@ -102,12 +103,12 @@ const AssetDashboard = () => {
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
-            <AssetStatsCard key={item.title} {...item} />
+            <InventoryStatsCard key={item.title} {...item} />
           ))}
         </div>
 
         <InventoryList
-          inventories={inventories}
+          inventories={displayInventories}
           isLoadingInventories={isLoadingInventories}
           refetch={refetch}
         />
@@ -120,4 +121,4 @@ const AssetDashboard = () => {
   );
 };
 
-export default AssetDashboard;
+export default InventoryDashboard;
