@@ -60,7 +60,7 @@ export const inventoryClient = {
 
         return {
           ...item,
-          type: item.nd_asset_type,
+          type: item.nd_inventory_type,
           brand: item.nd_brand,
           site: profile ? { ...profile } : null,
         };

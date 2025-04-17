@@ -126,6 +126,69 @@ export const InventoryList = ({
     filteredInventories.length
   );
 
+  const exportAssetsAsCSV = (inventories: Inventory[]) => {
+    if (!inventories || inventories.length === 0) {
+      console.warn("No inventories to export.");
+      return;
+    }
+
+    const headers = [
+      "No.",
+      "Name",
+      "Type",
+      "Price",
+      "Quantity",
+      "Description",
+      "NADI Centre",
+    ];
+
+    if (isSuperAdmin) {
+      const insertIndex = headers.indexOf("NADI Centre");
+      headers.splice(insertIndex, 0, "TP (DUSP)");
+    }
+
+    // Convert inventories to rows
+    const rows = inventories.map((inventory, index) => {
+      const row = [
+        index + 1,
+        inventory.name,
+        inventory.type?.name ?? "",
+        inventory.price ?? "",
+        inventory.quantity ?? "",
+        inventory.description ?? "",
+        // we'll insert "TP (DUSP)" before sitename if isSuperAdmin is true
+        inventory.site?.sitename ?? "",
+      ];
+
+      if (isSuperAdmin) {
+        const insertIndex = row.length - 1; // before "NADI Centre"
+        row.splice(insertIndex, 0, inventory.site?.dusp_tp_id_display ?? "");
+      }
+
+      return row;
+    });
+    const csvContent = [headers, ...rows]
+      .map((e) => e.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    return csvContent;
+  };
+
+  const handleExportInventories = () => {
+    const csvContent = exportAssetsAsCSV(filteredInventories);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "inventories.csv");
+    link.style.display = "none";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative mb-4 flex space-x-4">
@@ -202,7 +265,7 @@ export const InventoryList = ({
           </div>
         )}
         <div className="relative">
-          <Button disabled={isLoadingSites} onClick={() => {}}>
+          <Button disabled={isLoadingSites} onClick={handleExportInventories}>
             <Download className="h-4 w-4 mr-2" />
             Download CSV
           </Button>
