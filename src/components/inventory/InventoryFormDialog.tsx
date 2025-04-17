@@ -15,33 +15,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAssets } from "@/hooks/use-assets";
-import { useBrand } from "@/hooks/use-brand";
+import { useInventories } from "@/hooks/use-inventories";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { supabase } from "@/lib/supabase";
-import { Asset } from "@/types/asset";
-import { Site, Space } from "@/types/site";
+import { Inventory } from "@/types/inventory";
+import { Site } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { fetchSiteBySiteId, fetchSites } from "../site/component/site-utils";
 import { Textarea } from "../ui/textarea";
 
-export interface AssetFormDialogProps {
+export interface InventoryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  asset?: Asset | null;
-  defaultSiteId?: string | null; // default site id passed from parent componenet in site.id form not site_profile.id
+  inventory?: Inventory | null;
+  defaultSiteId?: string | null;
 }
 
-export const AssetFormDialog = ({
+export const InventoryFormDialog = ({
   open,
   onOpenChange,
-  asset,
+  inventory,
   defaultSiteId,
-}: AssetFormDialogProps) => {
+}: InventoryFormDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,63 +87,63 @@ export const AssetFormDialog = ({
     { id: 3, name: "Retail Type 3" },
   ];
 
-  const [assetId, setAssetId] = useState<string>(String(asset?.id) || null);
-  const [assetName, setAssetName] = useState("");
-  const [assetType, setAssetType] = useState("");
-  const [assetBrandId, setAssetBrandId] = useState("");
-  const [assetDescription, setAssetDescription] = useState("");
-  const [assetSerialNumber, setAssetSerialNumber] = useState("");
-  const [assetRetailType, setAssetRetailType] = useState("");
-  const [assetQuantity, setAssetQuantity] = useState("");
-  const [assetLocationId, setAssetLocationId] = useState("");
+  const [inventoryId, setInventoryId] = useState<string>(
+    String(inventory?.id || null)
+  );
+  const [inventoryName, setInventoryName] = useState<string>(
+    String(inventory?.name || "")
+  );
+  const [inventoryType, setInventoryType] = useState<string>(
+    String(inventory?.type_id || "")
+  );
+  const [retailType, setRetailType] = useState<string>(
+    String(inventory?.retail_type || "")
+  );
+  const [inventoryPrice, setInventoryPrice] = useState<string>(
+    String(inventory?.price || "")
+  );
+  const [inventoryQuantity, setInventoryQuantity] = useState<string>(
+    String(inventory?.quantity || "")
+  );
+  const [inventoryDescription, setInventoryDescription] = useState<string>(
+    String(inventory?.description || "")
+  );
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
   const [siteId, setSiteId] = useState<string>(
-    String(defaultSiteId) || String(asset?.site_id) || ""
+    String(defaultSiteId) || String(inventory?.site_id) || ""
   );
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
-  const [locations, setLocations] = useState<Space[]>([]);
 
-  const { useAssetTypesQuery } = useAssets();
-
-  const {
-    data: assetTypes = [],
-    isLoading: assetTypeIsLoading,
-    error: assetTypeError,
-  } = useAssetTypesQuery();
+  const { useInventoryTypesQuery } = useInventories();
 
   const {
-    data: brands,
-    isLoading: brandIsLoading,
-    error: brandError,
-  } = useBrand();
+    data: inventoryTypes = [],
+    isLoading: isLoadingInventoryType,
+    error,
+  } = useInventoryTypesQuery();
 
   useEffect(() => {
-    if (asset) {
-      setAssetName(asset.name);
-      setAssetDescription(asset.remark);
-      setAssetSerialNumber(asset.serial_number);
-      setAssetQuantity(String(asset.qty_unit));
-      setLocations(
-        (asset.site?.nd_site_space ?? []).map((s): Space => s.nd_space)
-      );
-      setAssetRetailType(String(asset.retail_type));
-      if (!brandIsLoading && !assetTypeIsLoading) {
-        setAssetType(String(asset.type_id));
-        setAssetBrandId(String(asset.brand_id));
-        setAssetLocationId(String(asset.location_id));
+    if (inventory) {
+      setInventoryId(String(inventory.id));
+      setInventoryName(String(inventory.name));
+      setRetailType(String(inventory.retail_type));
+      setInventoryPrice(String(inventory.price));
+      setInventoryQuantity(String(inventory.quantity));
+      setInventoryDescription(String(inventory.description));
+      if (!isLoadingInventoryType) {
+        setInventoryType(String(inventory.type_id));
       }
       if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading) {
-        setDuspId(String(asset.site?.dusp_tp?.parent?.id));
-        setTpId(String(asset.site?.dusp_tp_id));
-        setSiteId(String(asset.site_id));
+        setDuspId(String(inventory.site?.dusp_tp?.parent?.id));
+        setTpId(String(inventory.site?.dusp_tp_id));
+        setSiteId(String(inventory.site_id));
       }
     }
   }, [
-    asset,
-    brandIsLoading,
-    assetTypeIsLoading,
+    inventory,
+    isLoadingInventoryType,
     duspsIsLoading,
     tpsIsLoading,
     sitesIsLoading,
@@ -162,15 +161,13 @@ export const AssetFormDialog = ({
 
   useEffect(() => {
     if (!open) {
-      setAssetId("");
-      setAssetName("");
-      setAssetType("");
-      setAssetBrandId("");
-      setAssetDescription("");
-      setAssetQuantity("");
-      setAssetLocationId("");
-      setAssetSerialNumber("");
-      setAssetRetailType("");
+      setInventoryId("");
+      setInventoryName("");
+      setInventoryType("");
+      setInventoryDescription("");
+      setRetailType("");
+      setInventoryPrice("");
+      setInventoryQuantity("");
       setDuspId("");
       setTpId("");
       setSiteId("");
@@ -182,29 +179,13 @@ export const AssetFormDialog = ({
       const site = await fetchSiteBySiteId(siteId!); // this in nd_site.id form
       if (site) {
         setSelectedSite(site);
-        if (!isStaffUser) {
-          const locations = (site.nd_site_space ?? []).map(
-            (s): Space => s.nd_space
-          );
-          setLocations(locations);
-        }
-
-        if (asset) {
-          const match = (site.nd_site_space ?? []).find(
-            (s) => String(s.nd_space.id) === String(asset.location_id)
-          );
-          setAssetLocationId(match ? String(asset.location_id) : "");
-        }
       }
     };
 
     if (siteId) {
-      if (!isStaffUser) {
-        setLocations([]);
-      }
       fetchSite();
     }
-  }, [siteId, isStaffUser, asset]);
+  }, [siteId, isStaffUser, inventory]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -223,62 +204,54 @@ export const AssetFormDialog = ({
       return;
     }
 
-    const asset = {
+    const inventory = {
       name: formData.get("name"),
-      type_id: assetType,
-      brand_id: assetBrandId,
-      remark: formData.get("description"),
-      serial_number: assetSerialNumber,
-      retail_type: assetRetailType,
-      qty_unit: formData.get("quantity"),
-      location_id: assetLocationId,
+      type_id: inventoryType,
+      description: formData.get("description"),
+      retail_type: retailType,
+      price: formData.get("price"),
+      quantity: formData.get("quantity"),
       site_id: String(selectedSite?.nd_site?.[0]?.id),
     };
 
     try {
-      if (assetId) {
-        console.log("Updating asset:", asset);
+      if (inventoryId) {
+        console.log("Updating existing inventory:", inventory);
         const { error: updateError } = await supabase
-          .from("nd_asset")
-          .update({
-            ...asset,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", assetId);
+          .from("nd_inventory")
+          .update({ ...inventory, updated_at: new Date().toISOString() })
+          .eq("id", inventoryId);
 
         if (updateError) throw updateError;
 
         toast({
-          title: "Asset updated successfully",
-          description: "The asset has been updated in the system.",
+          title: "Inventory updated successfully",
+          description: "The inventory has been updated in the system.",
         });
       } else {
-        console.log("Creating new asset:", asset);
-        const { error: insertError } = await supabase.from("nd_asset").insert([
-          {
-            ...asset,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        console.log("Creating new inventory:", inventory);
+        const { error: insertError } = await supabase
+          .from("nd_inventory")
+          .insert([{ ...inventory, created_at: new Date().toISOString() }]);
 
         if (insertError) throw insertError;
 
         toast({
-          title: "Asset added successfully",
-          description: "The new asset has been added to the system.",
+          title: "Inventory added successfully",
+          description: "The new inventory has been added to the system.",
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
-      queryClient.invalidateQueries({ queryKey: ["asset-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["inventories"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stats"] });
       onOpenChange(false);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error adding inventory:", error);
       toast({
         title: "Error",
         description: `Failed to ${
-          assetId ? "update" : "add"
-        } the asset. Please try again.`,
+          inventoryId ? "update" : "add"
+        } the inventory. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -286,20 +259,19 @@ export const AssetFormDialog = ({
     }
   };
 
-  if (assetTypeError) {
-    console.error("Error fetching asset types:", assetTypeError);
+  if (isLoadingInventoryType) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        Failed to load asset types
+        Loading...
       </Dialog>
     );
   }
 
-  if (brandError) {
-    console.error("Error fetching brands:", brandError);
+  if (error) {
+    console.error("Error fetching inventory types:", error);
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        Failed to load brands
+        Failed to load inventory types
       </Dialog>
     );
   }
@@ -307,32 +279,32 @@ export const AssetFormDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
-        {brandIsLoading || assetTypeIsLoading ? (
+        {isLoadingInventoryType ? (
           <DialogTitle>
             <LoadingSpinner />
           </DialogTitle>
         ) : (
-          <div>
+          <>
             <DialogHeader className="mb-2">
               <DialogTitle>
-                {asset ? "Edit Asset" : "Add New Asset"}
+                {inventory ? "Update Inventory" : "Add New Inventory"}
               </DialogTitle>
               <DialogDescription>
-                {asset
-                  ? "Update asset details"
-                  : "Fill in the details to create a new asset"}
+                {inventory
+                  ? "Update inventorty details"
+                  : "Fill in the details to create a new inventory"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Asset Name</Label>
+                <Label htmlFor="name">Inventory Name</Label>
                 <Input
                   id="name"
                   name="name"
                   required
-                  placeholder="Enter asset name"
-                  value={assetName}
-                  onChange={(e) => setAssetName(e.target.value)}
+                  placeholder="Enter inventory name"
+                  value={inventoryName}
+                  onChange={(e) => setInventoryName(e.target.value)}
                 />
               </div>
 
@@ -412,108 +384,54 @@ export const AssetFormDialog = ({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="type">Brand</Label>
-                <Select
-                  name="brand"
-                  required
-                  value={assetBrandId}
-                  onValueChange={setAssetBrandId}
-                  disabled={brandIsLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select brand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {brands.map((brand, index) => (
-                      <SelectItem key={index} value={brand.id.toString()}>
-                        {brand.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="name">Description</Label>
                 <Textarea
                   id="description"
                   name="description"
                   placeholder="Enter asset description"
-                  value={assetDescription}
-                  onChange={(e) => setAssetDescription(e.target.value)}
+                  value={inventoryDescription}
+                  onChange={(e) => setInventoryDescription(e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="name">Barcode / SKU</Label>
-                <Input
-                  id="serial_number"
-                  name="serial_number"
-                  placeholder="Enter barcode / sku"
-                  value={assetSerialNumber}
-                  onChange={(e) => setAssetSerialNumber(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="name">Quantity</Label>
+                <Label htmlFor="name">Unit / Stock</Label>
                 <Input
                   id="quantity"
                   name="quantity"
                   type="number"
                   required
                   placeholder="Enter asset quantity"
-                  value={assetQuantity}
-                  onChange={(e) => setAssetQuantity(e.target.value)}
+                  value={inventoryQuantity}
+                  onChange={(e) => setInventoryQuantity(e.target.value)}
                   min={0}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Asset Location</Label>
-                <Select
-                  name="location"
+                <Label htmlFor="type">Price per Unit</Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
                   required
-                  value={assetLocationId}
-                  onValueChange={setAssetLocationId}
-                  disabled={locations && locations.length > 0 ? false : true}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        locations && locations.length > 0
-                          ? "Select asset location"
-                          : "No locations found for this site"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations &&
-                      locations.map((location, index) => (
-                        <SelectItem key={index} value={location.id.toString()}>
-                          {location.eng}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+                  placeholder="Enter price per unit"
+                  value={inventoryPrice}
+                  onChange={(e) => setInventoryPrice(e.target.value)}
+                  min={0}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Asset Type</Label>
-                <Select
-                  name="type"
-                  required
-                  value={assetType}
-                  onValueChange={setAssetType}
-                  disabled={assetTypeIsLoading}
-                >
+                <Label htmlFor="type">Inventory Type</Label>
+                <Select name="type" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select asset type" />
+                    <SelectValue placeholder="Select inventory type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {assetTypes.map((type, index) => (
+                    {inventoryTypes.map((type, index) => (
                       <SelectItem key={index} value={type.id.toString()}>
-                        {type.name}
+                        {type?.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -524,8 +442,8 @@ export const AssetFormDialog = ({
                 <Label htmlFor="type">Retail Category / Type</Label>
                 <Select
                   name="retail_type"
-                  value={assetRetailType}
-                  onValueChange={setAssetRetailType}
+                  value={retailType}
+                  onValueChange={setRetailType}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select retail type" />
@@ -542,15 +460,15 @@ export const AssetFormDialog = ({
 
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting
-                  ? asset
+                  ? inventory
                     ? "Updating..."
                     : "Adding..."
-                  : asset
-                  ? "Update Asset"
-                  : "Add Asset"}
+                  : inventory
+                  ? "Update Inventory"
+                  : "Add Inventory"}
               </Button>
             </form>
-          </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

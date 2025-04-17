@@ -1,7 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PaginationComponent } from "@/components/ui/PaginationComponent";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useInventories } from "@/hooks/use-inventories";
+import { useOrganizations } from "@/hooks/use-organizations";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { Inventory } from "@/types/inventory";
+import { useQuery } from "@tanstack/react-query";
+import { Download, Search, Settings, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { fetchSites } from "../site/component/site-utils";
+import { Input } from "../ui/input";
+import { PaginationComponent } from "../ui/PaginationComponent";
+import { Skeleton } from "../ui/skeleton";
 import {
   Table,
   TableBody,
@@ -9,34 +17,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Download, Eye, EyeOff, Search, Settings, Trash2 } from "lucide-react";
-import { useState } from "react";
+} from "../ui/table";
+import { InventoryDeleteDialog } from "./InventoryDeleteDialog";
+import { InventoryDetailsDialog } from "./InventoryDetailsDialog";
+import { InventoryFormDialog } from "./InventoryFormDialog";
 
-import { assetClient } from "@/hooks/assets/asset-client";
-import { useAssets } from "@/hooks/use-assets";
-import { useOrganizations } from "@/hooks/use-organizations";
-import { useSpace } from "@/hooks/use-space";
-import { toast } from "@/hooks/use-toast";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { Asset } from "@/types/asset";
-import { useQuery } from "@tanstack/react-query";
-import { fetchSites } from "../site/component/site-utils";
-import { AssetDeleteDialog } from "./AssetDeleteDialog";
-import { AssetDetailsDialog } from "./AssetDetailsDialog";
-import { AssetFormDialog } from "./AssetFormDialog";
-
-interface AssetListProps {
-  assets: Asset[];
-  isLoadingAssets: boolean;
+interface InventoryListProps {
+  inventories: Inventory[];
+  isLoadingInventories: boolean;
   refetch: () => void;
 }
-
-export const AssetList = ({
-  assets,
-  isLoadingAssets,
+export const InventoryList = ({
+  inventories,
+  isLoadingInventories,
   refetch,
-}: AssetListProps) => {
+}: InventoryListProps) => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
@@ -54,11 +49,11 @@ export const AssetList = ({
       : null;
 
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Asset | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Inventory | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { useAssetTypesQuery } = useAssets();
+  const { useInventoryTypesQuery } = useInventories();
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
@@ -78,12 +73,6 @@ export const AssetList = ({
     enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
   });
 
-  const {
-    data: spaces,
-    isLoading: spacesIsLoading,
-    error: spaceError,
-  } = useSpace();
-
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [duspFilter, setDuspFilter] = useState<string>("");
@@ -93,10 +82,10 @@ export const AssetList = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data: assetTypes = [], isLoading: isLoadingAssetType } =
-    useAssetTypesQuery();
+  const { data: inventoryTypes = [], isLoading: isLoadingInventoryType } =
+    useInventoryTypesQuery();
 
-  if (isLoadingAssets || isLoadingAssetType) {
+  if (isLoadingInventories || isLoadingInventoryType) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
@@ -106,56 +95,40 @@ export const AssetList = ({
     );
   }
 
-  const filteredAssets = (assets ?? [])
-    .filter((asset) => asset?.name.toLowerCase().includes(filter.toLowerCase()))
-    .filter((asset) =>
-      typeFilter ? String(asset?.type.id) === String(typeFilter) : true
+  const filteredInventories = (inventories ?? [])
+    .filter((inventory) =>
+      inventory.name.toLowerCase().includes(filter.toLowerCase())
     )
-    .filter((asset) =>
+    .filter((inventory) =>
+      typeFilter ? String(inventory?.type.id) === String(typeFilter) : true
+    )
+    .filter((inventory) =>
       duspFilter
-        ? String(asset?.site?.dusp_tp.parent.id) === String(duspFilter)
+        ? String(inventory?.site?.dusp_tp.parent.id) === String(duspFilter)
         : true
     )
-    .filter((asset) =>
-      tpFilter ? String(asset?.site?.dusp_tp_id) === String(tpFilter) : true
+    .filter((inventory) =>
+      tpFilter ? String(inventory?.site?.dusp_tp_id) === String(tpFilter) : true
     )
-    .filter((asset) =>
-      siteFilter ? String(asset?.site?.id) === String(siteFilter) : true
+    .filter((inventory) =>
+      siteFilter ? String(inventory?.site.id) === String(siteFilter) : true
     );
 
-  const paginatedAssets = filteredAssets.slice(
+  const paginatedInventories = filteredInventories.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredInventories.length / itemsPerPage);
   const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, filteredAssets.length);
+  const endItem = Math.min(
+    currentPage * itemsPerPage,
+    filteredInventories.length
+  );
 
-  const handleToggleStatus = async (asset: Asset) => {
-    try {
-      await assetClient.toggleAssetActiveStatus(
-        String(asset.id),
-        asset.is_active
-      );
-      refetch();
-      toast({
-        title: `Asset visibility updated`,
-        description: `Asset ${asset.name} visibility has been successfully updated.`,
-      });
-    } catch (error) {
-      console.error("Failed to update asset visibility:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update the asset visibility. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const exportAssetsAsCSV = (assets: Asset[]) => {
-    if (!assets || assets.length === 0) {
-      console.warn("No assets to export.");
+  const exportAssetsAsCSV = (inventories: Inventory[]) => {
+    if (!inventories || inventories.length === 0) {
+      console.warn("No inventories to export.");
       return;
     }
 
@@ -163,12 +136,10 @@ export const AssetList = ({
       "No.",
       "Name",
       "Type",
-      "Brand",
-      "Barcode / SKU",
+      "Price",
       "Quantity",
-      "Remark",
+      "Description",
       "NADI Centre",
-      "Location",
     ];
 
     if (isSuperAdmin) {
@@ -176,33 +147,26 @@ export const AssetList = ({
       headers.splice(insertIndex, 0, "TP (DUSP)");
     }
 
-    // Convert assets to rows
-    const rows = assets.map((asset, index) => {
-      const location = spaces.find(
-        (space) => String(space.id) === String(asset.location_id)
-      );
-
+    // Convert inventories to rows
+    const rows = inventories.map((inventory, index) => {
       const row = [
         index + 1,
-        asset.name,
-        asset.type?.name ?? "",
-        asset.brand?.name ?? "",
-        asset.serial_number ?? "",
-        asset.qty_unit ?? "",
-        asset.remark ?? "",
+        inventory.name,
+        inventory.type?.name ?? "",
+        inventory.price ?? "",
+        inventory.quantity ?? "",
+        inventory.description ?? "",
         // we'll insert "TP (DUSP)" before sitename if isSuperAdmin is true
-        asset.site?.sitename ?? "",
-        location?.eng ?? "",
+        inventory.site?.sitename ?? "",
       ];
 
       if (isSuperAdmin) {
-        const insertIndex = row.length - 2; // before "NADI Centre"
-        row.splice(insertIndex, 0, asset.site?.dusp_tp_id_display ?? "");
+        const insertIndex = row.length - 1; // before "NADI Centre"
+        row.splice(insertIndex, 0, inventory.site?.dusp_tp_id_display ?? "");
       }
 
       return row;
     });
-
     const csvContent = [headers, ...rows]
       .map((e) => e.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
       .join("\n");
@@ -210,14 +174,14 @@ export const AssetList = ({
     return csvContent;
   };
 
-  const handleExportAssets = () => {
-    const csvContent = exportAssetsAsCSV(filteredAssets);
+  const handleExportInventories = () => {
+    const csvContent = exportAssetsAsCSV(filteredInventories);
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "assets.csv");
+    link.setAttribute("download", "inventories.csv");
     link.style.display = "none";
 
     document.body.appendChild(link);
@@ -229,7 +193,7 @@ export const AssetList = ({
     <div className="space-y-4">
       <div className="relative mb-4 flex space-x-4">
         <Input
-          placeholder="Search asset.."
+          placeholder="Search inventory.."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="pl-10"
@@ -241,8 +205,8 @@ export const AssetList = ({
             onChange={(e) => setTypeFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
-            <option value="">All Types</option>
-            {assetTypes.map((type) => (
+            <option value="">All</option>
+            {inventoryTypes.map((type) => (
               <option key={type.id} value={type.id}>
                 {type.name}
               </option>
@@ -301,17 +265,14 @@ export const AssetList = ({
           </div>
         )}
         <div className="relative">
-          <Button
-            disabled={spacesIsLoading}
-            onClick={() => handleExportAssets()}
-          >
+          <Button disabled={isLoadingSites} onClick={handleExportInventories}>
             <Download className="h-4 w-4 mr-2" />
             Download CSV
           </Button>
         </div>
       </div>
       <div className="rounded-md border">
-        {isLoadingAssets ? (
+        {isLoadingInventories ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -319,9 +280,7 @@ export const AssetList = ({
                 <TableHead>Item Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Quantity</TableHead>
-                {/* Add DUSP TP column for super admin */}
-                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
-                <TableHead>Nadi Centre</TableHead>
+                <TableHead>Nadi Center</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -371,56 +330,43 @@ export const AssetList = ({
                 <TableHead>Quantity</TableHead>
                 {/* Add DUSP TP column for super admin */}
                 {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
-                <TableHead>Nadi Centre</TableHead>
+                <TableHead>Nadi Center</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedAssets &&
-                paginatedAssets.map((asset, index) => {
-                  const requestDate = asset.created_at
-                    ? asset.created_at.split("T")[0]
+              {paginatedInventories &&
+                paginatedInventories.map((inventory, index) => {
+                  const requestDate = inventory.created_at
+                    ? inventory.created_at.split("T")[0]
                     : "";
 
                   return (
-                    <TableRow key={asset.id}>
+                    <TableRow key={inventory.id}>
                       <TableCell>
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell>{asset?.name || "N/A"}</TableCell>
-                      <TableCell>{asset?.type.name || "N/A"}</TableCell>
-                      <TableCell>{asset?.qty_unit || "N/A"}</TableCell>
+                      <TableCell>{inventory?.name || ""}</TableCell>
+                      <TableCell>{inventory?.type?.name || ""}</TableCell>
+                      <TableCell>{inventory?.quantity || ""}</TableCell>
                       {isSuperAdmin && (
                         <TableCell>
-                          {asset?.site?.dusp_tp_id_display || "N/A"}
+                          {inventory?.site?.dusp_tp_id_display || "N/A"}
                         </TableCell>
                       )}
-                      <TableCell>{asset?.site?.sitename || "N/A"}</TableCell>
-                      <TableCell>{requestDate || "N/A"}</TableCell>
-                      <TableCell>
-                        {asset?.is_active ? "Active" : "Inactive"}
-                      </TableCell>
+                      <TableCell>{inventory?.site.sitename || ""}</TableCell>
+                      <TableCell>{requestDate || ""}</TableCell>
+                      <TableCell>{"Status"}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => handleToggleStatus(asset)}
-                          >
-                            {asset.is_active ? (
-                              <Eye className="h-4 w-4" />
-                            ) : (
-                              <EyeOff className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
                             onClick={() => {
                               setIsEditDialogOpen(true);
-                              setSelectedItem(asset);
+                              setSelectedItem(inventory);
                             }}
                           >
                             <Settings className="h-4 w-4" />
@@ -431,7 +377,7 @@ export const AssetList = ({
                             className="text-destructive"
                             onClick={() => {
                               setIsDeleteDialogOpen(true);
-                              setSelectedItem(asset);
+                              setSelectedItem(inventory);
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -441,7 +387,7 @@ export const AssetList = ({
                             size="icon"
                             onClick={() => {
                               setIsViewDetailsDialogOpen(true);
-                              setSelectedItem(asset);
+                              setSelectedItem(inventory);
                             }}
                           >
                             <Search className="h-4 w-4" />
@@ -462,33 +408,33 @@ export const AssetList = ({
           onPageChange={setCurrentPage}
           startItem={startItem}
           endItem={endItem}
-          totalItems={filteredAssets.length}
+          totalItems={filteredInventories.length}
         />
       )}
 
-      <AssetDetailsDialog
+      <InventoryDetailsDialog
         open={isViewDetailsDialogOpen}
         onOpenChange={setIsViewDetailsDialogOpen}
-        asset={selectedItem}
+        inventory={selectedItem}
       />
       {isEditDialogOpen && (
-        <AssetFormDialog
+        <InventoryFormDialog
           open={isEditDialogOpen}
           onOpenChange={(open) => {
             setIsEditDialogOpen(open);
             if (!open) refetch();
           }}
-          asset={selectedItem}
+          inventory={selectedItem}
         />
       )}
       {isDeleteDialogOpen && (
-        <AssetDeleteDialog
+        <InventoryDeleteDialog
           open={isDeleteDialogOpen}
           onOpenChange={(open) => {
             setIsDeleteDialogOpen(open);
             if (!open) refetch();
           }}
-          asset={selectedItem}
+          inventory={selectedItem}
         />
       )}
     </div>
