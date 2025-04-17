@@ -99,7 +99,7 @@ const MemberManagement = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Member Management</h1>
+          <h1 className="text-xl font-bold">Member Management</h1>
           <p className="text-gray-500 mt-1">View and manage all members in the system</p>
         </div>
 

@@ -53,7 +53,7 @@ const SuperAdminProfileSettings = () => {
               {getNameInitial()}
             </AvatarFallback>
           </Avatar>
-          <h1 className="text-5xl font-bold">YOU ARE SUPER ADMIN 🦹</h1>
+          <h1 className="text-2xl font-bold">You Are Super Admin</h1>
         </div>
       </CardContent>
     </Card>

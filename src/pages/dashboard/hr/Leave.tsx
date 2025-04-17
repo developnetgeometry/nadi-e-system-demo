@@ -16,7 +16,7 @@ const Leave = () => {
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Leave Management</h1>
+          <h1 className="text-xl font-bold">Leave Management</h1>
           <Button>
             <Clock className="h-4 w-4 mr-2" />
             Request Leave

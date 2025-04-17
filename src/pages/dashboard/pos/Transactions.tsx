@@ -28,7 +28,7 @@ const Transactions = () => {
   return (
     <DashboardLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Transactions</h1>
+        <h1 className="text-xl font-bold">Transactions</h1>
       </div>
 
       <Card>

@@ -7,7 +7,7 @@ const AuditLogs = () => {
     <DashboardLayout>
       <div className="space-y-6 container mx-auto py-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Audit Logs & Compliance</h1>
+          <h1 className="text-xl font-bold">Audit Logs & Compliance</h1>
         </div>
 
         <ActivityLogList />

@@ -1,42 +1,34 @@
-import React from 'react';
-import useSsoProfileData from "@/components/profile/hook/use-sso-profile-data";
-import usePositionData from "@/hooks/use-position-data";
-import useGeneralData from "@/hooks/use-general-data";
-import PersonalInformation from "./PersonalInformation";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "../ui/skeleton";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProfileOverviewPage from "./components/OverviewPage";
+import { useSSOProfile } from "./hook/use-sso-profile";
+
 
 const SsoProfileSettings = () => {
-  const { profileData, handleChange, handleSave, loading, error } = useSsoProfileData();
-  const { positions, error: positionError } = usePositionData();
-  const { maritalStatuses, races, religions, nationalities, error: generalDataError } = useGeneralData();
+  const { data: ssoProfile, isLoading, isError, error } = useSSOProfile();
 
-  if (loading) return <Skeleton>Loading Data...</Skeleton>;
-  if (error || positionError || generalDataError) return <div>Error: {error || positionError || generalDataError}</div>;
+  if (isLoading) {
+    return <div>Loading...</div>; // Show a loading state while fetching data
+  }
+
+  if (isError) {
+    return <div>Error: {error?.message}</div>; // Show an error message if fetching fails
+  }
 
   return (
-    <Card className="overflow-hidden border-none shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600">
-        <CardTitle className="text-white">Profile</CardTitle>
-      </CardHeader>
-
-      <CardContent className="p-6">
-        <PersonalInformation
-          profileData={profileData}
-          handleChange={handleChange}
-          userType="sso"
-          positions={positions}
-          maritalStatuses={maritalStatuses}
-          races={races}
-          religions={religions}
-          nationalities={nationalities}
-        />
-        <div className="flex justify-end mt-6">
-          <Button onClick={handleSave}>Save Changes</Button>
-        </div>
-      </CardContent>
-    </Card>
+    <Tabs defaultValue="overview" className="mt-6">
+      <TabsList className="border-b dark:border-gray-700 w-full justify-start bg-transparent p-0 h-auto overflow-x-auto mb-6">
+        <TabsTrigger value="overview" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Overview</TabsTrigger>
+      </TabsList>
+      <TabsContent value="overview" className="h-full mt-0">
+        <Card className="h-full">
+          <div className="p-6 h-full">
+            {/* Pass the vendor profile data to ProfileOverviewPage */}
+            <ProfileOverviewPage profileData={ssoProfile} />
+          </div>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
 

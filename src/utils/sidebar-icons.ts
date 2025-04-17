@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Users,
@@ -25,12 +24,13 @@ export const getAccordionIcon = (label: string): LucideIcon => {
     "Admin Console": Shield,
     "Member Management": Users,
     "Service Module": Settings,
-    "Community": MessageSquare,
-    "Financial": Wallet,
-    "Compliance": FileCheck,
+    Community: MessageSquare,
+    Financial: Wallet,
+    Compliance: FileCheck,
     "HR Management": Briefcase,
     "POS Management": ShoppingCart,
     "Asset Management": Box,
+    "Inventory Management": Box,
     "Finance Management": DollarSign,
     "Programmes Management": List,
     "Report Management": ChartBar,

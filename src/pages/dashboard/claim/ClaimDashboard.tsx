@@ -44,7 +44,7 @@ const ClaimDashboard = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Claim Management</h1>
+            <h1 className="text-xl font-bold">Claim Management</h1>
             <p className="text-muted-foreground mt-2">
               Submit and track your claims
             </p>

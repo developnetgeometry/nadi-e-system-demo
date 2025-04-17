@@ -27,7 +27,7 @@ const ProgrammeSettings = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Programme Management Settings</h1>
+        <h1 className="text-xl font-bold">Programme Management Settings</h1>
         <Card>
           <CardHeader>
             <CardTitle>General Settings</CardTitle>

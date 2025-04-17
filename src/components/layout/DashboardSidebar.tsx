@@ -9,7 +9,7 @@ import { sidebarStyles } from "@/utils/sidebar-styles";
 
 export const DashboardSidebar = () => {
   const { settings } = useAppSettings();
-  const { isMobile, openMobile, toggleSidebar, state } = useSidebar();
+  const { isMobile, toggleSidebar, state } = useSidebar();
   const sidebarTitle =
     settings.find((s) => s.key === "sidebar_title")?.value || "NADI";
   const isCollapsed = state === "collapsed";
@@ -17,60 +17,44 @@ export const DashboardSidebar = () => {
   return (
     <Sidebar
       className={cn(
-        "border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col",
+        "border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col transition-all duration-100",
+        isCollapsed ? "w-16" : "w-64", // Adjust width based on collapse state
         sidebarStyles.sidebarBackground
       )}
     >
       <div
         className={cn(
-          "p-4 flex items-center",
+          "p-4 flex items-center transition-all duration-100",
           isCollapsed && !isMobile ? "justify-center" : "justify-between"
         )}
       >
         {(!isCollapsed || isMobile) && (
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white truncate">
             {sidebarTitle}
           </h1>
         )}
-        {isCollapsed && !isMobile && (
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">N</h1>
-        )}
 
-        {!isCollapsed && !isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
           >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-        )}
-
-        {isCollapsed && !isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-          >
+          {isCollapsed ? (
             <ChevronRight className="h-5 w-5" />
-          </Button>
-        )}
-
-        {isMobile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="text-gray-500 dark:text-gray-300"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        )}
+          ) : (
+            <ChevronLeft className="h-5 w-5" />
+          )}
+        </Button>
       </div>
-      <SidebarContent className="p-4 flex-1 overflow-y-auto scrollbar-none">
-        <CustomSidebarContent />
+
+      <SidebarContent
+        className={cn(
+          "pr-4 pl-4 flex-1 overflow-y-auto scrollbar-none transition-opacity duration-100",
+          isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
+        )}
+      >
+        {!isCollapsed && <CustomSidebarContent />}
       </SidebarContent>
     </Sidebar>
   );

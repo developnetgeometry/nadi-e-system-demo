@@ -22,7 +22,7 @@ export const MemberActivityHeader = ({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold mb-6">Member Activity Logs</h1>
+      <h1 className="text-xl font-bold mb-6">Member Activity Logs</h1>
       
       <ActivitySearch 
         searchTerm={searchTerm}

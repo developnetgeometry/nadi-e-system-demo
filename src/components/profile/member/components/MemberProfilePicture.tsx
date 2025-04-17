@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { User, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ProfilePictureUploadDialog from '../../member/components/ProfilePictureUploadDialog';
+import ProfilePictureUploadDialog from '../../components/MemberPictureUploadDialog';
 import { supabase, SUPABASE_URL } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 

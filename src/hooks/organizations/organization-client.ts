@@ -1,6 +1,5 @@
-
 import { supabase } from "@/lib/supabase";
-import { Organization, OrganizationFormData, OrganizationUser, OrganizationUserFormData } from "@/types/organization";
+import { Organization, OrganizationFormData } from "@/types/organization";
 
 /**
  * Organization-related Supabase client functions
@@ -14,6 +13,29 @@ export const organizationClient = {
       .from("organizations")
       .select("*")
       .order("name");
+
+    if (error) throw error;
+    return data as Organization[];
+  },
+
+  /**
+   * Fetch all organizations by type (dusp or tp)
+   */
+  fetchOrganizationsByType: async (
+    type: string,
+    dusp_id?: string
+  ): Promise<Organization[]> => {
+    let query = supabase
+      .from("organizations")
+      .select("*")
+      .eq("type", type)
+      .order("name");
+
+    if (dusp_id) {
+      query = query.eq("parent_id", dusp_id);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
     return data as Organization[];
@@ -36,7 +58,9 @@ export const organizationClient = {
   /**
    * Fetch child organizations by parent ID
    */
-  fetchChildOrganizations: async (parentId: string): Promise<Organization[]> => {
+  fetchChildOrganizations: async (
+    parentId: string
+  ): Promise<Organization[]> => {
     const { data, error } = await supabase
       .from("organizations")
       .select("*")
@@ -46,14 +70,16 @@ export const organizationClient = {
     if (error) throw error;
     return data as Organization[];
   },
-  
+
   /**
    * Create a new organization
    */
-  createOrganization: async (formData: OrganizationFormData): Promise<Organization> => {
+  createOrganization: async (
+    formData: OrganizationFormData
+  ): Promise<Organization> => {
     // Clean up the data to ensure parent_id is properly handled
     const cleanData = { ...formData };
-    
+
     // Ensure parent_id is either a valid UUID or null, not an empty string
     if (cleanData.parent_id === "") {
       cleanData.parent_id = null;
@@ -72,10 +98,13 @@ export const organizationClient = {
   /**
    * Update an existing organization
    */
-  updateOrganization: async ({ id, ...formData }: Organization): Promise<Organization> => {
+  updateOrganization: async ({
+    id,
+    ...formData
+  }: Organization): Promise<Organization> => {
     // Clean up the data to ensure parent_id is properly handled
     const cleanData = { ...formData };
-    
+
     // Ensure parent_id is either a valid UUID or null, not an empty string
     if (cleanData.parent_id === "") {
       cleanData.parent_id = null;
@@ -101,9 +130,11 @@ export const organizationClient = {
       .from("organizations")
       .select("id")
       .eq("parent_id", id);
-    
+
     if (children && children.length > 0) {
-      throw new Error("Cannot delete organization with sub-organizations. Please delete or reassign sub-organizations first.");
+      throw new Error(
+        "Cannot delete organization with sub-organizations. Please delete or reassign sub-organizations first."
+      );
     }
 
     const { error } = await supabase
@@ -112,5 +143,5 @@ export const organizationClient = {
       .eq("id", id);
 
     if (error) throw error;
-  }
+  },
 };

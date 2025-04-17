@@ -138,7 +138,7 @@ export const SiteList = () => {
   };
 
   const handleViewDetailsClick = (siteId: string) => {
-    navigate(`/site/${siteId}`);
+    navigate(`/site-management/${siteId}`);
   };
 
   const getStatusBadge = (status: Site['nd_site_status']['eng']) => {

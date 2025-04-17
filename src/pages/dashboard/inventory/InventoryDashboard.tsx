@@ -1,48 +1,92 @@
+import { InventoryStatsCard } from "@/components/dashboard/inventory/InventoryStatsCard";
+import { InventoryFormDialog } from "@/components/inventory/InventoryFormDialog";
+import { InventoryList } from "@/components/inventory/InventoryList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Box, Package, Settings, DollarSign, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { AssetList } from "@/components/assets/AssetList";
-import { useState } from "react";
-import { AssetFormDialog } from "@/components/assets/AssetFormDialog";
+import { useInventories } from "@/hooks/use-inventories";
+import { useSiteId } from "@/hooks/use-site-id";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { InventoryStatsCardProps, InventoryStatsData } from "@/types/inventory";
+import { Plus } from "lucide-react";
+
+import { useEffect, useState } from "react";
 
 const InventoryDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const siteId = useSiteId();
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+
+  let inventoryStats: InventoryStatsData = {
+    total: 0,
+    active: 0,
+    maintenance: 0,
+    value: 0,
+  };
+
+  const { useInventoriesQuery } = useInventories();
+
   const {
-    data: assetStats = { total: 0, active: 0, maintenance: 0, value: 0 },
-    isLoading,
-  } = useQuery({
-    queryKey: ["asset-stats"],
-    queryFn: async () => {
-      console.log("Fetching asset statistics...");
-      try {
-        const { data: assets, error } = await supabase
-          .from("assets")
-          .select("status, current_value");
+    data: inventories,
+    isLoading: isLoadingInventories,
+    error: errorInventories,
+    refetch,
+  } = useInventoriesQuery();
 
-        if (error) throw error;
+  useEffect(() => {
+    if (!isDialogOpen) {
+      refetch();
+    }
+  }, [isDialogOpen, refetch]);
 
-        const stats = {
-          total: assets.length,
-          active: assets.filter((a) => a.status === "active").length,
-          maintenance: assets.filter((a) => a.status === "in_maintenance")
-            .length,
-          value: assets.reduce(
-            (sum, asset) => sum + (Number(asset.current_value) || 0),
-            0
-          ),
-        };
+  if (errorInventories) {
+    console.error("Error fetching inventories:", errorInventories);
+    return <div>Error fetching inventories</div>;
+  }
 
-        return stats;
-      } catch (error) {
-        console.error("Error fetching asset stats:", error);
-        throw error;
-      }
+  const displayInventories = isStaffUser && !siteId ? [] : inventories;
+
+  if (!isLoadingInventories && inventories) {
+    if (displayInventories.length > 0) {
+      inventoryStats = {
+        total: displayInventories.length,
+        active: displayInventories.filter((a) => a?.quantity > 0).length,
+        maintenance: displayInventories.filter((a) => a?.quantity === 0).length,
+        value: displayInventories.reduce(
+          (sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.price) || 0),
+          0
+        ),
+      };
+    }
+  }
+
+  const items: InventoryStatsCardProps[] = [
+    {
+      title: "Total Inventories",
+      value: isLoadingInventories
+        ? "Loading..."
+        : inventoryStats?.total.toString() || "0",
+      description: "Inventory registered",
     },
-  });
+    {
+      title: "Active Inventories",
+      value: isLoadingInventories
+        ? "Loading..."
+        : inventoryStats?.active.toString() || "0",
+      color: "green-600",
+      description: "Currently in use",
+    },
+    {
+      title: "Value of Inventories",
+      value: isLoadingInventories
+        ? "Loading..."
+        : "RM " + inventoryStats?.value.toString() || "0",
+      color: "red-600",
+      description: "Total value of all inventories",
+    },
+  ];
 
   return (
     <DashboardLayout>
@@ -50,68 +94,28 @@ const InventoryDashboard = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Inventory Management</h1>
-            <p className="text-muted-foreground mt-2">
-              Track and manage company inventory, and maintenance
-            </p>
           </div>
           <Button onClick={() => setIsDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Asset
+            Add New Inventory
           </Button>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Assets
-              </CardTitle>
-              <Box className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{assetStats.total}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Assets
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{assetStats.active}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                In Maintenance
-              </CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{assetStats.maintenance}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${assetStats.value.toLocaleString()}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <InventoryStatsCard key={item.title} {...item} />
+          ))}
         </div>
 
-        <AssetList />
-        <AssetFormDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+        <InventoryList
+          inventories={displayInventories}
+          isLoadingInventories={isLoadingInventories}
+          refetch={refetch}
+        />
+        <InventoryFormDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
       </div>
     </DashboardLayout>
   );

@@ -97,7 +97,7 @@ const Registration = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <UserPlus className="h-8 w-8 text-purple-600" />
-          <h1 className="text-3xl font-bold">Member Registration</h1>
+          <h1 className="text-xl font-bold">Member Registration</h1>
         </div>
 
         <Card className="max-w-2xl">

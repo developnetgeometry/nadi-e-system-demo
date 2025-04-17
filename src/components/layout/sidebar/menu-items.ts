@@ -20,7 +20,8 @@ export const menuItems = [
 
 export const hrMenuItems = [
   { title: "HR Dashboard", path: "/hr" },
-  { title: "Site Staff Management", path: "/hr/employees" },
+  { title: "Staff Management", path: "/hr/employees" },
+  { title: "Site Staff Management", path: "/hr/site-staff" },
   { title: "Attendance", path: "/hr/attendance" },
   { title: "Leave Management", path: "/hr/leave" },
 ];
@@ -97,6 +98,6 @@ export const complianceItems = [
 ];
 
 export const siteManagementItems = [
-  { title: "Site Management", path: "/site-management/main" },
+  { title: "Site Management", path: "/site-management" },
   { title: "Site Detail", path: "/site" },
 ];

@@ -16,7 +16,7 @@ const Notifications = () => {
       <div className="container mx-auto max-w-4xl">
         <div className="flex items-center gap-3 mb-6">
           <Bell className="h-6 w-6 text-primary" />
-          <h1 className="text-3xl font-bold">Notifications</h1>
+          <h1 className="text-xl font-bold">Notifications</h1>
         </div>
         
         <Card className="overflow-hidden border shadow">

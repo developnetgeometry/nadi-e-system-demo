@@ -8,7 +8,7 @@ const HRDashboard = () => {
     // <ProtectedRoute requiredPermission="view_hr_dashboard">
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
-        <h1 className="text-3xl font-bold mb-8">HR Dashboard</h1>
+        <h1 className="text-xl font-bold mb-8">HR Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>

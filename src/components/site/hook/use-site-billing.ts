@@ -5,7 +5,11 @@ interface BillingData {
   id: string;
   year: number;
   month: number;
+  type_id: string;
   type_name: string;
+  reference_no: string;
+  amount_bill: number;
+  remark: string;
   file_path: string;
 }
 
@@ -18,9 +22,11 @@ export const useSiteBilling = (siteId: string, refresh: boolean) => { // Add ref
     const fetchBillingData = async () => {
       try {
         const { data: utilities, error: utilitiesError } = await supabase
-          .from("nd_utilities")
-          .select("id, year, month, type_id, reference_no, amount_bill, remark")
-          .eq("site_id", siteId);
+        .from("nd_utilities")
+        .select("id, year, month, type_id, reference_no, amount_bill, remark")
+        .eq("site_id", siteId)
+        .order("year", { ascending: false })
+        .order("month", { ascending: false });
 
         if (utilitiesError) throw utilitiesError;
 

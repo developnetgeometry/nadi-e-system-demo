@@ -52,7 +52,7 @@ const StateHolidays = () => {
       <div className="container mx-auto max-w-6xl">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold">State Holidays Management</h1>
+            <h1 className="text-xl font-bold">State Holidays Management</h1>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>
