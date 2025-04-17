@@ -47,7 +47,7 @@ const PageBreadcrumb: React.FC = () => {
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">
+            <BreadcrumbLink href="/admin/dashboard">
               <HomeIcon className="h-4 w-4" />
             </BreadcrumbLink>
           </BreadcrumbItem>

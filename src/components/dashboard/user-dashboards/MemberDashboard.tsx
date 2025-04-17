@@ -16,7 +16,7 @@ export const MemberDashboard = () => {
     <div className="space-y-8">
       <div className="flex items-center gap-4 mb-4">
         <UserCog className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold">Member Dashboard</h1>
+        <h1 className="text-xl font-bold">Member Dashboard</h1>
       </div>
 
       <DashboardStats stats={stats} isLoading={isLoading} />

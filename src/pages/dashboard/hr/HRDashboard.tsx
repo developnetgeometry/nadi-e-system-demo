@@ -1,5 +1,5 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardHover, CardTitle } from "@/components/ui/card";
 import { UserPlus, Users, Clock, ClipboardCheck } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
@@ -11,7 +11,7 @@ const HRDashboard = () => {
         <h1 className="text-xl font-bold mb-8">HR Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <CardHover>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">
                 Total Employees
@@ -24,9 +24,9 @@ const HRDashboard = () => {
                 +4 from last month
               </p>
             </CardContent>
-          </Card>
+          </CardHover>
 
-          <Card>
+          <CardHover>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">New Hires</CardTitle>
               <UserPlus className="h-4 w-4 text-muted-foreground" />
@@ -35,9 +35,9 @@ const HRDashboard = () => {
               <div className="text-2xl font-bold">8</div>
               <p className="text-xs text-muted-foreground">This month</p>
             </CardContent>
-          </Card>
+          </CardHover>
 
-          <Card>
+          <CardHover>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">
                 Attendance Rate
@@ -48,9 +48,9 @@ const HRDashboard = () => {
               <div className="text-2xl font-bold">96%</div>
               <p className="text-xs text-muted-foreground">Last 30 days</p>
             </CardContent>
-          </Card>
+          </CardHover>
 
-          <Card>
+          <CardHover>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">
                 Leave Requests
@@ -61,7 +61,7 @@ const HRDashboard = () => {
               <div className="text-2xl font-bold">12</div>
               <p className="text-xs text-muted-foreground">Pending approval</p>
             </CardContent>
-          </Card>
+          </CardHover>
         </div>
       </div>
     </DashboardLayout>

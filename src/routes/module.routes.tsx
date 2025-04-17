@@ -18,8 +18,6 @@ import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
-import Employees from "@/pages/dashboard/hr/Employees";
-import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Leave from "@/pages/dashboard/hr/Leave";
 import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
@@ -36,7 +34,6 @@ import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import WorkflowDashboard from "@/pages/workflow/Dashboard";
-import { RouteObject } from "react-router-dom";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes

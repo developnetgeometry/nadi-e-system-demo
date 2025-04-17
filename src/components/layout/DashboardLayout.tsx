@@ -51,13 +51,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* Sidebar */}
         <div
           className={cn(
-            "z-50 h-screen duration-200 relative transition-[width] ease-linear bg-red-500", // Debugging background
+            "z-50 h-screen duration-200 relative transition-[width] ease-linear",
             isMobile ? "fixed" : "sticky top-0",
             isCollapsed ? "w-[--sidebar-width-icon]" : "w-[--sidebar-width]"
           )}
         >
           <DashboardSidebar />
-
         </div>
 
         {/* Main content */}

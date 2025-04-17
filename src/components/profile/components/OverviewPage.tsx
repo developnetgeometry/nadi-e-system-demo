@@ -17,7 +17,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
 
 
   if (!userGroup) {
-    return <SettingsLoading />;
+    return "Loading data...";
   }
   const handleSave = (updatedData: any) => {
     console.log("Updated profile data:", updatedData);

@@ -177,7 +177,7 @@ const MemberManagement = () => {
               Export
             </Button>
             <Button 
-              className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2" 
+              className="flex items-center gap-2" 
               onClick={handleAddNewMember}
             >
               <UserPlus className="h-4 w-4" />
@@ -228,7 +228,7 @@ const MemberManagement = () => {
               Reset
             </Button>
           </div>
-          <Button variant="default" className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2">
+          <Button variant="default" className="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
@@ -237,7 +237,7 @@ const MemberManagement = () => {
         </div>
 
         {/* Members Table */}
-        <div className="bg-white rounded-md shadow overflow-hidden">
+        <div className="rounded-md shadow overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
