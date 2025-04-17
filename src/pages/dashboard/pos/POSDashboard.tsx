@@ -56,7 +56,7 @@ const POSDashboard = () => {
     <DashboardLayout>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">POS Dashboard</h1>
+          <h1 className="text-xl font-bold">POS Dashboard</h1>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

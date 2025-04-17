@@ -68,7 +68,7 @@ export const ReportList = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">System Reports</h2>
+        <h2 className="text-xl font-bold">System Reports</h2>
         <Button onClick={() => refetch()}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh

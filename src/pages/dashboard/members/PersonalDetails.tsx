@@ -40,7 +40,7 @@ const PersonalDetails = () => {
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <Users className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Personal Details</h1>
+          <h1 className="text-xl font-bold">Personal Details</h1>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">

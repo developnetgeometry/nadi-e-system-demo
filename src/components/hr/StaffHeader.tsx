@@ -11,7 +11,7 @@ export const StaffHeader = ({ organizationName, onAddStaff }: StaffHeaderProps) 
   return (
     <>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Staff Management</h1>
+        <h1 className="text-xl font-bold">Staff Management</h1>
         <Button onClick={onAddStaff}>
           <UserPlus className="h-4 w-4 mr-2" />
           Add Staff

@@ -163,7 +163,7 @@ const SiteStaff = () => {
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Site Staff Management</h1>
+          <h1 className="text-xl font-bold">Site Staff Management</h1>
           <Button onClick={handleAddStaff}>
             <UserPlus className="h-4 w-4 mr-2" />
             Add Site Staff

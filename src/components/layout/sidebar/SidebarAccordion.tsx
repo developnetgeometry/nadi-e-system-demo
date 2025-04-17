@@ -58,7 +58,6 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
                 <AccordionIcon className={cn("h-5 w-5 flex-shrink-0")} />
               </div>
               <span className="truncate flex-1 min-h-[1.25rem] leading-tight line-clamp-2">
-
               </span>
             </div>
             {/* Chevron icon moved to the right */}
@@ -107,27 +106,24 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
             isActive && sidebarStyles.accordionTriggerActive,
             isActiveExact && "text-white dark:text-white",
             "flex justify-between items-center text-sm tracking-tight",
-            "w-[200px]" // 👈 fixed width
+            "w-[200px] h-[40px]" // 👈 fixed width
           )}
         >
-          <div className="flex items-start gap-3 min-w-0 w-full">
-            <div className="h-5 w-5 flex-shrink-0">
-              <AccordionIcon className="h-5 w-5" />
-            </div>
-            <span className="truncate flex-1 min-h-[1.25rem] leading-tight line-clamp-2 text-left text-sm tracking-tighter">
+          <div className="flex items-center gap-3 w-full min-h-[1.25rem]">
+            <AccordionIcon className="h-5 w-5 flex-shrink-0" />
+            <span className="truncate flex-1 leading-tight text-left text-xs tracking-tighter">
               {label}
             </span>
-
+            <div
+              className="flex-shrink-0 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              {/* Add optional Chevron icon here, e.g. <ChevronRight className="w-4 h-4" /> */}
+            </div>
           </div>
 
-          {/* Chevron icon moved to the right */}
-          <div
-            className="flex-shrink-0 cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering the parent AccordionTrigger click
-            }}
-          >
-          </div>
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1 pl-6">
           <SidebarMenu className="gap-0">
