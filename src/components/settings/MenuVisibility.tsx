@@ -205,7 +205,7 @@ export const MenuVisibilitySettings = () => {
         <Accordion type="single" collapsible className="space-y-4">
           {menuGroups.map((group) => (
             <AccordionItem key={group.label} value={group.label}>
-              <AccordionTrigger className="text-lg font-semibold">
+              <AccordionTrigger className="text- font-semibold">
                 {group.label}
               </AccordionTrigger>
               <AccordionContent>

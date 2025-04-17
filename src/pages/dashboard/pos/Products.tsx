@@ -22,7 +22,7 @@ const Products = () => {
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Products</h1>
+        <h1 className="text-xl font-bold">Products</h1>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
           Add Product

@@ -98,6 +98,6 @@ export const complianceItems = [
 ];
 
 export const siteManagementItems = [
-  { title: "Site Management", path: "/site-management/main" },
+  { title: "Site Management", path: "/site-management" },
   { title: "Site Detail", path: "/site" },
 ];

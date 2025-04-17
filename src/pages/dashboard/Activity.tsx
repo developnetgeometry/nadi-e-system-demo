@@ -6,7 +6,7 @@ const Activity = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">Activity Monitoring</h1>
+        <h1 className="text-xl font-bold mb-6">Activity Monitoring</h1>
         <ActivityLogList />
       </div>
     </DashboardLayout>
