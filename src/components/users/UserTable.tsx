@@ -12,9 +12,7 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
-
-type SortDirection = "asc" | "desc" | null;
-type SortField = "name" | "email" | "phone" | "status" | "site" | "phase" | "state" | "created_at" | null;
+import { SortDirection, SortField } from "@/hooks/use-user-management";
 
 interface UserTableProps {
   users: Profile[];
@@ -30,6 +28,7 @@ interface UserTableProps {
   onSort: (field: SortField) => void;
   sortField: SortField;
   sortDirection: SortDirection;
+  totalItems: number;
 }
 
 export const UserTable = ({
@@ -45,7 +44,8 @@ export const UserTable = ({
   onPageChange,
   onSort,
   sortField,
-  sortDirection
+  sortDirection,
+  totalItems
 }: UserTableProps) => {
   const renderPaginationItems = () => {
     const items = [];
@@ -148,7 +148,7 @@ export const UserTable = ({
                 onSelect={onSelectUser}
                 onEdit={onEditUser}
                 onDelete={onDeleteUser}
-                rowIndex={index}
+                rowIndex={((currentPage - 1) * 20) + index}
               />
             ))
           )}
@@ -176,6 +176,9 @@ export const UserTable = ({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
+          <div className="text-sm text-gray-500 text-center mt-2">
+            Showing {Math.min((currentPage - 1) * 20 + 1, totalItems)} to {Math.min(currentPage * 20, totalItems)} of {totalItems} users
+          </div>
         </div>
       )}
     </div>

@@ -1,14 +1,13 @@
 
 import { useState } from "react";
-import CryptoJS from "crypto-js";
 import { useForm } from "react-hook-form";
+import { UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { UserPlus } from "lucide-react";
 
 interface RegistrationForm {
   email: string;
@@ -24,10 +23,6 @@ const Registration = () => {
 
   const onSubmit = async (data: RegistrationForm) => {
     setIsLoading(true);
-    
-    // Store current session
-    const encryptedSession = localStorage.getItem('session');
-    const currentSession = encryptedSession ? CryptoJS.AES.decrypt(encryptedSession, 'secret-key').toString(CryptoJS.enc.Utf8) : null;
     
     try {
       // Generate a random password for the new user
@@ -59,6 +54,7 @@ const Registration = () => {
           id: authData.user?.id,
           ...data,
           user_type: "member", // Always set as member
+          user_group: 7, // Set user_group to 7 by default
         });
 
         if (profileError) throw profileError;
@@ -70,6 +66,8 @@ const Registration = () => {
             full_name: data.full_name,
             ic_number: data.ic_number,
             phone_number: data.phone_number,
+            user_type: "member", // Always set as member
+            user_group: 7, // Set user_group to 7 by default
           })
           .eq("id", authData.user?.id);
 
@@ -90,18 +88,6 @@ const Registration = () => {
         variant: "destructive",
       });
     } finally {
-      // Restore the current session
-      if (currentSession) {
-        localStorage.setItem('session', currentSession);
-        
-        // Force a refresh of the auth state
-        const parsedSession = JSON.parse(currentSession);
-        if (parsedSession && parsedSession.user) {
-          // This ensures the supabase client uses the restored session
-          await supabase.auth.getSession();
-        }
-      }
-      
       setIsLoading(false);
     }
   };
@@ -110,8 +96,8 @@ const Registration = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <UserPlus className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Member Registration</h1>
+          <UserPlus className="h-8 w-8 text-purple-600" />
+          <h1 className="text-xl font-bold">Member Registration</h1>
         </div>
 
         <Card className="max-w-2xl">
@@ -119,41 +105,53 @@ const Registration = () => {
             <CardTitle>Register New Member</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
                 <Input
                   type="email"
-                  {...form.register("email")}
+                  placeholder="Enter email address"
+                  {...form.register("email", { required: true })}
                   disabled={isLoading}
+                  className="h-12"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Full Name</label>
                 <Input
-                  {...form.register("full_name")}
+                  placeholder="Enter full name"
+                  {...form.register("full_name", { required: true })}
                   disabled={isLoading}
+                  className="h-12"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">IC Number</label>
                 <Input
-                  {...form.register("ic_number")}
+                  placeholder="Enter IC number"
+                  {...form.register("ic_number", { required: true })}
                   disabled={isLoading}
+                  className="h-12"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phone Number</label>
                 <Input
-                  {...form.register("phone_number")}
+                  placeholder="Enter phone number"
+                  {...form.register("phone_number", { required: true })}
                   disabled={isLoading}
+                  className="h-12"
                 />
               </div>
 
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading} 
+                className="bg-purple-600 hover:bg-purple-700 h-12 px-8"
+              >
                 {isLoading ? "Registering..." : "Register Member"}
               </Button>
             </form>

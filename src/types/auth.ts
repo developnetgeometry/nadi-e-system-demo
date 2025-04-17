@@ -1,3 +1,4 @@
+
 export type UserType =
   | "member"
   | "vendor"
@@ -36,6 +37,10 @@ export interface Profile {
   avatar_url?: string;
   user_type: UserType;
   user_group?: string; // Added user_group property
+  nd_user_group?: { 
+    group_name: string;
+    id: string;
+  }; // Added nd_user_group property for the join
   theme_preference: "light" | "dark";
   notification_preferences: {
     email: boolean;
