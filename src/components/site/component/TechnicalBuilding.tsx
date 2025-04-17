@@ -10,13 +10,13 @@ const TechnicalBuilding = ({
   space: any[];
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Building Type */}
       <div>
         <p className="text-sm text-gray-500 flex items-center">
           <Building className="h-4 w-4 mr-1 text-gray-500" /> Building Type:
         </p>
-        <p className="text-base font-medium">{site.building_type_id.eng || "Not specified"}</p>
+        <p className="text-base font-medium">{site.building_type_id?.eng || "Not specified"}</p>
       </div>
 
       {/* Zone */}
@@ -24,7 +24,7 @@ const TechnicalBuilding = ({
         <p className="text-sm text-gray-500 flex items-center">
           <MapPin className="h-4 w-4 mr-1 text-gray-500" /> Zone:
         </p>
-        <p className="text-base font-medium">{site.zone_id.area || "Not specified"}</p>
+        <p className="text-base font-medium">{site.zone_id?.area || "Not specified"}</p>
       </div>
 
       {/* Total Population */}
@@ -75,7 +75,7 @@ const TechnicalBuilding = ({
           <DollarSign className="h-4 w-4 mr-1 text-gray-500" /> Building Rental:
         </p>
         <p className="text-base font-medium">
-          {site.building_rental_id ? "Yes" : "No"}
+          {site.building_rental_id !== undefined ? (site.building_rental_id ? "Yes" : "No") : "Not specified"}
         </p>
       </div>
 

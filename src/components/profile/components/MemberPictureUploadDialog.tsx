@@ -1,8 +1,8 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FileUpload } from '../../../ui/file-upload';
-import useProfilePictureUpload from '../../hook/use-profile-picture-staff-upload';
+import { FileUpload } from '../../ui/file-upload';
+import useProfilePictureUpload from '../hook/use-profile-picture-member-upload';
 
 interface ProfilePictureUploadDialogProps {
     open: boolean;
