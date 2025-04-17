@@ -2,54 +2,151 @@ import { Eye, EyeOff, Users, UserCheck, UserCog, DollarSign } from "lucide-react
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteProfile } from "./hook/use-site-profile";
 import { useSiteCode } from "./hook/use-site-code";
+import { useSiteAddress } from "./hook/use-site-address";
+import {
+  Table,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableHeader,
+  TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+  Settings,
+  Trash2,
+  MapPin,
+  Globe,
+  Mail,
+  Calendar,
+  Users,
+  Building,
+  EyeOff,
+  Eye,
+  Plus,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useSiteGeneralData from "@/hooks/use-site-general-data";
-import { StatsCard } from "./component/StatsCard";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import OverviewPage from "./component/OverviewPage";
-import StaffPage from "./component/StaffPage";
-import BillingPage from "./component/BillingPage";
-import { Card } from "../ui/card";
+import useGeoData from "@/hooks/use-geo-data";
+import BillingFormDialog from "./BillingFormDialog";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useSiteBilling } from "./hook/use-site-billing";
+import { supabase } from "@/lib/supabase";
+import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
 
 interface SiteDetailProps {
   siteId: string;
 }
 
 const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
-  const { data, socioeconomics, space, loading, error } = useSiteProfile(siteId);
-  const { siteCode, loading: codeLoading, error: codeError } = useSiteCode(siteId);
-  const { siteStatus } = useSiteGeneralData();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedBillingData, setSelectedBillingData] = useState(null);
+  const [refreshBilling, setRefreshBilling] = useState(false); // Add this state
 
-  // Dummy data for the cards
-  const stats = [
-    {
-      title: "Total Members",
-      value: 1200,
-      icon: Users,
-      iconBgColor: "bg-blue-100",
-      iconTextColor: "text-blue-600",
-    },
-    {
-      title: "Active Members",
-      value: 850,
-      icon: UserCheck,
-      iconBgColor: "bg-green-100",
-      iconTextColor: "text-green-600",
-    },
-    {
-      title: "Staff Members",
-      value: 50,
-      icon: UserCog,
-      iconBgColor: "bg-purple-100",
-      iconTextColor: "text-purple-600",
-    },
-    {
-      title: "Total Revenue",
-      value: "$45,000",
-      icon: DollarSign,
-      iconBgColor: "bg-yellow-100",
-      iconTextColor: "text-yellow-600",
-    },
-  ];
+  const { data, loading, error } = useSiteProfile(siteId);
+  const {
+    siteCode,
+    loading: codeLoading,
+    error: codeError,
+  } = useSiteCode(siteId);
+  const {
+    data: addressData,
+    loading: addressLoading,
+    error: addressError,
+  } = useSiteAddress(siteId);
+  const {
+    data: billingData,
+    loading: billingLoading,
+    error: billingError,
+  } = useSiteBilling(siteId, refreshBilling); // Pass refreshBilling state
+  const {
+    siteStatus,
+    technology,
+    bandwidth,
+    buildingType,
+    space,
+    zone,
+    categoryArea,
+    buildingLevel,
+    socioEconomics,
+  } = useSiteGeneralData();
+  const { regions, states, parliaments, duns, mukims, phases } = useGeoData();
+  const [yearFilter, setYearFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [activeTab, setActiveTab] = useState("details");
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const filteredBillingData = billingData.filter((item) => {
+    return (
+      (yearFilter ? item.year === parseInt(yearFilter) : true) &&
+      (monthFilter ? item.month === parseInt(monthFilter) : true) &&
+      (typeFilter ? item.type_name === typeFilter : true)
+    );
+  });
+  useEffect(() => {
+    if (!isDialogOpen) {
+      setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
+    }
+  }, [isDialogOpen]);
+
+  // Function to handle delete a record
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this record?"
+    );
+    if (!confirmDelete) return;
+  
+    try {
+      const { data: attachmentData, error: attachmentError } = await supabase
+        .from("nd_utilities_attachment") // Replace with your actual table name
+        .select("file_path")
+        .eq("utilities_id", id) // Assuming `utilities_id` links the file to the record
+        .single();
+  
+      if (attachmentError) {
+        console.warn("No associated file found or error fetching file path:", attachmentError);
+        // Proceed with record deletion even if the file path is not found
+      } else if (attachmentData?.file_path) {
+        const filePath = attachmentData.file_path;
+  
+        // Extract the part of the file path after "//"
+        const relativeFilePath = filePath.split("//")[2];
+  
+        console.log("File path translated:", relativeFilePath);
+  
+        // Delete the file from storage
+        const { error: storageError } = await supabase.storage
+          .from(BUCKET_NAME_UTILITIES) // Replace with your storage bucket name
+          .remove([relativeFilePath]);
+  
+        if (storageError) {
+          console.error("Error deleting file from storage:", storageError);
+          alert("Failed to delete the associated file. Please try again.");
+          return;
+        }
+      }
+  
+      // Proceed with record deletion
+      const { error } = await supabase
+        .from("nd_utilities")
+        .delete()
+        .eq("id", id);
+  
+      if (error) {
+        console.error("Error deleting record:", error);
+        alert("An error occurred while deleting the record.");
+        return;
+      }
+  
+      alert("Record and associated file deleted successfully.");
+      setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
 
   if (loading || codeLoading) {
     return <Skeleton className="w-full h-24">Loading...</Skeleton>;
@@ -84,6 +181,17 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </span>
           </div>
         </div>
+        {parsedMetadata?.user_type?.startsWith("staff") && (
+          <Button
+            onClick={() => {
+              setSelectedBillingData(null);
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Billing
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards Section */}
@@ -127,8 +235,111 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             <BillingPage siteId={siteId} />
             </div>
           </Card>
-        </TabsContent>
-      </Tabs>
+
+          {data.remark && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Remarks</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="whitespace-pre-line">{data.remark}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {activeTab === "billing" && (
+        <div>
+          <div className="space-y-6">
+            <div className="flex space-x-4">
+              <input
+                type="number"
+                placeholder="Year"
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+              <input
+                type="number"
+                placeholder="Month"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+              <input
+                type="text"
+                placeholder="Utility Type"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Month</TableHead>
+                  <TableHead>Billing Type</TableHead>
+                  <TableHead>File</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBillingData.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.year}</TableCell>
+                    <TableCell>{item.month}</TableCell>
+                    <TableCell>{item.type_name}</TableCell>
+                    <TableCell>
+                      {item.file_path ? (
+                        <a
+                          href={item.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View PDF
+                        </a>
+                      ) : (
+                        "N/A"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedBillingData(item);
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="text-destructive"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+      {/* Render the BillingFormDialog independently */}
+      <BillingFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        siteId={siteId}
+        initialData={selectedBillingData}
+      />
     </div>
   );
 };

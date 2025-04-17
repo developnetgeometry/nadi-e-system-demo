@@ -1,3 +1,4 @@
+
 import { MenuItem } from "@/types/menu";
 
 export const menuItems = [
@@ -19,7 +20,8 @@ export const menuItems = [
 
 export const hrMenuItems = [
   { title: "HR Dashboard", path: "/hr" },
-  { title: "Site Staff Management", path: "/hr/employees" },
+  { title: "Staff Management", path: "/hr/employees" },
+  { title: "Site Staff Management", path: "/hr/site-staff" },
   { title: "Attendance", path: "/hr/attendance" },
   { title: "Leave Management", path: "/hr/leave" },
 ];
@@ -69,9 +71,10 @@ export const workflowItems: MenuItem[] = [
 ];
 
 export const memberManagementItems = [
-  { title: "Personal Details", path: "/members/details" },
-  { title: "Registration", path: "/members/registration" },
-  { title: "Activity Logs", path: "/members/activity" },
+  { title: "Member Management", path: "/dashboard/members" },
+  { title: "Personal Details", path: "/dashboard/members/details" },
+  { title: "Registration", path: "/dashboard/members/registration" },
+  { title: "Activity Logs", path: "/dashboard/members/activity" },
 ];
 
 export const serviceModuleItems = [
