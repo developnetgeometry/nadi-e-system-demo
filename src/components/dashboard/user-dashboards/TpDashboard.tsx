@@ -1,14 +1,25 @@
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import { DashboardMap } from "@/components/dashboard/DashboardMap";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import ChartCard from "@/components/dashboard/ChartCard";
+import SystemStatus from "@/components/dashboard/SystemStatus";
 import UserGrowthChart from "@/components/dashboard/UserGrowthChart";
 import DailyActivityChart from "@/components/dashboard/DailyActivityChart";
 import TopPerformingSites from "@/components/dashboard/TopPerformingSites";
+import { Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
-export const McmcDashboard = () => {
+export const TpDashboard = () => {
   const { data: stats, isLoading, error } = useDashboardData();
 
   const { user } = useAuth();
@@ -34,18 +45,46 @@ export const McmcDashboard = () => {
     },
     enabled: !!user?.id,
   });
-  if (error) {
-    console.error("MCMC dashboard data error:", error);
-  }
 
+  // Handle print functionality
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Handle error state
+  if (error) {
+    console.error("TP dashboard data error:", error);
+  }
   return (
     <div className="p-8 dark:bg-gray-900 dark:text-white">
       <div className="mb-6 flex justify-between items-center">
         <div>
           <p className="text-gray-500 dark:text-gray-400">
-            Welcome back, {profile?.full_name || "MCMC"}
+            Welcome back, {profile?.full_name || "TP"}
           </p>
         </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrint}
+                className="print:hidden" // Hide button when printing
+              >
+                <Printer className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Print Dashboard</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {/* Stats Row */}
+      <div className="gap-6 mb-6">
+        <DashboardStats stats={stats} isLoading={isLoading} />
       </div>
 
       {/* Charts Row 1 */}
@@ -70,6 +109,11 @@ export const McmcDashboard = () => {
 
         {/* Top Performing Sites is already included */}
         <TopPerformingSites />
+      </div>
+
+      {/* System Status */}
+      <div className="mb-6">
+        <SystemStatus />
       </div>
     </div>
   );

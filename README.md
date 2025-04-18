@@ -1,7 +1,6 @@
 A Hitchhiker Guide For This Project
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -81,6 +80,6 @@ To run this system for development, follow these steps:
     npm run dev
     ```
 
-5. **Access the Application**: Open your browser and navigate to `http://localhost:300` to access the application.
+5. **Access the Application**: Open your browser and navigate to `http://localhost:3000` to access the application.
 
 By following these steps, you will have the system up and running on your local machine, ready for development and testing.
