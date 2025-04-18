@@ -2,23 +2,12 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import { DashboardMap } from "@/components/dashboard/DashboardMap";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { LayoutDashboard } from "lucide-react";
-import StatCard from "@/components/dashboard/StatCard";
 import ChartCard from "@/components/dashboard/ChartCard";
 import SystemStatus from "@/components/dashboard/SystemStatus";
 import UserGrowthChart from "@/components/dashboard/UserGrowthChart";
 import DailyActivityChart from "@/components/dashboard/DailyActivityChart";
-import GlobalActivityMap from "@/components/dashboard/GlobalActivityMap";
 import TopPerformingSites from "@/components/dashboard/TopPerformingSites";
-import {
-  Users,
-  Activity,
-  Clock,
-  UserCheck,
-  Building,
-  CheckCircle,
-  Printer,
-} from "lucide-react";
+import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -73,11 +62,11 @@ export const SuperAdminDashboard = () => {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <ChartCard title="User Growth" detailsPath="/reports/usage">
+        <ChartCard title="User Growth" detailsPath="/report/usage-sessions">
           <UserGrowthChart />
         </ChartCard>
 
-        <ChartCard title="Daily Activity" detailsPath="/admin/activity-log">
+        <ChartCard title="Daily Activity" detailsPath="/admin/activity">
           <DailyActivityChart />
         </ChartCard>
       </div>
