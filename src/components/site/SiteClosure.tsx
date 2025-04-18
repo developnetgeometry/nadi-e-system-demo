@@ -16,6 +16,7 @@ import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
 import { useInsertSiteClosureData } from "./hook/use-siteclosure-data";
 import { useSiteCode } from "./hook/use-site-code";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
 
 interface SiteClosureFormProps {
   open: boolean;
