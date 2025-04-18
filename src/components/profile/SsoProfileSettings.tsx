@@ -5,7 +5,7 @@ import { useSSOProfile } from "./hook/use-sso-profile";
 
 
 const SsoProfileSettings = () => {
-  const { data: ssoProfile, isLoading, isError, error } = useSSOProfile();
+  const { data: ssoProfile, isLoading, isError, error, refetch } = useSSOProfile();
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -24,7 +24,7 @@ const SsoProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the vendor profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={ssoProfile} />
+            <ProfileOverviewPage profileData={ssoProfile} refetch={refetch}/>
           </div>
         </Card>
       </TabsContent>

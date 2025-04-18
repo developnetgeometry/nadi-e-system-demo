@@ -5,7 +5,7 @@ import ProfileOverviewPage from "./components/OverviewPage";
 import ProfileAddressPage from "./components/AddressPage";
 
 const MemberProfileSettings = () => {
-  const { data: memberProfile, isLoading, isError, error } = useMemberProfile();
+  const { data: memberProfile, isLoading, isError, error, refetch } = useMemberProfile();
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -25,7 +25,7 @@ const MemberProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the member profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={memberProfile} />
+            <ProfileOverviewPage profileData={memberProfile} refetch={refetch}/>
           </div>
         </Card>
       </TabsContent>

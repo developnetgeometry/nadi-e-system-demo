@@ -6,8 +6,13 @@ import { Edit } from "lucide-react";
 import StaffPictureUploadDialog from "./StaffPictureUploadDialog";
 import MemberPictureUploadDialog from "./MemberPictureUploadDialog";
 import OverviewPageDialog from "./OverviewPageDialog";
+import OverviewPageDialogDUSP from "./OverviewPageDialogDUSP";
+import OverviewPageDialogMCMC from "./OverviewPageDialogMCMC";
+import OverviewPageDialogSSO from "./OverviewPageDialogSSO";
+import OverviewPageDialogVendor from "./OverviewPageDialogVendor";
+import OverviewPageDialogTP from "./OverviewPageDialogTP";
 
-const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
+const ProfileOverviewPage = ({ profileData, refetch }: { profileData: any; refetch: () => void }) => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const userGroup = parsedMetadata?.user_group;
@@ -21,7 +26,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
   }
   const handleSave = (updatedData: any) => {
     console.log("Updated profile data:", updatedData);
-    // Add logic to save the updated data
+    refetch();
     setIsEditDialogOpen(false); // Close the dialog after saving
   };
 
@@ -89,13 +94,51 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
           <Edit size={16} /> Edit profile details
         </Button>
       </div>
-      <OverviewPageDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        profileData={profileData}
-        userGroup={userGroup}
-        onSave={handleSave}
-      />
+      {userGroup === 1 ? (
+        <OverviewPageDialogDUSP
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 2 ? (
+        <OverviewPageDialogMCMC
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 3 ? (
+        <OverviewPageDialogTP
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 4 ? (
+        <OverviewPageDialogSSO
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 5 ? (
+        <OverviewPageDialogVendor
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : (
+        <OverviewPageDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          userGroup={userGroup}
+          onSave={handleSave}
+        />
+      )}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {(userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6 || userGroup === 7) && (

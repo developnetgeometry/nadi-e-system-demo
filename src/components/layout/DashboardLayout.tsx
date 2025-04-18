@@ -20,8 +20,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   useEffect(() => {
     if (isCollapsed) {
       setSidebarWidth("--sidebar-width-icon"); // Collapsed width
+      console.log("isCollapsed", isCollapsed);
     } else {
       setSidebarWidth("--sidebar-width"); // Expanded width
+      console.log("isCollapsed", isCollapsed);
     }
   }, [isCollapsed]);
 
@@ -64,8 +66,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           className={cn(
             "flex-1 flex flex-col transition-all duration-200 w-full",
             isMobile
-              ? "ml-0"
-              : `ml-[calc(var(${sidebarWidth}))]` // Dynamically adjust margin
+              ? `ml-0`
+              : `ml-0` // Dynamically adjust margin
           )}
         >
           <DashboardNavbar />

@@ -4,7 +4,7 @@ import ProfileOverviewPage from "./components/OverviewPage";
 import { useTPProfile } from "./hook/use-tp-profile";
 
 const TpProfileSettings = () => {
-  const { data: tpProfile, isLoading, isError, error } = useTPProfile();
+  const { data: tpProfile, isLoading, isError, error, refetch } = useTPProfile();
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -23,7 +23,7 @@ const TpProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the vendor profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={tpProfile} />
+            <ProfileOverviewPage profileData={tpProfile} refetch={refetch}/>
           </div>
         </Card>
       </TabsContent>

@@ -4,7 +4,7 @@ import ProfileOverviewPage from "./components/OverviewPage";
 import { useMCMCProfile } from "./hook/use-mcmc-profile";
 
 const McmcProfileSettings = () => {
-  const { data: mcmcProfile, isLoading, isError, error } = useMCMCProfile();
+  const { data: mcmcProfile, isLoading, isError, error, refetch} = useMCMCProfile();
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -22,7 +22,7 @@ const McmcProfileSettings = () => {
       <TabsContent value="overview" className="h-full mt-0">
         <Card className="h-full">
           <div className="p-6 h-full">
-            <ProfileOverviewPage profileData={mcmcProfile} />
+            <ProfileOverviewPage profileData={mcmcProfile} refetch={refetch}/>
           </div>
         </Card>
       </TabsContent>

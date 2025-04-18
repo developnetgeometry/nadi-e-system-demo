@@ -5,7 +5,7 @@ import ProfileAddressPage from "./components/AddressPage";
 import { useVendorProfile } from "./hook/use-vendor-profile";
 
 const VendorProfileSettings = () => {
-  const { data: vendorProfile, isLoading, isError, error } = useVendorProfile();
+  const { data: vendorProfile, isLoading, isError, error, refetch } = useVendorProfile();
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -24,7 +24,7 @@ const VendorProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the vendor profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={vendorProfile} />
+            <ProfileOverviewPage profileData={vendorProfile} refetch={refetch} />
           </div>
         </Card>
       </TabsContent>
