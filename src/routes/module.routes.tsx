@@ -1,4 +1,3 @@
-
 import { RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import HRDashboard from "@/pages/dashboard/hr/HRDashboard";

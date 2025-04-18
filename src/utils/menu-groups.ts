@@ -16,6 +16,7 @@ import {
   financialItems,
   complianceItems,
   siteManagementItems,
+  inventoryItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups = [
@@ -68,6 +69,11 @@ export const menuGroups = [
     label: "Asset Management",
     route: "/asset",
     items: assetItems,
+  },
+  {
+    label: "Inventory Management",
+    route: "/invetory",
+    items: inventoryItems,
   },
   {
     label: "Finance Management",
