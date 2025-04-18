@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardHover, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import AttendanceRecords from "@/components/hr/AttendanceRecords";
 import { format } from "date-fns";
@@ -58,7 +58,7 @@ const Attendance = () => {
       <div className="container mx-auto max-w-6xl">
         <h1 className="text-xl font-bold mb-6">Attendance Management</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <CardHover>
             <CardContent className="p-4 flex items-center space-x-4">
               <div className="bg-green-100 p-2 rounded-full">
                 <UserCheck className="h-6 w-6 text-green-700" />
@@ -68,9 +68,9 @@ const Attendance = () => {
                 <h3 className="text-2xl font-bold">{attendanceStats.presentToday}</h3>
               </div>
             </CardContent>
-          </Card>
+          </CardHover>
           
-          <Card>
+          <CardHover>
             <CardContent className="p-4 flex items-center space-x-4">
               <div className="bg-amber-100 p-2 rounded-full">
                 <Clock className="h-6 w-6 text-amber-700" />
@@ -80,9 +80,9 @@ const Attendance = () => {
                 <h3 className="text-2xl font-bold">{attendanceStats.onTime}</h3>
               </div>
             </CardContent>
-          </Card>
+          </CardHover>
           
-          <Card>
+          <CardHover>
             <CardContent className="p-4 flex items-center space-x-4">
               <div className="bg-red-100 p-2 rounded-full">
                 <Clock className="h-6 w-6 text-red-700" />
@@ -92,9 +92,9 @@ const Attendance = () => {
                 <h3 className="text-2xl font-bold">{attendanceStats.late}</h3>
               </div>
             </CardContent>
-          </Card>
+          </CardHover>
           
-          <Card>
+          <CardHover>
             <CardContent className="p-4 flex items-center space-x-4">
               <div className="bg-blue-100 p-2 rounded-full">
                 <Users className="h-6 w-6 text-blue-700" />
@@ -104,7 +104,7 @@ const Attendance = () => {
                 <h3 className="text-2xl font-bold">{attendanceStats.totalStaff}</h3>
               </div>
             </CardContent>
-          </Card>
+          </CardHover>
         </div>
         
         <Tabs value={activeTab} onValueChange={handleTabChange}>

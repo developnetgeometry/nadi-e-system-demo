@@ -187,7 +187,7 @@ export const SystemSettings = () => {
 
   return (
     <Card className="overflow-hidden border-none shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600">
+      <CardHeader  className="bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700">
         <div className="flex items-center gap-3">
           <SettingsIcon className="h-6 w-6 text-white" />
           <CardTitle className="text-white">System Configuration</CardTitle>

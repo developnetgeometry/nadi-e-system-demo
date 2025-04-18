@@ -113,7 +113,7 @@ export const UserTable = ({
   };
 
   return (
-    <div className="border rounded-md overflow-hidden bg-white">
+    <div className="border rounded-md overflow-hidden">
       <Table>
         <UserTableHeader
           onSelectAll={onSelectAll}

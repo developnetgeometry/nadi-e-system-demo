@@ -20,8 +20,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   useEffect(() => {
     if (isCollapsed) {
       setSidebarWidth("--sidebar-width-icon"); // Collapsed width
+      console.log("isCollapsed", isCollapsed);
     } else {
       setSidebarWidth("--sidebar-width"); // Expanded width
+      console.log("isCollapsed", isCollapsed);
     }
   }, [isCollapsed]);
 
@@ -51,13 +53,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         {/* Sidebar */}
         <div
           className={cn(
-            "z-50 h-screen duration-200 relative transition-[width] ease-linear bg-red-500", // Debugging background
+            "z-50 h-screen duration-200 relative transition-[width] ease-linear",
             isMobile ? "fixed" : "sticky top-0",
             isCollapsed ? "w-[--sidebar-width-icon]" : "w-[--sidebar-width]"
           )}
         >
           <DashboardSidebar />
-
         </div>
 
         {/* Main content */}
@@ -65,8 +66,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           className={cn(
             "flex-1 flex flex-col transition-all duration-200 w-full",
             isMobile
-              ? "ml-0"
-              : `ml-[calc(var(${sidebarWidth}))]` // Dynamically adjust margin
+              ? `ml-0`
+              : `ml-0` // Dynamically adjust margin
           )}
         >
           <DashboardNavbar />

@@ -6,7 +6,7 @@ import ProfilePayInfoPage from "./components/PayInfoPage";
 import { useStaffProfile } from "./hook/use-staff-profile";
 
 const StaffProfileSettings = () => {
-  const { data: staffProfile, isLoading, isError, error } = useStaffProfile();
+  const { data: staffProfile, isLoading, isError, error, refetch } = useStaffProfile();
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -27,7 +27,7 @@ const StaffProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the staff profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={staffProfile} />
+            <ProfileOverviewPage profileData={staffProfile} refetch={refetch}/>
           </div>
         </Card>
       </TabsContent>
