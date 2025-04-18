@@ -13,6 +13,7 @@ const useGeneralData = () => {
   const [ictKnowledge, setIctKnowledge] = useState<any[]>([]);
   const [educationLevels, setEducationLevels] = useState<any[]>([]);
   const [incomeLevels, setIncomeLevels] = useState<any[]>([]);
+  const [positions, setPositions] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -137,6 +138,17 @@ const useGeneralData = () => {
       }
     };
 
+    const fetchPositions = async () => {
+      try {
+        const { data, error } = await supabase.from("nd_position").select("id, name");
+        if (error) throw error;
+        setPositions(data);
+      } catch (error) {
+        console.error("Error fetching positions:", error);
+        setError(error.message);
+      }
+    };
+
     fetchGenders();
     fetchMaritalStatuses();
     fetchRaces();
@@ -148,6 +160,7 @@ const useGeneralData = () => {
     fetchIctKnowledge();
     fetchEducationLevels();
     fetchIncomeLevels();
+    fetchPositions();
   }, []);
 
   return {
@@ -162,6 +175,7 @@ const useGeneralData = () => {
     ictKnowledge,
     educationLevels,
     incomeLevels,
+    positions,
     error,
   };
 };

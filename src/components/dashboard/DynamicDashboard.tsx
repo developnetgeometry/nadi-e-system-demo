@@ -62,6 +62,6 @@ export const DynamicDashboard = () => {
       return <MemberDashboard />;
     default:
       // Fallback to member dashboard if user type is unknown
-      return <MemberDashboard />;
+      return "Loading...";
   }
 };

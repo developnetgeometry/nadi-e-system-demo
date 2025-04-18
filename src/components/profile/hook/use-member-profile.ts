@@ -53,10 +53,29 @@ export const useMemberProfile = () => {
   };
 
   // Use React Query's useQuery to fetch the data
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["memberProfile"],
     queryFn: fetchMemberProfile,
   });
 
-  return { data, isLoading, isError, error };
+  return { data, isLoading, isError, error, refetch };
+};
+
+// Function to update the member profile
+export const updateMemberProfile = async (updatedData: any) => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData?.user) {
+    throw new Error(userError?.message || "No user found.");
+  }
+
+  const userId = userData.user.id;
+
+  const { error: updateError } = await supabase
+    .from("nd_member_profile")
+    .update(updatedData)
+    .eq("user_id", userId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
 };

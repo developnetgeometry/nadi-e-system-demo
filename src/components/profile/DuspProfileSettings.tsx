@@ -4,7 +4,7 @@ import ProfileOverviewPage from "./components/OverviewPage";
 import { useDUSPProfile } from "./hook/use-dusp-profile";
 
 const DuspProfileSettings = () => {
-  const { data: duspProfile, isLoading, isError, error } = useDUSPProfile();
+  const { data: duspProfile, isLoading, isError, error, refetch } = useDUSPProfile(); // Include refetch here
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
@@ -22,7 +22,7 @@ const DuspProfileSettings = () => {
       <TabsContent value="overview" className="h-full mt-0">
         <Card className="h-full">
           <div className="p-6 h-full">
-            <ProfileOverviewPage profileData={duspProfile} />
+            <ProfileOverviewPage profileData={duspProfile} refetch={refetch} /> {/* Pass refetch to ProfileOverviewPage */}
           </div>
         </Card>
       </TabsContent>

@@ -68,7 +68,7 @@ export const UserTableRow = ({
   };
 
   return (
-    <TableRow key={user.id} className="hover:bg-gray-50">
+    <TableRow key={user.id}>
       <TableCell className="pl-4">
         <Checkbox
           checked={isSelected}
@@ -86,14 +86,14 @@ export const UserTableRow = ({
           <span>{user.full_name}</span>
         </div>
       </TableCell>
-      <TableCell className="text-gray-600">{user.email}</TableCell>
-      <TableCell className="text-gray-600">{user.phone_number}</TableCell>
+      <TableCell >{user.email}</TableCell>
+      <TableCell >{user.phone_number}</TableCell>
       <TableCell>{getStatusBadge(mockData.status)}</TableCell>
-      <TableCell className="text-gray-600">{mockData.site}</TableCell>
-      <TableCell className="text-gray-600">{mockData.phase}</TableCell>
-      <TableCell className="text-gray-600">{mockData.state}</TableCell>
-      <TableCell className="text-gray-600">{user.user_type}</TableCell>
-      <TableCell className="text-right text-gray-600">
+      <TableCell >{mockData.site}</TableCell>
+      <TableCell >{mockData.phase}</TableCell>
+      <TableCell >{mockData.state}</TableCell>
+      <TableCell >{user.user_type}</TableCell>
+      <TableCell >
         {new Date(user.created_at).toLocaleDateString("en-US", {
           year: "numeric",
           month: "2-digit",

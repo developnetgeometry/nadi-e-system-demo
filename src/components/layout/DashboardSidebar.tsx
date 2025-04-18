@@ -50,7 +50,7 @@ export const DashboardSidebar = () => {
 
       <SidebarContent
         className={cn(
-          "pr-4 pl-4 flex-1 overflow-y-auto scrollbar-none transition-opacity duration-100",
+          "p-4 flex-1 overflow-y-auto scrollbar-none transition-opacity duration-100",
           isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
         )}
       >
