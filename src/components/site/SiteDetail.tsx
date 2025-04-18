@@ -35,7 +35,7 @@ import useSiteGeneralData from "@/hooks/use-site-general-data";
 import useGeoData from "@/hooks/use-geo-data";
 import BillingFormDialog from "./BillingFormDialog";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import SiteClosure from "./SiteClosure"; // Adjust the path as necessary
+import SiteClosureForm from "./SiteClosure"; // Adjust the path as necessary
 import { useSiteBilling } from "./hook/use-site-billing";
 import { supabase } from "@/lib/supabase";
 import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
@@ -53,8 +53,8 @@ interface SiteDetailProps {
 const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBillingData, setSelectedBillingData] = useState(null);
-  const [refreshBilling, setRefreshBilling] = useState(false); // Add this state
-  const [isSiteClosureDialogOpen, setIsSiteClosureDialogOpen] = useState(false);
+  const [refreshBilling, setRefreshBilling] = useState(false);
+  const [isSiteClosureDialogOpen, setIsSiteClosureDialogOpen] = useState(false); // Updated state for SiteClosureForm
 
   const { data, loading, error } = useSiteProfile(siteId);
   const {
@@ -163,30 +163,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
     }
   };
 
-  const handleSiteClosureClick = () => {
-    const modal = document.createElement("div");
-    modal.id = "site-closure-modal";
-    document.body.appendChild(modal);
-
-    ReactDOM.render(
-      <SiteClosure
-        siteId={siteId}
-        siteDetails={data} // Pass the site details
-        location={addressData} // Pass the location data
-        onSubmit={(closureData) => {
-          console.log("Closure submitted:", closureData);
-          ReactDOM.unmountComponentAtNode(modal);
-          document.body.removeChild(modal);
-        }}
-        onClose={() => {
-          ReactDOM.unmountComponentAtNode(modal);
-          document.body.removeChild(modal);
-        }}
-      />,
-      modal
-    );
-  };
-
   if (loading || codeLoading || addressLoading)
     return <Skeleton className="w-full h-96">Loading...</Skeleton>;
   if (error || codeError || addressError)
@@ -228,7 +204,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
               <DropdownMenuContent>
                 <DropdownMenuItem
                   onClick={() => {
-                    setIsSiteClosureDialogOpen(true);
+                    setIsSiteClosureDialogOpen(true); // Open SiteClosureForm
                   }}
                 >
                   Site Closure
@@ -657,7 +633,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         </div>
       )}
 
-      {/* Render the BillingFormDialog independently */}
+      {/* Render the BillingFormDialog */}
       <BillingFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -665,20 +641,15 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         initialData={selectedBillingData}
       />
 
-      {isSiteClosureDialogOpen && (
-        <SiteClosure
-          siteId={siteId}
-          siteDetails={data} // Pass the site details
-          location={addressData} // Pass the location data
-          onSubmit={(closureData) => {
-            console.log("Closure submitted:", closureData);
-            setIsSiteClosureDialogOpen(false);
-          }}
-          onClose={() => {
-            setIsSiteClosureDialogOpen(false);
-          }}
-        />
-      )}
+      {/* Render the SiteClosureForm */}
+      <SiteClosureForm
+        open={isSiteClosureDialogOpen}
+        onOpenChange={setIsSiteClosureDialogOpen}
+        siteId={siteId}
+        siteDetails={data.fullname || "N/A"}
+        location={addressData.address1+" "+addressData.address2+" "+addressData.city+" "+addressData.postcode+" "+states.find((state) => state.id === addressData.state_id)
+          ?.name || "" || "N/A"}
+      />
     </div>
   );
 };

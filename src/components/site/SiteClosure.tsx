@@ -1,16 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileUpload } from "@/components/ui/file-upload";
+import { useToast } from "@/hooks/use-toast";
+import { useInsertSiteClosureData } from "./hook/use-siteclosure-data";
+import { useSiteCode } from "./hook/use-site-code";
 
 interface SiteClosureFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   siteId: string;
   siteDetails: string;
   location: string;
-  onSubmit: (data: {
-    siteId: string;
-    reason: string;
-    closureDate: string;
-  }) => void;
-  onClose: () => void; // Added onClose property
 }
+
+// ==================================================================================
 
 const closureCategories = [
   { value: "permanent", label: "Permanent Closure" },
@@ -29,113 +44,195 @@ const closureAffectAreas = [
   { value: "zone3", label: "Zone 3" },
 ];
 
+// ==================================================================================
+
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
+  open,
+  onOpenChange,
   siteId,
   siteDetails,
   location,
-  onSubmit,
 }) => {
-  const [reason, setReason] = useState("");
-  const [closureDate, setClosureDate] = useState("");
+  const { toast } = useToast();
+  const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();
+  const { siteCode } = useSiteCode(siteId); // Use the hook here
+  const [formState, setFormState] = useState({
+    reason: "",
+    closureDate: "",
+    category: "",
+    subCategory: "",
+    affectArea: "",
+  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ siteId, reason, closureDate });
+  const setField = (field: string, value: any) => {
+    setFormState((prevState) => ({ ...prevState, [field]: value }));
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const closureData = { site_id: siteId, ...formState };
+      const result = await insertSiteClosureData(closureData, selectedFile, siteCode); // Pass siteCode
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Site closure submitted successfully.",
+        });
+        onOpenChange(false); // Close the dialog
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error("Error submitting site closure:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while submitting the site closure.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!open) {
+      setFormState({
+        reason: "",
+        closureDate: "",
+        category: "",
+        subCategory: "",
+        affectArea: "",
+      });
+      setSelectedFile(null);
+    }
+  }, [open]);
+
   return (
-    <form onSubmit={handleSubmit} className="site-closure-form">
-      <h2>Site Closure Form</h2>
-      <div>
-        <label htmlFor="siteId">Site ID:</label>
-        <input type="text" id="siteId" value={siteId} readOnly />
-      </div>
-      <div>
-        <label htmlFor="siteDetails">Site Details:</label>
-        <input type="text" id="siteDetails" value={siteDetails} readOnly />
-      </div>
-      <div>
-        <label htmlFor="location">Location:</label>
-        <input type="text" id="location" value={location} readOnly />
-      </div>
-      <div>
-        <label htmlFor="reason">Reason for Closure:</label>
-        <textarea
-          id="reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="closureDate">Closure Date:</label>
-        <input
-          type="date"
-          id="closureDate"
-          value={closureDate}
-          onChange={(e) => setClosureDate(e.target.value)}
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label
-          htmlFor="closureRequest"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Closure Category
-        </label>
-        <select
-          id="closureRequest"
-          name="closureRequest"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        >
-          <option value="">Select a category</option>
-          {closureCategories.map((category) => (
-            <option key={category.value} value={category.value}>
-              {category.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="mb-4">
-        <label htmlFor="closureSubCategory" className="block text-sm font-medium text-gray-700">
-          Closure Sub-Category
-        </label>
-        <select
-          id="closureSubCategory"
-          name="closureSubCategory"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        >
-          <option value="">Select a sub-category</option>
-          {closureSubCategories.map((subCategory) => (
-            <option key={subCategory.value} value={subCategory.value}>
-              {subCategory.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="mb-4">
-        <label htmlFor="closureAffectArea" className="block text-sm font-medium text-gray-700">
-          Closure Affect Area
-        </label>
-        <select
-          id="closureAffectArea"
-          name="closureAffectArea"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        >
-          <option value="">Select an affected area</option>
-          {closureAffectAreas.map((area) => (
-            <option key={area.value} value={area.value}>
-              {area.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <button type="submit">Submit</button>
-    </form>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Site Closure Form</DialogTitle>
+          <DialogDescription>Fill in the details for site closure.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="siteId">Site ID</Label>
+            <Input id="siteId" value={siteId} readOnly />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="siteDetails">Site Details</Label>
+            <Input id="siteDetails" value={siteDetails} readOnly />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="location">Location</Label>
+            <Input id="location" value={location} readOnly />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reason">Reason for Closure</Label>
+            <Textarea
+              id="reason"
+              value={formState.reason}
+              onChange={(e) => setField("reason", e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="closureDate">Closure Date</Label>
+            <Input
+              id="closureDate"
+              type="date"
+              value={formState.closureDate}
+              onChange={(e) => setField("closureDate", e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Closure Category</Label>
+            <Select
+              name="category"
+              value={formState.category}
+              onValueChange={(value) => setField("category", value)}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {closureCategories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subCategory">Closure Sub-Category</Label>
+            <Select
+              name="subCategory"
+              value={formState.subCategory}
+              onValueChange={(value) => setField("subCategory", value)}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a sub-category" />
+              </SelectTrigger>
+              <SelectContent>
+                {closureSubCategories.map((subCategory) => (
+                  <SelectItem key={subCategory.value} value={subCategory.value}>
+                    {subCategory.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="affectArea">Closure Affect Area</Label>
+            <Select
+              name="affectArea"
+              value={formState.affectArea}
+              onValueChange={(value) => setField("affectArea", value)}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select an affected area" />
+              </SelectTrigger>
+              <SelectContent>
+                {closureAffectAreas.map((area) => (
+                  <SelectItem key={area.value} value={area.value}>
+                    {area.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="attachment">Attachment</Label>
+            <FileUpload
+              maxFiles={1}
+              acceptedFileTypes=".pdf"
+              maxSizeInMB={2}
+              buttonText="Choose File"
+              onFilesSelected={(files) => setSelectedFile(files[0])}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
