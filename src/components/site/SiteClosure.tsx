@@ -73,7 +73,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     try {
       console.log("Form State:", formState); // Log the form state for debugging
       const closureData = { site_id: siteId, ...formState };
-      const result = await insertSiteClosureData(closureData, selectedFile, siteCode); // Pass siteCode
+      const result = await insertSiteClosureData(closureData, selectedFile, siteCode);
 
       if (result.success) {
         toast({
