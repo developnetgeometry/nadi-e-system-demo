@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -14,10 +15,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useToast } from "@/hooks/use-toast";
-import { useInsertSiteClosureData } from "./hook/use-siteclosure-data";
+import { useInsertSiteClosureData } from "./hook/submit-siteclosure-data";
 import { useSiteCode } from "./hook/use-site-code";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { SelectMany } from "@/components/ui/SelectMany";
+import { fetchClosureCategories, fetchClosureSubCategories, fetchClosureAffectAreas } from "./hook/use-siteclosure";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -26,27 +28,6 @@ interface SiteClosureFormProps {
   siteDetails: string;
   location: string;
 }
-
-// ==================================================================================
-
-const closureCategories = [
-  { value: "permanent", label: "Permanent Closure" },
-  { value: "temporary", label: "Temporary Closure" },
-];
-
-const closureSubCategories = [
-  { value: "maintenance", label: "Maintenance" },
-  { value: "naturalDisaster", label: "Natural Disaster" },
-  { value: "other", label: "Other" },
-];
-
-const closureAffectAreas = [
-  { value: "zone1", label: "Zone 1" },
-  { value: "zone2", label: "Zone 2" },
-  { value: "zone3", label: "Zone 3" },
-];
-
-// ==================================================================================
 
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   open,
@@ -59,14 +40,29 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();
   const { siteCode } = useSiteCode(siteId); // Use the hook here
   const [formState, setFormState] = useState({
-    reason: "",
-    closureDate: "",
-    category: "",
-    subCategory: "",
-    affectArea: [], // Change to an array to support multiple selections
+    remark: "",
+    close_start: "",
+    category_id: "",
+    subcategory_id: "",
+    affectArea: [],
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
+    queryKey: ['closureCategories'],
+    queryFn: fetchClosureCategories,
+  });
+
+  const { data: closureSubCategories = [], isLoading: isLoadingSubCategories } = useQuery({
+    queryKey: ['closureSubCategories'],
+    queryFn: fetchClosureSubCategories,
+  });
+
+  const { data: closureAffectAreas = [], isLoading: isLoadingAffectAreas } = useQuery({
+    queryKey: ['closureAffectAreas'],
+    queryFn: fetchClosureAffectAreas,
+  });
+  
   const setField = (field: string, value: any) => {
     setFormState((prevState) => ({ ...prevState, [field]: value }));
   };
@@ -75,8 +71,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     e.preventDefault();
 
     try {
-      // const closureData = { site_id: siteId, ...formState };
-      const closureData = { site_id: siteId };
+      console.log("Form State:", formState); // Log the form state for debugging
+      const closureData = { site_id: siteId, ...formState };
       const result = await insertSiteClosureData(closureData, selectedFile, siteCode); // Pass siteCode
 
       if (result.success) {
@@ -101,10 +97,10 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   useEffect(() => {
     if (!open) {
       setFormState({
-        reason: "",
-        closureDate: "",
-        category: "",
-        subCategory: "",
+        remark: "",
+        close_start: "",
+        category_id: "",
+        subcategory_id: "",
         affectArea: [],
       });
       setSelectedFile(null);
@@ -135,8 +131,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             <Label htmlFor="reason">Reason for Closure</Label>
             <Textarea
               id="reason"
-              value={formState.reason}
-              onChange={(e) => setField("reason", e.target.value)}
+              value={formState.remark}
+              onChange={(e) => setField("remark", e.target.value)}
               required
             />
           </div>
@@ -145,8 +141,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             <Input
               id="closureDate"
               type="date"
-              value={formState.closureDate}
-              onChange={(e) => setField("closureDate", e.target.value)}
+              value={formState.close_start}
+              onChange={(e) => setField("close_start", e.target.value)}
               required
             />
           </div>
@@ -154,17 +150,18 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             <Label htmlFor="category">Closure Category</Label>
             <Select
               name="category"
-              value={formState.category}
-              onValueChange={(value) => setField("category", value)}
+              value={formState.category_id}
+              onValueChange={(value) => setField("category_id", value)}
               required
+              disabled={isLoadingCategories}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
                 {closureCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.eng}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -174,17 +171,18 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             <Label htmlFor="subCategory">Closure Sub-Category</Label>
             <Select
               name="subCategory"
-              value={formState.subCategory}
-              onValueChange={(value) => setField("subCategory", value)}
+              value={formState.subcategory_id}
+              onValueChange={(value) => setField("subcategory_id", value)}
               required
+              disabled={isLoadingSubCategories}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a sub-category" />
               </SelectTrigger>
               <SelectContent>
                 {closureSubCategories.map((subCategory) => (
-                  <SelectItem key={subCategory.value} value={subCategory.value}>
-                    {subCategory.label}
+                  <SelectItem key={subCategory.id} value={String(subCategory.id)}>
+                    {subCategory.eng}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -194,12 +192,13 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             <Label htmlFor="affectArea">Closure Affect Area</Label>
             <SelectMany
               options={closureAffectAreas.map((area) => ({
-                id: area.value,
-                label: area.label,
+                id: String(area.id), // Convert id to string
+                label: area.eng,
               }))}
               value={formState.affectArea}
               onChange={(value) => setField("affectArea", value)}
               placeholder="Select affected areas"
+              disabled={isLoadingAffectAreas}
             />
           </div>
           <div className="space-y-2">

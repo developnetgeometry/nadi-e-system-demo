@@ -46,3 +46,23 @@ export interface Closure_Status {
     id: number;
     name: string;
 }
+export interface ClosureCategory {
+    id: number;
+    bm: string;
+    eng: string;
+  }
+  
+  export interface ClosureSubCategory {
+    id: number;
+    bm: string;
+    eng: string;
+    nd_closure_categories: {
+      id: number;
+    }[];
+  }
+  
+  export interface ClosureAffectArea {
+    id: number;
+    bm: string;
+    eng: string;
+  }
