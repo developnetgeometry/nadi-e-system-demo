@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { ClosureAffectArea, ClosureCategory, ClosureSubCategory } from "../types/site-closure";
+import { ClosureAffectArea, ClosureCategory, ClosureSession, ClosureSubCategory } from "../types/site-closure";
 
 
-export const fetchClosureData = async (): Promise<ClosureCategory[]> => {
-  const { data, error } = await supabase.from("nd_closure_categories").select("id,bm,eng");
-  if (error) throw error;
-  return data || [];
-};
+// export const fetchClosureData = async (): Promise<ClosureCategory[]> => {
+//   const { data, error } = await supabase.from("nd_closure_categories").select("id,bm,eng");
+//   if (error) throw error;
+//   return data || [];
+// };
 
 export const fetchClosureCategories = async (): Promise<ClosureCategory[]> => {
   const { data, error } = await supabase.from("nd_closure_categories").select("id,bm,eng");
@@ -23,6 +23,12 @@ export const fetchClosureSubCategories = async (): Promise<ClosureSubCategory[]>
 
 export const fetchClosureAffectAreas = async (): Promise<ClosureAffectArea[]> => {
   const { data, error } = await supabase.from("nd_closure_affect_areas").select("id, bm, eng");
+  if (error) throw error;
+  return data || [];
+};
+
+export const fetchClosureSession = async (): Promise<ClosureSession[]> => {
+  const { data, error } = await supabase.from("nd_closure_session").select("id, bm, eng");
   if (error) throw error;
   return data || [];
 };

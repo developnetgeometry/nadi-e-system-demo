@@ -66,3 +66,9 @@ export interface ClosureCategory {
     bm: string;
     eng: string;
   }
+
+  export interface ClosureSession {
+    id: number;
+    bm: string;
+    eng: string;
+  }

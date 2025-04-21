@@ -19,7 +19,11 @@ import { useInsertSiteClosureData } from "./hook/submit-siteclosure-data";
 import { useSiteCode } from "./hook/use-site-code";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { SelectMany } from "@/components/ui/SelectMany";
-import { fetchClosureCategories, fetchClosureSubCategories, fetchClosureAffectAreas } from "./hook/use-siteclosure";
+import { fetchClosureCategories, fetchClosureSubCategories, fetchClosureAffectAreas, fetchClosureSession } from "./hook/use-siteclosure";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DateInput } from "../ui/date-input";
+import { useDateRangeValidation } from "@/hooks/useDateRangeValidation";
+import { useSessionVisibility } from "./hook/use-session-visibility";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -42,9 +46,13 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const [formState, setFormState] = useState({
     remark: "",
     close_start: "",
+    close_end: "",
+    start_time: "",
+    end_time: "",
     category_id: "",
     subcategory_id: "",
     affectArea: [],
+    session: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -62,7 +70,12 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     queryKey: ['closureAffectAreas'],
     queryFn: fetchClosureAffectAreas,
   });
-  
+
+  const { data: closureSessions = [], isLoading: isLoadingSessions } = useQuery({
+    queryKey: ['closureSessions'],
+    queryFn: fetchClosureSession,
+  });
+
   const setField = (field: string, value: any) => {
     setFormState((prevState) => ({ ...prevState, [field]: value }));
   };
@@ -94,18 +107,53 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     }
   };
 
+  const handleReset = () => {
+    setFormState({
+      remark: "",
+      close_start: "",
+      close_end: "",
+      start_time: "",
+      end_time: "",
+      category_id: "",
+      subcategory_id: "",
+      affectArea: [],
+      session: "",
+    });
+    setSelectedFile(null);
+  };
+
   useEffect(() => {
     if (!open) {
       setFormState({
         remark: "",
         close_start: "",
+        close_end: "",
+        start_time: "",
+        end_time: "",
         category_id: "",
         subcategory_id: "",
         affectArea: [],
+        session: "",
       });
       setSelectedFile(null);
     }
   }, [open]);
+
+  const isDateRangeValid = useDateRangeValidation(
+    formState.close_start,
+    formState.close_end,
+    1 // Expected range in days
+  );
+
+  useEffect(() => {
+    if (!isDateRangeValid) {
+      setField("session", ""); // Clear session when date range is invalid
+    }
+  }, [isDateRangeValid]);
+
+  const today = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+
+  const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,35 +164,99 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="siteId">Site ID</Label>
-            <Input id="siteId" value={siteId} readOnly />
+            <Label htmlFor="siteId">Site Code</Label>
+            <Input id="siteId" value={siteCode} readOnly />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="siteDetails">Site Details</Label>
             <Input id="siteDetails" value={siteDetails} readOnly />
-          </div>
-          <div className="space-y-2">
+          </div> */}
+          {/* <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
             <Input id="location" value={location} readOnly />
+          </div> */}
+          <div className="flex space-x-4">
+            <div className="w-1/2 space-y-2">
+              <Label htmlFor="startDate">Start Date</Label>
+              <DateInput
+                id="startDate"
+                value={formState.close_start}
+                onChange={(e) => setField("close_start", e.target.value)}
+                min={today} // Prevent selecting dates earlier than today
+                max={formState.close_end || undefined} // Prevent selecting dates after the end date
+                required
+              />
+            </div>
+            <div className="w-1/2 space-y-2">
+              <Label htmlFor="endDate">End Date</Label>
+              <DateInput
+                id="endDate"
+                value={formState.close_end}
+                onChange={(e) => setField("close_end", e.target.value)}
+                min={formState.close_start || today} // Prevent selecting dates before the start date
+                required
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reason">Reason for Closure</Label>
-            <Textarea
-              id="reason"
-              value={formState.remark}
-              onChange={(e) => setField("remark", e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="closureDate">Closure Date</Label>
-            <Input
-              id="closureDate"
-              type="date"
-              value={formState.close_start}
-              onChange={(e) => setField("close_start", e.target.value)}
-              required
-            />
+          {isDateRangeValid && (
+            <div className="space-y-2">
+              <Label htmlFor="session">Session</Label>
+              <RadioGroup
+                value={formState.session}
+                onValueChange={(value) => setField("session", value)}
+                className="flex flex-wrap gap-6"
+              >
+                {closureSessions.map((session) => (
+                  <div key={session.id} className="flex items-center space-x-2">
+                    <RadioGroupItem value={String(session.id)} id={`session-${session.id}`} />
+                    <Label htmlFor={`session-${session.id}`} className="cursor-pointer">
+                      {session.eng}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+          )}
+          <div className="flex space-x-4">
+            {showTimeInputs && (
+              <>
+                <div className="w-1/2 space-y-2">
+                  <Label htmlFor="startTime">Start Time</Label>
+                  <Input
+                    id="startTime"
+                    lang="en-GB"
+                    type="time"
+                    value={formState.start_time || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (timeRange && value >= timeRange.min && value <= timeRange.max) {
+                        setField("start_time", value);
+                      }
+                    }}
+                    min={timeRange?.min}
+                    max={timeRange?.max}
+                    required
+                  />
+                </div>
+                <div className="w-1/2 space-y-2">
+                  <Label htmlFor="endTime">End Time</Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={formState.end_time || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (timeRange && value >= timeRange.min && value <= timeRange.max) {
+                        setField("end_time", value);
+                      }
+                    }}
+                    min={timeRange?.min}
+                    max={timeRange?.max}
+                    required
+                  />
+                </div>
+              </>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Closure Category</Label>
@@ -202,6 +314,15 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="reason">Reason</Label>
+            <Textarea
+              id="reason"
+              value={formState.remark}
+              onChange={(e) => setField("remark", e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="attachment">Attachment</Label>
             <FileUpload
               maxFiles={1}
@@ -219,6 +340,14 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               disabled={isSubmitting}
             >
               Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleReset}
+              disabled={isSubmitting}
+            >
+              Clear form
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit"}
