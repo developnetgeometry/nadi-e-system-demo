@@ -27,7 +27,7 @@ export const useInsertSiteClosureData = () => {
       // Step 2: Upload file to Supabase Storage if a file is selected
       if (selectedFile) {
 
-        const fileName = `${siteCode}_${Date.now()}.pdf`;
+        const fileName = `${siteCode}_${closureId}_${Date.now()}.pdf`;
         const filePath = `site-closure/${siteCode}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
@@ -38,17 +38,17 @@ export const useInsertSiteClosureData = () => {
 
         // Step 3: Get the public URL of the uploaded file
         // const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
-        // const publicUrl = `/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
+        const publicUrl = `/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
 
         // Step 4: Insert into nd_site_closure_attachment
-        // const { error: attachmentError } = await supabase
-        //   .from("nd_site_closure_attachment")
-        //   .insert([{ 
-        //     // site_closure_id: closureId, 
-        //     file_path: publicUrl 
-        //   }]);
+        const { error: attachmentError } = await supabase
+          .from("nd_site_closure_attachment")
+          .insert([{ 
+            site_closure_id: closureId, 
+            file_path: publicUrl 
+          }]);
 
-        // if (attachmentError) throw attachmentError;
+        if (attachmentError) throw attachmentError;
       }
 
       setLoading(false);

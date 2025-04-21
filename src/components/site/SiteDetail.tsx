@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Users, UserCheck, UserCog, DollarSign } from "lucide-react";
+import { Eye, EyeOff, Users, UserCheck, UserCog, DollarSign, FilePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteProfile } from "./hook/use-site-profile";
 import { useSiteCode } from "./hook/use-site-code";
@@ -9,6 +9,9 @@ import OverviewPage from "./component/OverviewPage";
 import StaffPage from "./component/StaffPage";
 import BillingPage from "./component/BillingPage";
 import { Card } from "../ui/card";
+import { useState } from "react";
+import SiteClosureForm from "./SiteClosure";
+import { Button } from "../ui/button";
 
 interface SiteDetailProps {
   siteId: string;
@@ -18,6 +21,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
   const { data, socioeconomics, space, loading, error } = useSiteProfile(siteId);
   const { siteCode, loading: codeLoading, error: codeError } = useSiteCode(siteId);
   const { siteStatus } = useSiteGeneralData();
+  const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
 
   // Dummy data for the cards
   const stats = [
@@ -84,6 +88,15 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </span>
           </div>
         </div>
+        <div>
+          <Button
+            variant="ghost"
+            onClick={() => setSiteClosureOpen(true)}
+          >
+            <FilePlus className="mr-2 h-4 w-4" />
+            New Closure Request
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards Section */}
@@ -124,11 +137,20 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         <TabsContent value="billing" className="h-full mt-0">
           <Card className="h-full">
             <div className="p-6 h-full">
-            <BillingPage siteId={siteId} />
+              <BillingPage siteId={siteId} />
             </div>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Site Closure Form */}
+      <SiteClosureForm
+        open={isSiteClosureOpen}
+        onOpenChange={setSiteClosureOpen}
+        siteId={siteId}
+        siteDetails={data.fullname || "N/A"}
+        location={data.state_id?.name || "N/A"}
+      />
     </div>
   );
 };

@@ -74,7 +74,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     e.preventDefault();
 
     try {
-      const closureData = { site_id: siteId, ...formState };
+      // const closureData = { site_id: siteId, ...formState };
+      const closureData = { site_id: siteId };
       const result = await insertSiteClosureData(closureData, selectedFile, siteCode); // Pass siteCode
 
       if (result.success) {
