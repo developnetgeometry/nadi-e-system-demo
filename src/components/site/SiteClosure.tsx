@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useInsertSiteClosureData } from "./hook/use-siteclosure-data";
 import { useSiteCode } from "./hook/use-site-code";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
+import { SelectMany } from "@/components/ui/SelectMany";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -62,7 +63,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     closureDate: "",
     category: "",
     subCategory: "",
-    affectArea: "",
+    affectArea: [], // Change to an array to support multiple selections
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -104,7 +105,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         closureDate: "",
         category: "",
         subCategory: "",
-        affectArea: "",
+        affectArea: [],
       });
       setSelectedFile(null);
     }
@@ -191,23 +192,15 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
           </div>
           <div className="space-y-2">
             <Label htmlFor="affectArea">Closure Affect Area</Label>
-            <Select
-              name="affectArea"
+            <SelectMany
+              options={closureAffectAreas.map((area) => ({
+                id: area.value,
+                label: area.label,
+              }))}
               value={formState.affectArea}
-              onValueChange={(value) => setField("affectArea", value)}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an affected area" />
-              </SelectTrigger>
-              <SelectContent>
-                {closureAffectAreas.map((area) => (
-                  <SelectItem key={area.value} value={area.value}>
-                    {area.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => setField("affectArea", value)}
+              placeholder="Select affected areas"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="attachment">Attachment</Label>
