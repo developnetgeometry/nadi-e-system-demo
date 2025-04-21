@@ -8,7 +8,7 @@ import { SiteList } from "@/components/site/SiteList";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { SiteFormDialog } from "@/components/site/SiteFormDialog";
-import { fetchSites } from "@/components/site/component/site-utils";
+import { fetchSites } from "@/components/site/hook/site-utils";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { useNavigate } from 'react-router-dom';
 import { fetchActionableRequestCount } from "@/components/site/queries/site-closure"; // Import the new query
