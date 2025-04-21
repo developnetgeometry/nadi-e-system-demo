@@ -14,24 +14,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import useGeneralData from "@/hooks/use-general-data";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { updateTPProfile } from "@/components/profile/hook/use-tp-profile";
+import { updateStaffProfile } from "@/components/profile/hook/use-staff-profile";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
-interface ProfileEditDialogTPProps {
+interface ProfileEditDialogStaffProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     profileData: any;
     onSave: (updatedData: any) => void;
 }
 
-const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
+const ProfileEditDialogStaff: React.FC<ProfileEditDialogStaffProps> = ({
     open,
     onOpenChange,
     profileData,
     onSave,
 }) => {
     const { toast } = useToast();
-    const { positions, maritalStatuses, races, religions, nationalities } = useGeneralData();
+    const { positions, maritalStatuses, races, religions, nationalities, genders } = useGeneralData();
     const [formState, setFormState] = useState<any>({});
     const userMetadata = useUserMetadata();
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
@@ -52,8 +52,8 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
         e.preventDefault();
 
         try {
-            // Call the updateTPProfile function with the updated formState
-            await updateTPProfile({
+            // Call the updateStaffProfile function with the updated formState
+            await updateStaffProfile({
                 user_id: formState.user_id, // Pass the unique user_id
                 fullname: formState.fullname,
                 ic_no: formState.ic_no,
@@ -67,10 +67,9 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
                 race_id: formState.race_id?.id,
                 religion_id: formState.religion_id?.id,
                 nationality_id: formState.nationality_id?.id,
+                gender_id: formState.gender_id?.id,
                 qualification: formState.qualification,
                 is_active: formState.is_active,
-                join_date: formState.join_date,
-                resign_date: formState.resign_date,
             });
 
             toast({
@@ -100,7 +99,7 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Edit Profile TP</DialogTitle>
+                    <DialogTitle>Edit Profile Staff</DialogTitle>
                     <DialogDescription>Update your profile details below.</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,9 +124,33 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
                                         required
                                     />
                                 </div>
+                                <div>
+                                    <Label htmlFor="gender_id">Marital Status</Label>
+                                    <Select
+                                        name="gender_id"
+                                        value={formState.gender_id?.id?.toString() || ""}
+                                        onValueChange={(value) =>
+                                            setField(
+                                                "gender_id",
+                                                genders.find((status) => status.id.toString() === value)
+                                            )
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select marital status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {genders.map((gender) => (
+                                                <SelectItem key={gender.id} value={gender.id.toString()}>
+                                                    {gender.eng}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </>
                         )}
-                        {(userType === "super_admin" || userGroup === 3) && (
+                        {(userType === "super_admin" || userGroup === 6) && (
                             <>
                                 <div>
                                     <Label htmlFor="mobile_no">Mobile Number</Label>
@@ -202,7 +225,7 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="dob">Join Date</Label>
+                                    <Label htmlFor="dob">Date of Birth</Label>
                                     <Input
                                         id="dob"
                                         type="date"
@@ -316,24 +339,6 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
                                         </div>
                                     </RadioGroup>
                                 </div>
-                                <div>
-                                    <Label htmlFor="join_date">Join Date</Label>
-                                    <Input
-                                        id="join_date"
-                                        type="date"
-                                        value={formState.join_date || ""}
-                                        onChange={(e) => setField("join_date", e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="resign_date">Resign Date</Label>
-                                    <Input
-                                        id="resign_date"
-                                        type="date"
-                                        value={formState.resign_date || ""}
-                                        onChange={(e) => setField("resign_date", e.target.value)}
-                                    />
-                                </div>
                             </>
                         )}
                     </div>
@@ -349,4 +354,4 @@ const ProfileEditDialogTP: React.FC<ProfileEditDialogTPProps> = ({
     );
 };
 
-export default ProfileEditDialogTP;
+export default ProfileEditDialogStaff;

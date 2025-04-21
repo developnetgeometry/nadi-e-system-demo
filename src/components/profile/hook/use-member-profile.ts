@@ -25,7 +25,8 @@ export const useMemberProfile = () => {
       socio_id (id, bm, eng),
       ict_knowledge (id, bm, eng),
       education_level (id, bm, eng),
-      income_range (id, bm, eng)
+      income_range (id, bm, eng),
+      status_membership (id, name)
     `)
       .eq("user_id", userId)
       .single();

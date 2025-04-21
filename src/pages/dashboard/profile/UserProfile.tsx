@@ -1,8 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { ProfileHeader } from "@/components/profile/components/ProfileHeader";
 import StaffProfileSettings from "@/components/profile/StaffProfileSettings";
-import { StaffJobSettings } from "@/components/profile/staff/StaffJobSettings";
 import MemberProfileSettings from "@/components/profile/MemberProfileSettings";
 import SuperAdminProfileSettings from "@/components/profile/SuperAdminProfileSettings";
 import McmcProfileSettings from "@/components/profile/McmcProfileSettings";
@@ -30,9 +28,12 @@ const UserProfile = () => {
   }
 
   if (!userGroup) {
-    return <SettingsLoading />;
+    return (
+    <div className="flex items-center justify-center p-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>);
   }
-  
+
   if (userGroup === 7) {
     return (
       <DashboardLayout>

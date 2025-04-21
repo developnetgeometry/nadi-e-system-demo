@@ -159,7 +159,6 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
 
         <div className="ml-auto flex items-center gap-2">
           <Button
-            className="bg-blue-600 hover:bg-blue-500"
             onClick={() => {
               setSelectedBilling(null); // Clear selected billing for new entry
               setIsDialogOpen(true); // Open the dialog

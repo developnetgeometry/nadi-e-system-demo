@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import {
   Accordion,
@@ -8,82 +7,47 @@ import {
 } from "@/components/ui/accordion";
 import { SidebarMenu } from "@/components/ui/sidebar";
 import { MenuItem } from "@/types/menu";
-import { useSidebar } from "@/hooks/use-sidebar";
 import { getAccordionIcon } from "@/utils/sidebar-icons";
-import { sidebarStyles, iconColors } from "@/utils/sidebar-styles";
+import { sidebarStyles } from "@/utils/sidebar-styles";
 import { SidebarItem } from "./SidebarItem";
 import { cn } from "@/lib/utils";
-import { ChevronUp, ChevronRight } from "lucide-react";
 
 interface SidebarAccordionProps {
   label: string;
   items: MenuItem[];
+  state: string; // Pass state as a prop
+  isCollapsed: boolean; // Pass isCollapsed as a prop
 }
 
-export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
+export const SidebarAccordion = ({
+  label,
+  items,
+  state,
+  isCollapsed,
+}: SidebarAccordionProps) => {
   const location = useLocation();
-  const { state, isMobile } = useSidebar();
   const isActive = items.some((item) =>
     location.pathname.startsWith(item.path)
   );
-  const isActiveExact = items.some((item) => location.pathname === item.path);
   const AccordionIcon = getAccordionIcon(label);
-  const isCollapsed = state === "collapsed" && !isMobile;
 
-  // If sidebar is collapsed and not mobile, render a simpler version
+  console.log("SidebarAccordion isCollapsed", isCollapsed);
+  console.log("SidebarAccordion state", state);
+
+  // Render a simpler version when the sidebar is collapsed
   if (isCollapsed) {
     return (
-      <Accordion
-        type="single"
-        collapsible
-        defaultValue={isActive ? label : undefined}
+      <div
+        className={cn(
+          "flex items-center justify-center h-10 w-full rounded-md",
+          isActive
+            ? "bg-[#5147dd] text-white dark:bg-[#5147dd]/90"
+            : "text-gray-700 dark:text-gray-200"
+        )}
       >
-        <AccordionItem
-          value={label}
-          className={cn(
-            "border-none",
-            isActive
-          )}
-        >
-          <AccordionTrigger
-            className={cn(
-              sidebarStyles.accordionTrigger,
-              isActive && sidebarStyles.accordionTriggerActive,
-              isActiveExact && "text-white dark:text-white",
-              "flex justify-between items-center text-sm tracking-tight h-10" // Adjust text size, letter spacing, and button height
-            )}
-          >
-            <div className="flex items-center gap-3 min-w-0 w-full">
-              <div className="relative">
-                <AccordionIcon className={cn("h-5 w-5 flex-shrink-0")} />
-              </div>
-              <span className="truncate flex-1 min-h-[1.25rem] leading-tight line-clamp-2">
-              </span>
-            </div>
-            {/* Chevron icon moved to the right */}
-            <div
-              className="flex-shrink-0 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent triggering the parent AccordionTrigger click
-              }}
-            >
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="pb-1 pt-1 pl-6">
-            <SidebarMenu className="gap-0">
-              {items.map((item) => (
-                <SidebarItem
-                  key={item.title}
-                  title={item.title}
-                  path={item.path}
-                  isCollapsed={false}
-                />
-              ))}
-            </SidebarMenu>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    )
+        <AccordionIcon className="h-5 w-5" />
+      </div>
+    );
   }
 
   // Regular accordion for expanded state or mobile
@@ -104,9 +68,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
           className={cn(
             sidebarStyles.accordionTrigger,
             isActive && sidebarStyles.accordionTriggerActive,
-            isActiveExact && "text-white dark:text-white",
-            "flex justify-between items-center text-sm tracking-tight",
-            "w-[200px] h-[40px]" // 👈 fixed width
+            "h-[40px] w-full"
           )}
         >
           <div className="flex items-center gap-3 w-full min-h-[1.25rem]">
@@ -114,16 +76,7 @@ export const SidebarAccordion = ({ label, items }: SidebarAccordionProps) => {
             <span className="truncate flex-1 leading-tight text-left text-xs tracking-tighter">
               {label}
             </span>
-            <div
-              className="flex-shrink-0 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-            >
-              {/* Add optional Chevron icon here, e.g. <ChevronRight className="w-4 h-4" /> */}
-            </div>
           </div>
-
         </AccordionTrigger>
         <AccordionContent className="pb-0 pt-1 pl-6">
           <SidebarMenu className="gap-0">
