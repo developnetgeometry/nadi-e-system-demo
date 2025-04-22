@@ -24,6 +24,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DateInput } from "../ui/date-input";
 import { useDateRangeValidation } from "@/hooks/useDateRangeValidation";
 import { useSessionVisibility } from "./hook/use-session-visibility";
+import TimeInput from "../ui/TimePicker";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -151,6 +152,35 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     }
   }, [isDateRangeValid]);
 
+  useEffect(() => {
+    // Reset start_time and end_time when session changes
+    setFormState((prevState) => ({
+      ...prevState,
+      start_time: "",
+      end_time: "",
+    }));
+  }, [formState.session]);
+
+  useEffect(() => {
+    // Ensure end_time is reset if start_time exceeds it
+    if (formState.start_time && formState.end_time && formState.start_time > formState.end_time) {
+      setFormState((prevState) => ({
+        ...prevState,
+        end_time: "",
+      }));
+    }
+  }, [formState.start_time]);
+
+  useEffect(() => {
+    // Ensure start_time is reset if end_time is earlier than it
+    if (formState.start_time && formState.end_time && formState.end_time < formState.start_time) {
+      setFormState((prevState) => ({
+        ...prevState,
+        start_time: "",
+      }));
+    }
+  }, [formState.end_time]);
+
   const today = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
 
   const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
@@ -222,36 +252,25 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               <>
                 <div className="w-1/2 space-y-2">
                   <Label htmlFor="startTime">Start Time</Label>
-                  <Input
+                  <TimeInput
                     id="startTime"
-                    lang="en-GB"
-                    type="time"
-                    value={formState.start_time || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (timeRange && value >= timeRange.min && value <= timeRange.max) {
-                        setField("start_time", value);
-                      }
-                    }}
+                    value={formState.start_time}
+                    onChange={(val) => setField("start_time", val)}
                     min={timeRange?.min}
-                    max={timeRange?.max}
+                    max={formState.end_time || timeRange?.max}
+                    disallowSameAsValue={formState.end_time} // Disallow same value as end time
                     required
                   />
                 </div>
                 <div className="w-1/2 space-y-2">
                   <Label htmlFor="endTime">End Time</Label>
-                  <Input
+                  <TimeInput
                     id="endTime"
-                    type="time"
-                    value={formState.end_time || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (timeRange && value >= timeRange.min && value <= timeRange.max) {
-                        setField("end_time", value);
-                      }
-                    }}
-                    min={timeRange?.min}
+                    value={formState.end_time}
+                    onChange={(val) => setField("end_time", val)}
+                    min={formState.start_time || timeRange?.min}
                     max={timeRange?.max}
+                    disallowSameAsValue={formState.start_time} // Disallow same value as start time
                     required
                   />
                 </div>
