@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as Popover from "@radix-ui/react-popover";
-import { ChevronDown, X } from "lucide-react";
-import { clsx } from "clsx";
+import {Timer, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// Define proper TypeScript interface for the component props
+interface TimeInputProps {
+  id: string;
+  value?: string;
+  onChange: (value: string) => void;
+  min?: string;
+  max?: string;
+  required?: boolean;
+  disallowSameAsValue?: string;
+  className?: string; // Make className optional
+}
 
 const parseTime = (str) => {
   const [h, m] = str.split(":").map(Number);
@@ -13,29 +25,38 @@ const toTimeString = ({ hour, minute }) =>
 
 const toMinutes = ({ hour, minute }) => hour * 60 + minute;
 
-const TimeInput = ({
+const TimeInput: React.FC<TimeInputProps> = ({
   id,
-  value = "", // Ensure default value is an empty string
+  value = "",
   onChange,
   min = "",
   max = "",
   required,
-  disallowSameAsValue = "", // Add new prop to prevent same value as another field
+  disallowSameAsValue = "",
+  className,
 }) => {
-  const parsedValue = value ? parseTime(value) : null; // Parse only if value exists
+  const parsedValue = value ? parseTime(value) : null;
   const parsedMin = parseTime(min || "00:00");
   const parsedMax = parseTime(max || "23:59");
   const parsedDisallowed = disallowSameAsValue ? parseTime(disallowSameAsValue) : null;
 
-  // Initialize state with parsedValue or null, ensuring we don't set undefined
-  const [hour, setHour] = useState(() => 
+  const [hour, setHour] = useState(() =>
     parsedValue && parsedValue.hour !== undefined ? parsedValue.hour : null
   );
-  const [minute, setMinute] = useState(() => 
+  const [minute, setMinute] = useState(() =>
     parsedValue && parsedValue.minute !== undefined ? parsedValue.minute : null
   );
 
-  // Update state when value prop changes
+  const [isFocused, setIsFocused] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (open && !value) {
+      setHour(null);
+      setMinute(null);
+    }
+  }, [open, value]);
+
   useEffect(() => {
     if (value) {
       const parsed = parseTime(value);
@@ -47,7 +68,6 @@ const TimeInput = ({
     }
   }, [value]);
 
-  // Revised isValid function to also check for disallowed value
   const isValid = (h, m) => {
     if (h === null || m === null) return false;
 
@@ -55,7 +75,6 @@ const TimeInput = ({
     const minMinutes = toMinutes(parsedMin);
     const maxMinutes = toMinutes(parsedMax);
 
-    // Check if the time is the same as the disallowed value
     if (parsedDisallowed && h === parsedDisallowed.hour && m === parsedDisallowed.minute) {
       return false;
     }
@@ -63,33 +82,36 @@ const TimeInput = ({
     return test >= minMinutes && test <= maxMinutes;
   };
 
-  // Modified handleChange function to correctly handle zero values
   const handleChange = (newHour, newMinute) => {
-    // Update the state regardless of validity
     setHour(newHour);
     setMinute(newMinute);
 
-    // Only trigger onChange if the complete time is valid
-    // Use explicit null checks to properly handle 0 values
     if (newHour !== null && newMinute !== null && isValid(newHour, newMinute)) {
       const timeStr = toTimeString({ hour: newHour, minute: newMinute });
       onChange?.(timeStr);
+
+      // Close popover when minute is selected
+      if (newMinute !== null) {
+        // Use setTimeout to avoid React state update conflicts
+        setTimeout(() => {
+          setOpen(false);
+          setIsFocused(false); // Reset focus state when popover closes
+        }, 100);
+      }
     }
   };
 
   const handleClear = (e) => {
-    e.stopPropagation(); // Prevent triggering the popover toggle
+    e.stopPropagation();
     setHour(null);
     setMinute(null);
-    onChange?.(""); // Clear the value
+    onChange?.("");
   };
 
-  // Improved display logic with explicit null checks for hour and minute
   const display = hour !== null && minute !== null
     ? `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
     : "Select Time";
 
-  // Get valid minutes for the currently selected hour
   const getValidMinutes = (h) => {
     if (h === null) return [];
 
@@ -98,13 +120,8 @@ const TimeInput = ({
       const minMinutes = toMinutes(parsedMin);
       const maxMinutes = toMinutes(parsedMax);
 
-      // Check for minimum time constraint
       if (h === parsedMin.hour && m < parsedMin.minute) return false;
-
-      // Check for maximum time constraint
       if (h === parsedMax.hour && m > parsedMax.minute) return false;
-
-      // Check for disallowed same value
       if (parsedDisallowed && h === parsedDisallowed.hour && m === parsedDisallowed.minute) return false;
 
       return time >= minMinutes && time <= maxMinutes;
@@ -112,45 +129,59 @@ const TimeInput = ({
   };
 
   return (
-    <div className="flex flex-col gap-1 w-fit">
-      <Popover.Root>
+    <div className="flex flex-col gap-1 w-full">
+      <Popover.Root 
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          setIsFocused(isOpen);
+          
+          if (isOpen && !value) {
+            setHour(null);
+            setMinute(null);
+          }
+        }}
+      >
         <Popover.Trigger asChild>
           <button
             id={id}
-            className={clsx(
-              "flex items-center justify-between w-32 px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700 relative",
-              required && !value && "border border-red-500"
+            className={cn(
+              "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm items-center justify-between",
+              isFocused && "ring-2 ring-ring ring-offset-2",
+              className
             )}
+            type="button"
           >
-            {display}
+            <span className={!value ? "text-muted-foreground" : ""}>
+              {display}
+            </span>
             <div className="flex items-center">
               {(hour !== null && minute !== null) && (
                 <X
                   size={14}
-                  className="mr-1 hover:text-gray-400 cursor-pointer"
+                  className="mr-1 hover:text-muted-foreground cursor-pointer"
                   onClick={handleClear}
                 />
               )}
-              <ChevronDown size={16} />
+              <Timer size={16} />
             </div>
           </button>
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content
             sideOffset={8}
-            className="bg-gray-900 text-white p-4 rounded-xl shadow-xl space-y-4 w-80 z-50"
+            className="bg-popover text-popover-foreground p-4 rounded-md shadow-md space-y-4 w-80 z-50 border border-border"
           >
             <div className="flex gap-4">
-              {/* Hours Dropdown */}
               <div className="flex-1">
-                <p className="text-sm mb-1 text-gray-400">Hour</p>
+                <p className="text-sm mb-1 text-muted-foreground">Hour</p>
                 <select
                   value={hour !== null ? hour : ""}
                   onChange={(e) => {
                     const newHour = e.target.value === "" ? null : Number(e.target.value);
                     handleChange(newHour, minute);
                   }}
-                  className="w-full px-2 py-1 bg-gray-800 text-white rounded-md"
+                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="" disabled>
                     Select Hour
@@ -164,16 +195,15 @@ const TimeInput = ({
                     ))}
                 </select>
               </div>
-              {/* Minutes Dropdown */}
               <div className="flex-1">
-                <p className="text-sm mb-1 text-gray-400">Minute</p>
+                <p className="text-sm mb-1 text-muted-foreground">Minute</p>
                 <select
                   value={minute !== null ? minute : ""}
                   onChange={(e) => {
                     const newMinute = e.target.value === "" ? null : Number(e.target.value);
                     handleChange(hour, newMinute);
                   }}
-                  className="w-full px-2 py-1 bg-gray-800 text-white rounded-md"
+                  className="w-full h-10 px-3 py-2 rounded-md border border-input bg-background text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={hour === null}
                 >
                   <option value="" disabled>
