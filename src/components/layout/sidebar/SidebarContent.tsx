@@ -6,7 +6,12 @@ import { useMenuVisibility } from "./hooks/useMenuVisibility";
 import { filterMenuGroups } from "./utils/menuFilters";
 import { SidebarLoading } from "./SidebarLoading";
 
-export const SidebarContent = () => {
+interface SidebarContentProps {
+  state: string; // Pass state as a prop
+  isCollapsed: boolean; // Pass isCollapsed as a prop
+}
+
+export const SidebarContent = ({ state, isCollapsed }: SidebarContentProps) => {
   const { user } = useAuth();
   const { menuVisibility, submoduleVisibility, userType, loading } =
     useMenuVisibility(user?.id);
@@ -39,6 +44,8 @@ export const SidebarContent = () => {
           key={group.label}
           label={group.label}
           items={group.items}
+          state={state} // Pass state
+          isCollapsed={isCollapsed} // Pass isCollapsed
         />
       ))}
     </>

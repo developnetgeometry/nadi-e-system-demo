@@ -3,7 +3,6 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardNavbar } from "./DashboardNavbar";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 import PageBreadcrumb from "./PageBreadcrumb";
 
 interface DashboardLayoutProps {
@@ -11,70 +10,23 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
-  const { state, isMobile, openMobile } = useSidebar();
-  const isCollapsed = state === "collapsed";
-
-  // Dynamically calculate sidebar width
-  const [sidebarWidth, setSidebarWidth] = useState("--sidebar-width");
-
-  useEffect(() => {
-    if (isCollapsed) {
-      setSidebarWidth("--sidebar-width-icon"); // Collapsed width
-      console.log("isCollapsed", isCollapsed);
-    } else {
-      setSidebarWidth("--sidebar-width"); // Expanded width
-      console.log("isCollapsed", isCollapsed);
-    }
-  }, [isCollapsed]);
-
-  // Add body overflow class when mobile sidebar is open to prevent scrolling
-  useEffect(() => {
-    if (isMobile && openMobile) {
-      document.body.classList.add("overflow-hidden");
-    } else {
-      document.body.classList.remove("overflow-hidden");
-    }
-    return () => {
-      document.body.classList.remove("overflow-hidden");
-    };
-  }, [isMobile, openMobile]);
+  const { state } = useSidebar();
 
   return (
     <SidebarProvider>
-      <div className="relative min-h-screen flex w-full bg-[#F7F9FC] dark:bg-gray-900 text-gray-800 dark:text-white">
-        {/* Overlay for mobile */}
-        {isMobile && openMobile && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => useSidebar().setOpenMobile(false)}
-          />
-        )}
-
+      <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
         {/* Sidebar */}
-        <div
-          className={cn(
-            "z-50 h-screen duration-200 relative transition-[width] ease-linear",
-            isMobile ? "fixed" : "sticky top-0",
-            isCollapsed ? "w-[--sidebar-width-icon]" : "w-[--sidebar-width]"
-          )}
-        >
-          <DashboardSidebar />
-        </div>
+        <DashboardSidebar />
 
-        {/* Main content */}
+        {/* Main Content */}
         <div
           className={cn(
-            "flex-1 flex flex-col transition-all duration-200 w-full",
-            isMobile
-              ? `ml-0`
-              : `ml-0` // Dynamically adjust margin
+            "flex-1 flex flex-col transition-all duration-200",
           )}
         >
           <DashboardNavbar />
           <PageBreadcrumb />
-          <main className="flex-1 p-6 overflow-auto w-full">
-            <div className="w-full mx-auto">{children}</div>
-          </main>
+          <main className="flex-1 p-6 overflow-auto">{children}</main>
         </div>
       </div>
     </SidebarProvider>

@@ -1,9 +1,9 @@
 export const sidebarStyles = {
   // Accordion trigger styles
   accordionTrigger:
-    "py-3 px-4 text-black dark:text-white hover:text-white font-medium rounded-md transition-all duration-200 hover:bg-purple-600 dark:hover:bg-purple-600 group flex items-center border border-transparent",
+    "py-3 px-4 text-black dark:text-white hover:text-white font-medium rounded-md transition-all duration-200 hover:bg-[#5147dd] dark:hover:bg-[#5147dd] group flex items-center border border-transparent",
   accordionTriggerActive:
-    "py-3 px-4 text-white dark:text-white bg-purple-600 dark:bg-purple-600",
+    "py-3 px-4 text-white dark:text-white bg-[#5147dd] dark:bg-[#5147dd]",
 
   // Menu item styles
   menuItem:
@@ -24,21 +24,3 @@ export const sidebarStyles = {
   // New styles for the updated design
 };
 
-// Icon color mapping - enhanced for dark mode
-export const iconColors = {
-  "Admin Console": "#000000", // brighter red
-  "Member Management": "#000000", // brighter purple
-  "Service Module": "#000000", // brighter green
-  Community: "#000000", // brighter orange
-  Financial: "#000000", // brighter blue
-  Compliance: "#000000", // brighter red
-  "HR Management": "#000000", // brighter purple
-  "POS Management": "#000000", // brighter orange
-  "Asset Management": "#000000", // brighter blue
-  "Inventory Management": "#000000", // brighter blue
-  "Finance Management": "#000000", // brighter green
-  "Programmes Management": "#000000", // brighter purple
-  "Report Management": "#000000", // brighter blue
-  "Site Management": "#000000", // brighter green
-  "Workflow Management": "#000000", // brighter orange
-};

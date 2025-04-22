@@ -11,4 +11,5 @@ export interface MenuGroup {
   label: string;
   route: string;
   items: MenuItem[];
+  icon?: LucideIcon;
 }

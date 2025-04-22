@@ -1,62 +1,32 @@
-
-import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import useDUSPID from "@/hooks/use-dusp-id";
-import usePositionData from "@/hooks/use-position-data";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ProfileOverviewPage from "./components/OverviewPage";
+import { useSuperAdminProfile } from "./hook/use-superadmin-profile";
 
 const SuperAdminProfileSettings = () => {
-  const { user } = useAuth();
-  
-  // Fetch user profile for avatar
-  const { data: profile } = useQuery({
-    queryKey: ['admin-profile', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .maybeSingle();
+  const { data: superadminProfile, isLoading, isError, error, refetch} = useSuperAdminProfile();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        throw error;
-      }
-      
-      return data;
-    },
-    enabled: !!user?.id,
-  });
-  
-  // Get first character of name for avatar fallback
-  const getNameInitial = () => {
-    if (profile?.full_name) {
-      return profile.full_name.charAt(0).toUpperCase();
-    }
-    return 'A'; // Default to 'A' for Admin if no name is available
-  };
+  if (isLoading) {
+    return <div>Loading...</div>; // Show a loading state while fetching data
+  }
+
+  if (isError) {
+    return <div>Error: {error?.message}</div>; // Show an error message if fetching fails
+  }
 
   return (
-    <Card className="overflow-hidden border-none shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src="/lovable-uploads/31e9f7ec-175a-48af-9ad7-eefda1ea40db.png" />
-            <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
-              {getNameInitial()}
-            </AvatarFallback>
-          </Avatar>
-          <h1 className="text-2xl font-bold">You Are Super Admin</h1>
-        </div>
-      </CardContent>
-    </Card>
+    <Tabs defaultValue="overview" className="mt-6">
+      <TabsList className="border-b dark:border-gray-700 w-full justify-start bg-transparent p-0 h-auto overflow-x-auto mb-6">
+        <TabsTrigger value="overview" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Overview</TabsTrigger>
+      </TabsList>
+      <TabsContent value="overview" className="h-full mt-0">
+        <Card className="h-full">
+          <div className="p-6 h-full">
+            <ProfileOverviewPage profileData={superadminProfile} refetch={refetch}/>
+          </div>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 };
 

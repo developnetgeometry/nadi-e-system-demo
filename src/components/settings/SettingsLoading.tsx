@@ -4,7 +4,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 
 export const SettingsLoading = () => {
   return (
-    <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <DashboardSidebar />
         <main className="flex-1 p-8">
@@ -14,6 +13,5 @@ export const SettingsLoading = () => {
           </div>
         </main>
       </div>
-    </SidebarProvider>
   );
 };
