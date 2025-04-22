@@ -1,4 +1,3 @@
-
 import { MenuItem } from "@/types/menu";
 
 export const menuItems = [
@@ -63,11 +62,8 @@ export const reportItems = [
   { title: "Internet Access", path: "/report/internet-access" },
 ];
 
-export const workflowItems: MenuItem[] = [
-  {
-    title: "Workflow Configurations",
-    path: "/workflow",
-  },
+export const workflowItems = [
+  { title: "Workflow Configurations", path: "/workflow" },
 ];
 
 export const memberManagementItems = [
