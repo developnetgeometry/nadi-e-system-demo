@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -25,6 +25,7 @@ import { DateInput } from "../ui/date-input";
 import { useDateRangeValidation } from "@/hooks/useDateRangeValidation";
 import { useSessionVisibility } from "./hook/use-session-visibility";
 import TimeInput from "../ui/TimePicker";
+import { useUserGroup } from "@/hooks/use-user-group";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -43,7 +44,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
 }) => {
   const { toast } = useToast();
   const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();
-  const { siteCode } = useSiteCode(siteId); // Use the hook here
+  const { siteCode } = useSiteCode(siteId);
+  const { isTP, isSuperAdmin } = useUserGroup();
   const [formState, setFormState] = useState({
     remark: "",
     close_start: "",
@@ -55,6 +57,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     affectArea: [],
     session: "",
   });
+  const [showSubcategory, setShowSubcategory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
@@ -85,7 +88,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     e.preventDefault();
 
     try {
-      console.log("Form State:", formState); // Log the form state for debugging
+      console.log("Form State:", formState);
       const closureData = { site_id: siteId, ...formState };
       const result = await insertSiteClosureData(closureData, selectedFile, siteCode);
 
@@ -94,7 +97,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
           title: "Success",
           description: "Site closure submitted successfully.",
         });
-        onOpenChange(false); // Close the dialog
+        onOpenChange(false);
       } else {
         throw new Error(result.error);
       }
@@ -143,17 +146,16 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const isDateRangeValid = useDateRangeValidation(
     formState.close_start,
     formState.close_end,
-    1 // Expected range in days
+    1
   );
 
   useEffect(() => {
     if (!isDateRangeValid) {
-      setField("session", ""); // Clear session when date range is invalid
+      setField("session", "");
     }
   }, [isDateRangeValid]);
 
   useEffect(() => {
-    // Reset start_time and end_time when session changes
     setFormState((prevState) => ({
       ...prevState,
       start_time: "",
@@ -162,7 +164,6 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   }, [formState.session]);
 
   useEffect(() => {
-    // Ensure end_time is reset if start_time exceeds it
     if (formState.start_time && formState.end_time && formState.start_time > formState.end_time) {
       setFormState((prevState) => ({
         ...prevState,
@@ -172,7 +173,6 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   }, [formState.start_time]);
 
   useEffect(() => {
-    // Ensure start_time is reset if end_time is earlier than it
     if (formState.start_time && formState.end_time && formState.end_time < formState.start_time) {
       setFormState((prevState) => ({
         ...prevState,
@@ -181,9 +181,34 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     }
   }, [formState.end_time]);
 
-  const today = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+  useEffect(() => {
+    setShowSubcategory(formState.category_id === "6");
+    if (formState.category_id !== "6" && formState.subcategory_id) {
+      setField("subcategory_id", "");
+    }
+  }, [formState.category_id]);
+
+  const today = new Date().toISOString().split("T")[0];
 
   const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
+
+  const filteredCategories = useMemo(() => {
+    if (!closureCategories) return [];
+    
+    // Both Super Admin and TP users can see all categories
+    if (isSuperAdmin || isTP) return closureCategories;
+    
+    // For other users, filter out category with ID 1
+    return closureCategories.filter(category => String(category.id) !== "1");
+  }, [closureCategories, isTP, isSuperAdmin]);
+
+  useEffect(() => {
+    const selectedCategoryId = formState.category_id;
+    if (selectedCategoryId === "1" && !(isTP || isSuperAdmin)) {
+      setField("category_id", "");
+      setField("subcategory_id", "");
+    }
+  }, [isTP, isSuperAdmin, formState.category_id]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -197,14 +222,6 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             <Label htmlFor="siteId">Site Code</Label>
             <Input id="siteId" value={siteCode} readOnly />
           </div>
-          {/* <div className="space-y-2">
-            <Label htmlFor="siteDetails">Site Details</Label>
-            <Input id="siteDetails" value={siteDetails} readOnly />
-          </div> */}
-          {/* <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input id="location" value={location} readOnly />
-          </div> */}
           <div className="flex space-x-4">
             <div className="w-1/2 space-y-2">
               <Label htmlFor="startDate">Start Date</Label>
@@ -212,8 +229,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 id="startDate"
                 value={formState.close_start}
                 onChange={(e) => setField("close_start", e.target.value)}
-                min={today} // Prevent selecting dates earlier than today
-                max={formState.close_end || undefined} // Prevent selecting dates after the end date
+                min={today}
+                max={formState.close_end || undefined}
                 required
               />
             </div>
@@ -223,7 +240,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 id="endDate"
                 value={formState.close_end}
                 onChange={(e) => setField("close_end", e.target.value)}
-                min={formState.close_start || today} // Prevent selecting dates before the start date
+                min={formState.close_start || today}
                 required
               />
             </div>
@@ -251,26 +268,26 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             {showTimeInputs && (
               <>
                 <div className="w-1/2 space-y-2">
-                  <Label htmlFor="startTime">Start Time</Label>
+                  <Label htmlFor="startTime">Start Time <span className="text-gray-500">(24hrs-format)</span></Label>
                   <TimeInput
                     id="startTime"
                     value={formState.start_time}
                     onChange={(val) => setField("start_time", val)}
                     min={timeRange?.min}
                     max={formState.end_time || timeRange?.max}
-                    disallowSameAsValue={formState.end_time} // Disallow same value as end time
+                    disallowSameAsValue={formState.end_time}
                     required
                   />
                 </div>
                 <div className="w-1/2 space-y-2">
-                  <Label htmlFor="endTime">End Time</Label>
+                  <Label htmlFor="endTime">End Time <span className="text-gray-500">(24hrs-format)</span></Label>
                   <TimeInput
                     id="endTime"
                     value={formState.end_time}
                     onChange={(val) => setField("end_time", val)}
                     min={formState.start_time || timeRange?.min}
                     max={timeRange?.max}
-                    disallowSameAsValue={formState.start_time} // Disallow same value as start time
+                    disallowSameAsValue={formState.start_time}
                     required
                   />
                 </div>
@@ -290,7 +307,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {closureCategories.map((category) => (
+                {filteredCategories.map((category) => (
                   <SelectItem key={category.id} value={String(category.id)}>
                     {category.eng}
                   </SelectItem>
@@ -298,32 +315,34 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="subCategory">Closure Sub-Category</Label>
-            <Select
-              name="subCategory"
-              value={formState.subcategory_id}
-              onValueChange={(value) => setField("subcategory_id", value)}
-              required
-              disabled={isLoadingSubCategories}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a sub-category" />
-              </SelectTrigger>
-              <SelectContent>
-                {closureSubCategories.map((subCategory) => (
-                  <SelectItem key={subCategory.id} value={String(subCategory.id)}>
-                    {subCategory.eng}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {showSubcategory && (
+            <div className="space-y-2">
+              <Label htmlFor="subCategory">Closure Sub-Category</Label>
+              <Select
+                name="subCategory"
+                value={formState.subcategory_id}
+                onValueChange={(value) => setField("subcategory_id", value)}
+                required
+                disabled={isLoadingSubCategories}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a sub-category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {closureSubCategories.map((subCategory) => (
+                    <SelectItem key={subCategory.id} value={String(subCategory.id)}>
+                      {subCategory.eng}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="affectArea">Closure Affect Area</Label>
             <SelectMany
               options={closureAffectAreas.map((area) => ({
-                id: String(area.id), // Convert id to string
+                id: String(area.id),
                 label: area.eng,
               }))}
               value={formState.affectArea}
