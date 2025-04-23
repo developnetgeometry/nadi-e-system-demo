@@ -5,9 +5,7 @@ import { useSidebar } from "@/hooks/use-sidebar";
 import { sidebarStyles } from "@/utils/sidebar-styles";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./navbar/ThemeToggle";
-import { CartToggle } from "./navbar/CartToggle";
 import { NotificationToggle } from "./navbar/NotificationToggle";
-import { SettingsToggle } from "./navbar/SettingsToggle";
 import { HeaderProfile } from "./navbar/HeaderProfile";
 
 export const DashboardNavbar = () => {
@@ -58,7 +56,6 @@ export const DashboardNavbar = () => {
         >
           <ThemeToggle />
           <NotificationToggle />
-          <SettingsToggle />
           <HeaderProfile />
         </div>
       </div>

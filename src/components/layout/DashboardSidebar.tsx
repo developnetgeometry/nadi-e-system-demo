@@ -1,45 +1,36 @@
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { SidebarContent as CustomSidebarContent } from "./sidebar/SidebarContent";
-import { useAppSettings } from "@/hooks/use-app-settings";
-import { cn } from "@/lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { sidebarStyles } from "@/utils/sidebar-styles";
+import { cn } from "@/lib/utils";
 
 export const DashboardSidebar = () => {
-  const { settings } = useAppSettings();
-  const { isMobile, toggleSidebar, state } = useSidebar();
-  const sidebarTitle =
-    settings.find((s) => s.key === "sidebar_title")?.value || "NADI";
+  const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  console.log("state:", state);
+  console.log("isCollapsed:", isCollapsed);
 
   return (
-    <Sidebar
+    <aside
       className={cn(
-        "border-r border-gray-200 dark:border-gray-800 h-screen flex flex-col transition-all duration-100",
-        isCollapsed ? "w-16" : "w-64", // Adjust width based on collapse state
-        sidebarStyles.sidebarBackground
+        "h-screen flex flex-col transition-all duration-200 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800",
+        isCollapsed ? "w-16" : "w-64"
       )}
     >
-      <div
-        className={cn(
-          "p-4 flex items-center transition-all duration-100",
-          isCollapsed && !isMobile ? "justify-center" : "justify-between"
-        )}
-      >
-        {(!isCollapsed || isMobile) && (
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white truncate">
-            {sidebarTitle}
+      {/* Sidebar Header */}
+      <div className="flex items-center justify-between p-4">
+        {!isCollapsed && (
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate">
+            CMMS
           </h1>
         )}
-
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
-          >
+          className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
           {isCollapsed ? (
             <ChevronRight className="h-5 w-5" />
           ) : (
@@ -48,14 +39,10 @@ export const DashboardSidebar = () => {
         </Button>
       </div>
 
-      <SidebarContent
-        className={cn(
-          "pr-4 pl-4 flex-1 overflow-y-auto scrollbar-none transition-opacity duration-100",
-          isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100"
-        )}
-      >
-        {!isCollapsed && <CustomSidebarContent />}
+      {/* Sidebar Content */}
+      <SidebarContent className="flex-1 overflow-y-auto">
+        <CustomSidebarContent state={state} isCollapsed={isCollapsed} />
       </SidebarContent>
-    </Sidebar>
+    </aside>
   );
 };

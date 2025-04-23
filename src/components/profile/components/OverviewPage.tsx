@@ -1,27 +1,37 @@
 import React, { useState } from "react";
-import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { Button } from "@/components/ui/button";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Edit } from "lucide-react";
 import StaffPictureUploadDialog from "./StaffPictureUploadDialog";
 import MemberPictureUploadDialog from "./MemberPictureUploadDialog";
-import OverviewPageDialog from "./OverviewPageDialog";
+import OverviewPageDialogDUSP from "./OverviewPageDialogDUSP";
+import OverviewPageDialogMCMC from "./OverviewPageDialogMCMC";
+import OverviewPageDialogSSO from "./OverviewPageDialogSSO";
+import OverviewPageDialogVendor from "./OverviewPageDialogVendor";
+import OverviewPageDialogTP from "./OverviewPageDialogTP";
+import OverviewPageDialogStaff from "./OverviewPageDialogStaff";
+import OverviewPageDialogSuperAdmin from "./OverviewPageDialogSuperAdmin";
+import OverviewPageDialogMember from "./OverviewPageDialogMember";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
+const ProfileOverviewPage = ({ profileData, refetch }: { profileData: any; refetch: () => void }) => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const userType = parsedMetadata?.user_type;
   const userGroup = parsedMetadata?.user_group;
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
 
 
-  if (!userGroup) {
-    return <SettingsLoading />;
+  if (!userType) {
+    return (<div className="flex items-center justify-center p-8">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>);
   }
   const handleSave = (updatedData: any) => {
     console.log("Updated profile data:", updatedData);
-    // Add logic to save the updated data
+    refetch();
     setIsEditDialogOpen(false); // Close the dialog after saving
   };
 
@@ -36,48 +46,48 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
   return (
     <div>
       {/* <pre>{JSON.stringify(profileData, null, 2)}</pre> */}
-      {(userGroup === 6 || userGroup === 7) && (
-        <div className="flex flex-col items-center mb-4">
-          <div className="h-24 w-24 border-4 border-gray-100 rounded-full overflow-hidden">
-            <img
-              src={profileData.file_path || "/user-solid.svg"}
-              alt={profileData.fullname || "Profile Image"}
-              className="h-full w-full object-cover"
-            />
-          </div>
 
-          <Button
-            variant="link"
-            size="sm"
-            className="mt-2 text-primary hover:underline"
-            onClick={handleEditProfileImageClick}
-          >
-            Edit profile image
-          </Button>
-
-          {/* Staff Picture Upload Dialog */}
-          {userGroup === 6 && (
-            <StaffPictureUploadDialog
-              open={isStaffDialogOpen}
-              onOpenChange={setIsStaffDialogOpen}
-              onFilesSelected={(files) => {
-                console.log("Staff files selected:", files);
-              }}
-            />
-          )}
-
-          {/* Member Picture Upload Dialog */}
-          {userGroup === 7 && (
-            <MemberPictureUploadDialog
-              open={isMemberDialogOpen}
-              onOpenChange={setIsMemberDialogOpen}
-              onFilesSelected={(files) => {
-                console.log("Member files selected:", files);
-              }}
-            />
-          )}
+      <div className="flex flex-col items-center mb-4">
+        <div className="h-24 w-24 border-4 border-gray-100 rounded-full overflow-hidden">
+          <img
+            src={profileData.file_path || "/user-solid.svg"}
+            alt={profileData.fullname || "Profile Image"}
+            className="h-full w-full object-cover"
+          />
         </div>
-      )}
+
+        {(userGroup === 6 || userGroup === 7) && (<Button
+          variant="link"
+          size="sm"
+          className="mt-2 text-primary hover:underline"
+          onClick={handleEditProfileImageClick}
+        >
+          Edit profile image
+        </Button>
+        )}
+        {/* Staff Picture Upload Dialog */}
+        {userGroup === 6 && (
+          <StaffPictureUploadDialog
+            open={isStaffDialogOpen}
+            onOpenChange={setIsStaffDialogOpen}
+            onFilesSelected={(files) => {
+              refetch();
+            }}
+          />
+        )}
+
+        {/* Member Picture Upload Dialog */}
+        {userGroup === 7 && (
+          <MemberPictureUploadDialog
+            open={isMemberDialogOpen}
+            onOpenChange={setIsMemberDialogOpen}
+            onFilesSelected={(files) => {
+              refetch();
+            }}
+          />
+        )}
+      </div>
+
 
       <div className="flex justify-between items-center mb-6 pt-4">
         <h3 className="text-xl font-bold">Profile Details</h3>
@@ -89,22 +99,73 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
           <Edit size={16} /> Edit profile details
         </Button>
       </div>
-      <OverviewPageDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        profileData={profileData}
-        userGroup={userGroup}
-        onSave={handleSave}
-      />
+      {userGroup === 1 ? (
+        <OverviewPageDialogDUSP
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 2 ? (
+        <OverviewPageDialogMCMC
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 3 ? (
+        <OverviewPageDialogTP
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 4 ? (
+        <OverviewPageDialogSSO
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 5 ? (
+        <OverviewPageDialogVendor
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 6 ? (
+        <OverviewPageDialogStaff
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userGroup === 7 ? (
+        <OverviewPageDialogMember
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : userType === "super_admin" ? (
+        <OverviewPageDialogSuperAdmin
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          profileData={profileData}
+          onSave={handleSave}
+        />
+      ) : null}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {(userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6 || userGroup === 7) && (
+        {(userType === "super_admin" || userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6 || userGroup === 7) && (
           <div>
             <p className="text-sm text-gray-500">Full Name:</p>
-            <p className="text-base font-medium">{profileData.fullname ?? "N/A"}</p>
+            <p className="text-ba se font-medium">{profileData.fullname ?? "N/A"}</p>
           </div>
         )}
-        {(userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6) && (
+        {(userType === "super_admin" || userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6) && (
           <div>
             <p className="text-sm text-gray-500">IC Number:</p>
             <p className="text-base font-medium">{profileData.ic_no ?? "N/A"}</p>
@@ -116,13 +177,13 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
             <p className="text-base font-medium">{profileData.identity_no ?? "N/A"}</p>
           </div>
         )}
-        {(userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6 || userGroup === 7) && (
+        {(userType === "super_admin" || userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6 || userGroup === 7) && (
           <div>
             <p className="text-sm text-gray-500">Mobile Number:</p>
             <p className="text-base font-medium">{profileData.mobile_no ?? "N/A"}</p>
           </div>
         )}
-        {(userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6) && (
+        {(userType === "super_admin" || userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6) && (
           <div>
             <p className="text-sm text-gray-500">Work Email:</p>
             <p className="text-base font-medium">{profileData.work_email ?? "N/A"}</p>
@@ -188,7 +249,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
             <p className="text-base font-medium">{profileData.qualification ?? "N/A"}</p>
           </div>
         )}
-        {(userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6) && (
+        {(userType === "super_admin" || userGroup === 1 || userGroup === 2 || userGroup === 3 || userGroup === 4 || userGroup === 5 || userGroup === 6) && (
           <div>
             <p className="text-sm text-gray-500">Account Status:</p>
             <p className="text-base font-medium">
@@ -210,12 +271,6 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
           <div>
             <p className="text-sm text-gray-500">NADI Site:</p>
             <p className="text-base font-medium">{profileData.ref_id?.sitename ?? "N/A"}</p>
-          </div>
-        )}
-        {userGroup === 7 && (
-          <div>
-            <p className="text-sm text-gray-500">Type Membership:</p>
-            <p className="text-base font-medium">{profileData.type_membership ?? "N/A"}</p>
           </div>
         )}
         {userGroup === 7 && (
@@ -256,7 +311,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
         {userGroup === 7 && (
           <div>
             <p className="text-sm text-gray-500">Ethnic:</p>
-            <p className="text-base font-medium">{profileData.ethnic_id ?? "N/A"}</p>
+            <p className="text-base font-medium">{profileData.ethnic_id?.eng ?? "N/A"}</p>
           </div>
         )}
 
@@ -269,7 +324,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
 
         {userGroup === 7 && (
           <div>
-            <p className="text-sm text-gray-500">Type Sector:</p>
+            <p className="text-sm text-gray-500">Sector:</p>
             <p className="text-base font-medium">{profileData.type_sector?.eng ?? "N/A"}</p>
           </div>
         )}
@@ -340,13 +395,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
         {userGroup === 7 && (
           <div>
             <p className="text-sm text-gray-500">Status Membership:</p>
-            <p className="text-base font-medium">
-              {profileData.status_membership === true
-                ? "Active"
-                : profileData.status_membership === false
-                  ? "Inactive"
-                  : "N/A"}
-            </p>
+            <p className="text-base font-medium">{profileData.status_membership?.name ?? "N/A"}</p>
           </div>
         )}
 
@@ -377,7 +426,7 @@ const ProfileOverviewPage = ({ profileData }: { profileData: any }) => {
         )}
 
       </div>
-    </div>
+    </div >
   );
 };
 

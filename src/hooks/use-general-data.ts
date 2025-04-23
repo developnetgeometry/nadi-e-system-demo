@@ -13,6 +13,9 @@ const useGeneralData = () => {
   const [ictKnowledge, setIctKnowledge] = useState<any[]>([]);
   const [educationLevels, setEducationLevels] = useState<any[]>([]);
   const [incomeLevels, setIncomeLevels] = useState<any[]>([]);
+  const [positions, setPositions] = useState<any[]>([]);
+  const [ethnics, setEthnics] = useState<any[]>([]);
+  const [statusMemberships, setStatusMemberships] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -137,6 +140,39 @@ const useGeneralData = () => {
       }
     };
 
+    const fetchPositions = async () => {
+      try {
+        const { data, error } = await supabase.from("nd_position").select("id, name");
+        if (error) throw error;
+        setPositions(data);
+      } catch (error) {
+        console.error("Error fetching positions:", error);
+        setError(error.message);
+      }
+    };
+
+    const fetchEthnics = async () => {
+      try {
+        const { data, error } = await supabase.from("nd_ethnics").select("id, bm, eng");
+        if (error) throw error;
+        setEthnics(data);
+      } catch (error) {
+        console.error("Error fetching ethnics:", error);
+        setError(error.message);
+      }
+    };
+
+    const fetchStatusMemberships = async () => {
+      try {
+        const { data, error } = await supabase.from("nd_status_membership").select("id, name");
+        if (error) throw error;
+        setStatusMemberships(data);
+      } catch (error) {
+        console.error("Error fetching status membership:", error);
+        setError(error.message);
+      }
+    };
+
     fetchGenders();
     fetchMaritalStatuses();
     fetchRaces();
@@ -148,6 +184,9 @@ const useGeneralData = () => {
     fetchIctKnowledge();
     fetchEducationLevels();
     fetchIncomeLevels();
+    fetchPositions();
+    fetchEthnics();
+    fetchStatusMemberships();
   }, []);
 
   return {
@@ -162,6 +201,9 @@ const useGeneralData = () => {
     ictKnowledge,
     educationLevels,
     incomeLevels,
+    positions,
+    ethnics,
+    statusMemberships,
     error,
   };
 };

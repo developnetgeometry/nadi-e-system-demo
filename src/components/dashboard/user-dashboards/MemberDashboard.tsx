@@ -1,9 +1,8 @@
-
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { DashboardCharts } from "@/components/dashboard/DashboardCharts";
 import { DashboardMap } from "@/components/dashboard/DashboardMap";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { UserCog } from "lucide-react";
+import ChartCard from "@/components/dashboard/ChartCard";
+import UserGrowthChart from "@/components/dashboard/UserGrowthChart";
+import DailyActivityChart from "@/components/dashboard/DailyActivityChart";
 
 export const MemberDashboard = () => {
   const { data: stats, isLoading, error } = useDashboardData();
@@ -13,14 +12,33 @@ export const MemberDashboard = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-4 mb-4">
-        <UserCog className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold">Member Dashboard</h1>
+    <div className="p-8 dark:bg-gray-900 dark:text-white">
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">Welcome back</p>
+        </div>
       </div>
 
-      <DashboardStats stats={stats} isLoading={isLoading} />
-      <DashboardCharts />
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <ChartCard title="User Growth" detailsPath="/report/usage-sessions">
+          <UserGrowthChart />
+        </ChartCard>
+
+        <ChartCard title="Daily Activity" detailsPath="/admin/activity">
+          <DailyActivityChart />
+        </ChartCard>
+      </div>
+
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <ChartCard
+          title="Global Activity Map"
+          detailsPath="/report/internet-access"
+        >
+          <DashboardMap />
+        </ChartCard>
+      </div>
     </div>
   );
 };

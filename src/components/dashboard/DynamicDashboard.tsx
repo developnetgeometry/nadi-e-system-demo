@@ -1,7 +1,9 @@
 import { SuperAdminDashboard } from "./user-dashboards/SuperAdminDashboard";
+import { TpDashboard } from "./user-dashboards/TpDashboard";
 import { AdminDashboard } from "./user-dashboards/AdminDashboard";
 import { MemberDashboard } from "./user-dashboards/MemberDashboard";
 import { VendorDashboard } from "./user-dashboards/VendorDashboard";
+import { SsoDashboard } from "./user-dashboards/SsoDashboard";
 import { useUserDashboard } from "@/hooks/use-user-dashboard";
 import { DuspDashboard } from "./user-dashboards/DuspDashboard";
 import { McmcDashboard } from "./user-dashboards/McmcDashboard";
@@ -41,32 +43,25 @@ export const DynamicDashboard = () => {
   }
 
   // Render the appropriate dashboard based on user type
-  switch (userType) {
-    case "super_admin":
+  switch (true) {
+    case userType === "super_admin":
       return <SuperAdminDashboard />;
-    case "mcmc":
-    case typeof userType === "string" && userType.match(/^mcmc.*/)?.input:
+    case typeof userType === "string" && !!userType.match(/^mcmc.*/):
       return <McmcDashboard />;
-    case "dusp":
-    case typeof userType === "string" && userType.match(/^dusp.*/)?.input:
+    case typeof userType === "string" && !!userType.match(/^dusp.*/):
       return <DuspDashboard />;
-    case "tp":
-    case typeof userType === "string" && userType.match(/^tp.*/)?.input:
-      return <AdminDashboard />;
-    case "sso":
-    case typeof userType === "string" && userType.match(/^sso.*/)?.input:
+    case typeof userType === "string" && !!userType.match(/^tp.*/):
+      return <TpDashboard />;
+    case typeof userType === "string" && !!userType.match(/^sso.*/):
+      return <SsoDashboard />;
+    case typeof userType === "string" && !!userType.match(/^vendor.*/):
       return <VendorDashboard />;
-    case "vendor":
-    case typeof userType === "string" && userType.match(/^vendor.*/)?.input:
-      return <VendorDashboard />;
-    case "staff":
-    case typeof userType === "string" && userType.match(/^staff.*/)?.input:
+    case typeof userType === "string" && !!userType.match(/^staff.*/):
       return <StaffDashboard />;
-    case "member":
-    case typeof userType === "string" && userType.match(/^member.*/)?.input:
+    case typeof userType === "string" && !!userType.match(/^member.*/):
       return <MemberDashboard />;
     default:
       // Fallback to member dashboard if user type is unknown
-      return <MemberDashboard />;
+      return "Loading...";
   }
 };
