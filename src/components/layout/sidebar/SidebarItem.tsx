@@ -33,6 +33,7 @@ export const SidebarItem = ({
           to={path}
           className={cn(
             "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-200 rounded-md",
+            "border-l-2 border-l-gray-300 dark:border-l-gray-700", // always shows grey line
             "rounded-l-none text-xs", // remove rounding on the left side
             isActive && "text-[#5147dd] font-medium dark:text-[#5147dd]/90 ",
             isCollapsed && !isMobile && "justify-center px-2"
