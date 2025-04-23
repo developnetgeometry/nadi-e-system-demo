@@ -17,6 +17,9 @@ import {
   complianceItems,
   siteManagementItems,
   inventoryItems,
+  dashboardItems,
+  nadiDashboardItems,
+  iotDashboardItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups = [
@@ -45,7 +48,7 @@ export const menuGroups = [
     route: "/site-management",
     items: siteManagementItems,
   },
-  
+
   {
     label: "Member Management",
     route: "/member",
@@ -97,7 +100,7 @@ export const menuGroups = [
     items: claimItems,
   },
   {
-    label: "Report Management",
+    label: "Reports",
     route: "/report",
     items: reportItems,
   },
@@ -122,93 +125,89 @@ export const menuGroups = [
     items: serviceModuleItems,
   },
 
-  {
-    label: "Smart Service Management",
-    route: "/smartservice",
-    items: claimItems,
-  },
-  {
-    label: "Takwim Management",
-    route: "/takwim",
-    items: programmesItems,
-  },
-  {
-    label: "Booking Management",
-    route: "/booking",
-    items: programmesItems,
-  },
-  {
-    label: "PC Booking Management",
-    route: "/programmes",
-    items: programmesItems,
-  },
+  // {
+  //   label: "Smart Service Management",
+  //   route: "/smartservice",
+  //   items: claimItems,
+  // },
+  // {
+  //   label: "Takwim Management",
+  //   route: "/takwim",
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Booking Management",
+  //   route: "/booking",
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "PC Booking Management",
+  //   route: "/programmes",
+  //   items: programmesItems,
+  // },
 
-  
-  {
-    label: "Events",
-    route: "/events",
-    // items: eventItems,
-    items: programmesItems,
-  },
-  {
-    label: "Participations",
-    route: "/participations",
-    // items: participationsItems,
-    items: programmesItems,
-  },
-  {
-    label: "Event Breakdown",
-    route: "/event-breakdown",
-    // items: eventBreakdownItems,
-    items: programmesItems,
-  },
-  {
-    label: "Health",
-    route: "/health",
-    // items: healthItems,
-    items: programmesItems,
-  },
-  {
-    label: "Docket Status",
-    route: "/docket-status",
-    // items: docketStatusItems,
-    items: programmesItems,
-  },
-  {
-    label: "Technician",
-    route: "/technician",
-    // items: technicianItems,
-    items: programmesItems,
-  },
-  {
-    label: "Graph",
-    route: "/graph",
-    // items: graphItems,
-    items: programmesItems,
-  },
-  {
-    label: "IoT",
-    route: "/iot",
-    // items: iotItems,
-    items: programmesItems,
-  },
-  {
-    label: "Attendance Module",
-    route: "/attendance",
-    // items: iotItems,
-    items: programmesItems,
-  },
-  {
-    label: "Announcement Module",
-    route: "/announcement",
-    // items: iotItems,
-    items: programmesItems,
-  },
+  // {
+  //   label: "Events",
+  //   route: "/events",
+  //   // items: eventItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Participations",
+  //   route: "/participations",
+  //   // items: participationsItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Event Breakdown",
+  //   route: "/event-breakdown",
+  //   // items: eventBreakdownItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Health",
+  //   route: "/health",
+  //   // items: healthItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Docket Status",
+  //   route: "/docket-status",
+  //   // items: docketStatusItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Technician",
+  //   route: "/technician",
+  //   // items: technicianItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Graph",
+  //   route: "/graph",
+  //   // items: graphItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "IoT",
+  //   route: "/iot",
+  //   // items: iotItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Attendance Module",
+  //   route: "/attendance",
+  //   // items: iotItems,
+  //   items: programmesItems,
+  // },
+  // {
+  //   label: "Announcement Module",
+  //   route: "/announcement",
+  //   // items: iotItems,
+  //   items: programmesItems,
+  // },
 
-
-
-
-  // 
+  //
   // {
   //   label: "POS Management",
   //   route: "/pos",
