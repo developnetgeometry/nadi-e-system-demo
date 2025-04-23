@@ -1,11 +1,17 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GeneralInformation from "./GeneralInformation";
 import TechnicalBuilding from "./TechnicalBuilding";
+import SiteBanner from "./SiteBanner";
 
 const OverviewPage = ({ site, socioeconomics, space }: { site: any; socioeconomics: any[]; space: any[] }) => {
   return (
-    <div className="w-full lg:w-3/4">
-      <div className="flex justify-between items-center mb-6">
+    <div className="w-full">
+      <SiteBanner
+        name={site.sitename}
+        type={site.state_id.name}
+        bannerImage={"/nadi-site.jpg"}
+      />
+      <div className="flex justify-between items-center mb-6 mt-4">
         <h3 className="text-xl font-bold">Site Details</h3>
       </div>
 
