@@ -156,7 +156,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const isDateRangeValid = useDateRangeValidation(
     formState.close_start,
     formState.close_end,
-    1
+    0
   );
 
   useEffect(() => {
