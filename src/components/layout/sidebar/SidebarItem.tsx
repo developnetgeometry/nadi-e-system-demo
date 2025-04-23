@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { LucideIcon } from "lucide-react";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
@@ -28,20 +27,18 @@ export const SidebarItem = ({
   const isActive = location.pathname === path;
 
   return (
-    <SidebarMenuItem >
+    <SidebarMenuItem>
       <SidebarMenuButton asChild>
         <Link
           to={path}
           className={cn(
             "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-200 rounded-md",
-            "border-l-2 border-l-gray-300 dark:border-l-gray-700", // always shows grey line
             "rounded-l-none text-xs", // remove rounding on the left side
             isActive && "text-[#5147dd] font-medium dark:text-[#5147dd]/90 ",
             isCollapsed && !isMobile && "justify-center px-2"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
         >
-
           <div className="relative flex items-center flex-shrink-0">
             <div
               className={cn(
