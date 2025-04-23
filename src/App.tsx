@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Suspense } from "react";
 import Landing from "@/pages/Landing";
@@ -13,6 +12,9 @@ import { memberRoutes } from "@/routes/member.routes";
 import { moduleRoutes } from "@/routes/module.routes";
 import UIComponents from "@/pages/UIComponents";
 import OrganizationDetails from "@/pages/dashboard/OrganizationDetails";
+import NotFound from "@/pages/NotFound";
+import UnderDevelopment from "@/pages/UnderDevelopment";
+import NoAccess from "@/pages/NoAccess";
 
 // Import example pages
 import HomeExample from "@/pages/examples/HomeExample";
@@ -51,6 +53,10 @@ function App() {
                 path="/admin/organizations/:id"
                 element={<OrganizationDetails />}
               />
+
+              <Route path="/under-development" element={<UnderDevelopment />} />
+
+              <Route path="/no-access" element={<NoAccess />} />
 
               {/* Dashboard routes */}
               {dashboardRoutes.map((route) => (
@@ -92,6 +98,7 @@ function App() {
                     }
                   />
                 ))}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </Router>
