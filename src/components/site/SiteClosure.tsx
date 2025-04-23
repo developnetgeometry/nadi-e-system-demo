@@ -255,16 +255,6 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     }, 0);
   };
 
-  const handleSubmitFinal = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setActiveSubmission("submit");
-    setFormState(prev => ({ ...prev, status: "2" })); // Ensure status is set to 2 for final submission
-    
-    // For final submission, we just modify the status and rely on the normal form submission
-    // Don't manually trigger submit - let the form's built-in validation work
-    // The button is type="submit" so it will naturally trigger form validation
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
