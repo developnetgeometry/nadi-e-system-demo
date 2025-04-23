@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { LogIn, UserPlus, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +10,7 @@ export const LandingNavbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex-shrink-0">
-            <span className="text-2xl font-bold text-indigo-600">NADI</span>
+            <span className="text-2xl font-bold text-indigo-600">CMMS</span>
           </div>
           <div className="flex gap-3">
             <Button
