@@ -46,6 +46,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();
   const { siteCode } = useSiteCode(siteId);
   const { isTP, isSuperAdmin } = useUserGroup();
+  
+  const [activeSubmission, setActiveSubmission] = useState<"draft" | "submit" | null>(null);
+  
   const [formState, setFormState] = useState({
     remark: "",
     close_start: "",
@@ -56,6 +59,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     subcategory_id: "",
     affectArea: [],
     session: "",
+    status: "2", // Default status is 2 for submit
   });
   const [showSubcategory, setShowSubcategory] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -95,7 +99,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       if (result.success) {
         toast({
           title: "Success",
-          description: "Site closure submitted successfully.",
+          description: formState.status === "1"
+            ? "Site closure saved as draft successfully."
+            : "Site closure submitted successfully.",
         });
         onOpenChange(false);
       } else {
@@ -108,6 +114,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         description: "An error occurred while submitting the site closure.",
         variant: "destructive",
       });
+    } finally {
+      setActiveSubmission(null);
     }
   };
 
@@ -122,6 +130,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       subcategory_id: "",
       affectArea: [],
       session: "",
+      status: "2", // Reset status to default 2
     });
     setSelectedFile(null);
   };
@@ -138,6 +147,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         subcategory_id: "",
         affectArea: [],
         session: "",
+        status: "2", // Reset status to default 2
       });
       setSelectedFile(null);
     }
@@ -209,6 +219,51 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       setField("subcategory_id", "");
     }
   }, [isTP, isSuperAdmin, formState.category_id]);
+
+  const handleSubmitAsDraft = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setActiveSubmission("draft");
+    setFormState(prev => ({ ...prev, status: "1" })); // Set status to draft (1)
+    
+    // For draft, bypass validation by submitting directly
+    setTimeout(() => {
+      // Create a hidden form and submit it to bypass validation
+      const formData = { site_id: siteId, ...formState, status: "1" };
+      insertSiteClosureData(formData, selectedFile, siteCode)
+        .then((result) => {
+          if (result.success) {
+            toast({
+              title: "Success",
+              description: "Site closure saved as draft successfully."
+            });
+            onOpenChange(false);
+          } else {
+            throw new Error(result.error);
+          }
+        })
+        .catch((error) => {
+          console.error("Error saving draft:", error);
+          toast({
+            title: "Error",
+            description: "An error occurred while saving the draft.",
+            variant: "destructive",
+          });
+        })
+        .finally(() => {
+          setActiveSubmission(null);
+        });
+    }, 0);
+  };
+
+  const handleSubmitFinal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setActiveSubmission("submit");
+    setFormState(prev => ({ ...prev, status: "2" })); // Ensure status is set to 2 for final submission
+    
+    // For final submission, we just modify the status and rely on the normal form submission
+    // Don't manually trigger submit - let the form's built-in validation work
+    // The button is type="submit" so it will naturally trigger form validation
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -370,7 +425,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               onFilesSelected={(files) => setSelectedFile(files[0])}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex justify-between sm:justify-end gap-2">
             <Button
               type="button"
               variant="outline"
@@ -387,8 +442,19 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             >
               Clear form
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit"}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleSubmitAsDraft}
+              disabled={isSubmitting}
+            >
+              {isSubmitting && activeSubmission === "draft" ? "Saving..." : "Save as Draft"}
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}
             </Button>
           </DialogFooter>
         </form>
