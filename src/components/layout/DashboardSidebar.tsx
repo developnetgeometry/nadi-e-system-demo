@@ -22,7 +22,7 @@ export const DashboardSidebar = () => {
       <div className="flex items-center justify-between p-4">
         {!isCollapsed && (
           <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate">
-            NADI
+            CMMS
           </h1>
         )}
         <Button
@@ -31,7 +31,11 @@ export const DashboardSidebar = () => {
           onClick={toggleSidebar}
           className="text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
-          {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          {isCollapsed ? (
+            <ChevronRight className="h-5 w-5" />
+          ) : (
+            <ChevronLeft className="h-5 w-5" />
+          )}
         </Button>
       </div>
 
