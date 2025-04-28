@@ -38,6 +38,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
     const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
     const [error, setError] = React.useState<string | null>(null);
     const [isDragging, setIsDragging] = React.useState(false);
+    const [isDraggingInvalidFile, setIsDraggingInvalidFile] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const dropZoneRef = React.useRef<HTMLDivElement>(null);
     
@@ -75,6 +76,67 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         }
       }
     }));
+
+    // Check if dragged files are valid (for drag-and-drop validation)
+    const checkDraggedFilesValidity = (dataTransfer: DataTransfer | null): boolean => {
+      if (!dataTransfer || (!dataTransfer.items.length && !dataTransfer.files.length)) return true;
+      
+      // Skip checking if no specific file types are required
+      if (!acceptedFileTypes) return true;
+      
+      const acceptedTypes = acceptedFileTypes.split(',').map(type => type.trim().toLowerCase());
+      
+      // Try to use DataTransferItems first (for dragover) then fall back to files (for drop)
+      const items = dataTransfer.items;
+      
+      if (items && items.length > 0) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          
+          // Only process file items
+          if (item.kind === 'file') {
+            const fileType = item.type; // MIME type
+            
+            // For drag events, we might only have MIME type and not the extension
+            const isValidType = acceptedTypes.some(type => {
+              // Handle mimetype patterns (image/*)
+              if (type.includes('/')) {
+                return fileType.match(new RegExp(type.replace('*', '.*')));
+              } else {
+                // For extensions, we can only make a guess during dragover
+                // This is less accurate but better than nothing
+                return fileType && 
+                       ((type === '.pdf' && fileType === 'application/pdf') ||
+                        (type === '.jpg' && (fileType === 'image/jpeg' || fileType === 'image/jpg')) ||
+                        (type === '.jpeg' && (fileType === 'image/jpeg' || fileType === 'image/jpg')) ||
+                        (type === '.png' && fileType === 'image/png') ||
+                        (type === '.gif' && fileType === 'image/gif'));
+              }
+            });
+            
+            if (!isValidType) return false;
+          }
+        }
+      } else {
+        // Use FileList if DataTransferItems is not available
+        const files = dataTransfer.files;
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+          const isValidType = acceptedTypes.some(type => {
+            if (type.includes('/')) {
+              return file.type.match(new RegExp(type.replace('*', '.*')));
+            } else {
+              return fileExtension === type;
+            }
+          });
+          
+          if (!isValidType) return false;
+        }
+      }
+      
+      return true;
+    };
 
     const validateFiles = (filesToValidate: File[]): File[] | null => {
       setError(null);
@@ -183,7 +245,10 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
+      
       if (selectedFiles.length < effectiveMaxFiles) {
+        const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
+        setIsDraggingInvalidFile(!isValidFileType);
         setIsDragging(true);
       }
     };
@@ -195,15 +260,34 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       // Only set isDragging to false if we're leaving the dropzone (not a child element)
       if (e.currentTarget === e.target) {
         setIsDragging(false);
+        setIsDraggingInvalidFile(false);
+        // Clear any drag-related error messages when drag ends
+        if (error && isDraggingInvalidFile) {
+          setError(null);
+        }
       }
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
+      
       if (selectedFiles.length < effectiveMaxFiles) {
-        e.dataTransfer.dropEffect = "copy";
+        const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
+        
+        // Set the drop effect based on file type validity
+        e.dataTransfer.dropEffect = isValidFileType ? "copy" : "none";
+        
+        setIsDraggingInvalidFile(!isValidFileType);
         setIsDragging(true);
+        
+        // Show error message for invalid file types during drag only
+        if (!isValidFileType && acceptedFileTypes) {
+          setError(`Only ${acceptedFileTypes} files are allowed`);
+        } else if (isDraggingInvalidFile) {
+          // Clear error if file is now valid
+          setError(null);
+        }
       }
     };
 
@@ -211,8 +295,22 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
+      setIsDraggingInvalidFile(false);
+      
+      // Clear drag-related error messages
+      if (error && isDraggingInvalidFile) {
+        setError(null);
+      }
       
       if (selectedFiles.length >= effectiveMaxFiles) return;
+      
+      // Check file type validity before processing
+      const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
+      
+      if (!isValidFileType) {
+        setError(`Only ${acceptedFileTypes} files are allowed`);
+        return;
+      }
       
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         const droppedFiles = Array.from(e.dataTransfer.files);
@@ -233,8 +331,10 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           ref={dropZoneRef}
           className={cn(
             "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
-            isDragging ? "border-primary bg-primary/10" : "hover:bg-muted/50",
-            error ? "border-destructive" : "border-muted-foreground/20",
+            isDragging && !isDraggingInvalidFile ? "border-primary bg-primary/10" : 
+              isDraggingInvalidFile ? "border-destructive bg-destructive/10" : "hover:bg-muted/50",
+            error && !isDragging ? "border-destructive" : 
+              !isDragging ? "border-muted-foreground/20" : "",
             selectedFiles.length >= effectiveMaxFiles ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           )}
           onClick={selectedFiles.length < effectiveMaxFiles ? triggerFileInput : undefined}
@@ -243,9 +343,18 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <Upload className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mb-1">
-            {getPlaceholderText()}
+          <Upload className={cn(
+            "h-10 w-10 mx-auto mb-2",
+            isDraggingInvalidFile ? "text-destructive" : "text-muted-foreground"
+          )} />
+          <p className={cn(
+            "text-sm mb-1",
+            isDraggingInvalidFile ? "text-destructive" : "text-muted-foreground"
+          )}>
+            {isDraggingInvalidFile 
+              ? `Only ${acceptedFileTypes} files are allowed` 
+              : getPlaceholderText()
+            }
           </p>
           <p className="text-xs text-muted-foreground">
             {acceptedFileTypes ? `Accepted formats: ${acceptedFileTypes}` : ""}
@@ -265,7 +374,8 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           />
         </div>
 
-        {error && (
+        {/* Only show error message below the upload box if it's not related to dragging */}
+        {error && !isDraggingInvalidFile && (
           <p className="text-sm text-destructive font-medium">{error}</p>
         )}
 

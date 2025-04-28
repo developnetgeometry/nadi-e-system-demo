@@ -110,8 +110,8 @@ export const useInsertSiteClosureData = () => {
           for (let fileIndex = 0; fileIndex < filesToUpload.length; fileIndex++) {
             const file = filesToUpload[fileIndex];
             const originalFilename = file.name; // Store original filename
-            const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
-            const fileName = `${siteCode}_${closureId}_${Date.now()}_${fileIndex}.${fileExtension}`;
+            const fileExtension = file.name.split('.').pop()?.toLowerCase();
+            const fileName = `${siteCode}_${closureId}_${Date.now()}_${fileIndex}_${originalFilename}`;
             const filePath = `site-closure/${siteCode}/${fileName}`;
 
             const { error: uploadError, data } = await supabase.storage
