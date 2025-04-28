@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BUCKET_NAME_SITE_CLOSURE, supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 
-// Define interface to match the database schema
+// Define interfaces to match the database schema
 interface SiteClosureData {
   site_id: string;
   remark: string;
@@ -15,11 +15,17 @@ interface SiteClosureData {
   end_time: string | null;
 }
 
+// Add a new interface for the attachment data
+interface SiteClosureAttachmentData {
+  site_closure_id: number;
+  file_path: string[] | string;  // Support both string[] and string for flexibility
+}
+
 export const useInsertSiteClosureData = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const insertSiteClosureData = async (closureData: any, selectedFile: File | null, siteCode: string) => {
+  const insertSiteClosureData = async (closureData: any, selectedFiles: File[] | File | null, siteCode: string) => {
     setLoading(true);
     try {
       // Exclude affectArea from closureData
@@ -90,37 +96,56 @@ export const useInsertSiteClosureData = () => {
         }
       }
 
-      // Step 3: Upload file to Supabase Storage if a file is selected
-      if (selectedFile) {
+      // Step 3: Upload files to Supabase Storage if files are selected
+      const filesToUpload = selectedFiles 
+        ? Array.isArray(selectedFiles) ? selectedFiles : [selectedFiles] 
+        : [];
+      
+      if (filesToUpload.length > 0) {
         try {
-          const fileName = `${siteCode}_${closureId}_${Date.now()}.pdf`;
-          const filePath = `site-closure/${siteCode}/${fileName}`;
+          // Create an array to hold all file paths
+          const filePaths: string[] = [];
+          
+          // Process each file
+          for (let fileIndex = 0; fileIndex < filesToUpload.length; fileIndex++) {
+            const file = filesToUpload[fileIndex];
+            const originalFilename = file.name; // Store original filename
+            const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+            const fileName = `${siteCode}_${closureId}_${Date.now()}_${fileIndex}.${fileExtension}`;
+            const filePath = `site-closure/${siteCode}/${fileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from(BUCKET_NAME_SITE_CLOSURE)
-            .upload(filePath, selectedFile);
+            const { error: uploadError, data } = await supabase.storage
+              .from(BUCKET_NAME_SITE_CLOSURE)
+              .upload(filePath, file);
 
-          if (uploadError) {
-            console.error("Error uploading file:", uploadError);
-          } else {
-            // Step 4: Get the public URL of the uploaded file
-            const publicUrl = `/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
-
-            // Step 5: Insert into nd_site_closure_attachment
+            if (uploadError) {
+              console.error(`Error uploading file ${file.name}:`, uploadError);
+            } else {
+              // Get the public URL of the uploaded file
+              const publicUrl = `/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
+              
+              
+              filePaths.push(publicUrl);
+            }
+          }
+          
+          // console.log("Uploaded file paths:", filePaths);
+          if (filePaths.length > 0) {
+            const attachmentData: SiteClosureAttachmentData = {
+              site_closure_id: closureId,
+              file_path: filePaths
+            };
+            
             const { error: attachmentError } = await supabase
               .from("nd_site_closure_attachment")
-              .insert([{ 
-                site_closure_id: closureId, 
-                file_path: publicUrl 
-              }]);
+              .insert([attachmentData] as any);
 
             if (attachmentError) {
-              console.error("Error inserting attachment:", attachmentError);
+              console.error("Error inserting attachments:", attachmentError);
             }
           }
         } catch (fileErr) {
-          console.error("Error handling file upload:", fileErr);
-          // Continue execution
+          console.error("Error handling file uploads:", fileErr);
         }
       }
 

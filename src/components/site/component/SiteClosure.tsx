@@ -62,7 +62,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     status: "2", // Default status is 2 for submit
   });
   const [showSubcategory, setShowSubcategory] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileUploadRef = React.useRef<any>(null);
 
   const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['closureCategories'],
@@ -94,7 +95,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     try {
       console.log("Form State:", formState);
       const closureData = { site_id: siteId, ...formState };
-      const result = await insertSiteClosureData(closureData, selectedFile, siteCode);
+      const result = await insertSiteClosureData(closureData, selectedFiles, siteCode);
 
       if (result.success) {
         toast({
@@ -132,7 +133,10 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       session: "",
       status: "2", // Reset status to default 2
     });
-    setSelectedFile(null);
+    setSelectedFiles([]);
+    if (fileUploadRef.current && fileUploadRef.current.reset) {
+      fileUploadRef.current.reset();
+    }
   };
 
   useEffect(() => {
@@ -149,7 +153,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         session: "",
         status: "2", // Reset status to default 2
       });
-      setSelectedFile(null);
+      setSelectedFiles([]);
     }
   }, [open]);
 
@@ -229,7 +233,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     setTimeout(() => {
       // Create a hidden form and submit it to bypass validation
       const formData = { site_id: siteId, ...formState, status: "1" };
-      insertSiteClosureData(formData, selectedFile, siteCode)
+      insertSiteClosureData(formData, selectedFiles, siteCode)
         .then((result) => {
           if (result.success) {
             toast({
@@ -408,11 +412,13 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
           <div className="space-y-2">
             <Label htmlFor="attachment">Attachment</Label>
             <FileUpload
-              maxFiles={1}
+              ref={fileUploadRef}
+              maxFiles={6}
               acceptedFileTypes=".pdf"
               maxSizeInMB={2}
               buttonText="Choose File"
-              onFilesSelected={(files) => setSelectedFile(files[0])}
+              onFilesSelected={(files) => setSelectedFiles(files)}
+              multiple={true}
             />
           </div>
           <DialogFooter className="flex justify-between sm:justify-end gap-2">
