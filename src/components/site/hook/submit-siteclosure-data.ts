@@ -3,7 +3,6 @@ import { BUCKET_NAME_SITE_CLOSURE, supabase, SUPABASE_URL } from "@/integrations
 import { useAuth } from '@/hooks/useAuth';
 import { userInfo } from "os";
 
-
 // Define interfaces to match the database schema
 interface SiteClosureData {
   site_id: string;
@@ -17,6 +16,7 @@ interface SiteClosureData {
   start_time: string | null;
   end_time: string | null;
   requester_id: string | null;
+  duration: number | null; // Added duration field
 }
 
 // Add a new interface for the attachment data
@@ -35,6 +35,28 @@ export const useInsertSiteClosureData = () => {
     try {
       // Exclude affectArea from closureData
       const { affectArea, ...dataToInsert } = closureData;
+      
+      // Calculate duration in days
+      let duration: number | null = null;
+      if (dataToInsert.close_start && dataToInsert.close_end) {
+        // Create Date objects for start and end dates with their respective times
+        const startDateTime = new Date(
+          `${dataToInsert.close_start}T${dataToInsert.start_time || '00:00:00'}`
+        );
+        const endDateTime = new Date(
+          `${dataToInsert.close_end}T${dataToInsert.end_time || '00:00:00'}`
+        );
+        
+        // Calculate difference in milliseconds
+        const diffMs = endDateTime.getTime() - startDateTime.getTime();
+        console.log("Duration in milliseconds:", diffMs);
+        
+        // Convert to days (as a float)
+        duration = diffMs / (1000 * 60 * 60 * 24);
+        
+        // Round to 2 decimal places for better readability in database
+        // duration = parseFloat(duration.toFixed(2));
+      }
       
       // Clean up data before insertion to prevent database errors
       const cleanedData = {
@@ -57,6 +79,9 @@ export const useInsertSiteClosureData = () => {
         
         // Add user ID as requester_id
         requester_id: user?.id || null,
+        
+        // Add calculated duration
+        duration: duration,
       };
 
       // console.log("Cleaned data for submission:", cleanedData);
