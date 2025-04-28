@@ -37,7 +37,9 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
   ) => {
     const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
     const [error, setError] = React.useState<string | null>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
+    const dropZoneRef = React.useRef<HTMLDivElement>(null);
     
     // Update maxFiles based on multiple prop
     const effectiveMaxFiles = multiple ? maxFiles : 1;
@@ -74,37 +76,30 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       }
     }));
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const validateFiles = (filesToValidate: File[]): File[] | null => {
       setError(null);
 
-      if (!event.target.files || event.target.files.length === 0) {
-        return;
-      }
-
-      const filesArray = Array.from(event.target.files);
-
-      // For non-multiple mode, replace existing files
-      const newSelectedFiles = multiple 
-        ? [...selectedFiles, ...filesArray]
-        : filesArray;
-
       // Validate number of files
-      if (newSelectedFiles.length > effectiveMaxFiles) {
+      const newTotalFiles = multiple 
+        ? [...selectedFiles, ...filesToValidate]
+        : filesToValidate;
+
+      if (newTotalFiles.length > effectiveMaxFiles) {
         setError(
           `You can only upload up to ${effectiveMaxFiles} file${
             effectiveMaxFiles === 1 ? "" : "s"
           }`
         );
-        return;
+        return null;
       }
 
       // Validate file size - check each file individually
-      const oversizedFiles = filesArray.filter(
+      const oversizedFiles = filesToValidate.filter(
         (file) => file.size > maxSizeInMB * 1024 * 1024
       );
       if (oversizedFiles.length > 0) {
         setError(`Each file must be less than ${maxSizeInMB}MB`);
-        return;
+        return null;
       }
 
       // Validate file type if acceptedFileTypes is provided
@@ -112,7 +107,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const acceptedTypes = acceptedFileTypes.split(',').map(type => type.trim().toLowerCase());
         
         // Check if any file doesn't match the accepted types
-        const invalidFiles = filesArray.filter(file => {
+        const invalidFiles = filesToValidate.filter(file => {
           const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
           return !acceptedTypes.some(type => {
             // Handle both mimetype patterns (image/*) and extensions (.pdf)
@@ -126,14 +121,26 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
 
         if (invalidFiles.length > 0) {
           setError(`Only ${acceptedFileTypes} files are allowed`);
-          return;
+          return null;
         }
       }
 
-      setSelectedFiles(newSelectedFiles);
+      return multiple ? [...selectedFiles, ...filesToValidate] : filesToValidate;
+    };
 
-      if (onFilesSelected) {
-        onFilesSelected(newSelectedFiles);
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const filesArray = Array.from(event.target.files);
+      const validatedFiles = validateFiles(filesArray);
+
+      if (validatedFiles) {
+        setSelectedFiles(validatedFiles);
+        if (onFilesSelected) {
+          onFilesSelected(validatedFiles);
+        }
       }
     };
 
@@ -172,15 +179,69 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       return `Drag and drop your file${multiple ? "s" : ""} here, or click to browse`;
     };
 
+    // Handle drag events
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedFiles.length < effectiveMaxFiles) {
+        setIsDragging(true);
+      }
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Only set isDragging to false if we're leaving the dropzone (not a child element)
+      if (e.currentTarget === e.target) {
+        setIsDragging(false);
+      }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedFiles.length < effectiveMaxFiles) {
+        e.dataTransfer.dropEffect = "copy";
+        setIsDragging(true);
+      }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      
+      if (selectedFiles.length >= effectiveMaxFiles) return;
+      
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        const validatedFiles = validateFiles(droppedFiles);
+        
+        if (validatedFiles) {
+          setSelectedFiles(validatedFiles);
+          if (onFilesSelected) {
+            onFilesSelected(validatedFiles);
+          }
+        }
+      }
+    };
+
     return (
       <div className={cn("space-y-4", className)}>
         <div
+          ref={dropZoneRef}
           className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 cursor-pointer transition-colors",
+            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+            isDragging ? "border-primary bg-primary/10" : "hover:bg-muted/50",
             error ? "border-destructive" : "border-muted-foreground/20",
-            selectedFiles.length >= effectiveMaxFiles ? "opacity-50 cursor-not-allowed" : ""
+            selectedFiles.length >= effectiveMaxFiles ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           )}
           onClick={selectedFiles.length < effectiveMaxFiles ? triggerFileInput : undefined}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
           <Upload className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
           <p className="text-sm text-muted-foreground mb-1">
