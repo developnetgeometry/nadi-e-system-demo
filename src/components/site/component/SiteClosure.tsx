@@ -28,6 +28,8 @@ import TimeInput from "../../ui/TimePicker";
 import { useUserGroup } from "@/hooks/use-user-group";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
+
+
 interface SiteClosureFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,6 +51,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const { isTP, isSuperAdmin } = useUserGroup();
   
   const [activeSubmission, setActiveSubmission] = useState<"draft" | "submit" | null>(null);
+
   
   const [formState, setFormState] = useState({
     remark: "",

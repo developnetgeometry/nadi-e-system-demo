@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { BUCKET_NAME_SITE_CLOSURE, supabase, SUPABASE_URL } from "@/integrations/supabase/client";
+import { useAuth } from '@/hooks/useAuth';
+import { userInfo } from "os";
+
 
 // Define interfaces to match the database schema
 interface SiteClosureData {
@@ -13,6 +16,7 @@ interface SiteClosureData {
   status: number | null;
   start_time: string | null;
   end_time: string | null;
+  requester_id: string | null;
 }
 
 // Add a new interface for the attachment data
@@ -24,6 +28,7 @@ interface SiteClosureAttachmentData {
 export const useInsertSiteClosureData = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const insertSiteClosureData = async (closureData: any, selectedFiles: File[] | File | null, siteCode: string) => {
     setLoading(true);
@@ -49,6 +54,9 @@ export const useInsertSiteClosureData = () => {
         // Time fields
         start_time: dataToInsert.start_time || null,
         end_time: dataToInsert.end_time || null,
+        
+        // Add user ID as requester_id
+        requester_id: user?.id || null,
       };
 
       console.log("Cleaned data for submission:", cleanedData);
