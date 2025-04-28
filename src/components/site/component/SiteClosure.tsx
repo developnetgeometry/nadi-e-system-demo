@@ -26,6 +26,7 @@ import { useDateRangeValidation } from "@/hooks/useDateRangeValidation";
 import { useSessionVisibility } from "../hook/use-session-visibility";
 import TimeInput from "../../ui/TimePicker";
 import { useUserGroup } from "@/hooks/use-user-group";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -61,9 +62,21 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     session: "",
     status: "2", // Default status is 2 for submit
   });
+  const [validationErrors, setValidationErrors] = useState<{
+    close_start?: string;
+    close_end?: string;
+    session?: string;
+    start_time?: string;
+    end_time?: string;
+    category_id?: string;
+    subcategory_id?: string;
+    remark?: string;
+    affectArea?: string;
+  }>({});
   const [showSubcategory, setShowSubcategory] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileUploadRef = React.useRef<any>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['closureCategories'],
@@ -86,38 +99,91 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   });
 
   const setField = (field: string, value: any) => {
+    setValidationErrors(prev => ({ ...prev, [field]: undefined }));
     setFormState((prevState) => ({ ...prevState, [field]: value }));
   };
 
   const handleDateChange = (field: string, value: string) => {
-    // If we're clearing the start date and we have an end date set
     if (field === "close_start" && value === "" && formState.close_end) {
-      // Clear both start and end date to maintain consistency
       setFormState(prev => ({
         ...prev,
         close_start: "",
-        close_end: "", // Also clear end date when start date is cleared
+        close_end: "",
       }));
     } else {
-      // Normal field update
       setField(field, value);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const validateForm = () => {
+    const errors: {
+      close_start?: string;
+      close_end?: string;
+      session?: string;
+      start_time?: string;
+      end_time?: string;
+      category_id?: string;
+      subcategory_id?: string;
+      remark?: string;
+      affectArea?: string;
+    } = {};
+    
+    if (!formState.close_start) {
+      errors.close_start = "Start date is required";
+    }
+    
+    if (!formState.close_end) {
+      errors.close_end = "End date is required";
+    }
+    
+    if (isDateRangeValid && !formState.session) {
+      errors.session = "Session is required";
+    }
+    
+    if (showTimeInputs) {
+      if (!formState.start_time) {
+        errors.start_time = "Start time is required";
+      }
+      
+      if (!formState.end_time) {
+        errors.end_time = "End time is required";
+      }
+    }
+    
+    if (!formState.category_id) {
+      errors.category_id = "Category is required";
+    }
+    
+    if (showSubcategory && !formState.subcategory_id) {
+      errors.subcategory_id = "Sub-category is required";
+    }
+    
+    if (!formState.remark) {
+      errors.remark = "Reason is required";
+    }
+    
+    if (!formState.affectArea.length) {
+      errors.affectArea = "At least one affected area must be selected";
+    }
+    
+    setValidationErrors(errors);
+    
+    return Object.keys(errors).length === 0;
+  };
+
+  const processSubmit = async () => {
+    setActiveSubmission("submit");
+    setFormState(prev => ({ ...prev, status: "2" }));
 
     try {
       console.log("Form State:", formState);
-      const closureData = { site_id: siteId, ...formState };
+      const closureData = { site_id: siteId, ...formState, status: "2" };
       const result = await insertSiteClosureData(closureData, selectedFiles, siteCode);
 
       if (result.success) {
         toast({
           title: "Success",
-          description: formState.status === "1"
-            ? "Site closure saved as draft successfully."
-            : "Site closure submitted successfully.",
+          description: "Site closure submitted successfully.",
         });
         onOpenChange(false);
       } else {
@@ -135,6 +201,21 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     }
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowConfirmDialog(true);
+  };
+
   const handleReset = () => {
     setFormState({
       remark: "",
@@ -146,8 +227,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       subcategory_id: "",
       affectArea: [],
       session: "",
-      status: "2", // Reset status to default 2
+      status: "2",
     });
+    setValidationErrors({});
     setSelectedFiles([]);
     if (fileUploadRef.current && fileUploadRef.current.reset) {
       fileUploadRef.current.reset();
@@ -166,8 +248,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         subcategory_id: "",
         affectArea: [],
         session: "",
-        status: "2", // Reset status to default 2
+        status: "2",
       });
+      setValidationErrors({});
       setSelectedFiles([]);
     }
   }, [open]);
@@ -224,10 +307,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const filteredCategories = useMemo(() => {
     if (!closureCategories) return [];
     
-    // Both Super Admin and TP users can see all categories
     if (isSuperAdmin || isTP) return closureCategories;
     
-    // For other users, filter out category with ID 1
     return closureCategories.filter(category => String(category.id) !== "1");
   }, [closureCategories, isTP, isSuperAdmin]);
 
@@ -242,11 +323,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const handleSubmitAsDraft = (e: React.MouseEvent) => {
     e.preventDefault();
     setActiveSubmission("draft");
-    setFormState(prev => ({ ...prev, status: "1" })); // Set status to draft (1)
+    setFormState(prev => ({ ...prev, status: "1" }));
     
-    // For draft, bypass validation by submitting directly
     setTimeout(() => {
-      // Create a hidden form and submit it to bypass validation
       const formData = { site_id: siteId, ...formState, status: "1" };
       insertSiteClosureData(formData, selectedFiles, siteCode)
         .then((result) => {
@@ -275,202 +354,249 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Site Closure Form</DialogTitle>
-          <DialogDescription>Fill in the details for site closure.</DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="siteId">Site Code</Label>
-            <Input id="siteId" value={siteCode} readOnly />
-          </div>
-          <div className="flex space-x-4">
-            <div className="w-1/2 space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <DateInput
-                id="startDate"
-                value={formState.close_start}
-                onChange={(e) => handleDateChange("close_start", e.target.value)}
-                min={today}
-                max={formState.close_end || undefined}
-                required
-              />
-            </div>
-            <div className="w-1/2 space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <DateInput
-                id="endDate"
-                value={formState.close_end}
-                onChange={(e) => setField("close_end", e.target.value)}
-                min={formState.close_start || today}
-                required
-              />
-            </div>
-          </div>
-          {isDateRangeValid && (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Site Closure Form</DialogTitle>
+            <DialogDescription>Fill in the details for site closure.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-2">
-              <Label htmlFor="session">Session</Label>
-              <RadioGroup
-                value={formState.session}
-                onValueChange={(value) => setField("session", value)}
-                className="flex flex-wrap gap-6"
-              >
-                {closureSessions.map((session) => (
-                  <div key={session.id} className="flex items-center space-x-2">
-                    <RadioGroupItem value={String(session.id)} id={`session-${session.id}`} />
-                    <Label htmlFor={`session-${session.id}`} className="cursor-pointer">
-                      {session.eng}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+              <Label htmlFor="siteId">Site Code</Label>
+              <Input id="siteId" value={siteCode} readOnly />
             </div>
-          )}
-          <div className="flex space-x-4">
-            {showTimeInputs && (
-              <>
-                <div className="w-1/2 space-y-2">
-                  <Label htmlFor="startTime">Start Time <span className="text-gray-500">(24hrs-format)</span></Label>
-                  <TimeInput
-                    id="startTime"
-                    value={formState.start_time}
-                    onChange={(val) => setField("start_time", val)}
-                    min={timeRange?.min}
-                    max={formState.end_time || timeRange?.max}
-                    disallowSameAsValue={formState.end_time}
-                    required
-                  />
-                </div>
-                <div className="w-1/2 space-y-2">
-                  <Label htmlFor="endTime">End Time <span className="text-gray-500">(24hrs-format)</span></Label>
-                  <TimeInput
-                    id="endTime"
-                    value={formState.end_time}
-                    onChange={(val) => setField("end_time", val)}
-                    min={formState.start_time || timeRange?.min}
-                    max={timeRange?.max}
-                    disallowSameAsValue={formState.start_time}
-                    required
-                  />
-                </div>
-              </>
+            <div className="flex space-x-4">
+              <div className="w-1/2 space-y-2">
+                <Label htmlFor="startDate">Start Date <span className="text-red-500">*</span></Label>
+                <DateInput
+                  id="startDate"
+                  value={formState.close_start}
+                  onChange={(e) => handleDateChange("close_start", e.target.value)}
+                  min={today}
+                  max={formState.close_end || undefined}
+                  className={validationErrors.close_start ? "border-red-500" : ""}
+                />
+                {validationErrors.close_start && (
+                  <p className="text-sm text-red-500">{validationErrors.close_start}</p>
+                )}
+              </div>
+              <div className="w-1/2 space-y-2">
+                <Label htmlFor="endDate">End Date <span className="text-red-500">*</span></Label>
+                <DateInput
+                  id="endDate"
+                  value={formState.close_end}
+                  onChange={(e) => setField("close_end", e.target.value)}
+                  min={formState.close_start || today}
+                  className={validationErrors.close_end ? "border-red-500" : ""}
+                />
+                {validationErrors.close_end && (
+                  <p className="text-sm text-red-500">{validationErrors.close_end}</p>
+                )}
+              </div>
+            </div>
+            {isDateRangeValid && (
+              <div className="space-y-2">
+                <Label htmlFor="session">Session <span className="text-red-500">*</span></Label>
+                <RadioGroup
+                  value={formState.session}
+                  onValueChange={(value) => setField("session", value)}
+                  className="flex flex-wrap gap-6"
+                >
+                  {closureSessions.map((session) => (
+                    <div key={session.id} className="flex items-center space-x-2">
+                      <RadioGroupItem value={String(session.id)} id={`session-${session.id}`} />
+                      <Label htmlFor={`session-${session.id}`} className="cursor-pointer">
+                        {session.eng}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+                {validationErrors.session && (
+                  <p className="text-sm text-red-500">{validationErrors.session}</p>
+                )}
+              </div>
             )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="category">Closure Category</Label>
-            <Select
-              name="category"
-              value={formState.category_id}
-              onValueChange={(value) => setField("category_id", value)}
-              required
-              disabled={isLoadingCategories}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {filteredCategories.map((category) => (
-                  <SelectItem key={category.id} value={String(category.id)}>
-                    {category.eng}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {showSubcategory && (
+            <div className="flex space-x-4">
+              {showTimeInputs && (
+                <>
+                  <div className="w-1/2 space-y-2">
+                    <Label htmlFor="startTime">Start Time <span className="text-red-500">*</span> <span className="text-gray-500">(24hrs-format)</span></Label>
+                    <TimeInput
+                      id="startTime"
+                      value={formState.start_time}
+                      onChange={(val) => setField("start_time", val)}
+                      min={timeRange?.min}
+                      max={formState.end_time || timeRange?.max}
+                      disallowSameAsValue={formState.end_time}
+                      className={validationErrors.start_time ? "border-red-500" : ""}
+                    />
+                    {validationErrors.start_time && (
+                      <p className="text-sm text-red-500">{validationErrors.start_time}</p>
+                    )}
+                  </div>
+                  <div className="w-1/2 space-y-2">
+                    <Label htmlFor="endTime">End Time <span className="text-red-500">*</span> <span className="text-gray-500">(24hrs-format)</span></Label>
+                    <TimeInput
+                      id="endTime"
+                      value={formState.end_time}
+                      onChange={(val) => setField("end_time", val)}
+                      min={formState.start_time || timeRange?.min}
+                      max={timeRange?.max}
+                      disallowSameAsValue={formState.start_time}
+                      className={validationErrors.end_time ? "border-red-500" : ""}
+                    />
+                    {validationErrors.end_time && (
+                      <p className="text-sm text-red-500">{validationErrors.end_time}</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="subCategory">Closure Sub-Category</Label>
+              <Label htmlFor="category">Closure Category <span className="text-red-500">*</span></Label>
               <Select
-                name="subCategory"
-                value={formState.subcategory_id}
-                onValueChange={(value) => setField("subcategory_id", value)}
-                required
-                disabled={isLoadingSubCategories}
+                name="category"
+                value={formState.category_id}
+                onValueChange={(value) => setField("category_id", value)}
+                disabled={isLoadingCategories}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a sub-category" />
+                <SelectTrigger className={validationErrors.category_id ? "border-red-500" : ""}>
+                  <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {closureSubCategories.map((subCategory) => (
-                    <SelectItem key={subCategory.id} value={String(subCategory.id)}>
-                      {subCategory.eng}
+                  {filteredCategories.map((category) => (
+                    <SelectItem key={category.id} value={String(category.id)}>
+                      {category.eng}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {validationErrors.category_id && (
+                <p className="text-sm text-red-500">{validationErrors.category_id}</p>
+              )}
             </div>
-          )}
+            {showSubcategory && (
+              <div className="space-y-2">
+                <Label htmlFor="subCategory">Closure Sub-Category <span className="text-red-500">*</span></Label>
+                <Select
+                  name="subCategory"
+                  value={formState.subcategory_id}
+                  onValueChange={(value) => setField("subcategory_id", value)}
+                  disabled={isLoadingSubCategories}
+                >
+                  <SelectTrigger className={validationErrors.subcategory_id ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select a sub-category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {closureSubCategories.map((subCategory) => (
+                      <SelectItem key={subCategory.id} value={String(subCategory.id)}>
+                        {subCategory.eng}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {validationErrors.subcategory_id && (
+                  <p className="text-sm text-red-500">{validationErrors.subcategory_id}</p>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="affectArea">Closure Affect Area <span className="text-red-500">*</span></Label>
+              <SelectMany
+                options={closureAffectAreas.map((area) => ({
+                  id: String(area.id),
+                  label: area.eng,
+                }))}
+                value={formState.affectArea}
+                onChange={(value) => setField("affectArea", value)}
+                placeholder="Select affected areas"
+                disabled={isLoadingAffectAreas}
+                className={validationErrors.affectArea ? "border-red-500" : ""}
+              />
+              {validationErrors.affectArea && (
+                <p className="text-sm text-red-500">{validationErrors.affectArea}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reason">Reason <span className="text-red-500">*</span></Label>
+              <Textarea
+                id="reason"
+                value={formState.remark}
+                onChange={(e) => setField("remark", e.target.value)}
+                className={validationErrors.remark ? "border-red-500" : ""}
+              />
+              {validationErrors.remark && (
+                <p className="text-sm text-red-500">{validationErrors.remark}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="attachment">Attachment</Label>
+              <FileUpload
+                ref={fileUploadRef}
+                maxFiles={6}
+                acceptedFileTypes=".pdf"
+                maxSizeInMB={2}
+                buttonText="Choose File"
+                onFilesSelected={(files) => setSelectedFiles(files)}
+                multiple={true}
+              />
+            </div>
+            <DialogFooter className="flex justify-between sm:justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                disabled={isSubmitting}
+              >
+                Clear form
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleSubmitAsDraft}
+                disabled={isSubmitting}
+              >
+                {isSubmitting && activeSubmission === "draft" ? "Saving..." : "Save as Draft"}
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmationDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        title="Confirm Submission"
+        description={
           <div className="space-y-2">
-            <Label htmlFor="affectArea">Closure Affect Area</Label>
-            <SelectMany
-              options={closureAffectAreas.map((area) => ({
-                id: String(area.id),
-                label: area.eng,
-              }))}
-              value={formState.affectArea}
-              onChange={(value) => setField("affectArea", value)}
-              placeholder="Select affected areas"
-              disabled={isLoadingAffectAreas}
-            />
+            <p>Are you sure you want to submit this site closure request?</p>
+            <p>Once submitted, you cannot edit the request.</p>
+            <p className="text-sm text-muted-foreground">
+              Tip: You can save as draft first if you're not ready to submit.
+            </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reason">Reason</Label>
-            <Textarea
-              id="reason"
-              value={formState.remark}
-              onChange={(e) => setField("remark", e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="attachment">Attachment</Label>
-            <FileUpload
-              ref={fileUploadRef}
-              maxFiles={6}
-              acceptedFileTypes=".pdf"
-              maxSizeInMB={2}
-              buttonText="Choose File"
-              onFilesSelected={(files) => setSelectedFiles(files)}
-              multiple={true}
-            />
-          </div>
-          <DialogFooter className="flex justify-between sm:justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-              disabled={isSubmitting}
-            >
-              Clear form
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleSubmitAsDraft}
-              disabled={isSubmitting}
-            >
-              {isSubmitting && activeSubmission === "draft" ? "Saving..." : "Save as Draft"}
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        }
+        cancelText="Cancel"
+        confirmText="Yes, Submit"
+        onConfirm={processSubmit}
+        onCancel={() => setShowConfirmDialog(false)}
+      />
+    </>
   );
 };
 

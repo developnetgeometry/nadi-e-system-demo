@@ -9,6 +9,7 @@ interface SelectManyProps {
   onChange: (value: (string | number)[]) => void;
   placeholder?: string;
   disabled?: boolean;
+  className?: string; // Add className prop
 }
 
 export const SelectMany: React.FC<SelectManyProps> = ({
@@ -17,6 +18,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
   onChange,
   placeholder = "Select options",
   disabled = false,
+  className, // Add className to component props
 }) => {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -43,7 +45,8 @@ export const SelectMany: React.FC<SelectManyProps> = ({
         <Popover.Trigger
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-            disabled && "cursor-not-allowed"
+            disabled && "cursor-not-allowed",
+            className // Apply passed className
           )}
           disabled={disabled}
         >
