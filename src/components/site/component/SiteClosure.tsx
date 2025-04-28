@@ -89,6 +89,21 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     setFormState((prevState) => ({ ...prevState, [field]: value }));
   };
 
+  const handleDateChange = (field: string, value: string) => {
+    // If we're clearing the start date and we have an end date set
+    if (field === "close_start" && value === "" && formState.close_end) {
+      // Clear both start and end date to maintain consistency
+      setFormState(prev => ({
+        ...prev,
+        close_start: "",
+        close_end: "", // Also clear end date when start date is cleared
+      }));
+    } else {
+      // Normal field update
+      setField(field, value);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -277,7 +292,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               <DateInput
                 id="startDate"
                 value={formState.close_start}
-                onChange={(e) => setField("close_start", e.target.value)}
+                onChange={(e) => handleDateChange("close_start", e.target.value)}
                 min={today}
                 max={formState.close_end || undefined}
                 required

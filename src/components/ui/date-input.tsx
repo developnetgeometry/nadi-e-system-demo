@@ -14,13 +14,23 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       e.preventDefault();
       e.stopPropagation();
       
-      // Create a synthetic event to pass to the onChange handler
+      // Create a proper synthetic event to ensure full clearing of the date
+      const inputElement = document.createElement('input');
+      inputElement.type = 'date';
+      inputElement.name = props.name || '';
+      inputElement.value = '';
+      
       const syntheticEvent = {
-        target: {
-          value: '',
-          name: props.name
-        }
-      } as React.ChangeEvent<HTMLInputElement>;
+        target: inputElement,
+        currentTarget: inputElement,
+        bubbles: true,
+        cancelable: true,
+        defaultPrevented: false,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        nativeEvent: e.nativeEvent,
+        type: 'change'
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
       
       if (onChange) {
         onChange(syntheticEvent);
