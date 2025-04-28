@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Users, UserCheck, UserCog, DollarSign, FilePlus } from "lucide-react";
+import { Eye, EyeOff, Users, UserCheck, UserCog, DollarSign } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSiteProfile } from "./hook/use-site-profile";
 import { useSiteCode } from "./hook/use-site-code";
@@ -8,9 +8,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import OverviewPage from "./component/OverviewPage";
 import StaffPage from "./component/StaffPage";
 import BillingPage from "./component/BillingPage";
+import ClosurePage from "./component/ClosurePage.tsx";
 import { Card } from "../ui/card";
-import { useState } from "react";
-import SiteClosureForm from "./SiteClosure";
 import { Button } from "../ui/button";
 
 interface SiteDetailProps {
@@ -21,9 +20,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
   const { data, socioeconomics, space, loading, error } = useSiteProfile(siteId);
   const { siteCode, loading: codeLoading, error: codeError } = useSiteCode(siteId);
   const { siteStatus } = useSiteGeneralData();
-  const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
 
-  // Dummy data for the cards
   const stats = [
     {
       title: "Total Members",
@@ -88,15 +85,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </span>
           </div>
         </div>
-        <div>
-          <Button
-            variant="ghost"
-            onClick={() => setSiteClosureOpen(true)}
-          >
-            <FilePlus className="mr-2 h-4 w-4" />
-            New Closure Request
-          </Button>
-        </div>
       </div>
 
       {/* Stats Cards Section */}
@@ -117,8 +105,8 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
       <Tabs defaultValue="overview" className="mt-6">
         <TabsList className="border-b dark:border-gray-700 w-full justify-start bg-transparent p-0 h-auto overflow-x-auto mb-6">
           <TabsTrigger value="overview" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Overview</TabsTrigger>
-          {/* <TabsTrigger value="staff" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Staff</TabsTrigger> */}
           <TabsTrigger value="billing" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Billing</TabsTrigger>
+          <TabsTrigger value="closure" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Closure</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="h-full mt-0">
           <Card className="h-full">
@@ -127,13 +115,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </div>
           </Card>
         </TabsContent>
-        {/* <TabsContent value="staff" className="h-full mt-0">
-          <Card className="h-full">
-            <div className="p-6 h-full">
-              <StaffPage />
-            </div>
-          </Card>
-        </TabsContent> */}
         <TabsContent value="billing" className="h-full mt-0">
           <Card className="h-full">
             <div className="p-6 h-full">
@@ -141,16 +122,18 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </div>
           </Card>
         </TabsContent>
+        <TabsContent value="closure" className="h-full mt-0">
+          <Card className="h-full">
+            <div className="p-6 h-full">
+              <ClosurePage 
+                siteId={siteId} 
+                siteDetails={data.fullname || "N/A"} 
+                location={data.state_id?.name || "N/A"} 
+              />
+            </div>
+          </Card>
+        </TabsContent>
       </Tabs>
-
-      {/* Site Closure Form */}
-      <SiteClosureForm
-        open={isSiteClosureOpen}
-        onOpenChange={setSiteClosureOpen}
-        siteId={siteId}
-        siteDetails={data.fullname || "N/A"}
-        location={data.state_id?.name || "N/A"}
-      />
     </div>
   );
 };
