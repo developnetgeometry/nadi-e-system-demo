@@ -59,7 +59,7 @@ export const useInsertSiteClosureData = () => {
         requester_id: user?.id || null,
       };
 
-      console.log("Cleaned data for submission:", cleanedData);
+      // console.log("Cleaned data for submission:", cleanedData);
 
       // Step 1: Insert closure data into the database - wrap cleanedData in array
       const { data: insertedClosure, error: closureError } = await supabase
@@ -78,7 +78,7 @@ export const useInsertSiteClosureData = () => {
       }
 
       const closureId = insertedClosure.id;
-      console.log("Inserted closure ID:", closureId);
+      // console.log("Inserted closure ID:", closureId);
 
       // Step 2: Insert affect areas into the bridge table
       if (affectArea && Array.isArray(affectArea) && affectArea.length > 0) {
