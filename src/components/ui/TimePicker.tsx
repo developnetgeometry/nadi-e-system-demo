@@ -158,7 +158,7 @@ const TimeInput: React.FC<TimeInputProps> = ({
             <div className="flex items-center">
               {(hour !== null && minute !== null) && (
                 <X
-                  size={14}
+                  size={16}
                   className="mr-1 hover:text-muted-foreground cursor-pointer"
                   onClick={handleClear}
                 />

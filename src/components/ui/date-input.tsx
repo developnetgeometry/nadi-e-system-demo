@@ -47,7 +47,7 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
         {showClearButton && value && (
           <button
             onClick={handleClear}
-            className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="absolute right-8 top-1/2 -translate-y-1/2 mr-1 hover:text-muted-foreground cursor-pointer"
             type="button"
             aria-label="Clear date"
           >
