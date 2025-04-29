@@ -11,11 +11,12 @@ import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
 import { FilePlus } from "lucide-react";
 import SiteClosureForm from "./SiteClosure";
+import { useSiteId } from "@/hooks/use-site-id";
 
 interface ClosurePageProps {
   siteId: string;
-  siteDetails: string;
-  location: string;
+  // siteDetails: string;
+  // location: string;
 }
 
 // Sample data for the table
@@ -43,8 +44,16 @@ const dummyData = [
   }
 ];
 
-const ClosurePage: React.FC<ClosurePageProps> = ({ siteId, siteDetails, location }) => {
+const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
+
+  if (!siteId) {
+    console.log('Site id not pass');
+    siteId = useSiteId();
+  }
+  console.log("siteId", siteId);
+
+  // console.log("closurelistdata", closurelistdata);
 
   return (
     <div>
@@ -92,16 +101,16 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId, siteDetails, location
         </Table>
       </div>
 
-      <div className="mt-4 text-center text-sm text-muted-foreground">
+      {/* <div className="mt-4 text-center text-sm text-muted-foreground">
         <p>This is a sample view. Use the "New Closure Request" button to create actual closure requests.</p>
-      </div>
+      </div> */}
 
       <SiteClosureForm
         open={isSiteClosureOpen}
         onOpenChange={setSiteClosureOpen}
         siteId={siteId}
-        siteDetails={siteDetails}
-        location={location}
+        // siteDetails={siteDetails}
+        // location={location}
       />
     </div>
   );

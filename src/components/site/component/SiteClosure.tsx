@@ -33,16 +33,16 @@ interface SiteClosureFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   siteId: string;
-  siteDetails: string;
-  location: string;
+  // siteDetails: string;
+  // location: string;
 }
 
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   open,
   onOpenChange,
   siteId,
-  siteDetails,
-  location,
+  // siteDetails,
+  // location,
 }) => {
   const { toast } = useToast();
   const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();

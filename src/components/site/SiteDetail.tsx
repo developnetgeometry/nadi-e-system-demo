@@ -127,8 +127,8 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             <div className="p-6 h-full">
               <ClosurePage 
                 siteId={siteId} 
-                siteDetails={data.fullname || "N/A"} 
-                location={data.state_id?.name || "N/A"} 
+                // siteDetails={data.fullname || "N/A"} 
+                // location={data.state_id?.name || "N/A"} 
               />
             </div>
           </Card>
