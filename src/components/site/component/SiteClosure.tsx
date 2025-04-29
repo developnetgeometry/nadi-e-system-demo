@@ -29,7 +29,6 @@ import { useUserGroup } from "@/hooks/use-user-group";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 
-
 interface SiteClosureFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -106,6 +105,22 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     setFormState((prevState) => ({ ...prevState, [field]: value }));
   };
 
+  const isDateWithinAllowedRange = (dateString: string) => {
+    if (!dateString || isSuperAdmin) return true;
+    
+    const selectedDate = new Date(dateString);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const oneWeekFromToday = new Date();
+    oneWeekFromToday.setDate(today.getDate() + 6); // 6 days ahead for a total of 7 days including today
+    oneWeekFromToday.setHours(23, 59, 59, 999); // End of the 7th day
+    
+    return selectedDate <= oneWeekFromToday;
+  };
+
   const handleDateChange = (field: string, value: string) => {
     if (field === "close_start" && value === "" && formState.close_end) {
       setFormState(prev => ({
@@ -115,6 +130,14 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       }));
     } else {
       setField(field, value);
+      
+      // Add validation for dates that are too far in the future
+      if (field === "close_start" && !isDateWithinAllowedRange(value)) {
+        setValidationErrors(prev => ({
+          ...prev,
+          close_start: "Closure date cannot be more than 1 week in advance"
+        }));
+      }
     }
   };
 
@@ -133,6 +156,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     
     if (!formState.close_start) {
       errors.close_start = "Start date is required";
+    } else if (!isSuperAdmin && !isDateWithinAllowedRange(formState.close_start)) {
+      errors.close_start = "Closure date cannot be more than 1 week in advance";
     }
     
     if (!formState.close_end) {
@@ -304,6 +329,16 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   }, [formState.category_id]);
 
   const today = new Date().toISOString().split("T")[0];
+  
+  const maxStartDate = useMemo(() => {
+    if (isSuperAdmin) return undefined;
+    
+    const today = new Date();
+    const oneWeekFromToday = new Date();
+    // Set to 6 days ahead, which becomes the 7th day (today + 6 more days)
+    oneWeekFromToday.setDate(today.getDate() + 6);
+    return oneWeekFromToday.toISOString().split("T")[0];
+  }, [isSuperAdmin]);
 
   const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
 
@@ -371,13 +406,18 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             </div>
             <div className="flex space-x-4">
               <div className="w-1/2 space-y-2">
-                <Label htmlFor="startDate">Start Date <span className="text-red-500">*</span></Label>
+                <Label htmlFor="startDate">
+                  Start Date <span className="text-red-500">*</span>
+                  {!isSuperAdmin && (
+                    <span className="text-gray-500 text-xs ml-2">(Max 1 week in advance)</span>
+                  )}
+                </Label>
                 <DateInput
                   id="startDate"
                   value={formState.close_start}
                   onChange={(e) => handleDateChange("close_start", e.target.value)}
                   min={today}
-                  max={formState.close_end || undefined}
+                  max={isSuperAdmin ? (formState.close_end || undefined) : maxStartDate}
                   className={validationErrors.close_start ? "border-red-500" : ""}
                 />
                 {validationErrors.close_start && (
@@ -385,12 +425,15 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 )}
               </div>
               <div className="w-1/2 space-y-2">
-                <Label htmlFor="endDate">End Date <span className="text-red-500">*</span></Label>
+                <Label htmlFor="endDate">
+                  End Date <span className="text-red-500">*</span>
+                </Label>
                 <DateInput
                   id="endDate"
                   value={formState.close_end}
-                  onChange={(e) => setField("close_end", e.target.value)}
+                  onChange={(e) => handleDateChange("close_end", e.target.value)}
                   min={formState.close_start || today}
+                  max={undefined}
                   className={validationErrors.close_end ? "border-red-500" : ""}
                 />
                 {validationErrors.close_end && (
