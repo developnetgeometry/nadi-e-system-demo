@@ -405,6 +405,22 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                         </div>
                                     </RadioGroup>
                                 </div>
+                                <div>
+                                    <Label htmlFor="community_status">MADANI Community Status</Label>
+                                    <RadioGroup
+                                        value={formState.community_status?.toString() ?? "null"} // Map value to string
+                                        onValueChange={(value) =>
+                                            setField("community_status", value === "true" ? true : value === "false" ? false : null)
+                                        }
+                                    >
+                                        <div className="flex items-center space-x-4 mt-3">
+                                            <RadioGroupItem value="true" id="community_status_yes" />
+                                            <Label htmlFor="community_status_yes">Active</Label>
+                                            <RadioGroupItem value="false" id="community_status_no" />
+                                            <Label htmlFor="community_statusr_no">Inactive</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
                             </>
                         )}
                     </div>
