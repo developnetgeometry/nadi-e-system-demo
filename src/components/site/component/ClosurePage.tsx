@@ -73,63 +73,72 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         ) : error ? (
           <div className="p-4 text-red-500">Error loading data: {(error as Error).message}</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[60px] text-center">No.</TableHead>
-                <TableHead>Request ID</TableHead>
-                <TableHead>Site Name</TableHead>
-                <TableHead>Date Requested</TableHead>
-                <TableHead>Closure Period</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {closurelistdata && closurelistdata.length > 0 ? (
-                closurelistdata.map((item, index) => {
-                  console.log("Debug item:", item); // For debugging the actual structure
-                  return (
-                    <TableRow key={item.id}>
-                      <TableRowNumber index={index} />
-                      <TableCell>{item.id}</TableCell>
-                      <TableCell>
-                        {item.nd_site_profile?.sitename || 'N/A'}
-                        <div className="text-xs text-muted-foreground">
-                          {item.nd_site_profile?.nd_site?.[0]?.standard_code || 'N/A'}
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatDate(item.request_datetime)}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">From:</span>
-                            <span>{formatDate(item.close_start)}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-muted-foreground">To:</span>
-                            <span>{formatDate(item.close_end)}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatDuration(item.duration)}</TableCell>
-                      <TableCell>{item.nd_closure_categories?.eng || 'N/A'}</TableCell>
-                      <TableCell>{item.nd_closure_status?.name || 'N/A'}</TableCell>
-                      <TableCell>
-                        <Button variant="outline" size="sm">View</Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-4">No closure requests found</TableCell>
+                  <TableHead className="w-[60px] text-center">No.</TableHead>
+                  <TableHead className="hidden md:table-cell">Request ID</TableHead>
+                  <TableHead>Site Name</TableHead>
+                  <TableHead className="hidden md:table-cell">Date Requested</TableHead>
+                  <TableHead>Closure Period</TableHead>
+                  <TableHead className="hidden lg:table-cell">Duration</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {closurelistdata && closurelistdata.length > 0 ? (
+                  closurelistdata.map((item, index) => {
+                    return (
+                      <TableRow key={item.id}>
+                        <TableRowNumber index={index} />
+                        <TableCell className="hidden md:table-cell">{item.id}</TableCell>
+                        <TableCell>
+                          {item.nd_site_profile?.sitename || 'N/A'}
+                          <div className="text-xs text-muted-foreground">
+                            {item.nd_site_profile?.nd_site?.[0]?.standard_code || 'N/A'}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{formatDate(item.request_datetime)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">From:</span>
+                              <span>{formatDate(item.close_start)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-muted-foreground">To:</span>
+                              <span>{formatDate(item.close_end)}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground lg:hidden">
+                              Duration: {formatDuration(item.duration)}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">{formatDuration(item.duration)}</TableCell>
+                        <TableCell>
+                          {item.nd_closure_categories?.eng || 'N/A'}
+                          <div className="md:hidden text-xs text-muted-foreground">
+                            Req: {formatDate(item.request_datetime)}
+                          </div>
+                        </TableCell>
+                        <TableCell>{item.nd_closure_status?.name || 'N/A'}</TableCell>
+                        <TableCell>
+                          <Button variant="outline" size="sm">View</Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-4">No closure requests found</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
 
