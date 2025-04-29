@@ -9,40 +9,16 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { FilePlus } from "lucide-react";
+import { FilePlus, Loader2 } from "lucide-react";
 import SiteClosureForm from "./SiteClosure";
 import { useSiteId } from "@/hooks/use-site-id";
+import { useQuery } from "@tanstack/react-query";
+import { fetchlListClosureData } from "../hook/use-siteclosure";
+import { format } from "date-fns";
 
 interface ClosurePageProps {
   siteId: string;
-  // siteDetails: string;
-  // location: string;
 }
-
-// Sample data for the table
-const dummyData = [
-  {
-    id: "CL001",
-    requestDate: "2023-10-15",
-    reason: "Relocation",
-    status: "Pending",
-    requestedBy: "John Doe"
-  },
-  {
-    id: "CL002",
-    requestDate: "2023-09-20",
-    reason: "Renovation",
-    status: "Approved",
-    requestedBy: "Jane Smith"
-  },
-  {
-    id: "CL003",
-    requestDate: "2023-08-05",
-    reason: "Maintenance",
-    status: "Completed",
-    requestedBy: "Robert Johnson"
-  }
-];
 
 const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
@@ -53,7 +29,27 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   }
   console.log("siteId", siteId);
 
-  // console.log("closurelistdata", closurelistdata);
+  const { data: closurelistdata, isLoading, error } = useQuery({
+    queryKey: ['siteClosureList'],
+    queryFn: fetchlListClosureData
+  });
+
+  console.log("closurelistdata", closurelistdata);
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // Helper function to convert duration (days)
+  const formatDuration = (duration: number) => {
+    const hours = Math.floor(duration * 24);
+    return `${hours} hour${hours !== 1 ? 's' : ''}`;
+  };
 
   return (
     <div>
@@ -73,44 +69,69 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       </div>
 
       <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[60px] text-center">No.</TableHead>
-              <TableHead>Request ID</TableHead>
-              <TableHead>Date Requested</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Requested By</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {dummyData.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableRowNumber index={index} />
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.requestDate}</TableCell>
-                <TableCell>{item.reason}</TableCell>
-                <TableCell>{item.status}</TableCell>
-                <TableCell>{item.requestedBy}</TableCell>
-                <TableCell></TableCell>
+        {isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+            <span>Loading data...</span>
+          </div>
+        ) : error ? (
+          <div className="p-4 text-red-500">Error loading data: {(error as Error).message}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[60px] text-center">No.</TableHead>
+                <TableHead>Request ID</TableHead>
+                <TableHead>Site Name</TableHead>
+                <TableHead>Date Requested</TableHead>
+                <TableHead>Closure Start</TableHead>
+                <TableHead>Closure End</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {closurelistdata && closurelistdata.length > 0 ? (
+                closurelistdata.map((item, index) => {
+                  console.log("Debug item:", item); // For debugging the actual structure
+                  return (
+                    <TableRow key={item.id}>
+                      <TableRowNumber index={index} />
+                      <TableCell>{item.id}</TableCell>
+                      <TableCell>
+                        {item.nd_site_profile?.sitename || 'N/A'}
+                        <div className="text-xs text-muted-foreground">
+                          {item.nd_site_profile?.nd_site?.[0]?.standard_code || 'N/A'}
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatDate(item.request_datetime)}</TableCell>
+                      <TableCell>{formatDate(item.close_start)}</TableCell>
+                      <TableCell>{formatDate(item.close_end)}</TableCell>
+                      <TableCell>{formatDuration(item.duration)}</TableCell>
+                      <TableCell>{item.nd_closure_categories?.eng || 'N/A'}</TableCell>
+                      <TableCell>{item.nd_closure_status?.name || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={10} className="text-center py-4">No closure requests found</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
-
-      {/* <div className="mt-4 text-center text-sm text-muted-foreground">
-        <p>This is a sample view. Use the "New Closure Request" button to create actual closure requests.</p>
-      </div> */}
 
       <SiteClosureForm
         open={isSiteClosureOpen}
         onOpenChange={setSiteClosureOpen}
         siteId={siteId}
-        // siteDetails={siteDetails}
-        // location={location}
       />
     </div>
   );
