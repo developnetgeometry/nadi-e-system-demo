@@ -80,8 +80,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                 <TableHead>Request ID</TableHead>
                 <TableHead>Site Name</TableHead>
                 <TableHead>Date Requested</TableHead>
-                <TableHead>Closure Start</TableHead>
-                <TableHead>Closure End</TableHead>
+                <TableHead>Closure Period</TableHead>
                 <TableHead>Duration</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
@@ -103,8 +102,18 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                         </div>
                       </TableCell>
                       <TableCell>{formatDate(item.request_datetime)}</TableCell>
-                      <TableCell>{formatDate(item.close_start)}</TableCell>
-                      <TableCell>{formatDate(item.close_end)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">From:</span>
+                            <span>{formatDate(item.close_start)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">To:</span>
+                            <span>{formatDate(item.close_end)}</span>
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell>{formatDuration(item.duration)}</TableCell>
                       <TableCell>{item.nd_closure_categories?.eng || 'N/A'}</TableCell>
                       <TableCell>{item.nd_closure_status?.name || 'N/A'}</TableCell>
@@ -116,7 +125,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-4">No closure requests found</TableCell>
+                  <TableCell colSpan={9} className="text-center py-4">No closure requests found</TableCell>
                 </TableRow>
               )}
             </TableBody>
