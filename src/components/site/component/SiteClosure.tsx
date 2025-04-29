@@ -304,12 +304,17 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         end_time: "",
       };
       
-      if (formState.session === "3" && timeRange) {
-        updatedState.start_time = "08:00";
-        updatedState.end_time = "18:00";
-      } else if (timeRange?.defaultStart && timeRange?.defaultEnd) {
-        updatedState.start_time = timeRange.defaultStart;
-        updatedState.end_time = timeRange.defaultEnd;
+      // Check if timeRange exists and has the necessary properties
+      if (timeRange) {
+        if (formState.session === "3" && timeRange.isFixed) {
+          // For full day with fixed time
+          updatedState.start_time = timeRange.defaultStart || "08:00";
+          updatedState.end_time = timeRange.defaultEnd || "18:00";
+        } else if (timeRange.defaultStart && timeRange.defaultEnd) {
+          // For other sessions with default times available
+          updatedState.start_time = timeRange.defaultStart;
+          updatedState.end_time = timeRange.defaultEnd;
+        }
       }
       
       setFormState(updatedState);
@@ -482,11 +487,11 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                     <Label htmlFor="startTime">
                       Start Time <span className="text-red-500">*</span> 
                       <span className="text-gray-500">(24hrs-format)</span>
-                      {formState.session === "3" && (
+                      {timeRange?.isFixed && (
                         <span className="text-blue-500 ml-2">(Fixed)</span>
                       )}
                     </Label>
-                    <div className={formState.session === "3" ? "opacity-70 pointer-events-none" : ""}>
+                    <div className={timeRange?.isFixed ? "opacity-70 pointer-events-none" : ""}>
                       <TimeInput
                         id="startTime"
                         value={formState.start_time}
@@ -505,11 +510,11 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                     <Label htmlFor="endTime">
                       End Time <span className="text-red-500">*</span> 
                       <span className="text-gray-500">(24hrs-format)</span>
-                      {formState.session === "3" && (
+                      {timeRange?.isFixed && (
                         <span className="text-blue-500 ml-2">(Fixed)</span>
                       )}
                     </Label>
-                    <div className={formState.session === "3" ? "opacity-70 pointer-events-none" : ""}>
+                    <div className={timeRange?.isFixed ? "opacity-70 pointer-events-none" : ""}>
                       <TimeInput
                         id="endTime"
                         value={formState.end_time}

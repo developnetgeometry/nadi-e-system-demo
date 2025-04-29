@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
+import operationTimeData from "@/data/operation-times.json";
 
 interface TimeRange {
   min: string;
@@ -8,34 +9,55 @@ interface TimeRange {
   isFixed?: boolean;
 }
 
-export const useSessionVisibility = (sessionId: string) => {
+interface SessionVisibility {
+  showTimeInputs: boolean;
+  timeRange: TimeRange | null;
+}
+
+export const useSessionVisibility = (sessionId: string): SessionVisibility => {
+  const [operationTimes, setOperationTimes] = useState<any[]>(operationTimeData.operationTimes);
+
+  // This function could be enhanced to fetch from an API instead of the JSON file
+  const fetchOperationTimes = async () => {
+    // In the future, replace this with a real API call:
+    // const response = await fetch('/api/operation-times');
+    // const data = await response.json();
+    // setOperationTimes(data.operationTimes);
+    
+    // For now, we're using the imported JSON data
+    setOperationTimes(operationTimeData.operationTimes);
+  };
+
+  useEffect(() => {
+    fetchOperationTimes();
+  }, []);
+
   const visibility = useMemo(() => {
-    switch (sessionId) {
-      case "1": // Halfday AM
-        return { 
-          showTimeInputs: true, 
-          timeRange: { min: "08:00", max: "11:59" } 
-        };
-      case "2": // Halfday PM
-        return { 
-          showTimeInputs: true, 
-          timeRange: { min: "12:00", max: "18:00" } 
-        };
-      case "3": // Fullday
-        return { 
-          showTimeInputs: true,  // Changed to true to show the fields
-          timeRange: { 
-            min: "08:00", 
-            max: "18:00",
-            defaultStart: "08:00",  // Default start time
-            defaultEnd: "18:00",    // Default end time
-            isFixed: true           // Mark as fixed
-          } as TimeRange
-        };
-      default:
-        return { showTimeInputs: false, timeRange: null };
+    // Find the matching session configuration in our data
+    const sessionConfig = operationTimes.find(item => item.sessionId === sessionId);
+    
+    if (sessionConfig && sessionConfig.timeRange) {
+      // Add application-specific logic here instead of in the JSON
+      const isFullDay = sessionId === "3";
+      
+      // Map from the simplified JSON properties to our app's required structure
+      const timeRangeWithFlags: TimeRange = {
+        min: sessionConfig.timeRange.startTime,
+        max: sessionConfig.timeRange.endTime,
+        defaultStart: sessionConfig.timeRange.startTime,
+        defaultEnd: sessionConfig.timeRange.endTime,
+        isFixed: isFullDay // Only Full Day sessions have fixed times
+      };
+      
+      return {
+        showTimeInputs: true, // Show time inputs for all sessions, controlled in UI
+        timeRange: timeRangeWithFlags
+      };
     }
-  }, [sessionId]);
+    
+    // Default fallback if no matching session is found
+    return { showTimeInputs: false, timeRange: null };
+  }, [sessionId, operationTimes]);
 
   return visibility;
 };
