@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
 import { FilePlus, Loader2 } from "lucide-react";
 import SiteClosureForm from "./SiteClosure";
+import SiteClosureDetailDialog from "./SiteClosureDetailDialog";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useQuery } from "@tanstack/react-query";
 import { fetchlListClosureData } from "../hook/use-siteclosure";
@@ -23,6 +24,8 @@ interface ClosurePageProps {
 
 const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
+  const [selectedClosureId, setSelectedClosureId] = useState<number | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const { formatDuration } = useFormatDuration();
   const { formatDate } = useFormatDate();
 
@@ -45,6 +48,11 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     if (!open) {
       refetch(); // Refetch data when dialog closes
     }
+  };
+
+  const handleViewClosure = (closureId: number) => {
+    setSelectedClosureId(closureId);
+    setIsDetailDialogOpen(true);
   };
 
   return (
@@ -112,12 +120,16 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                               <span className="text-xs text-muted-foreground">To:</span>
                               <span>{formatDate(item.close_end)}</span>
                             </div>
-                            <div className="text-xs text-muted-foreground lg:hidden">
-                              Duration: {formatDuration(item.duration)}
-                            </div>
+                            {formatDuration(item.duration) && (
+                              <div className="text-xs text-muted-foreground lg:hidden">
+                                Duration: {formatDuration(item.duration)}
+                              </div>
+                            )}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell">{formatDuration(item.duration)}</TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {formatDuration(item.duration)}
+                        </TableCell>
                         <TableCell>
                           {item.nd_closure_categories?.eng || 'N/A'}
                           <div className="md:hidden text-xs text-muted-foreground">
@@ -126,7 +138,13 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                         </TableCell>
                         <TableCell>{item.nd_closure_status?.name || 'N/A'}</TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm">View</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewClosure(item.id)}
+                          >
+                            View
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -147,6 +165,12 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         onOpenChange={handleDialogOpenChange}
         siteId={siteId}
         onSuccess={() => refetch()}
+      />
+
+      <SiteClosureDetailDialog
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+        closureId={selectedClosureId}
       />
     </div>
   );
