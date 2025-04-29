@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import FileViewer from './FileViewer';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ const SiteClosureDetailDialog: React.FC<SiteClosureDetailDialogProps> = ({
 }) => {
   const { formatDate } = useFormatDate();
   const { formatDuration } = useFormatDuration();
+  const [selectedFile, setSelectedFile] = useState<{ url: string; filename: string } | null>(null);
 
   const { data: closure, isLoading, error } = useQuery({
     queryKey: ['closureDetail', closureId],
@@ -53,18 +55,11 @@ const SiteClosureDetailDialog: React.FC<SiteClosureDetailDialogProps> = ({
               {filePaths.map((path: string, fileIndex: number) => {
                 const fileName = path.split('/').pop() || `File ${fileIndex + 1}`;
                 return (
-                  <div key={fileIndex} className="flex items-center gap-2">
-                    <FileIcon className="h-4 w-4" />
-                    <a
-                      href={path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline flex items-center gap-1"
-                    >
-                      {fileName.length > 40 ? fileName.substring(0, 37) + '...' : fileName}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
+                  <FileViewer 
+                    key={fileIndex} 
+                    path={path}
+                    filename={fileName} 
+                  />
                 );
               })}
             </div>

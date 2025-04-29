@@ -161,11 +161,9 @@ export const useInsertSiteClosureData = () => {
             if (uploadError) {
               console.error(`Error uploading file ${file.name}:`, uploadError);
             } else {
-              // Get the public URL of the uploaded file
-              const publicUrl = `/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
-              
-              
-              filePaths.push(publicUrl);
+              // Store the path without SUPABASE_URL, will add it when displaying
+              const storagePath = `/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/${filePath}`;
+              filePaths.push(storagePath);
             }
           }
           
