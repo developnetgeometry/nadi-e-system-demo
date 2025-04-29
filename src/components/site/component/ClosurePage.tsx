@@ -14,7 +14,8 @@ import SiteClosureForm from "./SiteClosure";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useQuery } from "@tanstack/react-query";
 import { fetchlListClosureData } from "../hook/use-siteclosure";
-import { format } from "date-fns";
+import { useFormatDate } from "@/hooks/use-format-date";
+import { useFormatDuration } from "@/hooks/use-format-duration";
 
 interface ClosurePageProps {
   siteId: string;
@@ -22,6 +23,8 @@ interface ClosurePageProps {
 
 const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
+  const { formatDuration } = useFormatDuration();
+  const { formatDate } = useFormatDate();
 
   if (!siteId) {
     console.log('Site id not pass');
@@ -29,26 +32,19 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   }
   console.log("siteId", siteId);
 
-  const { data: closurelistdata, isLoading, error } = useQuery({
+  const { data: closurelistdata, isLoading, error, refetch } = useQuery({
     queryKey: ['siteClosureList'],
     queryFn: fetchlListClosureData
   });
 
   console.log("closurelistdata", closurelistdata);
 
-  // Helper function to format date
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy');
-    } catch (e) {
-      return dateString;
+  // Helper function for when the dialog is closed - will refetch data
+  const handleDialogOpenChange = (open: boolean) => {
+    setSiteClosureOpen(open);
+    if (!open) {
+      refetch(); // Refetch data when dialog closes
     }
-  };
-
-  // Helper function to convert duration (days)
-  const formatDuration = (duration: number) => {
-    const hours = Math.floor(duration * 24);
-    return `${hours} hour${hours !== 1 ? 's' : ''}`;
   };
 
   return (
@@ -130,8 +126,9 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
 
       <SiteClosureForm
         open={isSiteClosureOpen}
-        onOpenChange={setSiteClosureOpen}
+        onOpenChange={handleDialogOpenChange}
         siteId={siteId}
+        onSuccess={() => refetch()}
       />
     </div>
   );

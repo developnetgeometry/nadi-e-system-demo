@@ -33,16 +33,14 @@ interface SiteClosureFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   siteId: string;
-  // siteDetails: string;
-  // location: string;
+  onSuccess?: () => void;
 }
 
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   open,
   onOpenChange,
   siteId,
-  // siteDetails,
-  // location,
+  onSuccess,
 }) => {
   const { toast } = useToast();
   const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();
@@ -213,6 +211,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
           title: "Success",
           description: "Site closure submitted successfully.",
         });
+        onSuccess?.(); // Call onSuccess callback if provided
         onOpenChange(false);
       } else {
         throw new Error(result.error);
@@ -372,6 +371,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               title: "Success",
               description: "Site closure saved as draft successfully."
             });
+            onSuccess?.(); // Call onSuccess callback if provided
             onOpenChange(false);
           } else {
             throw new Error(result.error);
