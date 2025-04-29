@@ -33,6 +33,10 @@ import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import WorkflowDashboard from "@/pages/workflow/Dashboard";
+import Announcements from "@/pages/dashboard/announcements/Announcements";
+import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
+import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
+import Takwim from "@/pages/dashboard/takwim/Takwim";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -318,6 +322,40 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <SiteClosureApproval />
+      // </ProtectedRoute>
+    ),
+  },
+  // Announcements Routes
+  {
+    path: "/announcements",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Announcements />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/announcements/create-announcement",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <CreateAnnouncement />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/announcements/announcements-settings",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <AnnouncementSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  // Takwim Routes
+  {
+    path: "/takwim",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Takwim />
       // </ProtectedRoute>
     ),
   },
