@@ -17,6 +17,7 @@ interface SiteClosureData {
   end_time: string | null;
   requester_id: string | null;
   duration: number | null; // Added duration field
+  request_datetime: string | null; // Added request_datetime field
 }
 
 // Add a new interface for the attachment data
@@ -53,10 +54,13 @@ export const useInsertSiteClosureData = () => {
         
         // Convert to days (as a float)
         duration = diffMs / (1000 * 60 * 60 * 24);
-        
-        // Round to 2 decimal places for better readability in database
-        // duration = parseFloat(duration.toFixed(2));
       }
+      
+      // Only add requester_id and request_datetime when status is 2 (submit)
+      // For drafts (status 1), leave them as null
+      const isSubmitting = dataToInsert.status === "2";
+      const currentDateTime = isSubmitting ? new Date().toISOString() : null;
+      const requesterId = isSubmitting ? user?.id : null;
       
       // Clean up data before insertion to prevent database errors
       const cleanedData = {
@@ -77,11 +81,14 @@ export const useInsertSiteClosureData = () => {
         start_time: dataToInsert.start_time || null,
         end_time: dataToInsert.end_time || null,
         
-        // Add user ID as requester_id
-        requester_id: user?.id || null,
+        // Only add requester_id for actual submissions (status 2)
+        requester_id: requesterId,
         
         // Add calculated duration
         duration: duration,
+        
+        // Only add request_datetime for actual submissions (status 2)
+        request_datetime: currentDateTime,
       };
 
       // console.log("Cleaned data for submission:", cleanedData);
