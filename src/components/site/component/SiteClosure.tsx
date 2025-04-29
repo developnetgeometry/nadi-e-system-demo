@@ -288,6 +288,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     0
   );
 
+  const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
+
   useEffect(() => {
     if (!isDateRangeValid) {
       setField("session", "");
@@ -295,12 +297,24 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   }, [isDateRangeValid]);
 
   useEffect(() => {
-    setFormState((prevState) => ({
-      ...prevState,
-      start_time: "",
-      end_time: "",
-    }));
-  }, [formState.session]);
+    if (formState.session) {
+      let updatedState = {
+        ...formState,
+        start_time: "",
+        end_time: "",
+      };
+      
+      if (formState.session === "3" && timeRange) {
+        updatedState.start_time = "08:00";
+        updatedState.end_time = "18:00";
+      } else if (timeRange?.defaultStart && timeRange?.defaultEnd) {
+        updatedState.start_time = timeRange.defaultStart;
+        updatedState.end_time = timeRange.defaultEnd;
+      }
+      
+      setFormState(updatedState);
+    }
+  }, [formState.session, timeRange]);
 
   useEffect(() => {
     if (formState.start_time && formState.end_time && formState.start_time > formState.end_time) {
@@ -338,8 +352,6 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     oneWeekFromToday.setDate(today.getDate() + 6);
     return oneWeekFromToday.toISOString().split("T")[0];
   }, [isSuperAdmin]);
-
-  const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
 
   const filteredCategories = useMemo(() => {
     if (!closureCategories) return [];
@@ -467,31 +479,47 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               {showTimeInputs && (
                 <>
                   <div className="w-1/2 space-y-2">
-                    <Label htmlFor="startTime">Start Time <span className="text-red-500">*</span> <span className="text-gray-500">(24hrs-format)</span></Label>
-                    <TimeInput
-                      id="startTime"
-                      value={formState.start_time}
-                      onChange={(val) => setField("start_time", val)}
-                      min={timeRange?.min}
-                      max={formState.end_time || timeRange?.max}
-                      disallowSameAsValue={formState.end_time}
-                      className={validationErrors.start_time ? "border-red-500" : ""}
-                    />
+                    <Label htmlFor="startTime">
+                      Start Time <span className="text-red-500">*</span> 
+                      <span className="text-gray-500">(24hrs-format)</span>
+                      {formState.session === "3" && (
+                        <span className="text-blue-500 ml-2">(Fixed)</span>
+                      )}
+                    </Label>
+                    <div className={formState.session === "3" ? "opacity-70 pointer-events-none" : ""}>
+                      <TimeInput
+                        id="startTime"
+                        value={formState.start_time}
+                        onChange={(val) => setField("start_time", val)}
+                        min={timeRange?.min}
+                        max={formState.end_time || timeRange?.max}
+                        disallowSameAsValue={formState.end_time}
+                        className={validationErrors.start_time ? "border-red-500" : ""}
+                      />
+                    </div>
                     {validationErrors.start_time && (
                       <p className="text-sm text-red-500">{validationErrors.start_time}</p>
                     )}
                   </div>
                   <div className="w-1/2 space-y-2">
-                    <Label htmlFor="endTime">End Time <span className="text-red-500">*</span> <span className="text-gray-500">(24hrs-format)</span></Label>
-                    <TimeInput
-                      id="endTime"
-                      value={formState.end_time}
-                      onChange={(val) => setField("end_time", val)}
-                      min={formState.start_time || timeRange?.min}
-                      max={timeRange?.max}
-                      disallowSameAsValue={formState.start_time}
-                      className={validationErrors.end_time ? "border-red-500" : ""}
-                    />
+                    <Label htmlFor="endTime">
+                      End Time <span className="text-red-500">*</span> 
+                      <span className="text-gray-500">(24hrs-format)</span>
+                      {formState.session === "3" && (
+                        <span className="text-blue-500 ml-2">(Fixed)</span>
+                      )}
+                    </Label>
+                    <div className={formState.session === "3" ? "opacity-70 pointer-events-none" : ""}>
+                      <TimeInput
+                        id="endTime"
+                        value={formState.end_time}
+                        onChange={(val) => setField("end_time", val)}
+                        min={formState.start_time || timeRange?.min}
+                        max={timeRange?.max}
+                        disallowSameAsValue={formState.start_time}
+                        className={validationErrors.end_time ? "border-red-500" : ""}
+                      />
+                    </div>
                     {validationErrors.end_time && (
                       <p className="text-sm text-red-500">{validationErrors.end_time}</p>
                     )}
