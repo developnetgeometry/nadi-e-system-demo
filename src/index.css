@@ -165,6 +165,41 @@
   .card-dark {
     @apply dark:bg-gray-800 dark:border-gray-700;
   }
+
+  .scrollbar-blue {
+    scrollbar-color: transparent transparent; /* Firefox - hidden by default */
+    transition: scrollbar-color 0.2s ease;
+  }
+  
+  /* Show on hover or scroll for Firefox */
+  .scrollbar-blue:hover {
+    scrollbar-color: #5147dd transparent;
+  }
+  
+  /* WebKit-based browsers (Chrome, Safari, Edge) */
+  .scrollbar-blue::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollbar-blue::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-blue::-webkit-scrollbar-thumb {
+    background-color: #5147dd;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+  
+  /* Show scrollbar thumb on hover */
+  .scrollbar-blue:hover::-webkit-scrollbar-thumb {
+    opacity: 1;
+  }
+  
+  
 }
 
 @layer utilities {

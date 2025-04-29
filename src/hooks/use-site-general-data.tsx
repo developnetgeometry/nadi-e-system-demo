@@ -11,6 +11,7 @@ const useSiteGeneralData = () => {
   const [categoryArea, setCategoryArea] = useState<any[]>([]);
   const [buildingLevel, setBuildingLevel] = useState<any[]>([]);
   const [socioEconomics, setSocioEconomic] = useState<any[]>([]);
+  const [siteProfiles, setSiteProfiles] = useState<any[]>([]); // Added siteProfiles state
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,6 +114,17 @@ const useSiteGeneralData = () => {
       }
     };
 
+    const fetchSiteProfiles = async () => {
+      try {
+        const { data, error } = await supabase.from("nd_site_profile").select("id, sitename, fullname");
+        if (error) throw error;
+        setSiteProfiles(data);
+      } catch (error) {
+        console.error("Error fetching site profiles:", error);
+        setError(error.message);
+      }
+    };
+
     fetchSiteStatus();
     fetchTechnology();
     fetchBandwidth();
@@ -122,9 +134,22 @@ const useSiteGeneralData = () => {
     fetchCategoryArea();
     fetchBuildingLevel();
     fetchSocioeconomic();
+    fetchSiteProfiles(); // Fetch site profiles
   }, []);
 
-  return { siteStatus, technology, bandwidth, buildingType, space, zone, categoryArea, buildingLevel, socioEconomics, error };
+  return {
+    siteStatus,
+    technology,
+    bandwidth,
+    buildingType,
+    space,
+    zone,
+    categoryArea,
+    buildingLevel,
+    socioEconomics,
+    siteProfiles, // Return siteProfiles
+    error,
+  };
 };
 
 export default useSiteGeneralData;

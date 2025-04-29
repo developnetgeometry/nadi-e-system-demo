@@ -35,7 +35,7 @@ export const SidebarItem = ({
             "flex items-center gap-3 px-4 py-2.5 text-sm text-gray-600 dark:text-gray-200 rounded-md",
             "border-l-2 border-l-gray-300 dark:border-l-gray-700", // always shows grey line
             "rounded-l-none text-xs", // remove rounding on the left side
-            isActive && "text-[#5147dd] font-medium dark:text-[#5147dd]/90 ",
+            isActive && "text-[#5147dd] font-bold dark:text-white",
             isCollapsed && !isMobile && "justify-center px-2"
           )}
           title={isCollapsed && !isMobile ? title : undefined}
@@ -44,7 +44,7 @@ export const SidebarItem = ({
             <div
               className={cn(
                 "absolute -left-2 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full",
-                isActive ? "bg-[#5147dd] " : "bg-gray-200 dark:bg-[#5147dd]/90" // Light grey for non-active items
+                isActive ? "bg-[#5147dd] " : "bg-gray-200 dark:bg-gray-400" // Light grey for non-active items
               )}
             />
             {Icon && <Icon className="h-5 w-5" color={iconColor} />}

@@ -40,7 +40,7 @@ export const DashboardSidebar = () => {
       </div>
 
       {/* Sidebar Content */}
-      <SidebarContent className="flex-1 overflow-y-auto">
+      <SidebarContent className="flex-1 overflow-y-auto scrollbar-blue">
         <CustomSidebarContent state={state} isCollapsed={isCollapsed} />
       </SidebarContent>
     </aside>
