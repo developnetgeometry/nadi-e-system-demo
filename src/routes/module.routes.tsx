@@ -1,8 +1,3 @@
-import { RouteObject } from "react-router-dom";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
-import Employees from "@/pages/dashboard/hr/Employees";
-import SiteStaff from "@/pages/dashboard/hr/SiteStaff";
 import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
 import AssetDetails from "@/pages/dashboard/asset/AssetDetails";
 import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
@@ -17,9 +12,13 @@ import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
+import Employees from "@/pages/dashboard/hr/Employees";
+import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
 import Leave from "@/pages/dashboard/hr/Leave";
+import SiteStaff from "@/pages/dashboard/hr/SiteStaff";
 import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
+import MaintenanceDashboard from "@/pages/dashboard/maintenance/MaintenanceDashboard";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
@@ -33,6 +32,7 @@ import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import WorkflowDashboard from "@/pages/workflow/Dashboard";
+import { RouteObject } from "react-router-dom";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -140,6 +140,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_asset_settings">
       <AssetSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/asset/maintenance",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_asset_settings">
+      <MaintenanceDashboard />
       // </ProtectedRoute>
     ),
   },

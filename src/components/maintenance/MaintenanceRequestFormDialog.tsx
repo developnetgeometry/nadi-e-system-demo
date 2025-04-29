@@ -1,0 +1,222 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { useMaintennance } from "@/hooks/use-maintenance";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { Asset } from "@/types/asset";
+import { MaintenanceRequest } from "@/types/maintenance";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { LoadingSpinner } from "../shared/LoadingSpinner";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+
+export interface MaintenanceRequestFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  maintenanceRequest?: MaintenanceRequest;
+}
+
+export const MaintenanceRequestFormDialog = ({
+  open,
+  onOpenChange,
+  maintenanceRequest,
+}: MaintenanceRequestFormDialogProps) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { user } = useAuth();
+
+  const [description, setDescription] = useState("");
+  const [slaCategory, setSLACategory] = useState("");
+  const [maintenanceType, setMaintenanceType] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [asset, setAsset] = useState<Asset | null>(null);
+  const [status, setStatus] = useState("");
+
+  const { isUploading, uploadFile } = useFileUpload();
+
+  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintennance();
+
+  const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
+    useMaintenanceTypesQuery();
+
+  const { data: slaCategories = [], isLoading: isLoadingSLACategories } =
+    useSLACategoriesQuery();
+
+  const handleFileAttachmentChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setAttachment(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+
+    setIsSubmitting(true);
+
+    const request = {
+      description: description,
+      asset_id: asset?.id as number,
+      type_id: formData.get("type") as string,
+      requester_by: user.id,
+      attachment: attachment,
+    };
+
+    console.log(request);
+
+    try {
+      if (maintenanceRequest) {
+        const { error: updateError } = await supabase
+          .from("nd_maintenance_request")
+          .update({
+            ...request,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", maintenanceRequest.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Maintenance Request updated successfully",
+          description:
+            "The maintenance request has been updated in the system.",
+        });
+      } else {
+        const { error: insertError } = await supabase
+          .from("nd_maintenance_request")
+          .insert([{ ...request, created_at: new Date().toISOString() }]);
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: "Maintenance Request added successfully",
+          description:
+            "The new maintenance request has been added to the system.",
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["maintenanceRequests"] });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error adding maintenance request:", error);
+      toast({
+        title: "Error",
+        description: `Failed to ${
+          maintenanceRequest ? "update" : "add"
+        } the maintenance request. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoadingMaintenanceTypes) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        Loading...
+      </Dialog>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
+        {isLoadingMaintenanceTypes ? (
+          <DialogTitle>
+            <LoadingSpinner />
+          </DialogTitle>
+        ) : (
+          <>
+            <DialogHeader className="mb-2">
+              <DialogTitle>
+                {maintenanceRequest ? "Update Inventory" : "Add New Inventory"}
+              </DialogTitle>
+              <DialogDescription>
+                {maintenanceRequest
+                  ? "Update inventorty details"
+                  : "Fill in the details to create a new maintenanceRequest"}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">Maintenance Type</Label>
+                <Select name="type" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {maintenanceTypes.map((type, index) => (
+                      <SelectItem key={index} value={type.id.toString()}>
+                        {type?.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Enter description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Attachment</Label>
+                <Input
+                  id="attachment"
+                  name="attachment"
+                  placeholder="Enter attachment"
+                  type="file"
+                  onChange={handleFileAttachmentChange}
+                />
+                {attachment && (
+                  <p className="text-sm text-muted-foreground">
+                    {attachment.name}
+                  </p>
+                )}
+              </div>
+
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting
+                  ? maintenanceRequest
+                    ? "Updating..."
+                    : "Adding..."
+                  : maintenanceRequest
+                  ? "Update Maintenance Request"
+                  : "Open Request"}
+              </Button>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
