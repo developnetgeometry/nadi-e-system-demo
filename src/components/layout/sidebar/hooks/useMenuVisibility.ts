@@ -82,7 +82,7 @@ export const useMenuVisibility = (userId: string | undefined) => {
           return;
         }
 
-        console.log("Fetched menu visibility:", menuData);
+        // console.log("Fetched menu visibility:", menuData);
         setMenuVisibility(menuData || []);
 
         // Fetch submodule visibility
@@ -95,7 +95,7 @@ export const useMenuVisibility = (userId: string | undefined) => {
           return;
         }
 
-        console.log("Fetched submodule visibility:", submoduleData);
+        // console.log("Fetched submodule visibility:", submoduleData);
         setSubmoduleVisibility(submoduleData || []);
       } catch (error) {
         console.error("Error in fetchVisibilitySettings:", error);
