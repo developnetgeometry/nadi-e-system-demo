@@ -29,6 +29,13 @@ type ValidationErrors = {
 
 type SubmissionType = "draft" | "submit" | null;
 
+// Add this interface to define the validation context
+interface ValidationContext {
+  showSubcategory?: boolean;
+  isDateRangeValid?: boolean;
+  showTimeInputs?: boolean;
+}
+
 export const useSiteClosureForm = (
   siteId: string,
   siteCode: string,
@@ -142,9 +149,10 @@ export const useSiteClosureForm = (
     today.setHours(0, 0, 0, 0);
     
     const oneWeekFromToday = new Date();
-    oneWeekFromToday.setDate(today.getDate() + 6);
-    oneWeekFromToday.setHours(23, 59, 59, 999);
+    oneWeekFromToday.setDate(today.getDate() + 6); // 6 days ahead for a total of 7 days including today
+    oneWeekFromToday.setHours(23, 59, 59, 999); // End of the 7th day
     
+    // Make sure the selected date is NOT after the 1-week limit
     return selectedDate <= oneWeekFromToday;
   }, [isSuperAdmin]);
 
@@ -168,27 +176,62 @@ export const useSiteClosureForm = (
     }
   }, [formState.close_end, isDateWithinAllowedRange]);
 
-  const validateForm = useCallback(() => {
+  const validateForm = useCallback((context: ValidationContext = {}) => {
     const errors: ValidationErrors = {};
     
+    // Basic validations that always apply
     if (!formState.close_start) {
       errors.close_start = "Start date is required";
     } else if (!isSuperAdmin && !isDateWithinAllowedRange(formState.close_start)) {
-      errors.close_start = "Closure date cannot be more than 1 week in advance";
+      errors.close_start = "Start date cannot be more than 1 week in advance";
     }
     
     if (!formState.close_end) {
       errors.close_end = "End date is required";
     }
     
-    if (!formState.session) {
+    // Check if date range is valid before validating session
+    // Use the provided context or determine it here
+    const isDateRangeValid = context.isDateRangeValid !== undefined 
+      ? context.isDateRangeValid 
+      : formState.close_start && formState.close_end && 
+        new Date(formState.close_start) <= new Date(formState.close_end);
+    
+    if (isDateRangeValid && !formState.session) {
       errors.session = "Session is required";
     }
     
+    // Use the provided context for time inputs or determine it here
+    const showTimeInputs = context.showTimeInputs !== undefined
+      ? context.showTimeInputs
+      : formState.session && !["1", "4"].includes(formState.session);
+    
+    // Only validate time fields if time inputs should be shown
+    if (showTimeInputs) {
+      if (!formState.start_time) {
+        errors.start_time = "Start time is required";
+      }
+      
+      if (!formState.end_time) {
+        errors.end_time = "End time is required";
+      }
+    }
+    
+    // Category is always required
     if (!formState.category_id) {
       errors.category_id = "Category is required";
     }
     
+    // Only validate subcategory if it's needed based on selected category
+    const needsSubcategory = context.showSubcategory !== undefined
+      ? context.showSubcategory
+      : formState.category_id === "6"; // Default logic if context not provided
+      
+    if (needsSubcategory && !formState.subcategory_id) {
+      errors.subcategory_id = "Sub-category is required";
+    }
+    
+    // Always required fields
     if (!formState.remark) {
       errors.remark = "Reason is required";
     }
@@ -226,6 +269,29 @@ export const useSiteClosureForm = (
     setExistingAttachments([]);
   }, [editData?.id, existingAttachments.length]);
 
+  const cleanupFormState = useCallback(() => {
+    console.log("Cleaning up form state after successful submission");
+    setFormState({
+      remark: "",
+      close_start: "",
+      close_end: "",
+      start_time: "",
+      end_time: "",
+      category_id: "",
+      subcategory_id: "",
+      affectArea: [],
+      session: "",
+      status: "2", // Reset to default status
+    });
+    setValidationErrors({});
+    setSelectedFiles([]);
+    setExistingAttachments([]);
+    setOriginalAttachments([]);
+    setWasFormCleared(false);
+    setActiveSubmission(null);
+    setShowConfirmDialog(false);
+  }, []);
+
   const handleSubmitAsDraft = useCallback(async () => {
     setActiveSubmission("draft");
     setFormState(prev => ({ ...prev, status: "1" }));
@@ -254,6 +320,7 @@ export const useSiteClosureForm = (
           title: "Success",
           description: "Site closure saved as draft successfully."
         });
+        cleanupFormState(); // Add this line to reset form state
         if (onSuccess) onSuccess();
         if (onOpenChange) onOpenChange(false);
       } else {
@@ -272,7 +339,7 @@ export const useSiteClosureForm = (
   }, [
     siteId, formState, editData?.id, existingAttachments, originalAttachments,
     wasFormCleared, selectedFiles, siteCode, updateSiteClosureData,
-    insertSiteClosureData, toast, onSuccess, onOpenChange
+    insertSiteClosureData, toast, onSuccess, onOpenChange, cleanupFormState // Add cleanupFormState to dependency array
   ]);
 
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
@@ -318,6 +385,7 @@ export const useSiteClosureForm = (
           title: "Success",
           description: "Site closure submitted successfully.",
         });
+        cleanupFormState(); // Add this line to reset form state
         if (onSuccess) onSuccess();
         if (onOpenChange) onOpenChange(false);
       } else {
@@ -336,7 +404,7 @@ export const useSiteClosureForm = (
   }, [
     siteId, formState, editData?.id, existingAttachments, originalAttachments, 
     wasFormCleared, selectedFiles, siteCode, updateSiteClosureData, 
-    insertSiteClosureData, toast, onSuccess, onOpenChange
+    insertSiteClosureData, toast, onSuccess, onOpenChange, cleanupFormState // Add cleanupFormState to dependency array
   ]);
 
   const handleAttachmentsChange = useCallback((files: File[]) => {
@@ -399,5 +467,6 @@ export const useSiteClosureForm = (
     resetCleanupFlags,
     setShowConfirmDialog,
     cleanupState,
+    cleanupFormState, // Expose this function
   };
 };

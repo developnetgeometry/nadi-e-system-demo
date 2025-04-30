@@ -26,6 +26,7 @@ import { useUserGroup } from "@/hooks/use-user-group";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { SUPABASE_URL } from "@/integrations/supabase/client";
 import { useSiteClosureForm } from "../hook/use-site-closure-form";
+import { toast } from "@/hooks/use-toast";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -47,10 +48,11 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const { siteCode } = useSiteCode(siteId);
   const { isTP, isSuperAdmin } = useUserGroup();
   const fileUploadRef = useRef<any>(null);
-  
-  // Use the refactored form hook
+
+  // Pass necessary validation states to the form hook
   const {
     formState,
+    setFormState,
     setField,
     validationErrors,
     isSubmitting,
@@ -67,6 +69,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     handleExistingAttachmentsChange,
     resetCleanupFlags,
     setShowConfirmDialog,
+    validateForm,
+    cleanupFormState,
   } = useSiteClosureForm(siteId, siteCode, editData, isSuperAdmin, onSuccess, onOpenChange);
 
   // Track whether to show subcategory field based on category selection
@@ -96,7 +100,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   // Format existing attachments for FileUpload component
   const formattedExistingFiles = useMemo(() => {
     if (!existingAttachments || existingAttachments.length === 0) return null;
-    
+
     return existingAttachments.map(path => {
       const fileName = path.split('/').pop() || 'File';
       const fullUrl = path.startsWith('http') ? path : `${SUPABASE_URL}${path}`;
@@ -113,7 +117,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     formState.close_end,
     0
   );
-  
+
   // Show time inputs depending on selected session
   const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
 
@@ -129,8 +133,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   useEffect(() => {
     if (!open) {
       resetCleanupFlags();
+      cleanupFormState();
     }
-  }, [open, resetCleanupFlags]);
+  }, [open, resetCleanupFlags, cleanupFormState]);
 
   // Clear edit data when dialog closes
   useEffect(() => {
@@ -154,7 +159,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         start_time: "",
         end_time: "",
       };
-      
+
       if (timeRange) {
         if (formState.session === "3" && timeRange.isFixed) {
           updatedState.start_time = timeRange.defaultStart || "08:00";
@@ -164,7 +169,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
           updatedState.end_time = timeRange.defaultEnd;
         }
       }
-      
+
       setField("start_time", updatedState.start_time);
       setField("end_time", updatedState.end_time);
     }
@@ -195,9 +200,9 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   // Filter categories based on user permissions
   const filteredCategories = useMemo(() => {
     if (!closureCategories) return [];
-    
+
     if (isSuperAdmin || isTP) return closureCategories;
-    
+
     return closureCategories.filter(category => String(category.id) !== "1");
   }, [closureCategories, isTP, isSuperAdmin]);
 
@@ -211,24 +216,48 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   }, [isTP, isSuperAdmin, formState.category_id, setField]);
 
   const today = new Date().toISOString().split("T")[0];
-  
+
   const maxStartDate = useMemo(() => {
     if (isSuperAdmin) return undefined;
-    
+
     const today = new Date();
     const oneWeekFromToday = new Date();
     oneWeekFromToday.setDate(today.getDate() + 6);
     return oneWeekFromToday.toISOString().split("T")[0];
   }, [isSuperAdmin]);
 
+  // Update handleFormSubmit to include context information in validation
+  const handleFormValidationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Modify validation context based on current state
+    const isValid = validateForm({
+      showSubcategory,
+      isDateRangeValid,
+      showTimeInputs
+    });
+
+    if (!isValid) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowConfirmDialog(true);
+  };
+
   return (
     <>
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             console.log("Dialog closing - cleaning up state");
             resetCleanupFlags();
+            cleanupFormState();
             if (fileUploadRef.current && fileUploadRef.current.reset) {
               fileUploadRef.current.reset();
             }
@@ -245,19 +274,19 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               {editData ? "Edit Draft Closure Request" : "Site Closure Form"}
             </DialogTitle>
             <DialogDescription>
-              {editData 
-                ? "Edit your draft closure request details." 
+              {editData
+                ? "Edit your draft closure request details."
                 : "Fill in the details for site closure."}
             </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleFormSubmit} className="space-y-4" noValidate>
+
+          <form onSubmit={handleFormValidationSubmit} className="space-y-4" noValidate>
             {/* Site Code */}
             <div className="space-y-2">
               <Label htmlFor="siteId">Site Code</Label>
               <Input id="siteId" value={siteCode} readOnly />
             </div>
-            
+
             {/* Date Range Fields */}
             <div className="flex space-x-4">
               <div className="w-1/2 space-y-2">
@@ -296,7 +325,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 )}
               </div>
             </div>
-            
+
             {/* Session Selection */}
             {isDateRangeValid && (
               <div className="space-y-2">
@@ -320,13 +349,13 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 )}
               </div>
             )}
-            
+
             {/* Time Selection Fields */}
             {showTimeInputs && (
               <div className="flex space-x-4">
                 <div className="w-1/2 space-y-2">
                   <Label htmlFor="startTime">
-                    Start Time <span className="text-red-500">*</span> 
+                    Start Time <span className="text-red-500">*</span>
                     <span className="text-gray-500">(24hrs-format)</span>
                     {timeRange?.isFixed && (
                       <span className="text-blue-500 ml-2">(Fixed)</span>
@@ -349,7 +378,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 </div>
                 <div className="w-1/2 space-y-2">
                   <Label htmlFor="endTime">
-                    End Time <span className="text-red-500">*</span> 
+                    End Time <span className="text-red-500">*</span>
                     <span className="text-gray-500">(24hrs-format)</span>
                     {timeRange?.isFixed && (
                       <span className="text-blue-500 ml-2">(Fixed)</span>
@@ -372,7 +401,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 </div>
               </div>
             )}
-            
+
             {/* Category Selection */}
             <div className="space-y-2">
               <Label htmlFor="category">Closure Category <span className="text-red-500">*</span></Label>
@@ -397,7 +426,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 <p className="text-sm text-red-500">{validationErrors.category_id}</p>
               )}
             </div>
-            
+
             {/* Subcategory Selection (conditional) */}
             {showSubcategory && (
               <div className="space-y-2">
@@ -424,7 +453,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 )}
               </div>
             )}
-            
+
             {/* Affected Areas */}
             <div className="space-y-2">
               <Label htmlFor="affectArea">Closure Affect Area <span className="text-red-500">*</span></Label>
@@ -443,7 +472,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 <p className="text-sm text-red-500">{validationErrors.affectArea}</p>
               )}
             </div>
-            
+
             {/* Reason */}
             <div className="space-y-2">
               <Label htmlFor="reason">Reason <span className="text-red-500">*</span></Label>
@@ -457,7 +486,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 <p className="text-sm text-red-500">{validationErrors.remark}</p>
               )}
             </div>
-            
+
             {/* File Upload */}
             <div className="space-y-2">
               <Label htmlFor="attachment">Attachment</Label>
@@ -473,7 +502,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 onExistingFilesChange={(files) => handleExistingAttachmentsChange(files, SUPABASE_URL)}
               />
             </div>
-            
+
             {/* Form Buttons */}
             <DialogFooter className="flex justify-between sm:justify-end gap-2">
               <Button
@@ -498,12 +527,12 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 onClick={handleSubmitAsDraft}
                 disabled={isSubmitting}
               >
-                {isSubmitting && activeSubmission === "draft" ? 
-                  (editData?.id ? "Updating..." : "Saving...") : 
+                {isSubmitting && activeSubmission === "draft" ?
+                  (editData?.id ? "Updating..." : "Saving...") :
                   (editData?.id ? "Update Draft" : "Save as Draft")}
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting}
               >
                 {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}

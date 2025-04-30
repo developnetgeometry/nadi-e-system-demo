@@ -674,3 +674,102 @@ export const useDraftClosure = () => {
 
   return { fetchDraftData, loading, error };
 };
+
+// Add a new hook for deleting draft closure requests
+export const useDeleteDraftClosure = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const deleteDraft = async (closureId: number): Promise<{ success: boolean; error?: string }> => {
+    setLoading(true);
+    try {
+      // 1. First, get any file attachments associated with the draft
+      const { data: attachmentData, error: fetchError } = await supabase
+        .from("nd_site_closure_attachment")
+        .select("file_path")
+        .eq("site_closure_id", closureId);
+
+      if (fetchError) {
+        console.error("Error fetching attachments:", fetchError);
+        throw fetchError;
+      }
+
+      // 2. Delete files from storage if they exist
+      if (attachmentData && attachmentData.length > 0) {
+        const filesPathArray = attachmentData[0].file_path;
+        if (filesPathArray) {
+          let filePaths: string[] = [];
+          if (typeof filesPathArray === 'string') {
+            // If file_path is stored as a JSON string, parse it
+            try {
+              filePaths = JSON.parse(filesPathArray);
+            } catch (e) {
+              filePaths = [filesPathArray];
+            }
+          } else if (Array.isArray(filesPathArray)) {
+            filePaths = filesPathArray;
+          }
+
+          // Extract storage paths and delete files
+          for (const fullPath of filePaths) {
+            // Extract the relative storage path from the full URL
+            const pathParts = fullPath.split(`/storage/v1/object/public/${BUCKET_NAME_SITE_CLOSURE}/`);
+            if (pathParts.length > 1) {
+              const storagePath = pathParts[1];
+              console.log(`Deleting file: ${storagePath}`);
+              
+              const { error: deleteFileError } = await supabase.storage
+                .from(BUCKET_NAME_SITE_CLOSURE)
+                .remove([storagePath]);
+                
+              if (deleteFileError) {
+                console.error(`Error deleting file ${storagePath}:`, deleteFileError);
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Delete attachment records
+      const { error: deleteAttachmentError } = await supabase
+        .from("nd_site_closure_attachment")
+        .delete()
+        .eq("site_closure_id", closureId);
+
+      if (deleteAttachmentError) {
+        console.error("Error deleting attachments:", deleteAttachmentError);
+      }
+
+      // 4. Delete related affect area records
+      const { error: deleteAreaError } = await supabase
+        .from("nd_site_closure_affect_area")
+        .delete()
+        .eq("site_closure_id", closureId);
+
+      if (deleteAreaError) {
+        console.error("Error deleting affect areas:", deleteAreaError);
+      }
+
+      // 5. Delete the draft closure itself
+      const { error: deleteClosureError } = await supabase
+        .from("nd_site_closure")
+        .delete()
+        .eq("id", closureId);
+
+      if (deleteClosureError) {
+        console.error("Error deleting draft closure:", deleteClosureError);
+        throw deleteClosureError;
+      }
+
+      setLoading(false);
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting draft closure:", error);
+      setError(error.message);
+      setLoading(false);
+      return { success: false, error: error.message };
+    }
+  };
+
+  return { deleteDraft, loading, error };
+};
