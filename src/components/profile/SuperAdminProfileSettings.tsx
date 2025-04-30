@@ -22,7 +22,7 @@ const SuperAdminProfileSettings = () => {
       <TabsContent value="overview" className="h-full mt-0">
         <Card className="h-full">
           <div className="p-6 h-full">
-            <ProfileOverviewPage profileData={superadminProfile} refetch={refetch}/>
+            <ProfileOverviewPage profileData={superadminProfile} refetch={refetch} userType={"super_admin"} userGroup={999}/>
           </div>
         </Card>
       </TabsContent>

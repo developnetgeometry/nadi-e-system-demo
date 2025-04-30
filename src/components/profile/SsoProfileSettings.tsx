@@ -24,7 +24,7 @@ const SsoProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the vendor profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={ssoProfile} refetch={refetch}/>
+            <ProfileOverviewPage profileData={ssoProfile} refetch={refetch} userType={""} userGroup={4}/>
           </div>
         </Card>
       </TabsContent>

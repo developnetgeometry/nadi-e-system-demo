@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Edit } from "lucide-react";
 import StaffPictureUploadDialog from "./StaffPictureUploadDialog";
 import MemberPictureUploadDialog from "./MemberPictureUploadDialog";
@@ -12,19 +11,24 @@ import OverviewPageDialogTP from "./OverviewPageDialogTP";
 import OverviewPageDialogStaff from "./OverviewPageDialogStaff";
 import OverviewPageDialogSuperAdmin from "./OverviewPageDialogSuperAdmin";
 import OverviewPageDialogMember from "./OverviewPageDialogMember";
-import { Skeleton } from "@/components/ui/skeleton";
 
-const ProfileOverviewPage = ({ profileData, refetch }: { profileData: any; refetch: () => void }) => {
-  const userMetadata = useUserMetadata();
-  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const userType = parsedMetadata?.user_type;
-  const userGroup = parsedMetadata?.user_group;
+const ProfileOverviewPage = ({
+  profileData,
+  refetch,
+  userType,
+  userGroup,
+}: {
+  profileData: any;
+  refetch: () => void;
+  userType: string;
+  userGroup: number;
+}) => {  
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
 
 
-  if (!userType) {
+  if (!profileData) {
     return (<div className="flex items-center justify-center p-8">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>);
@@ -84,6 +88,8 @@ const ProfileOverviewPage = ({ profileData, refetch }: { profileData: any; refet
             onFilesSelected={(files) => {
               refetch();
             }}
+            memberId={profileData.id} // Pass member_id
+            userId={profileData.user_id} // Pass user_id
           />
         )}
       </div>
@@ -225,7 +231,7 @@ const ProfileOverviewPage = ({ profileData, refetch }: { profileData: any; refet
             <p className="text-base font-medium">{profileData.religion_id?.eng ?? "N/A"}</p>
           </div>
         )}
-        {(userGroup === 3 || userGroup === 6) && (
+        {(userGroup === 3 || userGroup === 6 || userGroup === 7) && (
           <div>
             <p className="text-sm text-gray-500">Nationality:</p>
             <p className="text-base font-medium">{profileData.nationality_id?.eng ?? "N/A"}</p>
