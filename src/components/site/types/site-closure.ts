@@ -101,3 +101,14 @@ export interface ClosureCategory {
     bm: string;
     eng: string;
   }
+
+// Add this interface to properly type attachments
+export interface SiteClosureAttachment {
+  id: number;
+  site_closure_id: number;
+  file_path: string[] | string | null; // Support both string and array types
+  created_at?: string;
+  created_by?: string;
+  updated_at?: string;
+  updated_by?: string;
+}
