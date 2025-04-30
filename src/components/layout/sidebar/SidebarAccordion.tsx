@@ -60,7 +60,7 @@ export const SidebarAccordion = ({
       <AccordionItem
         value={label}
         className={cn(
-          "border-none truncate flex-1 min-h-[1.25rem] leading-tight line-clamp-2 tracking-tight",
+          "border-none truncate flex-1 min-h-[1.25rem] leading-tight line-clamp-2 tracking-tight ",
           isActive
         )}
       >
@@ -68,11 +68,17 @@ export const SidebarAccordion = ({
           className={cn(
             sidebarStyles.accordionTrigger,
             isActive && sidebarStyles.accordionTriggerActive,
-            "h-[40px] w-full"
+            "h-[40px] w-full group"
           )}
         >
           <div className="flex items-center gap-3 w-full min-h-[1.25rem]">
-            <AccordionIcon className="h-5 w-5 flex-shrink-0" />
+            <AccordionIcon
+              className={cn(
+                "h-5 w-5 flex-shrink-0",
+                isActive ? "text-white" : "text-[#5147dd]",
+                "group-hover:text-white dark:text-white"
+              )}
+            />
             <span className="truncate flex-1 leading-tight text-left text-xs tracking-tighter">
               {label}
             </span>

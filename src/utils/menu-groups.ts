@@ -20,6 +20,8 @@ import {
   dashboardItems,
   nadiDashboardItems,
   iotDashboardItems,
+  announcementsItems,
+  takwimItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups = [
@@ -124,16 +126,21 @@ export const menuGroups = [
     route: "/services",
     items: serviceModuleItems,
   },
+  {
+    label: "Announcements",
+    route: "/announcements",
+    items: announcementsItems,
+  },
+  {
+    label: "Takwim",
+    route: "/takwim",
+    items: takwimItems,
+  },
 
   // {
   //   label: "Smart Service Management",
   //   route: "/smartservice",
   //   items: claimItems,
-  // },
-  // {
-  //   label: "Takwim Management",
-  //   route: "/takwim",
-  //   items: programmesItems,
   // },
   // {
   //   label: "Booking Management",
@@ -197,12 +204,6 @@ export const menuGroups = [
   // {
   //   label: "Attendance Module",
   //   route: "/attendance",
-  //   // items: iotItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "Announcement Module",
-  //   route: "/announcement",
   //   // items: iotItems,
   //   items: programmesItems,
   // },
