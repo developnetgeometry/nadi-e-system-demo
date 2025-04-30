@@ -12,11 +12,12 @@ import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
-import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, Site, fetchSocioecomic, fetchSiteSpace, fetchOrganization } from "@/components/site/component/site-utils";
+import { fetchSiteStatus, fetchPhase, fetchRegion, fetchDistrict, fetchParliament, fetchMukim, fetchState, fetchDun, fetchTechnology, fetchBandwidth, fetchBuildingType, fetchZone, fetchCategoryArea, fetchBuildingLevel, fetchSocioecomic, fetchSiteSpace, fetchOrganization } from "@/components/site/hook/site-utils";
 import { Textarea } from "../ui/textarea";
 import { DateInput } from "@/components/ui/date-input";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { SelectMany } from "@/components/ui/SelectMany";
+import { Site } from "@/types/site";
 
 interface SiteFormDialogProps {
   open: boolean;
@@ -382,7 +383,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         .select('id, site_profile_id')
         .ilike('standard_code', formState.code);
 
-      if (codeCheckError && codeCheckError.code !== 'PGRST116') throw codeCheckError; // Ignore "No rows found" error
+      // if (codeCheckError && codeCheckError.code !== 'PGRST116') throw codeCheckError; // Ignore "No rows found" error
+      if (codeCheckError ) throw codeCheckError; // Ignore "No rows found" error
 
       if (existingSite && existingSite.length > 0 && (!site || existingSite[0].site_profile_id !== site.id)) {
         const codeInput = document.getElementById('code');

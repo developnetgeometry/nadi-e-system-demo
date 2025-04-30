@@ -12,7 +12,7 @@ import { Settings, Eye, EyeOff, Trash2, Search } from "lucide-react"; // Import 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MaintenanceFormDialog } from "./MaintenanceFormDialog";
-import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus } from "./component/site-utils"; // Import fetchPhase, fetchRegion, and fetchStatus
+import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus } from "./hook/site-utils"; // Import fetchPhase, fetchRegion, and fetchStatus
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog

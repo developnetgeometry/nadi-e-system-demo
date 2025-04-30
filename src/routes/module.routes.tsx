@@ -33,6 +33,9 @@ import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import WorkflowDashboard from "@/pages/workflow/Dashboard";
+import DocketStatus from "@/pages/dashboard/dashboard/DocketStatus";
+import Technician from "@/pages/dashboard/dashboard/Technician";
+import Graph from "@/pages/dashboard/dashboard/Graph";
 import Announcements from "@/pages/dashboard/announcements/Announcements";
 import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
@@ -324,6 +327,30 @@ export const moduleRoutes: RouteObject[] = [
       <SiteClosureApproval />
       // </ProtectedRoute>
     ),
+  },
+  {
+    path: "/docket-status", //For superadmin
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <DocketStatus />
+      // </ProtectedRoute>
+      }
+  },
+  {
+    path: "/technician", //For superadmin
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Technician />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/graph", //For superadmin
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Graph />
+      // </ProtectedRoute>
+      },
   },
   // Announcements Routes
   {

@@ -1,0 +1,28 @@
+{
+  "operationTimes": [
+    {
+      "sessionId": "1",
+      "name": "Halfday AM",
+      "timeRange": {
+        "startTime": "08:00",
+        "endTime": "11:59"
+      }
+    },
+    {
+      "sessionId": "2",
+      "name": "Halfday PM",
+      "timeRange": {
+        "startTime": "12:00",
+        "endTime": "18:00"
+      }
+    },
+    {
+      "sessionId": "3",
+      "name": "Fullday",
+      "timeRange": {
+        "startTime": "08:00",
+        "endTime": "18:00"
+      }
+    }
+  ]
+}

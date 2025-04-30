@@ -12,7 +12,9 @@ interface FileUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
   buttonText?: string;
   showPreview?: boolean;
   existingFile?: { url: string; name: string } | null;
+  existingFiles?: Array<{ url: string; name: string }> | null;
   children?: React.ReactNode;
+  multiple?: boolean;
 }
 
 export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
@@ -26,6 +28,8 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       buttonText = "Upload File",
       showPreview = true,
       existingFile = null,
+      existingFiles = null,
+      multiple = false,
       children,
       ...props
     },
@@ -33,40 +37,172 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
   ) => {
     const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
     const [error, setError] = React.useState<string | null>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const [isDraggingInvalidFile, setIsDraggingInvalidFile] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
+    const dropZoneRef = React.useRef<HTMLDivElement>(null);
+    
+    // Update maxFiles based on multiple prop
+    const effectiveMaxFiles = multiple ? maxFiles : 1;
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Handle existing files display
+    const initialExistingFiles = React.useMemo(() => {
+      if (existingFiles) {
+        return existingFiles;
+      } else if (existingFile) {
+        return [existingFile];
+      }
+      return [];
+    }, [existingFile, existingFiles]);
+
+    const [displayedExistingFiles, setDisplayedExistingFiles] = React.useState(initialExistingFiles);
+
+    React.useEffect(() => {
+      const newExistingFiles = existingFiles || (existingFile ? [existingFile] : []);
+      setDisplayedExistingFiles(newExistingFiles.filter(Boolean));
+    }, [existingFile, existingFiles]);
+
+    // Add reset method to the component
+    React.useImperativeHandle(ref, () => ({
+      ...inputRef.current,
+      reset: () => {
+        setSelectedFiles([]);
+        setError(null);
+        if (inputRef.current) {
+          inputRef.current.value = "";
+        }
+        if (onFilesSelected) {
+          onFilesSelected([]);
+        }
+      }
+    }));
+
+    // Check if dragged files are valid (for drag-and-drop validation)
+    const checkDraggedFilesValidity = (dataTransfer: DataTransfer | null): boolean => {
+      if (!dataTransfer || (!dataTransfer.items.length && !dataTransfer.files.length)) return true;
+      
+      // Skip checking if no specific file types are required
+      if (!acceptedFileTypes) return true;
+      
+      const acceptedTypes = acceptedFileTypes.split(',').map(type => type.trim().toLowerCase());
+      
+      // Try to use DataTransferItems first (for dragover) then fall back to files (for drop)
+      const items = dataTransfer.items;
+      
+      if (items && items.length > 0) {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          
+          // Only process file items
+          if (item.kind === 'file') {
+            const fileType = item.type; // MIME type
+            
+            // For drag events, we might only have MIME type and not the extension
+            const isValidType = acceptedTypes.some(type => {
+              // Handle mimetype patterns (image/*)
+              if (type.includes('/')) {
+                return fileType.match(new RegExp(type.replace('*', '.*')));
+              } else {
+                // For extensions, we can only make a guess during dragover
+                // This is less accurate but better than nothing
+                return fileType && 
+                       ((type === '.pdf' && fileType === 'application/pdf') ||
+                        (type === '.jpg' && (fileType === 'image/jpeg' || fileType === 'image/jpg')) ||
+                        (type === '.jpeg' && (fileType === 'image/jpeg' || fileType === 'image/jpg')) ||
+                        (type === '.png' && fileType === 'image/png') ||
+                        (type === '.gif' && fileType === 'image/gif'));
+              }
+            });
+            
+            if (!isValidType) return false;
+          }
+        }
+      } else {
+        // Use FileList if DataTransferItems is not available
+        const files = dataTransfer.files;
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+          const isValidType = acceptedTypes.some(type => {
+            if (type.includes('/')) {
+              return file.type.match(new RegExp(type.replace('*', '.*')));
+            } else {
+              return fileExtension === type;
+            }
+          });
+          
+          if (!isValidType) return false;
+        }
+      }
+      
+      return true;
+    };
+
+    const validateFiles = (filesToValidate: File[]): File[] | null => {
       setError(null);
 
+      // Validate number of files
+      const newTotalFiles = multiple 
+        ? [...selectedFiles, ...filesToValidate]
+        : filesToValidate;
+
+      if (newTotalFiles.length > effectiveMaxFiles) {
+        setError(
+          `You can only upload up to ${effectiveMaxFiles} file${
+            effectiveMaxFiles === 1 ? "" : "s"
+          }`
+        );
+        return null;
+      }
+
+      // Validate file size - check each file individually
+      const oversizedFiles = filesToValidate.filter(
+        (file) => file.size > maxSizeInMB * 1024 * 1024
+      );
+      if (oversizedFiles.length > 0) {
+        setError(`Each file must be less than ${maxSizeInMB}MB`);
+        return null;
+      }
+
+      // Validate file type if acceptedFileTypes is provided
+      if (acceptedFileTypes) {
+        const acceptedTypes = acceptedFileTypes.split(',').map(type => type.trim().toLowerCase());
+        
+        // Check if any file doesn't match the accepted types
+        const invalidFiles = filesToValidate.filter(file => {
+          const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+          return !acceptedTypes.some(type => {
+            // Handle both mimetype patterns (image/*) and extensions (.pdf)
+            if (type.includes('/')) {
+              return file.type.match(new RegExp(type.replace('*', '.*')));
+            } else {
+              return fileExtension === type;
+            }
+          });
+        });
+
+        if (invalidFiles.length > 0) {
+          setError(`Only ${acceptedFileTypes} files are allowed`);
+          return null;
+        }
+      }
+
+      return multiple ? [...selectedFiles, ...filesToValidate] : filesToValidate;
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.files || event.target.files.length === 0) {
         return;
       }
 
       const filesArray = Array.from(event.target.files);
+      const validatedFiles = validateFiles(filesArray);
 
-      // Validate number of files
-      if (filesArray.length > maxFiles) {
-        setError(
-          `You can only upload up to ${maxFiles} file${
-            maxFiles === 1 ? "" : "s"
-          }`
-        );
-        return;
-      }
-
-      // Validate file size
-      const oversizedFiles = filesArray.filter(
-        (file) => file.size > maxSizeInMB * 1024 * 1024
-      );
-      if (oversizedFiles.length > 0) {
-        setError(`Files must be less than ${maxSizeInMB}MB`);
-        return;
-      }
-
-      setSelectedFiles(filesArray);
-
-      if (onFilesSelected) {
-        onFilesSelected(filesArray);
+      if (validatedFiles) {
+        setSelectedFiles(validatedFiles);
+        if (onFilesSelected) {
+          onFilesSelected(validatedFiles);
+        }
       }
     };
 
@@ -85,30 +221,146 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       }
     };
 
+    const handleRemoveExistingFile = (index: number) => {
+      const newFiles = [...displayedExistingFiles];
+      newFiles.splice(index, 1);
+      setDisplayedExistingFiles(newFiles);
+    };
+
     const triggerFileInput = () => {
       if (inputRef.current) {
         inputRef.current.click();
       }
     };
 
+    const getPlaceholderText = () => {
+      if (selectedFiles.length >= effectiveMaxFiles) {
+        return "Maximum number of files reached";
+      }
+      
+      return `Drag and drop your file${multiple ? "s" : ""} here, or click to browse`;
+    };
+
+    // Handle drag events
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (selectedFiles.length < effectiveMaxFiles) {
+        const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
+        setIsDraggingInvalidFile(!isValidFileType);
+        setIsDragging(true);
+      }
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Only set isDragging to false if we're leaving the dropzone (not a child element)
+      if (e.currentTarget === e.target) {
+        setIsDragging(false);
+        setIsDraggingInvalidFile(false);
+        // Clear any drag-related error messages when drag ends
+        if (error && isDraggingInvalidFile) {
+          setError(null);
+        }
+      }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (selectedFiles.length < effectiveMaxFiles) {
+        const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
+        
+        // Set the drop effect based on file type validity
+        e.dataTransfer.dropEffect = isValidFileType ? "copy" : "none";
+        
+        setIsDraggingInvalidFile(!isValidFileType);
+        setIsDragging(true);
+        
+        // Show error message for invalid file types during drag only
+        if (!isValidFileType && acceptedFileTypes) {
+          setError(`Only ${acceptedFileTypes} files are allowed`);
+        } else if (isDraggingInvalidFile) {
+          // Clear error if file is now valid
+          setError(null);
+        }
+      }
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      setIsDraggingInvalidFile(false);
+      
+      // Clear drag-related error messages
+      if (error && isDraggingInvalidFile) {
+        setError(null);
+      }
+      
+      if (selectedFiles.length >= effectiveMaxFiles) return;
+      
+      // Check file type validity before processing
+      const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
+      
+      if (!isValidFileType) {
+        setError(`Only ${acceptedFileTypes} files are allowed`);
+        return;
+      }
+      
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const droppedFiles = Array.from(e.dataTransfer.files);
+        const validatedFiles = validateFiles(droppedFiles);
+        
+        if (validatedFiles) {
+          setSelectedFiles(validatedFiles);
+          if (onFilesSelected) {
+            onFilesSelected(validatedFiles);
+          }
+        }
+      }
+    };
+
     return (
       <div className={cn("space-y-4", className)}>
         <div
+          ref={dropZoneRef}
           className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 cursor-pointer transition-colors",
-            error ? "border-destructive" : "border-muted-foreground/20"
+            "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+            isDragging && !isDraggingInvalidFile ? "border-primary bg-primary/10" : 
+              isDraggingInvalidFile ? "border-destructive bg-destructive/10" : "hover:bg-muted/50",
+            error && !isDragging ? "border-destructive" : 
+              !isDragging ? "border-muted-foreground/20" : "",
+            selectedFiles.length >= effectiveMaxFiles ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           )}
-          onClick={triggerFileInput}
+          onClick={selectedFiles.length < effectiveMaxFiles ? triggerFileInput : undefined}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
-          <Upload className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mb-1">
-            Drag and drop your file{maxFiles > 1 ? "s" : ""} here, or click to
-            browse
+          <Upload className={cn(
+            "h-10 w-10 mx-auto mb-2",
+            isDraggingInvalidFile ? "text-destructive" : "text-muted-foreground"
+          )} />
+          <p className={cn(
+            "text-sm mb-1",
+            isDraggingInvalidFile ? "text-destructive" : "text-muted-foreground"
+          )}>
+            {isDraggingInvalidFile 
+              ? `Only ${acceptedFileTypes} files are allowed` 
+              : getPlaceholderText()
+            }
           </p>
           <p className="text-xs text-muted-foreground">
             {acceptedFileTypes ? `Accepted formats: ${acceptedFileTypes}` : ""}
             {acceptedFileTypes && maxSizeInMB ? " • " : ""}
-            {maxSizeInMB ? `Max ${maxSizeInMB}MB` : ""}
+            {maxSizeInMB ? `Each file max ${maxSizeInMB}MB` : ""}
+            {effectiveMaxFiles > 1 ? ` • Max ${effectiveMaxFiles} files` : ""}
           </p>
           <Input
             ref={inputRef}
@@ -116,52 +368,58 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
             className="hidden"
             onChange={handleFileChange}
             accept={acceptedFileTypes}
-            multiple={maxFiles > 1}
+            multiple={multiple}
+            disabled={selectedFiles.length >= effectiveMaxFiles}
             {...props}
           />
         </div>
 
-        {error && (
+        {/* Only show error message below the upload box if it's not related to dragging */}
+        {error && !isDraggingInvalidFile && (
           <p className="text-sm text-destructive font-medium">{error}</p>
         )}
 
-        {/* Show existing file if provided */}
-        {existingFile && !selectedFiles.length && (
+        {/* Show existing files */}
+        {displayedExistingFiles.length > 0 && selectedFiles.length === 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Existing File:</p>
-            <div className="flex items-center p-2 border rounded-md bg-muted/30">
-              <File className="h-4 w-4 mr-2" />
-              <a
-                href={existingFile.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline flex-1 truncate"
-              >
-                {existingFile.name}
-              </a>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => {
-                  setSelectedFiles([]); // Clear selected files
-                  if (inputRef.current) {
-                    inputRef.current.value = ""; // Reset input
-                  }
-                }}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Remove file</span>
-              </Button>
+            <p className="text-sm font-medium">Existing File{displayedExistingFiles.length > 1 ? "s" : ""}:</p>
+            <div className="grid gap-2">
+              {displayedExistingFiles.map((file, index) => (
+                <div
+                  key={`existing-${index}`}
+                  className="flex items-center p-2 border rounded-md bg-muted/30"
+                >
+                  <File className="h-4 w-4 mr-2" />
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline flex-1 truncate"
+                  >
+                    {file.name}
+                  </a>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveExistingFile(index);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Remove file</span>
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Show selected files */}
-
         {showPreview && selectedFiles.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Selected files:</p>
+            <p className="text-sm font-medium">Selected file{selectedFiles.length > 1 ? "s" : ""}:</p>
             <div className="grid gap-2">
               {selectedFiles.map((file, index) => (
                 <div
@@ -188,10 +446,17 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           </div>
         )}
 
-        <Button type="button" onClick={triggerFileInput} className="mt-2">
-          {children}
-          {!children && buttonText}
-        </Button>
+        {selectedFiles.length < effectiveMaxFiles && (
+          <Button 
+            type="button" 
+            onClick={triggerFileInput} 
+            className="mt-2"
+            disabled={selectedFiles.length >= effectiveMaxFiles}
+          >
+            {children}
+            {!children && buttonText}
+          </Button>
+        )}
       </div>
     );
   }

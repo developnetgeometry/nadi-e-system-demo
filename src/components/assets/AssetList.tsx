@@ -21,7 +21,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSites } from "../site/component/site-utils";
+import { fetchSites } from "../site/hook/site-utils";
 import { AssetDeleteDialog } from "./AssetDeleteDialog";
 import { AssetDetailsDialog } from "./AssetDetailsDialog";
 import { AssetFormDialog } from "./AssetFormDialog";
