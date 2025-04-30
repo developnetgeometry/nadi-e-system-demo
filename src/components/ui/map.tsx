@@ -8,12 +8,17 @@ const Map = () => {
 
     // Load Google Maps script
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyAl7ExAHUmRCv4Yzz_8XgEvBCHNghu49jc`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${
+      import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+    }&callback=initMap`;
     script.async = true;
     script.onload = () => {
       // Initialize Google Map
       const map = new google.maps.Map(mapContainer.current!, {
-        center: { lat: 4.2105, lng: 108.9758 }, // Centered on Malaysia
+        center: {
+          lat: import.meta.env.VITE_CENTER_MAP_LAT || 4.2105,
+          lng: import.meta.env.VITE_CENTER_MAP_LNG || 108.9758,
+        }, // Centered on Malaysia
         zoom: 5,
       });
 
