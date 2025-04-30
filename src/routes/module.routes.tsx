@@ -334,7 +334,7 @@ export const moduleRoutes: RouteObject[] = [
       // <ProtectedRoute requiredPermission="view_site_details">
       <DocketStatus />
       // </ProtectedRoute>
-      }
+    ),
   },
   {
     path: "/technician", //For superadmin
@@ -342,7 +342,7 @@ export const moduleRoutes: RouteObject[] = [
       // <ProtectedRoute requiredPermission="view_site_details">
       <Technician />
       // </ProtectedRoute>
-    ),
+    )
   },
   {
     path: "/graph", //For superadmin
@@ -350,7 +350,7 @@ export const moduleRoutes: RouteObject[] = [
       // <ProtectedRoute requiredPermission="view_site_details">
       <Graph />
       // </ProtectedRoute>
-      },
+    ),
   },
   // Announcements Routes
   {
