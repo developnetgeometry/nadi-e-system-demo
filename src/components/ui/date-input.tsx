@@ -1,43 +1,69 @@
-import * as React from "react";
+import React, { InputHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react"; // Import the X icon
 
-const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, placeholder, ...props }, ref) => {
-    const inputRef = React.useRef<HTMLInputElement>(null);
+interface DateInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+  showClearButton?: boolean; // Optional prop to control visibility of clear button
+}
 
-    React.useImperativeHandle(ref, () => inputRef.current!);
+const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
+  ({ className, showClearButton = true, value, onChange, ...props }, ref) => {
+    // Function to handle clearing the input
+    const handleClear = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Create a proper synthetic event to ensure full clearing of the date
+      const inputElement = document.createElement('input');
+      inputElement.type = 'date';
+      inputElement.name = props.name || '';
+      inputElement.value = '';
+      
+      const syntheticEvent = {
+        target: inputElement,
+        currentTarget: inputElement,
+        bubbles: true,
+        cancelable: true,
+        defaultPrevented: false,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        nativeEvent: e.nativeEvent,
+        type: 'change'
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      
+      if (onChange) {
+        onChange(syntheticEvent);
+      }
+    };
 
     return (
       <div className="relative">
         <input
           type="date"
-          placeholder={placeholder}
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0",
+            "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            // Add padding-right to accommodate the clear button
+            showClearButton && value ? "pr-8" : "",
+            // Fix calendar icon positioning 
+            "[&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2",
             className
           )}
-          ref={inputRef}
+          ref={ref}
+          value={value}
+          onChange={onChange}
           {...props}
         />
-        <div
-          className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
-          onClick={() => inputRef.current?.showPicker()}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {showClearButton && value && (
+          <button
+            onClick={handleClear}
+            className="absolute right-8 top-1/2 -translate-y-1/2 mr-1 hover:text-muted-foreground cursor-pointer"
+            type="button"
+            aria-label="Clear date"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
+            <X size={16} />
+          </button>
+        )}
       </div>
     );
   }

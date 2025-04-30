@@ -26,7 +26,7 @@ import { Site, Space } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { fetchSiteBySiteId, fetchSites } from "../site/component/site-utils";
+import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
 import { Textarea } from "../ui/textarea";
 
 export interface AssetFormDialogProps {

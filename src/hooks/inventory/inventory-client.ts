@@ -1,7 +1,7 @@
 import {
   fetchSiteBySiteId,
   fetchSites,
-} from "@/components/site/component/site-utils";
+} from "@/components/site/hook/site-utils";
 import { supabase } from "@/lib/supabase";
 import { AssetType } from "@/types/asset";
 import { Inventory } from "@/types/inventory";

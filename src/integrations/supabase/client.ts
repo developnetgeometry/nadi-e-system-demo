@@ -12,6 +12,7 @@ const BUCKET_NAME_PROFILEIMAGE =
   import.meta.env.VITE_SUPABASE_BUCKET_NAME_PROFILE_IMAGE || "profileimage";
 const BUCKET_NAME_UTILITIES =
   import.meta.env.VITE_SUPABASE_BUCKET_NAME_UTILITIES || "utilities-attachment";
+const BUCKET_NAME_SITE_CLOSURE = import.meta.env.VITE_SUPABASE_BUCKET_NAME_site_attachment || "site-attachment";
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -22,3 +23,4 @@ export const supabase = createClient<Database>(
 export { SUPABASE_URL };
 export { BUCKET_NAME_PROFILEIMAGE };
 export { BUCKET_NAME_UTILITIES };
+export { BUCKET_NAME_SITE_CLOSURE };
