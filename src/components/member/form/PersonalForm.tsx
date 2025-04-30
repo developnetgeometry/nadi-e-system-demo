@@ -76,7 +76,7 @@ export function PersonalForm({
       setIsValidating(false); // Validation complete
     }
   }, 500); // 500ms debounce delay
-  
+
   const { profiles = [], loading, error: siteProfilesError } = useSiteProfiles();
 
   return (
@@ -123,7 +123,8 @@ export function PersonalForm({
       {/* Site ID */}
       <div className="space-y-2">
         <Label className="flex items-center">
-          Site Profile <span className="text-red-500 ml-1">*</span>
+          NADI Site (Registered Location)
+          <span className="text-red-500 ml-1">*</span>
         </Label>
         <SiteProfileSelect
           profiles={profiles}
@@ -132,13 +133,13 @@ export function PersonalForm({
           disabled={loading}
         />
         {loading && (
-          <p className="text-sm text-muted-foreground">Loading site profiles...</p>
+          <p className="text-sm text-muted-foreground">Loading NADI site...</p>
         )}
         {siteProfilesError && (
           <p className="text-sm text-destructive">{siteProfilesError}</p>
         )}
       </div>
-      
+
       {/* Date of Birth */}
       <div className="space-y-2">
         <Label className="flex items-center">Date of Birth <span className="text-red-500 ml-1">*</span></Label>
@@ -192,7 +193,7 @@ export function PersonalForm({
 
       {/* Supervisor IC Number */}
       <div className="space-y-2">
-        <Label className="flex items-center">Supervisor IC Number</Label>
+        <Label className="flex items-center">Parent IC Number</Label>
         <Input
           value={supervision}
           onChange={(e) => updateFields({ supervision: e.target.value })}

@@ -23,7 +23,7 @@ const TpProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the vendor profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={tpProfile} refetch={refetch}/>
+            <ProfileOverviewPage profileData={tpProfile} refetch={refetch} userType={""} userGroup={3}/>
           </div>
         </Card>
       </TabsContent>

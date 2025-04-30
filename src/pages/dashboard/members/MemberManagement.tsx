@@ -3,20 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
-import { Users, UserPlus, Clock, Activity, UserCheck } from "lucide-react";
+import { Users, UserPlus, Clock, Activity, UserCheck, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Profile } from "@/types/auth";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
@@ -37,19 +37,19 @@ const MemberManagement = () => {
         .from("profiles")
         .select("*", { count: 'exact' })
         .eq('user_type', 'member')
-        
+
       if (searchTerm) {
         query = query.or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
       }
-      
+
       if (sortField && sortDirection) {
         query = query.order(sortField, { ascending: sortDirection === "asc" });
       } else {
         query = query.order('created_at', { ascending: false });
       }
-      
+
       query = query.range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
-      
+
       const { data, error, count } = await query;
 
       if (error) {
@@ -66,8 +66,8 @@ const MemberManagement = () => {
     totalMembers: membersData?.count || 0,
     premiumMembers: 0,
     activeMembers: membersData?.data?.length || 0,
-    lastRegistration: membersData && membersData.data.length > 0 
-      ? new Date(membersData.data[0].created_at).toLocaleString() 
+    lastRegistration: membersData && membersData.data.length > 0
+      ? new Date(membersData.data[0].created_at).toLocaleString()
       : "N/A"
   };
 
@@ -94,6 +94,11 @@ const MemberManagement = () => {
   const handleAddNewMember = () => {
     navigate("/dashboard/members/registration");
   };
+
+  const handleViewDetailsClick = (userId: string) => {
+    navigate(`/dashboard/members/details/${userId}`);
+  };
+
 
   return (
     <DashboardLayout>
@@ -176,8 +181,8 @@ const MemberManagement = () => {
               </svg>
               Export
             </Button>
-            <Button 
-              className="flex items-center gap-2" 
+            <Button
+              className="flex items-center gap-2"
               onClick={handleAddNewMember}
             >
               <UserPlus className="h-4 w-4" />
@@ -265,6 +270,7 @@ const MemberManagement = () => {
                   <TableHead>State</TableHead>
                   <TableHead>Join Date</TableHead>
                   <TableHead>Reg. Date</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -305,6 +311,15 @@ const MemberManagement = () => {
                       <TableCell>California</TableCell>
                       <TableCell>{formatDate(member.created_at)}</TableCell>
                       <TableCell>{formatDate(member.created_at)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleViewDetailsClick(member.id)} // Add view details button
+                        >
+                          <Search className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

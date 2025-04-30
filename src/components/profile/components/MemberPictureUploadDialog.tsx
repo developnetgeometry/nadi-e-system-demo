@@ -8,45 +8,53 @@ interface ProfilePictureUploadDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onFilesSelected: (files: File[]) => void;
-}
-
-const ProfilePictureUploadDialog: React.FC<ProfilePictureUploadDialogProps> = ({ open, onOpenChange, onFilesSelected }) => {
-    const { uploadProfilePicture, isLoading, error } = useProfilePictureUpload();
-
+    memberId: string; // Add memberId prop
+    userId: string; // Add userId prop
+  }
+  
+  const ProfilePictureUploadDialog: React.FC<ProfilePictureUploadDialogProps> = ({
+    open,
+    onOpenChange,
+    onFilesSelected,
+    memberId,
+    userId,
+  }) => {
+    const { uploadProfilePicture, isLoading, error } = useProfilePictureUpload(memberId, userId); // Pass memberId and userId
+  
     const handleFilesSelected = async (files: File[]) => {
-        if (files.length > 0) {
-            try {
-                const profilePictureUrl = await uploadProfilePicture(files[0]);
-                onFilesSelected([files[0]]);
-                console.log('Profile picture uploaded:', profilePictureUrl);
-            } catch (err) {
-                console.error('Error uploading profile picture:', err);
-            }
+      if (files.length > 0) {
+        try {
+          const profilePictureUrl = await uploadProfilePicture(files[0]);
+          onFilesSelected([files[0]]);
+          console.log('Profile picture uploaded:', profilePictureUrl);
+        } catch (err) {
+          console.error('Error uploading profile picture:', err);
         }
+      }
     };
-
+  
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Upload Profile Picture</DialogTitle>
-                    <DialogDescription>Select a file to upload as your profile picture.</DialogDescription>
-                </DialogHeader>
-                <FileUpload
-                    maxFiles={1}
-                    acceptedFileTypes=".jpg,.png"
-                    maxSizeInMB={2}
-                    buttonText="Choose File"
-                    onFilesSelected={handleFilesSelected}
-                />
-                {isLoading && <p>Uploading...</p>}
-                {error && <p className="text-red-500">{error}</p>}
-                <DialogFooter>
-                    <Button onClick={() => onOpenChange(false)}>Close</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Profile Picture</DialogTitle>
+            <DialogDescription>Select a file to upload as your profile picture.</DialogDescription>
+          </DialogHeader>
+          <FileUpload
+            maxFiles={1}
+            acceptedFileTypes=".jpg,.png"
+            maxSizeInMB={2}
+            buttonText="Choose File"
+            onFilesSelected={handleFilesSelected}
+          />
+          {isLoading && <p>Uploading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
-};
-
-export default ProfilePictureUploadDialog;
+  };
+  
+  export default ProfilePictureUploadDialog;

@@ -24,7 +24,7 @@ const VendorProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the vendor profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={vendorProfile} refetch={refetch} />
+            <ProfileOverviewPage profileData={vendorProfile} refetch={refetch} userType={""} userGroup={5} />
           </div>
         </Card>
       </TabsContent>
