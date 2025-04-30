@@ -16,6 +16,9 @@ import LookupSettingsPage from "@/pages/dashboard/LookupSettings";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import UserProfile from "@/pages/dashboard/profile/UserProfile";
+import NotificationManagement from "@/pages/dashboard/NotificationManagement";
+import Notifications from "@/pages/dashboard/Notifications";
+import NotificationUsage from "@/pages/dashboard/NotificationUsage";
 
 // Lazy load dashboard components
 const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
@@ -120,14 +123,14 @@ export const dashboardRoutes = [
       </Suspense>
     ),
   },
-  {
-    path: "/admin/notifications",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        <NotificationsPage />
-      </Suspense>
-    ),
-  },
+  // {
+  //   path: "/admin/notifications",
+  //   element: (
+  //     <Suspense fallback={<LoadingSpinner />}>
+  //       <NotificationsPage />
+  //     </Suspense>
+  //   ),
+  // },
   {
     path: "/admin/organizations",
     element: (
@@ -158,7 +161,30 @@ export const dashboardRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         <UserProfile />
       </Suspense>
-
+    ),
+  },
+  // {
+  //   path: "/admin/notifications",
+  //   element: (
+  //     <Suspense fallback={<LoadingSpinner />}>
+  //       <Notifications />,
+  //     </Suspense>
+  //   ),
+  // },
+  {
+    path: "/admin/notification-management",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <NotificationManagement />,
+      </Suspense>
+    ),
+  },
+  {
+    path: "/admin/notification-usage",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <NotificationUsage />,
+      </Suspense>
     ),
   },
 ];

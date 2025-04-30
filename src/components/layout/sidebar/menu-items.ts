@@ -12,7 +12,7 @@ export const menuItems = [
     path: "/admin/state-holidays",
     visibleTo: ["super_admin"],
   },
-  { title: "Notifications", path: "/admin/notifications" },
+  { title: "Notification Management", path: "/admin/notification-management" },
   { title: "Organizations", path: "/admin/organizations" },
   { title: "Settings", path: "/admin/settings" },
 ];
