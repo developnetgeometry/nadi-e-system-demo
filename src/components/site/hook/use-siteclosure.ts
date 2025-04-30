@@ -32,7 +32,7 @@ export const fetchlListClosureData = async (): Promise<SiteListClosureRequest[]>
         .order("created_at", { ascending: false }); 
         if (error) throw error;
         
-  console.log("Raw data from API:", JSON.stringify(data?.[0], null, 2)); // Log structure of first item
+  // console.log("Raw data from API:", JSON.stringify(data?.[0], null, 2)); // Log structure of first item
   return data as unknown as SiteListClosureRequest[];
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { FilePlus, Loader2 } from "lucide-react";
+import { FilePlus, Loader2, Pencil } from "lucide-react";
 import SiteClosureForm from "./SiteClosure";
 import SiteClosureDetailDialog from "./SiteClosureDetailDialog";
 import { useSiteId } from "@/hooks/use-site-id";
@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchlListClosureData } from "../hook/use-siteclosure";
 import { useFormatDate } from "@/hooks/use-format-date";
 import { useFormatDuration } from "@/hooks/use-format-duration";
+import { useDraftClosure } from "../hook/submit-siteclosure-data";
 
 interface ClosurePageProps {
   siteId: string;
@@ -26,8 +27,10 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [isSiteClosureOpen, setSiteClosureOpen] = useState(false);
   const [selectedClosureId, setSelectedClosureId] = useState<number | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [editDraftData, setEditDraftData] = useState<any>(null);
   const { formatDuration } = useFormatDuration();
   const { formatDate } = useFormatDate();
+  const { fetchDraftData, loading: loadingDraft } = useDraftClosure();
 
   if (!siteId) {
     console.log('Site id not pass');
@@ -40,12 +43,14 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     queryFn: fetchlListClosureData
   });
 
-  console.log("closurelistdata", closurelistdata);
+  // console.log("closurelistdata", closurelistdata);
 
   // Helper function for when the dialog is closed - will refetch data
   const handleDialogOpenChange = (open: boolean) => {
     setSiteClosureOpen(open);
     if (!open) {
+      // Clear edit data when the dialog is closed
+      setEditDraftData(null);
       refetch(); // Refetch data when dialog closes
     }
   };
@@ -53,6 +58,23 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const handleViewClosure = (closureId: number) => {
     setSelectedClosureId(closureId);
     setIsDetailDialogOpen(true);
+  };
+
+  const handleEditDraft = async (closureId: number) => {
+    try {
+      const formData = await fetchDraftData(closureId);
+      setEditDraftData(formData);
+      setSiteClosureOpen(true);
+    } catch (err) {
+      console.error("Failed to prepare draft for editing:", err);
+    }
+  };
+
+  // Handle new request button click
+  const handleNewRequest = () => {
+    // Explicitly clear edit data before opening dialog for a new request
+    setEditDraftData(null);
+    setSiteClosureOpen(true);
   };
 
   return (
@@ -65,7 +87,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button onClick={() => setSiteClosureOpen(true)}>
+          <Button onClick={handleNewRequest}>
             <FilePlus className="mr-2 h-4 w-4" />
             New Closure Request
           </Button>
@@ -138,13 +160,25 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                         </TableCell>
                         <TableCell>{item.nd_closure_status?.name || 'N/A'}</TableCell>
                         <TableCell>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewClosure(item.id)}
-                          >
-                            View
-                          </Button>
+                          {item.nd_closure_status?.name === 'Draft' ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEditDraft(item.id)}
+                              className="flex items-center gap-1"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              Continue
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewClosure(item.id)}
+                            >
+                              View
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -165,6 +199,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         onOpenChange={handleDialogOpenChange}
         siteId={siteId}
         onSuccess={() => refetch()}
+        editData={editDraftData}
+        clearEditData={() => setEditDraftData(null)}
       />
 
       <SiteClosureDetailDialog
