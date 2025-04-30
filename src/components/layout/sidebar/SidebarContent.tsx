@@ -17,13 +17,13 @@ export const SidebarContent = ({ state, isCollapsed }: SidebarContentProps) => {
     useMenuVisibility(user?.id);
 
   // Debug logging to check what's being applied
-  useEffect(() => {
-    if (userType) {
-      console.log("Current user type:", userType);
-      console.log("Menu visibility settings:", menuVisibility);
-      console.log("Submodule visibility settings:", submoduleVisibility);
-    }
-  }, [userType, menuVisibility, submoduleVisibility]);
+  // useEffect(() => {
+  //   if (userType) {
+  //     console.log("Current user type:", userType);
+  //     console.log("Menu visibility settings:", menuVisibility);
+  //     console.log("Submodule visibility settings:", submoduleVisibility);
+  //   }
+  // }, [userType, menuVisibility, submoduleVisibility]);
 
   // Filter menu groups based on visibility settings and user role
   const visibleMenuGroups = filterMenuGroups(
