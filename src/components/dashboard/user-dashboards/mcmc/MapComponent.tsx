@@ -32,10 +32,9 @@ const containerStyle = {
   height: "100%",
 };
 
-// Center on Malaysia
 const center = {
-  lat: 4.2105,
-  lng: 101.9758,
+  lat: parseFloat(import.meta.env.VITE_CENTER_MAP_LAT || "4.2105"),
+  lng: parseFloat(import.meta.env.VITE_CENTER_MAP_LNG || "108.9758"),
 };
 
 // Updated dark mode map styles
@@ -147,7 +146,7 @@ const MapComponent = () => {
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "", // You'll need to add your Google Maps API key here
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
   });
 
   const onLoad = useCallback((map: google.maps.Map) => {
