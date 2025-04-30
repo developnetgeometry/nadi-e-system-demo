@@ -17,7 +17,6 @@ import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import UserProfile from "@/pages/dashboard/profile/UserProfile";
 import NotificationManagement from "@/pages/dashboard/NotificationManagement";
-import Notifications from "@/pages/dashboard/Notifications";
 import NotificationUsage from "@/pages/dashboard/NotificationUsage";
 
 // Lazy load dashboard components
