@@ -317,7 +317,6 @@ export const MaintenanceList = ({
                       <TableCell>
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell>{maintenanceRequest?.name || ""}</TableCell>
                       <TableCell>
                         {maintenanceRequest?.type?.name || ""}
                       </TableCell>

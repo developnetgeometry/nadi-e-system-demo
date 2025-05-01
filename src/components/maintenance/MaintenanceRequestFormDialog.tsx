@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Asset } from "@/types/asset";
-import { MaintenanceRequest } from "@/types/maintenance";
+import { MaintenanceDocketType, MaintenanceRequest } from "@/types/maintenance";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
@@ -44,6 +44,11 @@ export const MaintenanceRequestFormDialog = ({
 
   const { user } = useAuth();
 
+  const maintenanceDocketTypes = Object.values(MaintenanceDocketType);
+
+  const [maintenanceDocketType, setMaintenanceDocketType] = useState<
+    "" | MaintenanceDocketType
+  >("");
   const [description, setDescription] = useState("");
   const [slaCategory, setSLACategory] = useState("");
   const [maintenanceType, setMaintenanceType] = useState("");
@@ -133,18 +138,10 @@ export const MaintenanceRequestFormDialog = ({
     }
   };
 
-  if (isLoadingMaintenanceTypes) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        Loading...
-      </Dialog>
-    );
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
-        {isLoadingMaintenanceTypes ? (
+        {isLoadingMaintenanceTypes && isLoadingMaintenanceTypes ? (
           <DialogTitle>
             <LoadingSpinner />
           </DialogTitle>
@@ -152,59 +149,91 @@ export const MaintenanceRequestFormDialog = ({
           <>
             <DialogHeader className="mb-2">
               <DialogTitle>
-                {maintenanceRequest ? "Update Inventory" : "Add New Inventory"}
+                {maintenanceRequest
+                  ? "Update Maintenance Request"
+                  : "Add New Maintenance Request"}
               </DialogTitle>
               <DialogDescription>
                 {maintenanceRequest
-                  ? "Update inventorty details"
-                  : "Fill in the details to create a new maintenanceRequest"}
+                  ? "Update maintenance request details"
+                  : "Fill in the details to create a new maintenance request"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Maintenance Type</Label>
-                <Select name="type" required>
+                <Label htmlFor="maintenanceDocketType">Type</Label>
+                <Select
+                  name="maintenanceDocketType"
+                  required
+                  onValueChange={(value) =>
+                    setMaintenanceDocketType(value as MaintenanceDocketType)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {maintenanceTypes.map((type, index) => (
-                      <SelectItem key={index} value={type.id.toString()}>
-                        {type?.name}
+                    {maintenanceDocketTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Enter description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
+              {maintenanceDocketType === MaintenanceDocketType.Corrective && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenanceType">Maintenance Type</Label>
+                    <Select name="maintenanceType" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select maintenance type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {maintenanceTypes.map((type, index) => (
+                          <SelectItem key={index} value={type.id.toString()}>
+                            {type?.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Attachment</Label>
-                <Input
-                  id="attachment"
-                  name="attachment"
-                  placeholder="Enter attachment"
-                  type="file"
-                  onChange={handleFileAttachmentChange}
-                />
-                {attachment && (
-                  <p className="text-sm text-muted-foreground">
-                    {attachment.name}
-                  </p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      placeholder="Enter description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
 
-              <Button type="submit" disabled={isSubmitting} className="w-full">
+                  <div className="space-y-2">
+                    <Label htmlFor="attachment">Attachment</Label>
+                    <Input
+                      id="attachment"
+                      name="attachment"
+                      placeholder="Enter attachment"
+                      type="file"
+                      onChange={handleFileAttachmentChange}
+                    />
+                    {attachment && (
+                      <p className="text-sm text-muted-foreground">
+                        {attachment.name}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isSubmitting || !maintenanceDocketType}
+                className="pt-2 w-full"
+              >
                 {isSubmitting
                   ? maintenanceRequest
                     ? "Updating..."

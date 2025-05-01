@@ -2,11 +2,10 @@ import { Asset } from "@/types/asset";
 
 export interface MaintenanceRequest {
   id: number;
-  name: string;
   description: string;
-  asset_id: number;
-  asset: Asset;
-  type_id: number;
+  asset_id?: number;
+  asset?: Asset;
+  type_id?: number;
   type?: TypeMaintenance;
   status: boolean;
   requester_by: string;
@@ -15,6 +14,11 @@ export interface MaintenanceRequest {
   updated_at?: string;
   created_by?: string;
   updated_by?: string;
+}
+
+export enum MaintenanceDocketType {
+  Corrective = "Corrective Maintenance (CM)",
+  Preventive = "Preventive Maintenance (PM)",
 }
 
 export enum MaintenanceStatus {
