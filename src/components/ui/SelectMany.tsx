@@ -63,7 +63,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
     const calculateVisibleLabels = () => {
       const triggerWidth = triggerRef.current?.offsetWidth || 0;
       const controlsWidth = controlsRef.current?.offsetWidth || 0;
-      
+
       // Account for paddings, gaps, and leave 30% of space as buffer
       const totalAvailableWidth = triggerWidth - controlsWidth - 24;
       const effectiveWidth = totalAvailableWidth * 0.7; // Use only 70% of available space
@@ -82,18 +82,18 @@ export const SelectMany: React.FC<SelectManyProps> = ({
       for (const label of selectedLabels) {
         const labelEl = document.createElement("span");
         labelEl.className =
-          "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary";
-        
+          "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground";
+
         // Add text span and X button to accurately measure full width
         const textSpan = document.createElement("span");
         textSpan.textContent = label;
         labelEl.appendChild(textSpan);
-        
+
         const xButton = document.createElement("button");
         xButton.className = "ml-1 p-0.5 rounded-full";
         xButton.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
         labelEl.appendChild(xButton);
-        
+
         tempContainer.appendChild(labelEl);
         labelWidths.push(labelEl.offsetWidth);
         tempContainer.removeChild(labelEl);
@@ -102,7 +102,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
       // Measure +X more indicator
       const moreEl = document.createElement("span");
       moreEl.className =
-        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary";
+        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground";
       moreEl.textContent = "+2 more";
       tempContainer.appendChild(moreEl);
       const moreWidth = moreEl.offsetWidth;
@@ -119,12 +119,14 @@ export const SelectMany: React.FC<SelectManyProps> = ({
         // Try to fill available width
         for (let i = 0; i < selectedLabels.length; i++) {
           // If this is the last item and we can fit all, add it
-          if (i === selectedLabels.length - 1 && 
-              totalWidth + labelWidths[i] <= effectiveWidth) {
+          if (
+            i === selectedLabels.length - 1 &&
+            totalWidth + labelWidths[i] <= effectiveWidth
+          ) {
             visibleCount = selectedLabels.length;
             break;
           }
-          
+
           // Otherwise, check if we can fit this item plus the "+X more" indicator
           // for the remaining items
           if (totalWidth + labelWidths[i] + moreWidth <= effectiveWidth) {
@@ -135,7 +137,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
             break;
           }
         }
-        
+
         // If not all items could fit, make room for the "+X more" indicator
         // by removing one visible item if necessary
         if (visibleCount < selectedLabels.length && visibleCount > 0) {
@@ -146,7 +148,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
         }
       } else {
         // If there's only one item, just show it if it fits
-        visibleCount = (labelWidths[0] <= effectiveWidth) ? 1 : 0;
+        visibleCount = labelWidths[0] <= effectiveWidth ? 1 : 0;
       }
 
       return Math.max(visibleCount, 0);
@@ -179,9 +181,9 @@ export const SelectMany: React.FC<SelectManyProps> = ({
         <Popover.Trigger
           ref={triggerRef}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-4 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 hover:border-ring hover:shadow-sm focus:shadow-md",
             disabled && "cursor-not-allowed",
-            open && "border-primary",
+            open && "border-ring shadow-sm",
             className
           )}
           disabled={disabled}
@@ -193,18 +195,20 @@ export const SelectMany: React.FC<SelectManyProps> = ({
             {value.length > 0 ? (
               <>
                 {selectedLabels.slice(0, visibleLabels).map((label, i) => {
-                  const itemId = options.find(opt => opt.label === label)?.id;
+                  const itemId = options.find((opt) => opt.label === label)?.id;
                   return (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary group relative"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground group relative"
                     >
                       <span>{label}</span>
                       {!disabled && (
                         <button
                           type="button"
-                          onClick={(e) => itemId && handleRemoveItem(itemId, e)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 p-0.5 rounded-full hover:bg-primary/20"
+                          onClick={(e) =>
+                            itemId && handleRemoveItem(itemId, e)
+                          }
+                          className="opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 p-0.5 rounded-full hover:bg-accent/90"
                           aria-label={`Remove ${label}`}
                         >
                           <X className="h-2.5 w-2.5" />
@@ -214,7 +218,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
                   );
                 })}
                 {visibleLabels < selectedLabels.length && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent text-accent-foreground">
                     +{selectedLabels.length - visibleLabels} more
                   </span>
                 )}
@@ -234,7 +238,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
                   e.stopPropagation();
                   handleClear();
                 }}
-                className="p-1 rounded-full hover:bg-muted cursor-pointer transition-colors"
+                className="p-1 rounded-full hover:bg-accent/20 cursor-pointer transition-colors"
                 aria-label="Clear selection"
               >
                 <X className="h-3 w-3 text-muted-foreground" />
@@ -242,14 +246,14 @@ export const SelectMany: React.FC<SelectManyProps> = ({
             )}
             <ChevronDown
               className={cn(
-                "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                "h-4 w-4 opacity-70 transition-transform duration-200",
                 open && "transform rotate-180"
               )}
             />
           </div>
         </Popover.Trigger>
         <Popover.Content
-          className="z-50 w-[--radix-popover-trigger-width] rounded-md border bg-popover text-popover-foreground shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95"
+          className="z-50 w-[--radix-popover-trigger-width] rounded-md border bg-popover/95 text-popover-foreground shadow-lg backdrop-blur-sm overflow-hidden animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2"
           side="bottom"
           align="start"
           sideOffset={4}
@@ -270,7 +274,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 rounded-full hover:bg-muted cursor-pointer"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 rounded-full hover:bg-accent/20 cursor-pointer"
                 >
                   <X className="h-3 w-3 text-muted-foreground" />
                 </button>
@@ -283,16 +287,16 @@ export const SelectMany: React.FC<SelectManyProps> = ({
                 <div
                   key={option.id}
                   className={cn(
-                    "relative flex cursor-pointer select-none items-center py-1.5 px-3 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground",
+                    "relative flex cursor-pointer select-none items-center py-1.5 px-3 text-sm outline-none transition-colors duration-150 hover:bg-accent hover:text-accent-foreground",
                     value.includes(option.id)
-                      ? "bg-accent/50 text-accent-foreground"
+                      ? "bg-accent/20 font-medium"
                       : ""
                   )}
                   onClick={() => handleToggle(option.id)}
                 >
-                  <div className="flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-primary/30 bg-background">
+                  <div className="flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-input bg-background">
                     {value.includes(option.id) && (
-                      <Check className="h-3.5 w-3.5 text-primary" />
+                      <Check className="h-3.5 w-3.5" />
                     )}
                   </div>
                   <span>{option.label}</span>
