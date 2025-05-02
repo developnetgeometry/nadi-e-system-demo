@@ -1,6 +1,6 @@
 import { useMaintenanceQueries } from "./maintenance/use-maintenance-queries";
 
-export const useMaintennance = () => {
+export const useMaintenance = () => {
   // Get all query hooks
   const {
     useMaintenanceRequestsQuery,

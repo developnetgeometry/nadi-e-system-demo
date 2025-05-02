@@ -3,7 +3,7 @@ import { MaintenanceList } from "@/components/maintenance/MaintenanceList";
 import { MaintenanceRequestFormDialog } from "@/components/maintenance/MaintenanceRequestFormDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMaintennance } from "@/hooks/use-maintenance";
+import { useMaintenance } from "@/hooks/use-maintenance";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Plus } from "lucide-react";
@@ -33,7 +33,7 @@ const MaintenanceDashboard = () => {
     });
   };
 
-  const { useMaintenanceRequestsQuery } = useMaintennance();
+  const { useMaintenanceRequestsQuery } = useMaintenance();
 
   const {
     data: maintenanceRequests,
@@ -80,14 +80,11 @@ const MaintenanceDashboard = () => {
             <TabsTrigger value="pm">Preventive Maintenance</TabsTrigger>
           </TabsList>
           <TabsContent value="cm">
-            <>
-              Corrective Maintenance Content
-              <MaintenanceList
-                maintenanceRequests={displayAssets}
-                isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
-                refetch={refetchMaintenanceRequests}
-              />
-            </>
+            <MaintenanceList
+              maintenanceRequests={displayAssets}
+              isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
+              refetch={refetchMaintenanceRequests}
+            />
           </TabsContent>
           <TabsContent value="pm">Preventive Maintenance Content</TabsContent>
         </Tabs>

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useMaintennance } from "@/hooks/use-maintenance";
+import { useMaintenance } from "@/hooks/use-maintenance";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { MaintenanceRequest, MaintenanceStatus } from "@/types/maintenance";
 import { Download, Search, Settings, Trash2 } from "lucide-react";
@@ -49,7 +49,7 @@ export const MaintenanceList = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintennance();
+  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
 
   const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
     useMaintenanceTypesQuery();
@@ -219,7 +219,7 @@ export const MaintenanceList = ({
               <TableRow>
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
-                <TableHead>Type of Docket</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>SLA</TableHead>
                 <TableHead>Estimate Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -267,7 +267,7 @@ export const MaintenanceList = ({
               <TableRow>
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
-                <TableHead>Type of Docket</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>SLA</TableHead>
                 <TableHead>Estimate Date</TableHead>
                 <TableHead>Status</TableHead>
@@ -283,7 +283,7 @@ export const MaintenanceList = ({
                         const parts =
                           maintenanceRequest.created_at.split(/[- :T]/);
                         const year = Number(parts[0]);
-                        const month = Number(parts[1]) - 1; // JavaScript months are 0-indexed
+                        const month = Number(parts[1]) - 1;
                         const day = Number(parts[2]);
                         const hour = Number(parts[3]);
                         const minute = Number(parts[4]);
@@ -312,23 +312,44 @@ export const MaintenanceList = ({
                       })()
                     : "";
 
+                  const estimatedDate = maintenanceRequest.created_at
+                    ? (() => {
+                        const plusedDate = new Date(
+                          new Date(maintenanceRequest.created_at).getTime() +
+                            maintenanceRequest.sla.max_day * 24 * 60 * 60 * 1000
+                        );
+
+                        const localDay = String(plusedDate.getDate()).padStart(
+                          2,
+                          "0"
+                        );
+                        const localMonth = String(
+                          plusedDate.getMonth() + 1
+                        ).padStart(2, "0");
+                        const localYear = plusedDate.getFullYear();
+
+                        return `${localDay}/${localMonth}/${localYear}`;
+                      })()
+                    : "";
+
                   return (
                     <TableRow key={maintenanceRequest.id}>
                       <TableCell>
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
+                      <TableCell>{maintenanceRequest?.status || ""}</TableCell>
                       <TableCell>
                         {maintenanceRequest?.type?.name || ""}
                       </TableCell>
-                      <TableCell>{maintenanceRequest?.status || ""}</TableCell>
+                      <TableCell>
+                        {maintenanceRequest?.sla?.name || ""}
+                      </TableCell>
                       {isSuperAdmin && (
                         <TableCell>
                           {maintenanceRequest?.asset?.name || "N/A"}
                         </TableCell>
                       )}
-                      <TableCell>
-                        {maintenanceRequest?.requester_by || ""}
-                      </TableCell>
+                      <TableCell>{estimatedDate || ""}</TableCell>
                       <TableCell>
                         {maintenanceRequest?.status ? "Closed" : "Open"}
                       </TableCell>

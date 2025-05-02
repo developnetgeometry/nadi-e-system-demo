@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { useMaintennance } from "@/hooks/use-maintenance";
+import { useMaintenance } from "@/hooks/use-maintenance";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
@@ -58,7 +58,7 @@ export const MaintenanceRequestFormDialog = ({
 
   const { isUploading, uploadFile } = useFileUpload();
 
-  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintennance();
+  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
 
   const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
     useMaintenanceTypesQuery();
@@ -85,11 +85,10 @@ export const MaintenanceRequestFormDialog = ({
       description: description,
       asset_id: asset?.id as number,
       type_id: formData.get("type") as string,
+      sla_id: formData.get("sla") as string,
       requester_by: user.id,
       attachment: attachment,
     };
-
-    console.log(request);
 
     try {
       if (maintenanceRequest) {
@@ -185,8 +184,28 @@ export const MaintenanceRequestFormDialog = ({
               {maintenanceDocketType === MaintenanceDocketType.Corrective && (
                 <>
                   <div className="space-y-2">
+                    <Label htmlFor="sla">SLA</Label>
+                    <Select name="sla" required onValueChange={setSLACategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select SLA" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {slaCategories.map((type, index) => (
+                          <SelectItem key={index} value={type.id.toString()}>
+                            {type?.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="maintenanceType">Maintenance Type</Label>
-                    <Select name="maintenanceType" required>
+                    <Select
+                      name="maintenanceType"
+                      required
+                      onValueChange={setMaintenanceType}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select maintenance type" />
                       </SelectTrigger>

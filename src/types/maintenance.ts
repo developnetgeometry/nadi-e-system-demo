@@ -7,6 +7,8 @@ export interface MaintenanceRequest {
   asset?: Asset;
   type_id?: number;
   type?: TypeMaintenance;
+  sla_id?: number;
+  sla: SLACategories;
   status: boolean;
   requester_by: string;
   attachment?: string;

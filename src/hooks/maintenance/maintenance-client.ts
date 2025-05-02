@@ -12,6 +12,7 @@ export const maintenanceClient = {
       .select(
         `*,
         nd_type_maintenance ( id, name ),
+        sla:nd_sla_categories ( id, name, min_day, max_day ),
         asset:nd_asset (
           id,
           name
@@ -27,11 +28,40 @@ export const maintenanceClient = {
         return {
           ...item,
           type: item.nd_type_maintenance,
+          sla: item.sla,
           asset: item.asset,
         };
       })
     );
     return filteredData;
+  },
+  fetchMaintenanceRequestById: async (
+    id: string
+  ): Promise<MaintenanceRequest> => {
+    const { data, error } = await supabase
+      .from("nd_maintenance_request")
+      .select(
+        `*,
+        nd_type_maintenance ( id, name ),
+        sla:nd_sla_categories ( id, name ),
+        asset:nd_asset (
+          id,
+          name
+        )`
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching maintenance request:", error);
+      throw error;
+    }
+    return {
+      ...data,
+      type: data.nd_type_maintenance,
+      sla: data.sla,
+      asset: data.asset,
+    };
   },
   fetchMaintenanceTypes: async (): Promise<TypeMaintenance[]> => {
     const { data, error } = await supabase
