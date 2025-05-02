@@ -208,7 +208,6 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                                 className="flex items-center gap-1"
                               >
                                 <Pencil className="h-3 w-3" />
-                                Continue
                               </Button>
                               <Button 
                                 variant="destructive" 
