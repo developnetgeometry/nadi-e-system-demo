@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RoleFormDialog } from "@/components/roles/RoleFormDialog";
@@ -23,12 +22,18 @@ const Roles = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
 
-  const handleCreateRole = async (values: { name: string; description: string }) => {
+  const handleCreateRole = async (values: {
+    name: string;
+    description: string;
+  }) => {
     await createRole(values);
     setIsCreateDialogOpen(false);
   };
 
-  const handleUpdateRole = async (values: { name: string; description: string }) => {
+  const handleUpdateRole = async (values: {
+    name: string;
+    description: string;
+  }) => {
     if (!editingRole) return;
     await updateRole(editingRole.id, { description: values.description });
     setEditingRole(null);
@@ -53,8 +58,8 @@ const Roles = () => {
       <div className="container mx-auto max-w-6xl space-y-8">
         <div className="flex justify-between items-center">
           <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleViewPermissions}
             className="flex items-center gap-2"
           >
@@ -62,16 +67,13 @@ const Roles = () => {
             Permissions
           </Button>
         </div>
-        
+
         {isLoading ? (
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
-          <RoleTable 
-            roles={roles || []}
-            onEdit={setEditingRole}
-          />
+          <RoleTable roles={roles || []} onEdit={setEditingRole} />
         )}
       </div>
 
