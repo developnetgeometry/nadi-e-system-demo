@@ -249,7 +249,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
                 className="p-1 rounded-full hover:bg-accent/20 cursor-pointer transition-colors"
                 aria-label="Clear selection"
               >
-                <X className="h-3 w-3 text-muted-foreground" />
+                <X className="text-muted-foreground" size={16}/>
               </button>
             )}
             <ChevronDown
