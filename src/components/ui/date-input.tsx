@@ -1,4 +1,4 @@
-import React, { InputHTMLAttributes, forwardRef } from "react";
+import React, { InputHTMLAttributes, forwardRef, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react"; // Import the X icon
 
@@ -8,7 +8,11 @@ interface DateInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
-  ({ className, showClearButton = true, value, onChange, ...props }, ref) => {
+  ({ className, showClearButton = true, value, onChange, onClick, ...props }, ref) => {
+    // Create an internal ref if no ref is provided
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const resolvedRef = (ref || inputRef) as React.MutableRefObject<HTMLInputElement | null>;
+    
     // Function to handle clearing the input
     const handleClear = (e: React.MouseEvent) => {
       e.preventDefault();
@@ -36,6 +40,20 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
         onChange(syntheticEvent);
       }
     };
+    
+    // Function to handle clicking on the input
+    const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+      // Open the native date picker by simulating a click on the calendar icon
+      if (resolvedRef.current) {
+        // This triggers the native date picker to open
+        resolvedRef.current.showPicker();
+      }
+      
+      // Call the original onClick if it exists
+      if (onClick) {
+        onClick(e);
+      }
+    };
 
     return (
       <div className="relative">
@@ -49,9 +67,10 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
             "[&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2",
             className
           )}
-          ref={ref}
+          ref={resolvedRef}
           value={value}
           onChange={onChange}
+          onClick={handleInputClick}
           {...props}
         />
         {showClearButton && value && (

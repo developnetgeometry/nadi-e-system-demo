@@ -52,7 +52,7 @@ export const SelectOne: React.FC<SelectOneProps> = ({
 
   // Get the label of the selected option
   const selectedLabel = React.useMemo(() => {
-    if (value === null) return null;
+    if (value === null || value === undefined || value === '') return null;
     return options.find(option => option.id === value)?.label;
   }, [options, value]);
 
@@ -77,14 +77,14 @@ export const SelectOne: React.FC<SelectOneProps> = ({
             )}
           </div>
           <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
-            {value !== null && !disabled && (
+            {value !== null && value !== '' && value !== undefined && !disabled && (
               <button
                 type="button"
                 onClick={handleClear}
                 className="p-1 rounded-full hover:bg-accent/20 cursor-pointer transition-colors"
                 aria-label="Clear selection"
               >
-                <X className="h-3 w-3 text-muted-foreground" />
+                <X className="text-muted-foreground" size={16} />
               </button>
             )}
             <ChevronDown
