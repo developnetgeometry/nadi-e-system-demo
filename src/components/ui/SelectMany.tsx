@@ -39,6 +39,11 @@ export const SelectMany: React.FC<SelectManyProps> = ({
     onChange([]);
   };
 
+  const handleRemoveItem = (id: string | number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the popover toggle
+    onChange(value.filter((v) => v !== id));
+  };
+
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(search.toLowerCase())
   );
@@ -72,13 +77,23 @@ export const SelectMany: React.FC<SelectManyProps> = ({
       tempContainer.style.gap = "4px";
       document.body.appendChild(tempContainer);
 
-      // Measure each label
+      // Measure each label with the X button
       const labelWidths: number[] = [];
       for (const label of selectedLabels) {
         const labelEl = document.createElement("span");
         labelEl.className =
           "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary";
-        labelEl.textContent = label;
+        
+        // Add text span and X button to accurately measure full width
+        const textSpan = document.createElement("span");
+        textSpan.textContent = label;
+        labelEl.appendChild(textSpan);
+        
+        const xButton = document.createElement("button");
+        xButton.className = "ml-1 p-0.5 rounded-full";
+        xButton.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        labelEl.appendChild(xButton);
+        
         tempContainer.appendChild(labelEl);
         labelWidths.push(labelEl.offsetWidth);
         tempContainer.removeChild(labelEl);
@@ -177,14 +192,27 @@ export const SelectMany: React.FC<SelectManyProps> = ({
           >
             {value.length > 0 ? (
               <>
-                {selectedLabels.slice(0, visibleLabels).map((label, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                  >
-                    {label}
-                  </span>
-                ))}
+                {selectedLabels.slice(0, visibleLabels).map((label, i) => {
+                  const itemId = options.find(opt => opt.label === label)?.id;
+                  return (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary group relative"
+                    >
+                      <span>{label}</span>
+                      {!disabled && (
+                        <button
+                          type="button"
+                          onClick={(e) => itemId && handleRemoveItem(itemId, e)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 p-0.5 rounded-full hover:bg-primary/20"
+                          aria-label={`Remove ${label}`}
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
                 {visibleLabels < selectedLabels.length && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                     +{selectedLabels.length - visibleLabels} more
