@@ -10,6 +10,7 @@ interface SelectManyProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  searchThreshold?: number;
 }
 
 export const SelectMany: React.FC<SelectManyProps> = ({
@@ -19,6 +20,7 @@ export const SelectMany: React.FC<SelectManyProps> = ({
   placeholder = "Select options",
   disabled = false,
   className,
+  searchThreshold = 7,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -26,6 +28,9 @@ export const SelectMany: React.FC<SelectManyProps> = ({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const controlsRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
+
+  // Determine if search should be shown based on options length
+  const showSearch = options.length > searchThreshold;
 
   const handleToggle = (id: string | number) => {
     if (value.includes(id)) {
@@ -44,9 +49,12 @@ export const SelectMany: React.FC<SelectManyProps> = ({
     onChange(value.filter((v) => v !== id));
   };
 
-  const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOptions = React.useMemo(() => {
+    if (!search) return options;
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [options, search]);
 
   // Selected labels for display
   const selectedLabels = options
@@ -259,28 +267,32 @@ export const SelectMany: React.FC<SelectManyProps> = ({
           sideOffset={4}
           avoidCollisions
         >
-          <div className="p-2 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search options..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-md bg-transparent pl-8 py-1.5 text-sm ring-offset-background focus:outline-none placeholder:text-muted-foreground/70"
-                autoComplete="off"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 rounded-full hover:bg-accent/20 cursor-pointer"
-                >
-                  <X className="h-3 w-3 text-muted-foreground" />
-                </button>
-              )}
+          {/* Search bar - only shown when options exceed threshold */}
+          {showSearch && (
+            <div className="p-2 border-b border-border">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search options..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full rounded-md bg-transparent pl-8 py-1.5 text-sm ring-offset-background focus:outline-none placeholder:text-muted-foreground/70"
+                  autoComplete="off"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 rounded-full hover:bg-accent/20 cursor-pointer"
+                  >
+                    <X className="h-3 w-3 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+
           <div className="max-h-56 overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
@@ -294,9 +306,9 @@ export const SelectMany: React.FC<SelectManyProps> = ({
                   )}
                   onClick={() => handleToggle(option.id)}
                 >
-                  <div className="flex items-center justify-center w-5 h-5 mr-2 rounded-sm border border-input bg-background">
+                  <div className="w-5 h-5 mr-2 flex items-center justify-center">
                     {value.includes(option.id) && (
-                      <Check className="h-3.5 w-3.5" />
+                      <Check className="h-4 w-4 text-primary" />
                     )}
                   </div>
                   <span>{option.label}</span>

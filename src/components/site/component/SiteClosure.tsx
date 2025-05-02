@@ -12,10 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUpload } from "@/components/ui/file-upload";
 import { useSiteCode } from "../hook/use-site-code";
 import { SelectMany } from "@/components/ui/SelectMany";
+import { SelectOne } from "@/components/ui/SelectOne";
 import { fetchClosureCategories, fetchClosureSubCategories, fetchClosureAffectAreas, fetchClosureSession } from "../hook/use-siteclosure";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DateInput } from "../../ui/date-input";
@@ -402,59 +402,47 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               </div>
             )}
 
-            {/* Category Selection */}
+            {/* Category Selection - replaced with SelectOne */}
             <div className="space-y-2">
               <Label htmlFor="category">Closure Category <span className="text-red-500">*</span></Label>
-              <Select
-                name="category"
+              <SelectOne
+                options={filteredCategories.map((category) => ({
+                  id: String(category.id),
+                  label: category.eng,
+                }))}
                 value={formState.category_id}
-                onValueChange={(value) => setField("category_id", value)}
+                onChange={(value) => setField("category_id", value as string)}
+                placeholder="Select a category"
                 disabled={isLoadingCategories}
-              >
-                <SelectTrigger className={validationErrors.category_id ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((category) => (
-                    <SelectItem key={category.id} value={String(category.id)}>
-                      {category.eng}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                className={validationErrors.category_id ? "border-red-500" : ""}
+              />
               {validationErrors.category_id && (
                 <p className="text-sm text-red-500">{validationErrors.category_id}</p>
               )}
             </div>
 
-            {/* Subcategory Selection (conditional) */}
+            {/* Subcategory Selection (conditional) - replaced with SelectOne */}
             {showSubcategory && (
               <div className="space-y-2">
                 <Label htmlFor="subCategory">Closure Sub-Category <span className="text-red-500">*</span></Label>
-                <Select
-                  name="subCategory"
+                <SelectOne
+                  options={closureSubCategories.map((subCategory) => ({
+                    id: String(subCategory.id),
+                    label: subCategory.eng,
+                  }))}
                   value={formState.subcategory_id}
-                  onValueChange={(value) => setField("subcategory_id", value)}
+                  onChange={(value) => setField("subcategory_id", value as string)}
+                  placeholder="Select a sub-category"
                   disabled={isLoadingSubCategories}
-                >
-                  <SelectTrigger className={validationErrors.subcategory_id ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select a sub-category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {closureSubCategories.map((subCategory) => (
-                      <SelectItem key={subCategory.id} value={String(subCategory.id)}>
-                        {subCategory.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  className={validationErrors.subcategory_id ? "border-red-500" : ""}
+                />
                 {validationErrors.subcategory_id && (
                   <p className="text-sm text-red-500">{validationErrors.subcategory_id}</p>
                 )}
               </div>
             )}
 
-            {/* Affected Areas */}
+            {/* Affected Areas - keeping SelectMany since this needs multiple selection */}
             <div className="space-y-2">
               <Label htmlFor="affectArea">Closure Affect Area <span className="text-red-500">*</span></Label>
               <SelectMany
