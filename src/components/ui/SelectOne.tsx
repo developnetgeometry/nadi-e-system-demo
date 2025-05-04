@@ -39,6 +39,7 @@ export const SelectOne: React.FC<SelectOneProps> = ({
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Always set to null when clearing
     onChange(null);
   };
 
