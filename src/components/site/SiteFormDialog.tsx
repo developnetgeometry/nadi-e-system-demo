@@ -47,6 +47,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import operationTimesData from "@/data/operation-times.json";
 import { SiteOperationHours } from "@/components/site/SiteOperationHours";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface SiteFormDialogProps {
   open: boolean;
@@ -62,15 +63,33 @@ interface OperationTime {
   id?: number;
 }
 
-const DAYS_OF_WEEK = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday'
-];
+// Validation error interface
+interface ValidationErrors {
+  code?: string;
+  name?: string;
+  coordinates?: string;
+  email?: string;
+  building_area?: string;
+  status?: string;
+  address?: string;
+  city?: string;
+  postCode?: string;
+  state?: string;
+  technology?: string;
+  building_type?: string;
+  phase?: string;
+  dusp_tp_id?: string; // Add validation for DUSP TP ID
+}
+
+// const DAYS_OF_WEEK = [
+//   'Monday',
+//   'Tuesday',
+//   'Wednesday',
+//   'Thursday',
+//   'Friday',
+//   'Saturday',
+//   'Sunday'
+// ];
 
 export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps) => {
   const { toast } = useToast();
@@ -78,7 +97,10 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [operationTimes, setOperationTimes] = useState<OperationTime[]>([]);
   const [activeTab, setActiveTab] = useState("basic-info");
-  const [operationTabVisited, setOperationTabVisited] = useState(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  // Add state to store operation hours between tab changes
+  const [savedOperationTimes, setSavedOperationTimes] = useState<OperationTime[]>([]);
 
   // Retrieve user metadata
   const userMetadata = useUserMetadata();
@@ -128,6 +150,8 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
   // Improved setField function to properly handle clearing dependent fields
   const setField = (field: string, value: any) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    
     if (field === 'coordinates') {
       setFormState((prevState) => ({ ...prevState, coordinates: value }));
       if (value.trim() === '') {
@@ -140,11 +164,125 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       // Simple field update without cascading clearing
       setFormState((prevState) => ({ ...prevState, [field]: value }));
     }
+    
+    // Clear validation error when field is updated
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
 
   // Handler for operation times changes
   const handleOperationTimesChange = (times: OperationTime[]) => {
     setOperationTimes(times);
+    setSavedOperationTimes(times); // Save operation times when they change
+  };
+
+  // Validation function
+  const validateForm = () => {
+    const newErrors: ValidationErrors = {};
+    let firstInvalidField: string | null = null;
+    
+    // Required fields validation - Basic Information
+    if (!formState.code.trim()) {
+      newErrors.code = 'Site code is required';
+      firstInvalidField = firstInvalidField || 'code';
+    }
+    
+    if (!formState.name.trim()) {
+      newErrors.name = 'Site name is required';
+      firstInvalidField = firstInvalidField || 'name';
+    }
+    
+    if (!formState.status) {
+      newErrors.status = 'Site status is required';
+      firstInvalidField = firstInvalidField || 'status';
+    }
+
+    if (!formState.phase) {
+      newErrors.phase = 'Site phase is required';
+      firstInvalidField = firstInvalidField || 'phase';
+    }
+    
+    // DUSP TP ID validation for super admin users
+    if (parsedMetadata?.user_type === "super_admin" && !formState.dusp_tp_id) {
+      newErrors.dusp_tp_id = 'Organization is required';
+      firstInvalidField = firstInvalidField || 'dusp_tp_id';
+    }
+    
+    // Required fields validation - Location Information
+    if (!formState.address?.trim()) {
+      newErrors.address = 'Address is required';
+      firstInvalidField = firstInvalidField || 'address';
+    }
+
+    if (!formState.city?.trim()) {
+      newErrors.city = 'City is required';
+      firstInvalidField = firstInvalidField || 'city';
+    }
+
+    if (!formState.postCode?.trim()) {
+      newErrors.postCode = 'Postcode is required';
+      firstInvalidField = firstInvalidField || 'postCode';
+    }
+
+    if (!formState.state) {
+      newErrors.state = 'State is required';
+      firstInvalidField = firstInvalidField || 'state';
+    }
+    
+    // Format validation for coordinates
+    if (formState.coordinates) {
+      const coordinates = formState.coordinates.split(',').map(coord => coord.trim());
+      if (
+        coordinates.length !== 2 || 
+        !coordinates[0] || 
+        !coordinates[1] || 
+        isNaN(Number(coordinates[0])) || 
+        isNaN(Number(coordinates[1]))
+      ) {
+        newErrors.coordinates = 'Invalid coordinates format. Use "longitude, latitude"';
+        firstInvalidField = firstInvalidField || 'coordinates';
+      }
+    }
+    
+    // Email format validation (if provided)
+    if (formState.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email)) {
+      newErrors.email = 'Invalid email format';
+      firstInvalidField = firstInvalidField || 'email';
+    }
+    
+    // Building info validation
+    if (!formState.building_type) {
+      newErrors.building_type = 'Building type is required';
+      firstInvalidField = firstInvalidField || 'building_type';
+    }
+
+    // Building area should be numeric if provided
+    if (formState.building_area && isNaN(Number(formState.building_area))) {
+      newErrors.building_area = 'Building area must be a number';
+      firstInvalidField = firstInvalidField || 'building_area';
+    }
+
+    // Connectivity validation
+    if (!formState.technology) {
+      newErrors.technology = 'Internet technology is required';
+      firstInvalidField = firstInvalidField || 'technology';
+    }
+
+    setErrors(newErrors);
+    
+    // Return the first invalid field for focusing
+    return { isValid: Object.keys(newErrors).length === 0, firstInvalidField };
+  };
+
+  // Handler for input blur to mark field as touched
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  // Function to determine if an input should show error state
+  const shouldShowError = (field: string) => {
+    return touched[field] && errors[field];
   };
 
   // Fetch socio-economic options
@@ -288,7 +426,6 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     if (!open) {
       resetForm();
       setActiveTab("basic-info");
-      setOperationTabVisited(false); // Reset the flag when closing the dialog
     }
   }, [open]);
 
@@ -304,6 +441,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
           id: op.id,
         }));
         setOperationTimes(operationTimes);
+        setSavedOperationTimes(operationTimes); // Save operation times when editing
       }
     } else {
       resetForm();
@@ -346,21 +484,67 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       dusp_tp_id: undefined, // Add dusp_tp_id field
     });
     setOperationTimes([]);
+    setSavedOperationTimes([]); // Reset saved operation times
+    setErrors({});
+    setTouched({});
   };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === "operation") {
-      setOperationTabVisited(true);
+      // Restore saved operation times when switching to operation tab
+      setOperationTimes(savedOperationTimes);
+    } else if (activeTab === "operation") {
+      // Save current operation times when leaving operation tab
+      setSavedOperationTimes(operationTimes);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Mark all fields as touched
+    const allFields = Object.keys(formState).reduce((acc, key) => {
+      acc[key] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
+    setTouched(allFields);
+    
+    // Validate form before submission
+    const { isValid, firstInvalidField } = validateForm();
+    if (!isValid) {
+      // Focus on the first invalid field
+      if (firstInvalidField) {
+        setTimeout(() => {
+          const invalidInput = document.getElementById(firstInvalidField);
+          if (invalidInput) {
+            invalidInput.focus();
+          }
+        }, 100); // Short timeout to ensure tab switch happens first
+      }
+
+      // Identify which tab has errors and switch to it
+      if (errors.code || errors.name || errors.phase || errors.status || errors.email) {
+        setActiveTab("basic-info");
+      } else if (errors.address || errors.city || errors.postCode || errors.state || errors.coordinates) {
+        setActiveTab("location");
+      } else if (errors.building_type || errors.building_area) {
+        setActiveTab("building");
+      } else if (errors.technology) {
+        setActiveTab("connectivity");
+      }
+
+      toast({
+        title: "Validation Error",
+        description: "Please correct the highlighted fields before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
-
       // Check if the site code already exists (case-insensitive)
       const { data: existingSite, error: codeCheckError } = await supabase
         .from('nd_site')
@@ -494,16 +678,17 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
         if (insertSpaceError) throw insertSpaceError;
 
-        // Only update operation hours if the operation tab was visited or we're creating a new site
-        if (operationTabVisited) {
-          // Update operation times
-          const { error: deleteOpError } = await supabase
-            .from('nd_site_operation')
-            .delete()
-            .eq('site_id', site.id);
+        // Always delete existing operation hours regardless of whether the tab was visited
+        const { error: deleteOpError } = await supabase
+          .from('nd_site_operation')
+          .delete()
+          .eq('site_id', site.id);
 
-          if (deleteOpError) throw deleteOpError;
+        if (deleteOpError) throw deleteOpError;
 
+        // Only add operation hours if there are any to add
+        // This allows sites to have empty operation hours
+        if (operationTimes.length > 0) {
           const operationRecords = operationTimes.map((op) => ({
             days_of_week: op.day,
             open_time: op.isClosed ? null : op.openTime,
@@ -519,7 +704,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
           if (operationError) throw operationError;
         }
 
-        siteId = site.id;
+        siteId = Number(site.id);
 
         toast({
           title: "Site updated successfully",
@@ -574,20 +759,23 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
         if (insertSpaceError) throw insertSpaceError;
 
-        // Insert operation times
-        const operationRecords = operationTimes.map((op) => ({
-          days_of_week: op.day,
-          open_time: op.isClosed ? null : op.openTime,
-          close_time: op.isClosed ? null : op.closeTime,
-          is_closed: op.isClosed,
-          site_id: siteId,
-        }));
+        // Only insert operation times if there are any to add
+        // This allows new sites to have empty operation hours too
+        if (operationTimes.length > 0) {
+          const operationRecords = operationTimes.map((op) => ({
+            days_of_week: op.day,
+            open_time: op.isClosed ? null : op.openTime,
+            close_time: op.isClosed ? null : op.closeTime,
+            is_closed: op.isClosed,
+            site_id: siteId,
+          }));
 
-        const { error: operationError } = await supabase
-          .from('nd_site_operation')
-          .insert(operationRecords);
+          const { error: operationError } = await supabase
+            .from('nd_site_operation')
+            .insert(operationRecords);
 
-        if (operationError) throw operationError;
+          if (operationError) throw operationError;
+        }
 
         toast({
           title: "Site added successfully",
@@ -624,13 +812,41 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         <DialogHeader>
           <DialogTitle className="text-2xl">{site ? "Edit Site" : "Add New Site"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-4 flex flex-wrap">
-              <TabsTrigger value="basic-info">Basic Info</TabsTrigger>
-              <TabsTrigger value="location">Location</TabsTrigger>
-              <TabsTrigger value="building">Building Info</TabsTrigger>
-              <TabsTrigger value="connectivity">Connectivity</TabsTrigger>
+              <TabsTrigger 
+                value="basic-info"
+                className={cn(
+                  errors.code || errors.name || errors.phase || errors.status || errors.email ? "text-red-500 font-medium" : ""
+                )}
+              >
+                Basic Info
+              </TabsTrigger>
+              <TabsTrigger 
+                value="location"
+                className={cn(
+                  errors.address || errors.city || errors.postCode || errors.state || errors.coordinates ? "text-red-500 font-medium" : ""
+                )}
+              >
+                Location
+              </TabsTrigger>
+              <TabsTrigger 
+                value="building"
+                className={cn(
+                  errors.building_area || errors.building_type ? "text-red-500 font-medium" : ""
+                )}
+              >
+                Building Info
+              </TabsTrigger>
+              <TabsTrigger 
+                value="connectivity"
+                className={cn(
+                  errors.technology ? "text-red-500 font-medium" : ""
+                )}
+              >
+                Connectivity
+              </TabsTrigger>
               <TabsTrigger value="facilities">Facilities</TabsTrigger>
               <TabsTrigger value="operation">Operation Hours</TabsTrigger>
             </TabsList>
@@ -643,64 +859,109 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                   
                   {parsedMetadata?.user_type === "super_admin" && (
                     <div className="space-y-2">
-                      <Label htmlFor="dusp_tp_id">DUSP TP ID</Label>
-                      <Select
-                        name="dusp_tp_id"
-                        value={formState.dusp_tp_id ?? undefined}
-                        onValueChange={(value) => setField('dusp_tp_id', value)}
+                      <Label htmlFor="dusp_tp_id" className={shouldShowError('dusp_tp_id') ? "text-red-500" : ""}>
+                        Organization*
+                      </Label>
+                      <SelectOne
+                        options={organizations.map((org) => ({
+                          id: String(org.id),
+                          label: org.displayName
+                        }))}
+                        value={formState.dusp_tp_id}
+                        onChange={(value) => {
+                          setField('dusp_tp_id', value);
+                          handleBlur('dusp_tp_id');
+                        }}
+                        placeholder="Select organization"
                         disabled={isOrganizationsLoading}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select organization" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={undefined} key="clearable-option">..</SelectItem>
-                          {organizations.map((org) => (
-                            <SelectItem key={org.id} value={String(org.id)}>
-                              {org.displayName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        className={shouldShowError('dusp_tp_id') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      />
+                      {shouldShowError('dusp_tp_id') && (
+                        <p className="text-sm text-red-500">{errors.dusp_tp_id}</p>
+                      )}
                     </div>
                   )}
                   
                   <div className="space-y-2">
-                    <Label htmlFor="name">Site Name*</Label>
-                    <Input id="name" name="name" value={formState.name} onChange={(e) => setField('name', e.target.value)} required />
+                    <Label htmlFor="name" className={shouldShowError('name') ? "text-red-500" : ""}>
+                      Site Name*
+                    </Label>
+                    <Input 
+                      id="name" 
+                      name="name" 
+                      value={formState.name}
+                      onChange={(e) => setField('name', e.target.value)}
+                      onBlur={() => handleBlur('name')}
+                      className={shouldShowError('name') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      required 
+                    />
+                    {shouldShowError('name') && (
+                      <p className="text-sm text-red-500">{errors.name}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="code">Site Code*</Label>
-                    <Input id="code" name="code" value={formState.code} onChange={(e) => setField('code', e.target.value)} required />
+                    <Label htmlFor="code" className={shouldShowError('code') ? "text-red-500" : ""}>
+                      Site Code*
+                    </Label>
+                    <Input 
+                      id="code" 
+                      name="code" 
+                      value={formState.code}
+                      onChange={(e) => setField('code', e.target.value)}
+                      onBlur={() => handleBlur('code')}
+                      className={shouldShowError('code') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                      required 
+                    />
+                    {shouldShowError('code') && (
+                      <p className="text-sm text-red-500">{errors.code}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phase">Phase</Label>
+                    <Label htmlFor="phase" className={shouldShowError('phase') ? "text-red-500" : ""}>
+                      Phase*
+                    </Label>
                     <SelectOne
                       options={sitePhase.map((phase) => ({
                         id: String(phase.id),
                         label: phase.name
                       }))}
                       value={formState.phase}
-                      onChange={(value) => setField('phase', value)}
+                      onChange={(value) => {
+                        setField('phase', value);
+                        handleBlur('phase');
+                      }}
                       placeholder="Select phase"
                       disabled={isPhaseLoading}
+                      className={shouldShowError('phase') ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {shouldShowError('phase') && (
+                      <p className="text-sm text-red-500">{errors.phase}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
+                    <Label htmlFor="status" className={shouldShowError('status') ? "text-red-500" : ""}>
+                      Status*
+                    </Label>
                     <SelectOne
                       options={siteStatus.map((status) => ({
                         id: String(status.id),
                         label: status.eng
                       }))}
                       value={formState.status}
-                      onChange={(value) => setField('status', value)}
+                      onChange={(value) => {
+                        setField('status', value);
+                        handleBlur('status');
+                      }}
                       placeholder="Select status"
                       disabled={isStatusLoading}
+                      className={shouldShowError('status') ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {shouldShowError('status') && (
+                      <p className="text-sm text-red-500">{errors.status}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -717,13 +978,31 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                 <div className="space-y-4">
                   <DialogTitle>Contact Information</DialogTitle>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" name="email" value={formState.email} type="email" onChange={(e) => setField('email', e.target.value)} />
+                    <Label htmlFor="email" className={shouldShowError('email') ? "text-red-500" : ""}>
+                      Email
+                    </Label>
+                    <Input 
+                      id="email" 
+                      name="email" 
+                      value={formState.email}
+                      type="email" 
+                      onChange={(e) => setField('email', e.target.value)}
+                      onBlur={() => handleBlur('email')}
+                      className={shouldShowError('email') ? "border-red-500 focus-visible:ring-red-500" : ""} 
+                    />
+                    {shouldShowError('email') && (
+                      <p className="text-sm text-red-500">{errors.email}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="website">Website</Label>
-                    <Input id="website" name="website" value={formState.website} onChange={(e) => setField('website', e.target.value)} />
+                    <Input 
+                      id="website" 
+                      name="website" 
+                      value={formState.website}
+                      onChange={(e) => setField('website', e.target.value)} 
+                    />
                   </div>
                 </div>
               </div>
@@ -735,34 +1014,82 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                 <div className="space-y-4">
                   <DialogTitle>Address Information</DialogTitle>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Textarea id="address" name="address" value={formState.address} onChange={(e) => setField('address', e.target.value)} />
+                    <Label htmlFor="address" className={shouldShowError('address') ? "text-red-500" : ""}>
+                      Address*
+                    </Label>
+                    <Textarea 
+                      id="address" 
+                      name="address" 
+                      value={formState.address}
+                      onChange={(e) => setField('address', e.target.value)}
+                      onBlur={() => handleBlur('address')}
+                      className={shouldShowError('address') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    />
+                    {shouldShowError('address') && (
+                      <p className="text-sm text-red-500">{errors.address}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="address2">Address 2 (Optional)</Label>
-                    <Textarea id="address2" name="address2" value={formState.address2} onChange={(e) => setField('address2', e.target.value)} />
+                    <Textarea 
+                      id="address2" 
+                      name="address2" 
+                      value={formState.address2}
+                      onChange={(e) => setField('address2', e.target.value)} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" name="city" value={formState.city} onChange={(e) => setField('city', e.target.value)} />
+                    <Label htmlFor="city" className={shouldShowError('city') ? "text-red-500" : ""}>
+                      City*
+                    </Label>
+                    <Input 
+                      id="city" 
+                      name="city" 
+                      value={formState.city}
+                      onChange={(e) => setField('city', e.target.value)}
+                      onBlur={() => handleBlur('city')}
+                      className={shouldShowError('city') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    />
+                    {shouldShowError('city') && (
+                      <p className="text-sm text-red-500">{errors.city}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="postCode">Postcode</Label>
-                    <Input id="postCode" name="postCode" value={formState.postCode} onChange={(e) => setField('postCode', e.target.value)} />
+                    <Label htmlFor="postCode" className={shouldShowError('postCode') ? "text-red-500" : ""}>
+                      Postcode*
+                    </Label>
+                    <Input 
+                      id="postCode" 
+                      name="postCode" 
+                      value={formState.postCode}
+                      onChange={(e) => setField('postCode', e.target.value)}
+                      onBlur={() => handleBlur('postCode')}
+                      className={shouldShowError('postCode') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    />
+                    {shouldShowError('postCode') && (
+                      <p className="text-sm text-red-500">{errors.postCode}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="coordinates">Coordinates (Longitude, Latitude)</Label>
+                    <Label htmlFor="coordinates" className={shouldShowError('coordinates') ? "text-red-500" : ""}>
+                      Coordinates (Longitude, Latitude)
+                    </Label>
                     <Input
                       id="coordinates"
                       name="coordinates"
                       placeholder="eg 3.2207, 101.439"
                       value={formState.coordinates ?? (formState.longitude ? formState.longitude + (formState.latitude ? ',' + formState.latitude : '') : '')}
                       onChange={(e) => setField('coordinates', e.target.value)}
+                      onBlur={() => handleBlur('coordinates')}
+                      className={shouldShowError('coordinates') ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {shouldShowError('coordinates') && (
+                      <p className="text-sm text-red-500">{errors.coordinates}</p>
+                    )}
                   </div>
                 </div>
                 
@@ -783,17 +1110,26 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
+                    <Label htmlFor="state" className={shouldShowError('state') ? "text-red-500" : ""}>
+                      State*
+                    </Label>
                     <SelectOne
                       options={siteState.map((state) => ({
                         id: String(state.id),
                         label: state.name
                       }))}
                       value={formState.state}
-                      onChange={(value) => setField('state', value)}
+                      onChange={(value) => {
+                        setField('state', value);
+                        handleBlur('state');
+                      }}
                       placeholder="Select state"
                       disabled={isStateLoading}
+                      className={shouldShowError('state') ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {shouldShowError('state') && (
+                      <p className="text-sm text-red-500">{errors.state}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -861,22 +1197,48 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                 <div className="space-y-4">
                   <DialogTitle>Building Information</DialogTitle>
                   <div className="space-y-2">
-                    <Label htmlFor="building_type">Building Type</Label>
+                    <Label htmlFor="building_type" className={shouldShowError('building_type') ? "text-red-500" : ""}>
+                      Building Type*
+                    </Label>
                     <SelectOne
                       options={siteBuildingType.map((type) => ({
                         id: String(type.id),
                         label: type.eng
                       }))}
                       value={formState.building_type}
-                      onChange={(value) => setField('building_type', value)}
+                      onChange={(value) => {
+                        setField('building_type', value);
+                        handleBlur('building_type');
+                      }}
                       placeholder="Select building type"
                       disabled={isBuildingTypeLoading}
+                      className={shouldShowError('building_type') ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {shouldShowError('building_type') && (
+                      <p className="text-sm text-red-500">{errors.building_type}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="building_area">Building Area (sqft)</Label>
-                    <Input id="building_area" name="building_area" type="number" placeholder="0" value={formState.building_area} onChange={(e) => setField('building_area', e.target.value)} />
+                    <Label 
+                      htmlFor="building_area"
+                      className={shouldShowError('building_area') ? "text-red-500" : ""}
+                    >
+                      Building Area (sqft)
+                    </Label>
+                    <Input 
+                      id="building_area" 
+                      name="building_area" 
+                      type="number" 
+                      placeholder="0" 
+                      value={formState.building_area}
+                      onChange={(e) => setField('building_area', e.target.value)}
+                      onBlur={() => handleBlur('building_area')}
+                      className={shouldShowError('building_area') ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    />
+                    {shouldShowError('building_area') && (
+                      <p className="text-sm text-red-500">{errors.building_area}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -957,17 +1319,26 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                 <div className="space-y-4">
                   <DialogTitle>Internet Connectivity</DialogTitle>
                   <div className="space-y-2">
-                    <Label htmlFor="technology">Internet Technology</Label>
+                    <Label htmlFor="technology" className={shouldShowError('technology') ? "text-red-500" : ""}>
+                      Internet Technology*
+                    </Label>
                     <SelectOne
                       options={siteTechnology.map((tech) => ({
                         id: String(tech.id),
                         label: tech.name
                       }))}
                       value={formState.technology}
-                      onChange={(value) => setField('technology', value)}
+                      onChange={(value) => {
+                        setField('technology', value);
+                        handleBlur('technology');
+                      }}
                       placeholder="Select technology"
                       disabled={isTechnologyLoading}
+                      className={shouldShowError('technology') ? "border-red-500 focus-visible:ring-red-500" : ""}
                     />
+                    {shouldShowError('technology') && (
+                      <p className="text-sm text-red-500">{errors.technology}</p>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
@@ -1052,6 +1423,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               <SiteOperationHours 
                 siteId={site?.id} 
                 onOperationTimesChange={handleOperationTimesChange}
+                initialTimes={savedOperationTimes}
               />
             </TabsContent>
           </Tabs>
