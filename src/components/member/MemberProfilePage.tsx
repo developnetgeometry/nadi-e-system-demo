@@ -1,14 +1,19 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useMemberProfile } from "./hook/use-member-profile";
-import ProfileOverviewPage from "./components/OverviewPage";
-import ProfileAddressPage from "./components/AddressPage";
+import ProfileOverviewPage from "../profile/components/OverviewPage";
+import ProfileAddressPage from "../profile/components/AddressPage";
+import { useMemberProfileByUserId } from "../profile/hook/use-member-profile";
 
-const MemberProfileSettings = () => {
-  const { data: memberProfile, isLoading, isError, error, refetch } = useMemberProfile();
+
+const MemberProfilePage = ({ userId }: { userId: string }) => {
+    const { data: memberProfile, isLoading, isError, error, refetch } = useMemberProfileByUserId(userId);
 
   if (isLoading) {
     return <div>Loading...</div>; // Show a loading state while fetching data
+  }
+
+  if (!memberProfile) {
+    return <div>This member does not have a profile yet.</div>; // Show a message if the profile is null
   }
 
   if (isError) {
@@ -40,4 +45,4 @@ const MemberProfileSettings = () => {
   );
 };
 
-export default MemberProfileSettings;
+export default MemberProfilePage;

@@ -22,7 +22,7 @@ const DuspProfileSettings = () => {
       <TabsContent value="overview" className="h-full mt-0">
         <Card className="h-full">
           <div className="p-6 h-full">
-            <ProfileOverviewPage profileData={duspProfile} refetch={refetch} /> {/* Pass refetch to ProfileOverviewPage */}
+            <ProfileOverviewPage profileData={duspProfile} refetch={refetch} userType={""} userGroup={1} /> {/* Pass refetch to ProfileOverviewPage */}
           </div>
         </Card>
       </TabsContent>

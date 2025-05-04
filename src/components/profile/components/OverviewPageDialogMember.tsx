@@ -31,7 +31,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
     onSave,
 }) => {
     const { toast } = useToast();
-    const { races, genders, ethnics, occupations, typeSectors, socioeconomics, ictKnowledge, educationLevels, statusMemberships } = useGeneralData();
+    const { races, nationalities, genders, ethnics, occupations, typeSectors, socioeconomics, ictKnowledge, educationLevels, statusMemberships } = useGeneralData();
     const [formState, setFormState] = useState<any>({});
     const userMetadata = useUserMetadata();
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
@@ -53,14 +53,14 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
 
         try {
             // Call the updateMemberProfile function with the updated formState
-            await updateMemberProfile({
-                user_id: formState.user_id, // Pass the unique user_id
+            await updateMemberProfile(formState.user_id, {
                 fullname: formState.fullname,
                 identity_no: formState.identity_no,
                 mobile_no: formState.mobile_no,
                 email: formState.email,
                 dob: formState.dob,
                 race_id: formState.race_id?.id,
+                nationality_id: formState.nationality_id?.id,
                 gender: formState.gender?.id,
                 community_status: formState.community_status,
                 ethnic_id: formState.ethnic_id?.id,
@@ -94,9 +94,6 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
         }
     };
 
-    if (!userGroup) {
-        return "Loading data...";
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -185,6 +182,28 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                         value={formState.dob || ""}
                                         onChange={(e) => setField("dob", e.target.value)}
                                     />
+                                </div>
+                                {/* Nationality*/}
+                                <div>
+                                    <Label htmlFor="nationality_id">Nationality</Label>
+                                    <Select
+                                        name="nationality_id"
+                                        value={formState.nationality_id?.id?.toString() || ""}
+                                        onValueChange={(value) =>
+                                            setField("nationality_id", nationalities.find((nationality) => nationality.id.toString() === value))
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select nationality" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {nationalities.map((nationality) => (
+                                                <SelectItem key={nationality.id} value={nationality.id.toString()}>
+                                                    {nationality.eng}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 {/* Race */}
                                 <div>

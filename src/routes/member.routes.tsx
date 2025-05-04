@@ -4,6 +4,7 @@ import PersonalDetails from "@/pages/dashboard/members/PersonalDetails";
 import Registration from "@/pages/dashboard/members/Registration";
 import ActivityLogs from "@/pages/dashboard/members/ActivityLogs";
 import MemberManagement from "@/pages/dashboard/members/MemberManagement";
+import MemberProfilePages from "@/pages/dashboard/members/MemberProfilePages";
 
 export const memberRoutes: RouteObject[] = [
   {
@@ -13,6 +14,10 @@ export const memberRoutes: RouteObject[] = [
   {
     path: "/dashboard/members/details",
     element: <PersonalDetails />,
+  },
+  {
+    path: "/dashboard/members/details/:id",
+    element: <MemberProfilePages />,
   },
   {
     path: "/dashboard/members/registration",

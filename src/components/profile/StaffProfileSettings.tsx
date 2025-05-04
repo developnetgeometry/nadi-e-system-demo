@@ -27,7 +27,7 @@ const StaffProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the staff profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={staffProfile} refetch={refetch}/>
+            <ProfileOverviewPage profileData={staffProfile} refetch={refetch} userType={""} userGroup={6}/>
           </div>
         </Card>
       </TabsContent>

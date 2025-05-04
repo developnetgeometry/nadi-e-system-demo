@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/hooks/auth";
 
-export const LoginForm = () => {
+export const LoginFormMember = () => {
   const { email, setEmail, password, setPassword, loading, handleLogin } =
     useLogin();
 
@@ -63,7 +63,7 @@ export const LoginForm = () => {
         {loading ? "Signing in..." : "Sign in"}
       </Button>
 
-      {/* <div className="relative my-6">
+      <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-200"></div>
         </div>
@@ -79,7 +79,7 @@ export const LoginForm = () => {
         className="block w-full text-center py-3 px-4 rounded-lg border-2 border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200"
       >
         Create an account
-      </Link> */}
+      </Link>
     </form>
   );
 };
