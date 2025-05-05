@@ -53,6 +53,7 @@ export const fetchlListClosureData = async (
       id,
       site_id,
       nd_closure_categories:nd_closure_categories(
+          id,
           bm,
           eng
       ),
@@ -71,6 +72,8 @@ export const fetchlListClosureData = async (
           id,
           sitename,
           nd_site:nd_site(standard_code),
+          region_id:nd_region(id, eng),
+          state_id:nd_state(id, name),
           organizations:organizations(
               id,
               name,
@@ -79,7 +82,8 @@ export const fetchlListClosureData = async (
           )
       ),
       requester_id,
-      request_datetime
+      request_datetime,
+      created_by
     `)
     .order("created_at", { ascending: false });
   
@@ -92,11 +96,45 @@ export const fetchlListClosureData = async (
     query = query.in("site_id", siteProfileIds);
   }
   
-  const { data, error } = await query;
+  const { data: closureData, error } = await query;
   
   if (error) throw error;
   
-  return data as unknown as SiteListClosureRequest[];
+  // Get all unique creator IDs to fetch their profile information
+  const creatorIds = Array.from(
+    new Set(
+      closureData
+        .filter(item => item.created_by)
+        .map(item => item.created_by)
+    )
+  );
+  
+  // Fetch profile information for creators if there are any creator IDs
+  let creatorProfiles: Record<string, any> = {};
+  if (creatorIds.length > 0) {
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, user_type')
+      .in('id', creatorIds);
+      
+    if (profilesError) {
+      console.error("Error fetching creator profiles:", profilesError);
+    } else if (profilesData) {
+      // Create a mapping from creator ID to profile data
+      creatorProfiles = profilesData.reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>);
+    }
+  }
+  
+  // Combine closure data with creator profile information
+  const enhancedData = closureData.map(item => ({
+    ...item,
+    profiles: item.created_by ? creatorProfiles[item.created_by] || null : null
+  }));
+  
+  return enhancedData as unknown as SiteListClosureRequest[];
 };
 
 export const fetchClosureCategories = async (): Promise<ClosureCategory[]> => {

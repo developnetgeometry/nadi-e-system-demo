@@ -26,6 +26,13 @@ interface SiteClosureAttachmentData {
   file_path: string[] | string | null;  // Support both string[] and string for flexibility
 }
 
+// Add interface for logs
+interface SiteClosureLogData {
+  site_closure_id: number;
+  remark: string | null;
+  closure_status_id: number;
+}
+
 export const useInsertSiteClosureData = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +63,18 @@ export const useInsertSiteClosureData = () => {
         duration = diffMs / (1000 * 60 * 60 * 24);
       }
       
-      // Only add requester_id and request_datetime when status is 2 (submit)
-      // For drafts (status 1), leave them as null
-      const isSubmitting = dataToInsert.status === "2";
+      // Special status handling for relocation category (ID: 1)
+      const isRelocationCategory = dataToInsert.category_id === "1";
+      
+      // Only add requester_id and request_datetime when status is not 1 (draft)
+      const isSubmitting = dataToInsert.status !== "1";
       const currentDateTime = isSubmitting ? new Date().toISOString() : null;
       const requesterId = isSubmitting ? user?.id : null;
+      
+      // Always use status 2 (Submitted) for relocation
+      // This way the status is "Submitted" but we'll add a special flag
+      // in the logs to indicate it needs DUSP approval
+      let statusToUse = dataToInsert.status;
       
       // Clean up data before insertion to prevent database errors
       const cleanedData = {
@@ -75,7 +89,7 @@ export const useInsertSiteClosureData = () => {
         
         // Keep session as string
         session: dataToInsert.session || null,
-        status: dataToInsert.status ? parseInt(dataToInsert.status, 10) || null : null,
+        status: statusToUse ? parseInt(statusToUse, 10) || null : null,
         
         // Time fields
         start_time: dataToInsert.start_time || null,
@@ -134,6 +148,41 @@ export const useInsertSiteClosureData = () => {
           console.error("Error processing affect areas:", affectAreaErr);
           // Continue execution
         }
+      }
+
+      // Add log entry for the new closure
+      const statusId = parseInt(statusToUse, 10) || 1;
+      let logRemark = "";
+      
+      // Create a specific log message for relocation category submissions
+      if (statusId === 1) {
+        logRemark = "Draft created";
+      } else if (isSubmitting && isRelocationCategory) {
+        logRemark = "Relocation request submitted - forwarded to DUSP for approval";
+      } else if (statusId === 5) {
+        logRemark = "Request recommended for DUSP approval";
+      } else {
+        logRemark = "Request submitted";
+      }
+
+      const logData: SiteClosureLogData = {
+        site_closure_id: closureId,
+        remark: logRemark,
+        closure_status_id: statusId
+      };
+
+      try {
+        const { error: logError } = await supabase
+          .from("nd_site_closure_logs")
+          .insert([logData]);
+
+        if (logError) {
+          console.error("Error adding closure log:", logError);
+          // Continue execution instead of throwing error
+        }
+      } catch (logErr) {
+        console.error("Error logging closure status:", logErr);
+        // Continue execution
       }
 
       // Step 3: Upload files to Supabase Storage if files are selected
@@ -311,6 +360,16 @@ export const useUpdateSiteClosureData = () => {
         request_datetime: isSubmitting ? currentDateTime : dataToUpdate.request_datetime,
       };
 
+      // Get previous status to check if status is changing
+      const { data: previousData, error: fetchError } = await supabase
+        .from("nd_site_closure")
+        .select("status")
+        .eq("id", id)
+        .single();
+        
+      const previousStatus = previousData?.status || 0;
+      const newStatus = parseInt(dataToUpdate.status, 10) || 0;
+      
       // Update closure data
       const { error: updateError } = await supabase
         .from("nd_site_closure")
@@ -318,6 +377,37 @@ export const useUpdateSiteClosureData = () => {
         .eq("id", id);
 
       if (updateError) throw new Error(`Failed to update closure: ${updateError.message}`);
+
+      // Add log entry if status has changed or the draft is being submitted
+      if (previousStatus !== newStatus || isSubmitting) {
+        let logRemark = "";
+        
+        if (isSubmitting) {
+          logRemark = "Request submitted";
+        } else {
+          logRemark = "Draft updated";
+        }
+        
+        const logData: SiteClosureLogData = {
+          site_closure_id: id,
+          remark: logRemark,
+          closure_status_id: newStatus
+        };
+        
+        try {
+          const { error: logError } = await supabase
+            .from("nd_site_closure_logs")
+            .insert([logData]);
+            
+          if (logError) {
+            console.error("Error adding closure log:", logError);
+            // Continue execution instead of throwing error
+          }
+        } catch (logErr) {
+          console.error("Error logging closure status:", logErr);
+          // Continue execution
+        }
+      }
 
       // Update affect areas - first delete existing ones
       await supabase
@@ -683,6 +773,27 @@ export const useDeleteDraftClosure = () => {
   const deleteDraft = async (closureId: number): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {
+      // First, add a log entry for the deletion
+      const logData: SiteClosureLogData = {
+        site_closure_id: closureId,
+        remark: "Draft deleted",
+        closure_status_id: 1 // Using status 1 (Draft) as it's being deleted
+      };
+      
+      try {
+        const { error: logError } = await supabase
+          .from("nd_site_closure_logs")
+          .insert([logData]);
+          
+        if (logError) {
+          console.error("Error adding deletion log:", logError);
+          // Continue execution instead of throwing error
+        }
+      } catch (logErr) {
+        console.error("Error logging draft deletion:", logErr);
+        // Continue execution
+      }
+
       // 1. First, get any file attachments associated with the draft
       const { data: attachmentData, error: fetchError } = await supabase
         .from("nd_site_closure_attachment")

@@ -45,6 +45,7 @@ export interface SiteClosureRequest {
 export interface SiteListClosureRequest {
     id: number;
     nd_closure_categories: {
+        id: number;
         bm: string;
         eng: string;
     };  // Not an array
@@ -55,6 +56,7 @@ export interface SiteListClosureRequest {
         name: string;
     };  // Not an array
     nd_site_profile: {
+        id: any;
         sitename: string;
         nd_site: {
             standard_code: string;
@@ -69,6 +71,7 @@ export interface SiteListClosureRequest {
     };  // Not an array
     requester_id: string;
     request_datetime: string;
+    created_by: string | null;
 }
 
 export interface Closure_Status {

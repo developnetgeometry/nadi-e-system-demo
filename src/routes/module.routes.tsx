@@ -28,7 +28,6 @@ import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
 import Site from "@/pages/dashboard/site/Site";
-import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
@@ -322,14 +321,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  {
-    path: "/site-management/approval", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <SiteClosureApproval />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/site-management/approval", //For superadmin
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <SiteClosureApproval />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/docket-status", //For superadmin
     element: (

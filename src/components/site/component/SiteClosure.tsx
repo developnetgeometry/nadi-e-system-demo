@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -27,6 +27,8 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { SUPABASE_URL } from "@/integrations/supabase/client";
 import { useSiteClosureForm } from "../hook/use-site-closure-form";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 interface SiteClosureFormProps {
   open: boolean;
@@ -37,6 +39,66 @@ interface SiteClosureFormProps {
   clearEditData?: () => void;
 }
 
+interface SiteOption {
+  id: string;
+  label: string;
+}
+
+// Function to fetch sites for a specific TP organization
+const fetchTPSites = async (organizationId: string): Promise<SiteOption[]> => {
+  if (!organizationId) return [];
+  
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(`
+        id,
+        sitename,
+        nd_site:nd_site(standard_code)
+      `)
+      .eq("dusp_tp_id", organizationId)
+      .order("sitename", { ascending: true });
+    
+    if (error) throw error;
+    
+    return (data || []).map(site => ({
+      id: site.id,
+      label: `${site.sitename} (${site.nd_site?.[0]?.standard_code || 'No Code'})`,
+    }));
+  } catch (error) {
+    console.error("Error fetching TP sites:", error);
+    return [];
+  }
+};
+
+// Function to fetch all sites for SuperAdmin
+const fetchAllSites = async (): Promise<SiteOption[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(`
+        id,
+        sitename,
+        nd_site:nd_site(standard_code),
+        organizations:dusp_tp_id(
+          id, name, type,
+          parent:parent_id(name)
+        )
+      `)
+      .order("sitename", { ascending: true });
+    
+    if (error) throw error;
+    
+    return (data || []).map(site => ({
+      id: site.id,
+      label: `${site.sitename} (${site.nd_site?.[0]?.standard_code || 'No Code'}) - ${site.organizations?.name || 'N/A'}`,
+    }));
+  } catch (error) {
+    console.error("Error fetching all sites:", error);
+    return [];
+  }
+};
+
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   open,
   onOpenChange,
@@ -45,8 +107,37 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   editData,
   clearEditData,
 }) => {
-  const { siteCode } = useSiteCode(siteId);
+  // Get user metadata to check if user is TP
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
+  const organizationId = isTPUser ? parsedMetadata?.organization_id : null;
+  
+  // Get user group information FIRST before using it
   const { isTP, isSuperAdmin } = useUserGroup();
+  
+  // State for selected site (used for TP and SuperAdmin users)
+  const [selectedSiteId, setSelectedSiteId] = useState<string>(siteId || "");
+  
+  // Fetch sites for TP user
+  const { data: tpSites = [], isLoading: isLoadingSites } = useQuery({
+    queryKey: ["tpSites", organizationId],
+    queryFn: () => fetchTPSites(organizationId || ""),
+    enabled: !!organizationId && isTPUser && open,
+  });
+
+  // Fetch all sites for SuperAdmin
+  const { data: allSites = [], isLoading: isLoadingAllSites } = useQuery({
+    queryKey: ["allSites"],
+    queryFn: fetchAllSites,
+    enabled: !isTPUser && isSuperAdmin && open,
+  });
+
+  // Use the selected site ID if user is TP or SuperAdmin, otherwise use the provided siteId
+  const effectiveSiteId = isTPUser || isSuperAdmin ? selectedSiteId : siteId;
+  
+  // Get site code for the effective site ID
+  const { siteCode } = useSiteCode(effectiveSiteId);
   const fileUploadRef = useRef<any>(null);
 
   // Pass necessary validation states to the form hook
@@ -71,10 +162,10 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     setShowConfirmDialog,
     validateForm,
     cleanupFormState,
-  } = useSiteClosureForm(siteId, siteCode, editData, isSuperAdmin, onSuccess, onOpenChange);
+  } = useSiteClosureForm(effectiveSiteId, siteCode, editData, isSuperAdmin, onSuccess, onOpenChange);
 
   // Track whether to show subcategory field based on category selection
-  const [showSubcategory, setShowSubcategory] = React.useState(false);
+  const [showSubcategory, setShowSubcategory] = useState(false);
 
   // Data queries for form fields
   const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
@@ -96,6 +187,16 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     queryKey: ['closureSessions'],
     queryFn: fetchClosureSession,
   });
+
+  // Update selected site when dialog opens
+  useEffect(() => {
+    if (open && (isTPUser || isSuperAdmin) && !selectedSiteId) {
+      const sites = isTPUser ? tpSites : allSites;
+      if (sites.length > 0) {
+        setSelectedSiteId(sites[0].id);
+      }
+    }
+  }, [open, isTPUser, isSuperAdmin, tpSites, allSites, selectedSiteId]);
 
   // Format existing attachments for FileUpload component
   const formattedExistingFiles = useMemo(() => {
@@ -126,6 +227,11 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     resetForm();
     if (fileUploadRef.current && fileUploadRef.current.reset) {
       fileUploadRef.current.reset();
+    }
+    // Reset selected site if TP or SuperAdmin user
+    if ((isTPUser || isSuperAdmin) && (tpSites.length > 0 || allSites.length > 0)) {
+      const sites = isTPUser ? tpSites : allSites;
+      setSelectedSiteId(sites[0].id);
     }
   };
 
@@ -229,6 +335,16 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   // Update handleFormSubmit to include context information in validation
   const handleFormValidationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate site selection for TP and SuperAdmin users
+    if ((isTPUser || isSuperAdmin) && !selectedSiteId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a site",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Modify validation context based on current state
     const isValid = validateForm({
@@ -281,6 +397,25 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
           </DialogHeader>
 
           <form onSubmit={handleFormValidationSubmit} className="space-y-4" noValidate>
+            {/* Site Selection Dropdown for TP and SuperAdmin Users */}
+            {(isTPUser || isSuperAdmin) && (
+              <div className="space-y-2">
+                <Label htmlFor="siteSelection">
+                  Select Site <span className="text-red-500">*</span>
+                </Label>
+                <SelectOne
+                  options={isTPUser ? tpSites : allSites}
+                  value={selectedSiteId}
+                  onChange={(value) => setSelectedSiteId(value as string)}
+                  placeholder="Select a site"
+                  disabled={(isTPUser ? isLoadingSites : isLoadingAllSites) || isSubmitting}
+                />
+                {!selectedSiteId && (
+                  <p className="text-sm text-red-500">Please select a site</p>
+                )}
+              </div>
+            )}
+
             {/* Site Code */}
             <div className="space-y-2">
               <Label htmlFor="siteId">Site Code</Label>
@@ -513,7 +648,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 type="button"
                 variant="secondary"
                 onClick={handleSubmitAsDraft}
-                disabled={isSubmitting}
+                disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !selectedSiteId)}
               >
                 {isSubmitting && activeSubmission === "draft" ?
                   (editData?.id ? "Updating..." : "Saving...") :
@@ -521,7 +656,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !selectedSiteId)}
               >
                 {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}
               </Button>
