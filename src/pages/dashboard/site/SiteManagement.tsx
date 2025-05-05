@@ -81,6 +81,9 @@ const SiteDashboard = () => {
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const pageSize = 10;
+  
+  // State for selected sites
+  const [selectedSites, setSelectedSites] = useState<string[]>([]);
 
   // Fetch sites data with sorting and filtering
   const { data: sitesData, isLoading } = useQuery({
@@ -130,7 +133,7 @@ const SiteDashboard = () => {
               break;
             case 'state':
               valueA = states.find(s => s.id === a.nd_site_address[0]?.state_id)?.name || '';
-              valueB = states.find(s => s.id === b.nd_site_address[0]?.state_id)?.name || '';
+              valueB = b.nd_site_address[0]?.state_id ? states.find(s => s.id === b.nd_site_address[0]?.state_id)?.name || '' : '';
               break;
             case 'dusp_tp':
               valueA = a.dusp_tp_id_display || '';
@@ -305,7 +308,7 @@ const SiteDashboard = () => {
               break;
             case 'state':
               valueA = states.find(s => s.id === a.nd_site_address[0]?.state_id)?.name || '';
-              valueB = states.find(s => s.id === b.nd_site_address[0]?.state_id)?.name || '';
+              valueB = b.nd_site_address[0]?.state_id ? states.find(s => s.id === b.nd_site_address[0]?.state_id)?.name || '' : '';
               break;
             case 'dusp_tp':
               valueA = a.dusp_tp_id_display || '';
@@ -372,16 +375,68 @@ const SiteDashboard = () => {
     return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
-  // Access control logic
-  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
-    return <div>You do not have access to this dashboard.</div>;
-  }
-
   const hasActiveFilters = phaseFilters.length > 0 || regionFilters.length > 0 || stateFilters.length > 0 || statusFilters.length > 0;
 
   const getActiveFilterCount = () => {
     return phaseFilters.length + regionFilters.length + stateFilters.length + statusFilters.length;
   };
+
+  // Checkbox selection handlers
+  const handleSelectSite = (siteId: string) => {
+    setSelectedSites(prev => {
+      // If already selected, remove it
+      if (prev.includes(siteId)) {
+        return prev.filter(id => id !== siteId);
+      } 
+      // Otherwise, add it
+      return [...prev, siteId];
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (!sitesData?.data) return;
+    
+    // If all sites on current page are selected, deselect them
+    const currentPageSiteIds = sitesData.data.map(site => site.id);
+    const allSelected = currentPageSiteIds.every(id => selectedSites.includes(id));
+    
+    if (allSelected) {
+      // Remove all current page site IDs from selection
+      setSelectedSites(prev => prev.filter(id => !currentPageSiteIds.includes(id)));
+    } else {
+      // Add any unselected site IDs from current page
+      setSelectedSites(prev => {
+        const newSelection = [...prev];
+        currentPageSiteIds.forEach(id => {
+          if (!newSelection.includes(id)) {
+            newSelection.push(id);
+          }
+        });
+        return newSelection;
+      });
+    }
+  };
+
+  // Helper to check if all sites on current page are selected
+  const areAllSitesSelected = () => {
+    if (!sitesData?.data || sitesData.data.length === 0) return false;
+    return sitesData.data.every(site => selectedSites.includes(site.id));
+  };
+
+  // Helper to check if a specific site is selected
+  const isSiteSelected = (siteId: string) => {
+    return selectedSites.includes(siteId);
+  };
+
+  // Reset selectedSites when changing pages or filters
+  useEffect(() => {
+    setSelectedSites([]);
+  }, [currentPage, phaseFilters, regionFilters, stateFilters, statusFilters, searchTerm]);
+
+  // Access control logic - moved after all hooks
+  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
+    return <div>You do not have access to this dashboard.</div>;
+  }
 
   return (
     <DashboardLayout>
@@ -404,6 +459,30 @@ const SiteDashboard = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           </div>
           <div className="flex gap-2 self-end">
+            {selectedSites.length > 0 && (
+              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-md px-3 py-1.5 text-sm">
+                <span className="font-medium">{selectedSites.length} sites selected</span>
+                <div className="flex gap-2">
+                  {isSuperAdmin && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-8"
+                      onClick={() => {
+                        setIsDeleteDialogOpen(true);
+                        setSiteToDelete(null); // Indicate that we're doing batch delete
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" className="h-8" onClick={() => setSelectedSites([])}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            )}
             <Button 
               variant="outline" 
               className="flex items-center gap-2 bg-white"
@@ -685,7 +764,10 @@ const SiteDashboard = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">
-                    <Checkbox />
+                    <Checkbox 
+                      checked={areAllSitesSelected()} 
+                      onCheckedChange={handleSelectAll} 
+                    />
                   </TableHead>
                   <TableHead className="w-[60px]">No.</TableHead>
                   <TableHead 
@@ -834,7 +916,10 @@ const SiteDashboard = () => {
                   sitesData?.data.map((site, index) => (
                     <TableRow key={site.id}>
                       <TableCell>
-                        <Checkbox />
+                        <Checkbox 
+                          checked={isSiteSelected(site.id)} 
+                          onCheckedChange={() => handleSelectSite(site.id)} 
+                        />
                       </TableCell>
                       <TableCell className="font-medium">
                         {(currentPage - 1) * pageSize + index + 1}
@@ -918,7 +1003,13 @@ const SiteDashboard = () => {
             <DialogHeader>
               <DialogTitle>Confirm Deletion</DialogTitle>
             </DialogHeader>
-            <div>Are you sure you want to delete this site? Type "DELETE" to confirm.</div>
+            <div>
+              {siteToDelete ? 
+                "Are you sure you want to delete this site?" : 
+                `Are you sure you want to delete ${selectedSites.length} selected sites?`
+              } 
+              Type "DELETE" to confirm.
+            </div>
             <Input
               type="text"
               value={deleteConfirmation}
@@ -940,25 +1031,38 @@ const SiteDashboard = () => {
                 variant="destructive"
                 onClick={async () => {
                   if (deleteConfirmation !== "DELETE") return;
-                  if (!siteToDelete) return;
                   
                   try {
-                    // Call the deleteSite function from site-utils
-                    await deleteSite(siteToDelete);
+                    if (siteToDelete) {
+                      // Single site deletion
+                      await deleteSite(siteToDelete);
+                      
+                      toast({
+                        title: "Site deleted",
+                        description: "The site has been successfully deleted.",
+                      });
+                    } else if (selectedSites.length > 0) {
+                      // Batch deletion for multiple selected sites
+                      // Use Promise.all to delete all selected sites in parallel
+                      await Promise.all(selectedSites.map(id => deleteSite(id)));
+                      
+                      toast({
+                        title: "Sites deleted",
+                        description: `${selectedSites.length} sites have been successfully deleted.`,
+                      });
+                      
+                      // Clear selection after deletion
+                      setSelectedSites([]);
+                    }
                     
                     // Invalidate queries to refresh the data
                     queryClient.invalidateQueries({ queryKey: ['sites'] });
                     queryClient.invalidateQueries({ queryKey: ['site-stats'] });
-                    
-                    toast({
-                      title: "Site deleted",
-                      description: "The site has been successfully deleted.",
-                    });
                   } catch (error) {
-                    console.error("Failed to delete site:", error);
+                    console.error("Failed to delete site(s):", error);
                     toast({
                       title: "Error",
-                      description: "Failed to delete the site. Please try again.",
+                      description: "Failed to delete the site(s). Please try again.",
                       variant: "destructive",
                     });
                   } finally {
