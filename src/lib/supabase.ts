@@ -9,11 +9,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  },
 });
 
 // Test the connection and log the status

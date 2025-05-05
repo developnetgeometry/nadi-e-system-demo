@@ -40,6 +40,9 @@ import Announcements from "@/pages/dashboard/announcements/Announcements";
 import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
+import Usage from "@/pages/dashboard/site/Usage";
+import KPI from "@/pages/dashboard/site/KPI";
+import NMS from "@/pages/dashboard/site/NMS";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -325,6 +328,30 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <SiteClosureApproval />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/usage",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Usage/>
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/kpi",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <KPI/>
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/nms",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <NMS/>
       // </ProtectedRoute>
     ),
   },

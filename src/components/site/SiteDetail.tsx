@@ -11,6 +11,7 @@ import BillingPage from "./component/BillingPage";
 import ClosurePage from "./component/ClosurePage.tsx";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
+import InsurancePage from "./component/InsurancePage.tsx";
 
 interface SiteDetailProps {
   siteId: string;
@@ -56,15 +57,16 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
     return <Skeleton className="w-full h-24">Loading...</Skeleton>;
   }
 
-  if (error || codeError) {
-    return (
-      <div className="p-4 text-destructive">
-        Error: {error || codeError}
-      </div>
-    );
-  }
+  // if (Error) {
+  //   return (
+  //     <div className="p-4 text-destructive">
+  //       Error: {error || codeError}
+  //     </div>
+  //   );
+  // }
 
   return (
+    // <pre>{JSON.stringify(data, null, 2)}</pre>
     <div className="space-y-6">
       {/* Top Section: Fullname, Site Code, Status */}
       <div className="flex justify-between items-center">
@@ -107,6 +109,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
           <TabsTrigger value="overview" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Overview</TabsTrigger>
           <TabsTrigger value="billing" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Billing</TabsTrigger>
           <TabsTrigger value="closure" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Closure</TabsTrigger>
+          <TabsTrigger value="insurance" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Insurance</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="h-full mt-0">
           <Card className="h-full">
@@ -130,6 +133,13 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
                 // siteDetails={data.fullname || "N/A"} 
                 // location={data.state_id?.name || "N/A"} 
               />
+            </div>
+          </Card>
+        </TabsContent>
+        <TabsContent value="insurance" className="h-full mt-0">
+          <Card className="h-full">
+            <div className="p-6 h-full">
+              <InsurancePage siteId={siteId} />
             </div>
           </Card>
         </TabsContent>
