@@ -2,37 +2,100 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { ClosureAffectArea, ClosureCategory, ClosureSession, ClosureSubCategory, SiteListClosureRequest } from "../types/site-closure";
 
-export const fetchlListClosureData = async (): Promise<SiteListClosureRequest[]> => {
-  const { data, error } = await supabase
-        .from("nd_site_closure")
-        .select(`
-            id,
-            nd_closure_categories:nd_closure_categories(
-                bm,
-                eng
-            ),
-            close_start,
-            close_end,
-            duration,
-            nd_closure_status:nd_closure_status(
-                name
-            ),
-            nd_site_profile:nd_site_profile(
-                sitename,
-                nd_site:nd_site(standard_code),
-                organizations:organizations(
-                    name,
-                    type,
-                    parent_id(name)
-                )
-            ),
-            requester_id,
-            request_datetime
-        `)
-        .order("created_at", { ascending: false }); 
-        if (error) throw error;
-        
-  // console.log("Raw data from API:", JSON.stringify(data?.[0], null, 2)); // Log structure of first item
+export const fetchlListClosureData = async (
+  organizationId: string | null = null,
+  isDUSPUser: boolean = false,
+  siteId: string | null = null
+): Promise<SiteListClosureRequest[]> => {
+  // First, we need to handle site profiles filtering based on organization
+  let siteProfileIds: string[] = [];
+  
+  // If we have an organization filter, we need to fetch the relevant site profiles first
+  if (organizationId) {
+    let siteProfileQuery = supabase
+      .from("nd_site_profile")
+      .select("id");
+      
+    if (isDUSPUser) {
+      // For DUSP users, fetch all TP organizations under the DUSP
+      const { data: childOrganizations, error: childError } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('parent_id', organizationId);
+
+      if (childError) throw childError;
+      
+      // Get all child organization IDs
+      const childOrganizationIds = childOrganizations.map(org => org.id);
+      
+      if (childOrganizationIds.length > 0) {
+        // Filter site profiles where organization ID is in the child organizations
+        siteProfileQuery = siteProfileQuery.in('dusp_tp_id', childOrganizationIds);
+      }
+    } else {
+      // For TP users, filter site profiles directly by their organization ID
+      siteProfileQuery = siteProfileQuery.eq("dusp_tp_id", organizationId);
+    }
+    
+    // Execute the site profile query
+    const { data: siteProfiles, error: siteProfilesError } = await siteProfileQuery;
+    
+    if (siteProfilesError) throw siteProfilesError;
+    
+    // Extract the site profile IDs
+    siteProfileIds = siteProfiles.map(profile => profile.id);
+  }
+
+  // Now build the main query for closures
+  let query = supabase
+    .from("nd_site_closure")
+    .select(`
+      id,
+      site_id,
+      nd_closure_categories:nd_closure_categories(
+          bm,
+          eng
+      ),
+      nd_closure_subcategories:nd_closure_subcategories(
+          bm,
+          eng
+      ),
+      close_start,
+      close_end,
+      duration,
+      nd_closure_status:nd_closure_status(
+          id,
+          name
+      ),
+      nd_site_profile:nd_site_profile(
+          id,
+          sitename,
+          nd_site:nd_site(standard_code),
+          organizations:organizations(
+              id,
+              name,
+              type,
+              parent_id(id, name)
+          )
+      ),
+      requester_id,
+      request_datetime
+    `)
+    .order("created_at", { ascending: false });
+  
+  // Filter by site ID if provided (highest priority)
+  if (siteId) {
+    query = query.eq("site_id", siteId);
+  }
+  // Apply the site profile filter if we have organization filtering
+  else if (organizationId && siteProfileIds.length > 0) {
+    query = query.in("site_id", siteProfileIds);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) throw error;
+  
   return data as unknown as SiteListClosureRequest[];
 };
 

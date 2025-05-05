@@ -41,6 +41,7 @@ import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSe
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
+import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -393,6 +394,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <DashboardPage />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/closure",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <NADIClosure />
       // </ProtectedRoute>
     ),
   },
