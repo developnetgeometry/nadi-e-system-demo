@@ -38,12 +38,12 @@ export default function PayrollPage() {
   // Render the appropriate dashboard based on user role
   const renderDashboard = () => {
     switch (role) {
-      //   case "super_admin":
-      //     return <SuperAdminPage />;
-      case "2":
-        return <MCMCPage />;
-      case "1":
-        return <DUSPPage />;
+      case "super_admin":
+        return <SuperAdminPage />;
+      //   case "2":
+      //     return <MCMCPage />;
+      //   case "1":
+      //     return <DUSPPage />;
       case "3":
         return <TPPage />;
       case "6":
