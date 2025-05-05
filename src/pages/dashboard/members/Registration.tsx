@@ -11,6 +11,7 @@ import useGeoData from "./hook/use-geo-data-simple";
 import { DemographicForm } from "@/components/member/form/DemographicForm";
 import { ReviewForm } from "@/components/member/form/ReviewForm";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { CheckCircle } from "lucide-react";
 
 type FormData = {
   fullname: string;
@@ -112,7 +113,7 @@ function Registration() {
       return { ...prev, ...fields };
     });
   }
-  
+
 
   const { currentStepIndex, step, isFirstStep, isLastStep, back, next } =
     useMultistepForm([
@@ -145,8 +146,40 @@ function Registration() {
         {...data} updateFields={updateFields} />,
     ]);
 
+  const steps = [
+    { label: "Personal Info", validate: validatePersonalInfo },
+    { label: "Address", validate: validateAddress },
+    { label: "Demographics", validate: validateDemographics },
+    { label: "Review", validate: validateReview },
+  ];
+
+  function validatePersonalInfo() {
+    return data.fullname && data.ref_id && data.dob && data.join_date;
+  }
+
+  function validateAddress() {
+    return data.state_id && data.district_id;
+  }
+
+  function validateDemographics() {
+    return data.nationality_id && data.race_id && data.ethnic_id;
+  }
+
+  function validateReview() {
+    return data.agree_declare && data.pdpa_declare;
+  }
+
+  function isStepComplete(index: number) {
+    return steps[index].validate();
+  }
+
+
   const handleNext = async () => {
     if (currentStepIndex === 0) {
+      if (!data.fullname) {
+        alert("Fullname is required.");
+        return;
+      }
       if (!data.ref_id) {
         alert("Site is required.");
         return;
@@ -237,10 +270,37 @@ function Registration() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold">Member Registration</h1>
+          <p className="text-muted-foreground">
+            Register new members with detailed information
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex bg-muted rounded-lg overflow-hidden">
+          {steps.map((step, index) => {
+            const isActive = currentStepIndex === index;
+            const isCompleted = isStepComplete(index);
+
+            return (
+              <div
+                key={index}
+                className={`flex-1 px-4 py-2 flex items-center justify-center space-x-2 text-sm transition-all 
+          ${isActive ? "bg-white font-semibold text-foreground shadow-sm dark:text-black" : "text-muted-foreground hover:bg-muted/50"}`}
+              >
+                {isCompleted && <CheckCircle className="text-green-500" size={16} />}
+                <span>{step.label}</span>
+              </div>
+            );
+          })}
+        </div>
+
+
         <Card className="w-full">
-        <CardContent className="space-y-4 p-6">
-              {step}
-            </CardContent>
+          <CardContent className="space-y-4 p-6">
+            {step}
+          </CardContent>
           <form onSubmit={onSubmit} className="w-full">
 
             <CardFooter className="justify-between">

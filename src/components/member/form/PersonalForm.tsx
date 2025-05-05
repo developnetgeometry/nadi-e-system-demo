@@ -82,9 +82,9 @@ export function PersonalForm({
   return (
     <>
       <div className="flex flex-col gap-1 mb-6">
-        <h1 className="font-bold text-xl">Member Registration</h1>
+        <h1 className="font-bold text-xl">Personal Information</h1>
         <p className="text-muted-foreground">
-          Register new members with detailed information
+          Enter the basic personal information of the new member
         </p>
       </div>
 
