@@ -37,6 +37,8 @@ import { MultiSelect, Option } from "@/components/ui/multi-select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/site/TableSkeleton";
 
 const SiteDashboard = () => {
   const navigate = useNavigate();
@@ -133,6 +135,10 @@ const SiteDashboard = () => {
             case 'dusp_tp':
               valueA = a.dusp_tp_id_display || '';
               valueB = b.dusp_tp_id_display || '';
+              break;
+            case 'status':
+              valueA = a.nd_site_status?.eng || '';
+              valueB = b.nd_site_status?.eng || '';
               break;
             default:
               valueA = a[sortField as keyof Site] || '';
@@ -304,6 +310,10 @@ const SiteDashboard = () => {
             case 'dusp_tp':
               valueA = a.dusp_tp_id_display || '';
               valueB = b.dusp_tp_id_display || '';
+              break;
+            case 'status':
+              valueA = a.nd_site_status?.eng || '';
+              valueB = b.nd_site_status?.eng || '';
               break;
             default:
               valueA = a[sortField as keyof Site] || '';
@@ -679,76 +689,144 @@ const SiteDashboard = () => {
                   </TableHead>
                   <TableHead className="w-[60px]">No.</TableHead>
                   <TableHead 
-                    className="cursor-pointer" 
+                    className="cursor-pointer w-[120px]" 
                     onClick={() => handleSort("site_code")}
                   >
-                    Site Code
-                    {sortField === "site_code" && (
-                      <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
+                    <div className="flex items-center">
+                      Site ID
+                      {sortField === "site_code" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer"
+                    className="cursor-pointer w-[180px]"
                     onClick={() => handleSort("sitename")}
                   >
-                    Site Name
-                    {sortField === "sitename" && (
-                      <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
+                    <div className="flex items-center">
+                      Name
+                      {sortField === "sitename" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer"
+                    className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("phase")}
                   >
-                    Phase
-                    {sortField === "phase" && (
-                      <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
+                    <div className="flex items-center">
+                      Phase
+                      {sortField === "phase" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead
-                    className="cursor-pointer"
+                    className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("region")}
                   >
-                    Region
-                    {sortField === "region" && (
-                      <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
+                    <div className="flex items-center">
+                      Region
+                      {sortField === "region" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </TableHead>
                   <TableHead 
-                    className="cursor-pointer"
+                    className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("state")}
                   >
-                    State
-                    {sortField === "state" && (
-                      <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
+                    <div className="flex items-center">
+                      State
+                      {sortField === "state" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </TableHead>
                   {isSuperAdmin && <TableHead 
-                    className="cursor-pointer"
+                    className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("dusp_tp")}
                   >
-                    TP (DUSP)
-                    {sortField === "dusp_tp" && (
-                      <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                    )}
+                    <div className="flex items-center">
+                      TP (DUSP)
+                      {sortField === "dusp_tp" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
                   </TableHead>}
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead 
+                    className="cursor-pointer w-[100px]"
+                    onClick={() => handleSort("status")}
+                  >
+                    <div className="flex items-center">
+                      Status
+                      {sortField === "status" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-[160px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 9 : 8} className="text-center py-10">
-                      <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                      </div>
-                      <p className="mt-2 text-gray-500">Loading sites...</p>
-                    </TableCell>
-                  </TableRow>
+                  Array(5).fill(0).map((_, index) => (
+                    <TableRow key={`skeleton-row-${index}`}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-6" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-40" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      {isSuperAdmin && (
+                        <TableCell>
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        <Skeleton className="h-6 w-24 rounded-full" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                          <Skeleton className="h-8 w-8 rounded-md" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : sitesData?.data.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 9 : 8} className="text-center py-10">
+                    <TableCell colSpan={isSuperAdmin ? 10 : 9} className="text-center py-10">
                       <p className="text-gray-500">No sites found matching your criteria</p>
                     </TableCell>
                   </TableRow>
