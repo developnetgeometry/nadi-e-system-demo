@@ -18,6 +18,7 @@ import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
 import Leave from "@/pages/dashboard/hr/Leave";
+import Payroll from "@/pages/dashboard/hr/Payroll";
 import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
@@ -81,6 +82,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_leave">
       <Leave />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hr/payroll",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_leave">
+      <Payroll />
       // </ProtectedRoute>
     ),
   },
