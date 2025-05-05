@@ -29,7 +29,6 @@ import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
 import Site from "@/pages/dashboard/site/Site";
-import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
@@ -42,6 +41,7 @@ import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSe
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
+import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -330,14 +330,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  {
-    path: "/site-management/approval", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <SiteClosureApproval />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/site-management/approval", //For superadmin
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <SiteClosureApproval />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/docket-status", //For superadmin
     element: (
@@ -402,6 +402,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <DashboardPage />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/closure",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <NADIClosure />
       // </ProtectedRoute>
     ),
   },

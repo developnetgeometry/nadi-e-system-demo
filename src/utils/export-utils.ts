@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { saveAs } from "file-saver";
+import { Site } from "@/components/site/hook/site-utils";
 
 interface Service {
   id: number | string;
@@ -523,6 +524,62 @@ export const exportClaimsToCSV = (
   const csvContent = [
     header.join(","),
     ...dataRows.map((row) => row.join(",")),
+  ].join("\n");
+
+  // Create and download CSV file
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+  saveAs(blob, `${title}.csv`);
+};
+
+export const exportSitesToCSV = (
+  sites: Site[],
+  states: any[],
+  title: string = "sites_report"
+) => {
+  // Header row
+  const header = [
+    "No.",
+    "Site Code",
+    "Site Name",
+    "Phase",
+    "Region",
+    "State",
+    "TP (DUSP)",
+    "Status",
+    "Visibility"
+  ];
+
+  // Format data rows
+  const dataRows = sites.map((site, index) => {
+    // Get state name
+    const stateName = site.nd_site_address && site.nd_site_address.length > 0
+      ? states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || ""
+      : "";
+      
+    return [
+      (index + 1).toString(),
+      site.nd_site[0]?.standard_code || "",
+      site.sitename || "",
+      site.nd_phases?.name || "",
+      site.nd_region?.eng || "",
+      stateName,
+      site.dusp_tp?.name || "",
+      site.nd_site_status?.eng || "",
+      site.is_active ? "Active" : "Inactive"
+    ];
+  });
+
+  // Combine header and data rows
+  const csvContent = [
+    header.join(","),
+    ...dataRows.map((row) =>
+      row
+        .map((cell) =>
+          // Handle cells that might contain commas by wrapping them in quotes
+          typeof cell === "string" && cell.includes(",") ? `"${cell}"` : cell
+        )
+        .join(",")
+    ),
   ].join("\n");
 
   // Create and download CSV file

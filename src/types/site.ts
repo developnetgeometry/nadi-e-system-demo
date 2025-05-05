@@ -74,6 +74,13 @@ export interface Site {
       eng: string;
     };
   }[];
+  nd_site_operation?: {
+    id: number;
+    days_of_week: string;
+    open_time: string;
+    close_time: string;
+    is_closed: boolean;
+  }[];
 }
 
 export interface SiteStatus {
