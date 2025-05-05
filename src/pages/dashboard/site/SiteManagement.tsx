@@ -35,48 +35,12 @@ const SiteDashboard = () => {
     enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Disable query if no access
   });
 
-  const { data: actionableCount = 0, isLoading: isActionableLoading, refetch: refetchActionableCount } = useQuery({
-    queryKey: ["actionable-request-count", organizationId],
-    queryFn: () => fetchActionableRequestCount(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Enable only if organizationId or super admin
-  });
-
-  useEffect(() => {
-    // if (!organizationId) return; // Ensure organizationId is available before subscribing
-
-    console.log("Subscribing to actionable request count changes");
-    const channel = supabase
-      .channel("actionable_request_changes") // Create a channel for real-time updates
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: "public",
-          table: "nd_site_closure"
-        },
-        (payload) => {
-          console.log("Database change detected for actionable requests:", payload); // Log the payload for debugging
-          refetchActionableCount(); // Refetch the actionable request count
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log("Unsubscribing from actionable request count changes");
-      supabase.removeChannel(channel); // Cleanup the subscription when the component unmounts
-    };
-  }, [organizationId, refetchActionableCount]); // Ensure dependencies are correct
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Access control logic moved to the return statement
   if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
     return <div>You do not have access to this dashboard.</div>;
   }
-
-  const handleViewDetailsClick = () => {
-    navigate(`/site-management/approval`);
-  };
 
   return (
     <DashboardLayout>
@@ -87,14 +51,6 @@ const SiteDashboard = () => {
             <p className="text-muted-foreground mt-2">Track and manage site</p>
           </div>
           <div className="flex justify-between items-center gap-4">
-            <Button onClick={() => handleViewDetailsClick()} variant="secondary">
-              <Bell className="h-4 w-4 mr-2" /> Closure Approval
-              {!isActionableLoading && actionableCount > 0 && (
-                <Badge variant="destructive" className="ml-2">
-                  {actionableCount}
-                </Badge>
-              )}
-            </Button>
             {!isDUSPUser && ( // Hide "Add Site" button for DUSP users
               <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" /> Add Site
