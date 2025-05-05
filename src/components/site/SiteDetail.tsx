@@ -106,7 +106,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         <TabsList className="border-b dark:border-gray-700 w-full justify-start bg-transparent p-0 h-auto overflow-x-auto mb-6">
           <TabsTrigger value="overview" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Overview</TabsTrigger>
           <TabsTrigger value="billing" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Billing</TabsTrigger>
-          <TabsTrigger value="closure" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Closure</TabsTrigger>
+          {/* <TabsTrigger value="closure" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Closure</TabsTrigger> */}
         </TabsList>
         <TabsContent value="overview" className="h-full mt-0">
           <Card className="h-full">
@@ -122,7 +122,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </div>
           </Card>
         </TabsContent>
-        <TabsContent value="closure" className="h-full mt-0">
+        {/* <TabsContent value="closure" className="h-full mt-0">
           <Card className="h-full">
             <div className="p-6 h-full">
               <ClosurePage 
@@ -132,7 +132,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
               />
             </div>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );
