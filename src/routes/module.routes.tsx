@@ -40,6 +40,7 @@ import Announcements from "@/pages/dashboard/announcements/Announcements";
 import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
+import DashboardPage from "@/pages/dashboard/Dashboard";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -342,7 +343,7 @@ export const moduleRoutes: RouteObject[] = [
       // <ProtectedRoute requiredPermission="view_site_details">
       <Technician />
       // </ProtectedRoute>
-    )
+    ),
   },
   {
     path: "/graph", //For superadmin
@@ -383,6 +384,15 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <Takwim />
+      // </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: "/dashboard/home",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <DashboardPage />
       // </ProtectedRoute>
     ),
   },

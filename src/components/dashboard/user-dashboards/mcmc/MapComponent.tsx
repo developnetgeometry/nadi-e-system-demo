@@ -33,8 +33,8 @@ const containerStyle = {
 };
 
 const center = {
-  lat: parseFloat(import.meta.env.VITE_CENTER_MAP_LAT || "4.2105"),
-  lng: parseFloat(import.meta.env.VITE_CENTER_MAP_LNG || "108.9758"),
+  lat: Number(import.meta.env.VITE_CENTER_MAP_LAT || "4.2105"),
+  lng: Number(import.meta.env.VITE_CENTER_MAP_LNG || "108.9758"),
 };
 
 // Updated dark mode map styles

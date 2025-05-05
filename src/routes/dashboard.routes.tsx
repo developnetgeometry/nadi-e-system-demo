@@ -17,7 +17,7 @@ import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import UserProfile from "@/pages/dashboard/profile/UserProfile";
 import NotificationManagement from "@/pages/dashboard/NotificationManagement";
-import Notifications from "@/pages/dashboard/Notifications";
+// import Notifications from "@/pages/dashboard/Notifications";
 import NotificationUsage from "@/pages/dashboard/NotificationUsage";
 
 // Lazy load dashboard components
@@ -99,22 +99,6 @@ export const dashboardRoutes = [
       </Suspense>
     ),
   },
-  // {
-  //   path: "/admin/reports",
-  //   element: (
-  //     <Suspense fallback={<LoadingSpinner />}>
-  //       <ReportsPage />
-  //     </Suspense>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/calendar",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Calendar />
-  //     </ProtectedRoute>
-  //   ),
-  // },
   {
     path: "/admin/state-holidays",
     element: (
@@ -123,14 +107,6 @@ export const dashboardRoutes = [
       </Suspense>
     ),
   },
-  // {
-  //   path: "/admin/notifications",
-  //   element: (
-  //     <Suspense fallback={<LoadingSpinner />}>
-  //       <NotificationsPage />
-  //     </Suspense>
-  //   ),
-  // },
   {
     path: "/admin/organizations",
     element: (
@@ -163,14 +139,6 @@ export const dashboardRoutes = [
       </Suspense>
     ),
   },
-  // {
-  //   path: "/admin/notifications",
-  //   element: (
-  //     <Suspense fallback={<LoadingSpinner />}>
-  //       <Notifications />,
-  //     </Suspense>
-  //   ),
-  // },
   {
     path: "/admin/notification-management",
     element: (

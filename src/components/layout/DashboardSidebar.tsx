@@ -4,6 +4,7 @@ import { useSidebar } from "@/hooks/use-sidebar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 export const DashboardSidebar = () => {
   const { state, toggleSidebar } = useSidebar();
@@ -19,10 +20,20 @@ export const DashboardSidebar = () => {
       )}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between">
         {!isCollapsed && (
           <h1 className="text-xl font-bold text-gray-800 dark:text-white truncate">
-            CMMS
+            <Link
+              to="/admin/dashboard"
+              className="text-xl font-bold flex justify-center items-center"
+            >
+              <img
+                src="/cmms-logo.png"
+                alt="Logo"
+                className="h-16 w-auto mx-auto"
+                style={{ maxWidth: "100%", maxHeight: "4rem" }}
+              />
+            </Link>
           </h1>
         )}
         <Button
