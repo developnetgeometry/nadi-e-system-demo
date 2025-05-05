@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { MaintenanceRequest, MaintenanceStatus } from "@/types/maintenance";
-import { Download, Search, Settings, Trash2 } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import { useState } from "react";
 import { Input } from "../ui/input";
 import { PaginationComponent } from "../ui/PaginationComponent";
@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { ViewMaintenanceDetailsDialog } from "./ViewMaintenanceDetailsDialog";
 
 interface MaintenanceListProps {
   maintenanceRequests: MaintenanceRequest[];
@@ -46,7 +47,6 @@ export const MaintenanceList = ({
   const [selectedItem, setSelectedItem] = useState<MaintenanceRequest | null>(
     null
   );
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
@@ -357,28 +357,10 @@ export const MaintenanceList = ({
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
-                            variant="outline"
-                            size="icon"
                             onClick={() => {
-                              setIsEditDialogOpen(true);
                               setSelectedItem(maintenanceRequest);
+                              setIsViewDetailsDialogOpen(true);
                             }}
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => {
-                              setIsDeleteDialogOpen(true);
-                              setSelectedItem(maintenanceRequest);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            onClick={() => {}}
                             className="flex items-center"
                           >
                             View Details
@@ -409,32 +391,11 @@ export const MaintenanceList = ({
           totalItems={filteredMaintenanceRequests.length}
         />
       )}
-      {/* 
-      <InventoryDetailsDialog
+      <ViewMaintenanceDetailsDialog
         open={isViewDetailsDialogOpen}
         onOpenChange={setIsViewDetailsDialogOpen}
         maintenanceRequest={selectedItem}
       />
-      {isEditDialogOpen && (
-        <InventoryFormDialog
-          open={isEditDialogOpen}
-          onOpenChange={(open) => {
-            setIsEditDialogOpen(open);
-            if (!open) refetch();
-          }}
-          maintenanceRequest={selectedItem}
-        />
-      )}
-      {isDeleteDialogOpen && (
-        <InventoryDeleteDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={(open) => {
-            setIsDeleteDialogOpen(open);
-            if (!open) refetch();
-          }}
-          maintenanceRequest={selectedItem}
-        />
-      )} */}
     </div>
   );
 };

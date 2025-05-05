@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useFileUpload } from "@/hooks/use-file-upload";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,8 +23,9 @@ import { MaintenanceDocketType, MaintenanceRequest } from "@/types/maintenance";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { AttachmentUploadField } from "./AttachmentUploadField";
+import { useAttachment } from "./hooks/use-attachment";
 
 export interface MaintenanceRequestFormDialogProps {
   open: boolean;
@@ -52,11 +52,17 @@ export const MaintenanceRequestFormDialog = ({
   const [description, setDescription] = useState("");
   const [slaCategory, setSLACategory] = useState("");
   const [maintenanceType, setMaintenanceType] = useState("");
-  const [attachment, setAttachment] = useState<File | null>(null);
   const [asset, setAsset] = useState<Asset | null>(null);
   const [status, setStatus] = useState("");
 
-  const { isUploading, uploadFile } = useFileUpload();
+  const {
+    attachmentFile,
+    attachmentPreviewUrl,
+    isUploading,
+    handleAttachmentChange,
+    handleRemoveAttachment,
+    uploadAttachment,
+  } = useAttachment();
 
   const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
 
@@ -66,14 +72,6 @@ export const MaintenanceRequestFormDialog = ({
   const { data: slaCategories = [], isLoading: isLoadingSLACategories } =
     useSLACategoriesQuery();
 
-  const handleFileAttachmentChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setAttachment(e.target.files[0]);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -81,13 +79,33 @@ export const MaintenanceRequestFormDialog = ({
 
     setIsSubmitting(true);
 
+    let attachmentUrl = null;
+
+    if (attachmentFile) {
+      const logoUrl = await uploadAttachment();
+
+      if (logoUrl) {
+        attachmentUrl = logoUrl;
+      } else {
+        toast({
+          title: "Error",
+          description: `Failed to ${
+            maintenanceRequest ? "update" : "add"
+          } the maintenance request. Please try again.`,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const request = {
       description: description,
       asset_id: asset?.id as number,
-      type_id: formData.get("type") as string,
+      type_id: formData.get("maintenanceType") as string,
       sla_id: formData.get("sla") as string,
       requester_by: user.id,
-      attachment: attachment,
+      attachment: attachmentUrl,
     };
 
     try {
@@ -181,6 +199,8 @@ export const MaintenanceRequestFormDialog = ({
                 </Select>
               </div>
 
+              <input type="file" onchange="testDirectUpload(this)" />
+
               {maintenanceDocketType === MaintenanceDocketType.Corrective && (
                 <>
                   <div className="space-y-2">
@@ -230,21 +250,12 @@ export const MaintenanceRequestFormDialog = ({
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="attachment">Attachment</Label>
-                    <Input
-                      id="attachment"
-                      name="attachment"
-                      placeholder="Enter attachment"
-                      type="file"
-                      onChange={handleFileAttachmentChange}
-                    />
-                    {attachment && (
-                      <p className="text-sm text-muted-foreground">
-                        {attachment.name}
-                      </p>
-                    )}
-                  </div>
+                  <AttachmentUploadField
+                    previewUrl={attachmentPreviewUrl}
+                    isUploading={isUploading}
+                    onAttachmentChange={handleAttachmentChange}
+                    onRemoveAttachment={handleRemoveAttachment}
+                  />
                 </>
               )}
 
