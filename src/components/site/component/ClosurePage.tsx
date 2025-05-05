@@ -20,6 +20,8 @@ import { useFormatDuration } from "@/hooks/use-format-duration";
 import { useDraftClosure, useDeleteDraftClosure } from "../hook/submit-siteclosure-data";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ClosurePageProps {
   siteId: string;
@@ -38,24 +40,43 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const { fetchDraftData, loading: loadingDraft } = useDraftClosure();
   const { deleteDraft, loading: deletingDraft } = useDeleteDraftClosure();
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  const staffSiteId = useSiteId();
 
-  if (!siteId) {
-    console.log('Site id not pass');
-    siteId = useSiteId();
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
+  const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff" || 
+                      parsedMetadata?.user_type === "staff_manager" ||
+                      parsedMetadata?.user_type === "staff_assistant_maanager";
+                      
+  const organizationId = 
+    parsedMetadata?.user_type !== "super_admin" && 
+    (isTPUser || isDUSPUser) && 
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id 
+      : null;
+
+  const effectiveSiteId = siteId || (isStaffUser ? staffSiteId : null);
+
+  if (!effectiveSiteId && isStaffUser) {
+    console.log('Staff user has no assigned site');
   }
 
   const { data: closurelistdata, isLoading, error, refetch } = useQuery({
-    queryKey: ['siteClosureList'],
-    queryFn: fetchlListClosureData
+    queryKey: ['siteClosureList', organizationId, effectiveSiteId],
+    queryFn: () => fetchlListClosureData(organizationId, isDUSPUser, effectiveSiteId),
+    enabled: (isSuperAdmin || !!organizationId || !!effectiveSiteId)
   });
 
-  // Helper function for when the dialog is closed - will refetch data
   const handleDialogOpenChange = (open: boolean) => {
     setSiteClosureOpen(open);
     if (!open) {
-      // Clear edit data when the dialog is closed
       setEditDraftData(null);
-      refetch(); // Refetch data when dialog closes
+      refetch();
     }
   };
 
@@ -74,14 +95,11 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     }
   };
 
-  // Handle new request button click
   const handleNewRequest = () => {
-    // Explicitly clear edit data before opening dialog for a new request
     setEditDraftData(null);
     setSiteClosureOpen(true);
   };
 
-  // Handle delete draft request
   const handleDeleteDraftClick = (draftId: number) => {
     setDeleteDraftId(draftId);
     setShowDeleteConfirm(true);
@@ -114,13 +132,16 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     }
   };
 
+  if (!isSuperAdmin && !organizationId && !effectiveSiteId) {
+    return <div>You do not have access to view this list.</div>;
+  }
+
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Site Closure Requests</h2>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <div className="w-full md:w-[400px]">
-          {/* Optional content */}
         </div>
 
         <div className="ml-auto flex items-center gap-2">
@@ -245,7 +266,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       <SiteClosureForm
         open={isSiteClosureOpen}
         onOpenChange={handleDialogOpenChange}
-        siteId={siteId}
+        siteId={effectiveSiteId || ""}
         onSuccess={() => refetch()}
         editData={editDraftData}
         clearEditData={() => setEditDraftData(null)}

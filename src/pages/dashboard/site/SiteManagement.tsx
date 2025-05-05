@@ -35,6 +35,8 @@ const SiteDashboard = () => {
     enabled: !!organizationId || parsedMetadata?.user_type === "super_admin", // Disable query if no access
   });
 
+
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Access control logic moved to the return statement
