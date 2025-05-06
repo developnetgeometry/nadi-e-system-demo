@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { FilePlus, Loader2, Edit, Trash2, Settings, CheckCircle, XCircle, Clock, Eye } from "lucide-react";
+import { FilePlus, Loader2, Edit, Trash2, Settings, CheckCircle, XCircle, Clock, Eye, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import SiteClosureForm from "./SiteClosure";
 import SiteClosureDetailDialog from "./SiteClosureDetailDialog";
@@ -106,6 +106,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
   const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
+  const isMCMCUser = parsedMetadata?.user_group_name === "MCMC"; // MCMC users don't require organization_id
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff" || 
                       parsedMetadata?.user_type === "staff_manager" ||
                       parsedMetadata?.user_type === "staff_assistant_manager";
@@ -124,9 +125,9 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   }
 
   const { data: closurelistdata, isLoading, error, refetch } = useQuery({
-    queryKey: ['siteClosureList', organizationId, effectiveSiteId],
-    queryFn: () => fetchlListClosureData(organizationId, isDUSPUser, effectiveSiteId),
-    enabled: (isSuperAdmin || !!organizationId || !!effectiveSiteId)
+    queryKey: ['siteClosureList', organizationId, effectiveSiteId, isMCMCUser],
+    queryFn: () => fetchlListClosureData(organizationId, isDUSPUser, effectiveSiteId, isMCMCUser),
+    enabled: (isSuperAdmin || !!organizationId || !!effectiveSiteId || isMCMCUser)
   });
 
   // Check if user can approve a closure based on role and closure data
@@ -526,7 +527,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleViewClosure(item.id)}>
-                  <Eye className="h-4 w-4 mr-2" />
+                  <Search className="h-4 w-4 mr-2" />
                   View
                 </DropdownMenuItem>
                 
@@ -592,7 +593,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                   className="h-8 w-8"
                   title="View"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="outline" 
@@ -626,7 +627,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                   className="h-8 w-8"
                   title="View"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </Button>
                 <Button 
                   variant="outline"
@@ -651,7 +652,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                   className="h-8 w-8"
                   title="View"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="default"
@@ -690,7 +691,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                 className="h-8 w-8"
                 title="View"
               >
-                <Eye className="h-4 w-4" />
+                <Search className="h-4 w-4" />
               </Button>
             );
           }
@@ -844,7 +845,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     }
   };
 
-  if (!isSuperAdmin && !organizationId && !effectiveSiteId) {
+  if (!isSuperAdmin && !organizationId && !effectiveSiteId && !isMCMCUser) {
     return <div>You do not have access to view this list.</div>;
   }
 
@@ -884,7 +885,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {!isDUSPUser && (
+          {/* Only show New Closure Request button if not DUSP or MCMC user */}
+          {!isDUSPUser && !isMCMCUser && (
             <Button onClick={handleNewRequest}>
               <FilePlus className="mr-2 h-4 w-4" />
               New Closure Request

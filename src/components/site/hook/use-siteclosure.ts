@@ -5,13 +5,15 @@ import { ClosureAffectArea, ClosureCategory, ClosureSession, ClosureSubCategory,
 export const fetchlListClosureData = async (
   organizationId: string | null = null,
   isDUSPUser: boolean = false,
-  siteId: string | null = null
+  siteId: string | null = null,
+  isMCMCUser: boolean = false  // Add parameter for MCMC users
 ): Promise<SiteListClosureRequest[]> => {
   // First, we need to handle site profiles filtering based on organization
   let siteProfileIds: string[] = [];
   
-  // If we have an organization filter, we need to fetch the relevant site profiles first
-  if (organizationId) {
+  // If we have an organization filter and it's not an MCMC user, we need to fetch the relevant site profiles
+  // MCMC users don't need organization filtering - they can see all sites
+  if (organizationId && !isMCMCUser) {
     let siteProfileQuery = supabase
       .from("nd_site_profile")
       .select("id");
@@ -91,8 +93,8 @@ export const fetchlListClosureData = async (
   if (siteId) {
     query = query.eq("site_id", siteId);
   }
-  // Apply the site profile filter if we have organization filtering
-  else if (organizationId && siteProfileIds.length > 0) {
+  // Apply the site profile filter if we have organization filtering and it's not an MCMC user
+  else if (organizationId && siteProfileIds.length > 0 && !isMCMCUser) {
     query = query.in("site_id", siteProfileIds);
   }
   

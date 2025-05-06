@@ -47,13 +47,16 @@ const SiteDashboard = () => {
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
   const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
+  const isMCMCUser = parsedMetadata?.user_group_name === "MCMC"; // MCMC users don't require organization_id
+  const isRestrictedUser = isDUSPUser || isMCMCUser; // Combined check for both DUSP and MCMC users
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const organizationId =
     parsedMetadata?.user_type !== "super_admin" &&
-    (isTPUser || isDUSPUser) &&
-    parsedMetadata?.organization_id
+      (isTPUser || isDUSPUser) &&
+      parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
+  // MCMC users don't need an organization_id for access
 
   const queryClient = useQueryClient();
 
@@ -62,26 +65,26 @@ const SiteDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
-  
+
   // Selected filters (pending application)
   const [selectedPhaseFilters, setSelectedPhaseFilters] = useState<string[]>([]);
   const [selectedRegionFilters, setSelectedRegionFilters] = useState<string[]>([]);
   const [selectedStateFilters, setSelectedStateFilters] = useState<string[]>([]);
   const [selectedStatusFilters, setSelectedStatusFilters] = useState<string[]>([]);
-  
+
   // Applied filters (used in actual filtering)
   const [phaseFilters, setPhaseFilters] = useState<string[]>([]);
   const [regionFilters, setRegionFilters] = useState<string[]>([]);
   const [stateFilters, setStateFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
-  
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const pageSize = 10;
-  
+
   // State for selected sites
   const [selectedSites, setSelectedSites] = useState<string[]>([]);
 
@@ -89,30 +92,31 @@ const SiteDashboard = () => {
   const { data: sitesData, isLoading } = useQuery({
     queryKey: ['sites', organizationId, searchTerm, sortField, sortDirection, currentPage, phaseFilters, regionFilters, stateFilters, statusFilters],
     queryFn: async () => {
-      const sites = await fetchSites(organizationId, isTPUser, isDUSPUser);
-      
+      console.log("ismcmcuser", isMCMCUser);
+      const sites = await fetchSites(organizationId, isTPUser, isDUSPUser, isMCMCUser);
+
       // Apply search filter
       let filteredSites = sites.filter(site =>
         site.sitename.toLowerCase().includes(searchTerm.toLowerCase()) ||
         site.nd_site[0]?.standard_code.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      
+
       // Apply dropdown filters
       filteredSites = filteredSites.filter(site =>
         (phaseFilters.length > 0 ? phaseFilters.includes(site.nd_phases?.name || "") : true) &&
         (regionFilters.length > 0 ? regionFilters.includes(site.nd_region?.eng || "") : true) &&
-        (stateFilters.length > 0 ? 
-          (site.nd_site_address && site.nd_site_address.length > 0 && 
-            stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) : 
+        (stateFilters.length > 0 ?
+          (site.nd_site_address && site.nd_site_address.length > 0 &&
+            stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) :
           true) &&
         (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true)
       );
-      
+
       // Apply sorting
       if (sortField) {
         filteredSites.sort((a, b) => {
           let valueA, valueB;
-          
+
           // Handle different fields
           switch (sortField) {
             case 'sitename':
@@ -147,7 +151,7 @@ const SiteDashboard = () => {
               valueA = a[sortField as keyof Site] || '';
               valueB = b[sortField as keyof Site] || '';
           }
-          
+
           // Compare based on direction
           if (sortDirection === 'asc') {
             return valueA > valueB ? 1 : -1;
@@ -156,18 +160,18 @@ const SiteDashboard = () => {
           }
         });
       }
-      
+
       // Calculate total and paginate
       const totalCount = filteredSites.length;
       const paginatedSites = filteredSites.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-      
+
       return {
         data: paginatedSites,
         count: totalCount,
         allSites: sites // Keep original data for stats
       };
     },
-    enabled: !!organizationId || isSuperAdmin,
+    enabled: !!organizationId || isSuperAdmin || isMCMCUser,
   });
 
   // Fetch filter options
@@ -239,24 +243,24 @@ const SiteDashboard = () => {
   const handleResetFilters = () => {
     // Reset search term
     setSearchTerm("");
-    
+
     // Reset selected filters (pending)
     setSelectedPhaseFilters([]);
     setSelectedRegionFilters([]);
     setSelectedStateFilters([]);
     setSelectedStatusFilters([]);
-    
+
     // Reset applied filters (active)
     setPhaseFilters([]);
     setRegionFilters([]);
     setStateFilters([]);
     setStatusFilters([]);
-    
+
     // Reset sorting
     setSortField(null);
     setSortDirection(null);
     setCurrentPage(1);
-    
+
     // Show toast notification
     toast({
       title: "Filters reset",
@@ -272,23 +276,23 @@ const SiteDashboard = () => {
         site.sitename.toLowerCase().includes(searchTerm.toLowerCase()) ||
         site.nd_site[0]?.standard_code.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      
+
       // Apply dropdown filters
       filteredSites = filteredSites.filter(site =>
         (phaseFilters.length > 0 ? phaseFilters.includes(site.nd_phases?.name || "") : true) &&
         (regionFilters.length > 0 ? regionFilters.includes(site.nd_region?.eng || "") : true) &&
-        (stateFilters.length > 0 ? 
-          (site.nd_site_address && site.nd_site_address.length > 0 && 
-            stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) : 
+        (stateFilters.length > 0 ?
+          (site.nd_site_address && site.nd_site_address.length > 0 &&
+            stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) :
           true) &&
         (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true)
       );
-      
+
       // Apply the same sorting if specified
       if (sortField) {
         filteredSites.sort((a, b) => {
           let valueA, valueB;
-          
+
           switch (sortField) {
             case 'sitename':
               valueA = a.sitename || '';
@@ -322,7 +326,7 @@ const SiteDashboard = () => {
               valueA = a[sortField as keyof Site] || '';
               valueB = b[sortField as keyof Site] || '';
           }
-          
+
           if (sortDirection === 'asc') {
             return valueA > valueB ? 1 : -1;
           } else {
@@ -333,7 +337,7 @@ const SiteDashboard = () => {
 
       // Export the filtered sites
       exportSitesToCSV(filteredSites, states, `site_report_${new Date().toISOString().split('T')[0]}`);
-      
+
       toast({
         title: "Export successful",
         description: `${filteredSites.length} sites exported to CSV`,
@@ -342,7 +346,7 @@ const SiteDashboard = () => {
   };
 
   const totalPages = Math.ceil((sitesData?.count || 0) / pageSize);
-  
+
   // Format state name helper
   const getStateName = (site: Site) => {
     if (site?.nd_site_address && site.nd_site_address.length > 0) {
@@ -354,9 +358,9 @@ const SiteDashboard = () => {
   // Get status badge
   const getStatusBadge = (status: string | undefined) => {
     if (!status) return <Badge variant="outline">Unknown</Badge>;
-    
+
     let variant: "default" | "destructive" | "outline" | "secondary" = "default";
-    
+
     switch (status) {
       case "In Operation":
         variant = "default";
@@ -371,7 +375,7 @@ const SiteDashboard = () => {
         variant = "destructive";
         break;
     }
-    
+
     return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
@@ -387,7 +391,7 @@ const SiteDashboard = () => {
       // If already selected, remove it
       if (prev.includes(siteId)) {
         return prev.filter(id => id !== siteId);
-      } 
+      }
       // Otherwise, add it
       return [...prev, siteId];
     });
@@ -395,11 +399,11 @@ const SiteDashboard = () => {
 
   const handleSelectAll = () => {
     if (!sitesData?.data) return;
-    
+
     // If all sites on current page are selected, deselect them
     const currentPageSiteIds = sitesData.data.map(site => site.id);
     const allSelected = currentPageSiteIds.every(id => selectedSites.includes(id));
-    
+
     if (allSelected) {
       // Remove all current page site IDs from selection
       setSelectedSites(prev => prev.filter(id => !currentPageSiteIds.includes(id)));
@@ -434,8 +438,11 @@ const SiteDashboard = () => {
   }, [currentPage, phaseFilters, regionFilters, stateFilters, statusFilters, searchTerm]);
 
   // Access control logic - moved after all hooks
-  if (parsedMetadata?.user_type !== "super_admin" && !organizationId) {
-    return <div>You do not have access to this dashboard.</div>;
+  if (parsedMetadata?.user_type !== "super_admin" && !organizationId && !isMCMCUser) {
+    return <DashboardLayout>
+      <div>You do not have access to this dashboard.</div>;
+    </DashboardLayout>
+
   }
 
   return (
@@ -483,15 +490,15 @@ const SiteDashboard = () => {
                 </div>
               </div>
             )}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex items-center gap-2 bg-white"
               onClick={handleExport}
             >
               <Download className="h-4 w-4" />
               Export
             </Button>
-            {!isDUSPUser && (
+            {!isRestrictedUser && (
               <Button
                 className="flex items-center gap-2"
                 onClick={() => setIsDialogOpen(true)}
@@ -555,7 +562,7 @@ const SiteDashboard = () => {
                 </Command>
               </PopoverContent>
             </Popover>
-            
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -605,7 +612,7 @@ const SiteDashboard = () => {
                 </Command>
               </PopoverContent>
             </Popover>
-            
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -655,7 +662,7 @@ const SiteDashboard = () => {
                 </Command>
               </PopoverContent>
             </Popover>
-            
+
             <Button
               variant="outline"
               className="flex items-center gap-2 h-10"
@@ -665,7 +672,7 @@ const SiteDashboard = () => {
               Reset
             </Button>
           </div>
-          
+
           <Button
             variant="secondary"
             className="flex items-center gap-2 ml-auto"
@@ -675,7 +682,7 @@ const SiteDashboard = () => {
               setStateFilters(selectedStateFilters);
               setStatusFilters(selectedStatusFilters);
               setCurrentPage(1);
-              
+
               toast({
                 title: "Filters applied",
                 description: `${getActiveFilterCount()} filters applied`,
@@ -686,17 +693,17 @@ const SiteDashboard = () => {
             Apply Filters
           </Button>
         </div>
-        
+
         {/* Active Filters Bar */}
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2 items-center mt-2">
             {phaseFilters.length > 0 && (
               <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
                 <span>Phase: {phaseFilters.length}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0 ml-1" 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-1"
                   onClick={() => {
                     setPhaseFilters([]);
                     setSelectedPhaseFilters([]);
@@ -709,10 +716,10 @@ const SiteDashboard = () => {
             {regionFilters.length > 0 && (
               <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
                 <span>Region: {regionFilters.length}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0 ml-1" 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-1"
                   onClick={() => {
                     setRegionFilters([]);
                     setSelectedRegionFilters([]);
@@ -725,10 +732,10 @@ const SiteDashboard = () => {
             {stateFilters.length > 0 && (
               <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
                 <span>State: {stateFilters.length}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0 ml-1" 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-1"
                   onClick={() => {
                     setStateFilters([]);
                     setSelectedStateFilters([]);
@@ -741,10 +748,10 @@ const SiteDashboard = () => {
             {statusFilters.length > 0 && (
               <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
                 <span>Status: {statusFilters.length}</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-4 w-4 p-0 ml-1" 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-1"
                   onClick={() => {
                     setStatusFilters([]);
                     setSelectedStatusFilters([]);
@@ -764,14 +771,14 @@ const SiteDashboard = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">
-                    <Checkbox 
-                      checked={areAllSitesSelected()} 
-                      onCheckedChange={handleSelectAll} 
+                    <Checkbox
+                      checked={areAllSitesSelected()}
+                      onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
                   <TableHead className="w-[60px]">No.</TableHead>
-                  <TableHead 
-                    className="cursor-pointer w-[120px]" 
+                  <TableHead
+                    className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("site_code")}
                   >
                     <div className="flex items-center">
@@ -783,7 +790,7 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer w-[180px]"
                     onClick={() => handleSort("sitename")}
                   >
@@ -796,7 +803,7 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("phase")}
                   >
@@ -822,7 +829,7 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("state")}
                   >
@@ -835,7 +842,7 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>
-                  {isSuperAdmin && <TableHead 
+                  {isSuperAdmin && <TableHead
                     className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("dusp_tp")}
                   >
@@ -848,7 +855,7 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>}
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer w-[100px]"
                     onClick={() => handleSort("status")}
                   >
@@ -916,9 +923,9 @@ const SiteDashboard = () => {
                   sitesData?.data.map((site, index) => (
                     <TableRow key={site.id}>
                       <TableCell>
-                        <Checkbox 
-                          checked={isSiteSelected(site.id)} 
-                          onCheckedChange={() => handleSelectSite(site.id)} 
+                        <Checkbox
+                          checked={isSiteSelected(site.id)}
+                          onCheckedChange={() => handleSelectSite(site.id)}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
@@ -937,18 +944,20 @@ const SiteDashboard = () => {
                       <TableCell>{getStatusBadge(site?.nd_site_status?.eng)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleToggleStatus(site)}
-                          >
-                            {site.is_active ? (
-                              <Eye className="h-4 w-4" />
-                            ) : (
-                              <EyeOff className="h-4 w-4" />
-                            )}
-                          </Button>
-                          {!isDUSPUser && (
+                          {(isTPUser || isSuperAdmin) && (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleToggleStatus(site)}
+                            >
+                              {site.is_active ? (
+                                <Eye className="h-4 w-4" />
+                              ) : (
+                                <EyeOff className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          {!isRestrictedUser && (
                             <Button
                               variant="outline"
                               size="icon"
@@ -983,7 +992,7 @@ const SiteDashboard = () => {
             </Table>
           </div>
         </div>
-        
+
         {/* Pagination */}
         {sitesData?.data?.length > 0 && (
           <PaginationComponent
@@ -1004,10 +1013,10 @@ const SiteDashboard = () => {
               <DialogTitle>Confirm Deletion</DialogTitle>
             </DialogHeader>
             <div>
-              {siteToDelete ? 
-                "Are you sure you want to delete this site?" : 
+              {siteToDelete ?
+                "Are you sure you want to delete this site?" :
                 `Are you sure you want to delete ${selectedSites.length} selected sites?`
-              } 
+              }
               Type "DELETE" to confirm.
             </div>
             <Input
@@ -1018,8 +1027,8 @@ const SiteDashboard = () => {
               placeholder="DELETE"
             />
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   setIsDeleteDialogOpen(false);
                   setDeleteConfirmation("");
@@ -1031,12 +1040,12 @@ const SiteDashboard = () => {
                 variant="destructive"
                 onClick={async () => {
                   if (deleteConfirmation !== "DELETE") return;
-                  
+
                   try {
                     if (siteToDelete) {
                       // Single site deletion
                       await deleteSite(siteToDelete);
-                      
+
                       toast({
                         title: "Site deleted",
                         description: "The site has been successfully deleted.",
@@ -1045,16 +1054,16 @@ const SiteDashboard = () => {
                       // Batch deletion for multiple selected sites
                       // Use Promise.all to delete all selected sites in parallel
                       await Promise.all(selectedSites.map(id => deleteSite(id)));
-                      
+
                       toast({
                         title: "Sites deleted",
                         description: `${selectedSites.length} sites have been successfully deleted.`,
                       });
-                      
+
                       // Clear selection after deletion
                       setSelectedSites([]);
                     }
-                    
+
                     // Invalidate queries to refresh the data
                     queryClient.invalidateQueries({ queryKey: ['sites'] });
                     queryClient.invalidateQueries({ queryKey: ['site-stats'] });
@@ -1080,13 +1089,13 @@ const SiteDashboard = () => {
         </Dialog>
 
         {isDialogOpen && (
-          <SiteFormDialog 
-            open={isDialogOpen} 
+          <SiteFormDialog
+            open={isDialogOpen}
             onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) setSiteToEdit(null); // Reset siteToEdit when dialog is closed
-            }} 
-            site={siteToEdit} 
+            }}
+            site={siteToEdit}
           />
         )}
       </div>
