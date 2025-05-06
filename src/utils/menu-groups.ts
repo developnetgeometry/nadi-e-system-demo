@@ -138,11 +138,6 @@ export const menuGroups = [
   },
 
   // {
-  //   label: "Smart Service Management",
-  //   route: "/smartservice",
-  //   items: claimItems,
-  // },
-  // {
   //   label: "Booking Management",
   //   route: "/booking",
   //   items: programmesItems,
@@ -150,25 +145,6 @@ export const menuGroups = [
   // {
   //   label: "PC Booking Management",
   //   route: "/programmes",
-  //   items: programmesItems,
-  // },
-
-  // {
-  //   label: "Events",
-  //   route: "/events",
-  //   // items: eventItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "Participations",
-  //   route: "/participations",
-  //   // items: participationsItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "Event Breakdown",
-  //   route: "/event-breakdown",
-  //   // items: eventBreakdownItems,
   //   items: programmesItems,
   // },
   // {
@@ -190,28 +166,9 @@ export const menuGroups = [
   //   items: programmesItems,
   // },
   // {
-  //   label: "Graph",
-  //   route: "/graph",
-  //   // items: graphItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "IoT",
-  //   route: "/iot",
-  //   // items: iotItems,
-  //   items: programmesItems,
-  // },
-  // {
   //   label: "Attendance Module",
   //   route: "/attendance",
   //   // items: iotItems,
   //   items: programmesItems,
-  // },
-
-  //
-  // {
-  //   label: "POS Management",
-  //   route: "/pos",
-  //   items: posMenuItems,
   // },
 ];

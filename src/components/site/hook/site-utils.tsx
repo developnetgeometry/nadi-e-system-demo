@@ -471,3 +471,72 @@ export const fetchOrganization = async (): Promise<Organization[]> => {
     throw error;
   }
 };
+
+export const fetchAllStates = async (): Promise<State[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_state")
+      .select("*");
+
+    if (error) throw error;
+    return data as State[];
+  } catch (error) {
+    console.error("Error fetching all states:", error);
+    throw error;
+  }
+};
+
+export const fetchAllDistricts = async (): Promise<District[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_district")
+      .select("*");
+
+    if (error) throw error;
+    return data as District[];
+  } catch (error) {
+    console.error("Error fetching all districts:", error);
+    throw error;
+  }
+};
+
+export const fetchAllMukims = async (): Promise<Mukim[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_mukims")
+      .select("*");
+    if (error) throw error;
+    return data as Mukim[];
+  } catch (error) {
+    console.error("Error fetching all mukims:", error);
+    throw error;
+  }
+};
+
+export const fetchAllParliaments = async (): Promise<Parliament[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_parliaments")
+      .select("*");
+
+    if (error) throw error;
+    return data as Parliament[];
+  } catch (error) {
+    console.error("Error fetching all parliaments:", error);
+    throw error;
+  }
+};
+
+export const fetchAllDuns = async (): Promise<Dun[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_duns")
+      .select("*");
+
+    if (error) throw error;
+    return data as Dun[];
+  } catch (error) {
+    console.error("Error fetching all duns:", error);
+    throw error;
+  }
+};

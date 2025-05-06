@@ -10,9 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Settings, Eye, EyeOff, Trash2, Search } from "lucide-react"; // Import Search icon
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { MaintenanceFormDialog } from "./MaintenanceFormDialog";
-import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus } from "./hook/site-utils"; // Import fetchPhase, fetchRegion, and fetchStatus
+import { useState } from "react"; 
+import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus, fetchAllStates } from "./hook/site-utils"; // Import fetchPhase, fetchRegion, fetchStatus, and fetchAllStates
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
@@ -44,6 +43,7 @@ export const SiteList = () => {
   const [filter, setFilter] = useState("");
   const [phaseFilter, setPhaseFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
+  const [stateFilter, setStateFilter] = useState(""); // Add state filter state
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -66,6 +66,11 @@ export const SiteList = () => {
   const { data: regions = [] } = useQuery({
     queryKey: ['regions'],
     queryFn: fetchRegion,
+  });
+
+  const { data: states = [] } = useQuery({
+    queryKey: ['states'],
+    queryFn: fetchAllStates,
   });
 
   const { data: statuses = [] } = useQuery({
@@ -159,6 +164,11 @@ export const SiteList = () => {
   ).filter(site =>
     (phaseFilter ? site.nd_phases?.name === phaseFilter : true) &&
     (regionFilter ? site.nd_region?.eng === regionFilter : true) &&
+    (stateFilter ? 
+      // First try to find a match in nd_site_address, then try state_id directly
+      (site.nd_site_address && site.nd_site_address.length > 0 && 
+        states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name === stateFilter) : 
+      true) &&
     (statusFilter ? site.nd_site_status?.eng === statusFilter : true)
   );
 
@@ -212,6 +222,18 @@ export const SiteList = () => {
         </div>
         <div className="relative">
           <select
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <option value="">All States</option>
+            {states.map(state => (
+              <option key={state.id} value={state.name}>{state.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="relative">
+          <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -233,6 +255,7 @@ export const SiteList = () => {
                 <TableHead>Site Name</TableHead>
                 <TableHead>Phase</TableHead>
                 <TableHead>Region</TableHead>
+                <TableHead>State</TableHead>
                 {isSuperAdmin && <TableHead>DUSP TP</TableHead>} {/* Add DUSP TP column for super admin */}
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -249,6 +272,9 @@ export const SiteList = () => {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-24" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-24" />
@@ -281,6 +307,7 @@ export const SiteList = () => {
                 <TableHead>Site Name</TableHead>
                 <TableHead>Phase</TableHead>
                 <TableHead>Region</TableHead>
+                <TableHead>State</TableHead>
                 {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>} {/* Add DUSP TP column for super admin */}
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -295,6 +322,11 @@ export const SiteList = () => {
                     <TableCell>{site?.sitename || ""}</TableCell>
                     <TableCell>{site?.nd_phases?.name || ""}</TableCell>
                     <TableCell>{site?.nd_region?.eng || ""}</TableCell>
+                    <TableCell>
+                      {site?.nd_site_address && site?.nd_site_address.length > 0 
+                        ? states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || ""
+                        : ""}
+                    </TableCell>
                     {isSuperAdmin && (
                       <TableCell>
                         {site.dusp_tp_id_display || "N/A"}

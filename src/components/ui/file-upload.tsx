@@ -13,6 +13,7 @@ interface FileUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
   showPreview?: boolean;
   existingFile?: { url: string; name: string } | null;
   existingFiles?: Array<{ url: string; name: string }> | null;
+  onExistingFilesChange?: (files: Array<{ url: string; name: string }>) => void;
   children?: React.ReactNode;
   multiple?: boolean;
 }
@@ -29,6 +30,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       showPreview = true,
       existingFile = null,
       existingFiles = null,
+      onExistingFilesChange,
       multiple = false,
       children,
       ...props
@@ -225,6 +227,11 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       const newFiles = [...displayedExistingFiles];
       newFiles.splice(index, 1);
       setDisplayedExistingFiles(newFiles);
+      
+      // Notify parent component about the change
+      if (onExistingFilesChange) {
+        onExistingFilesChange(newFiles);
+      }
     };
 
     const triggerFileInput = () => {
@@ -233,8 +240,11 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       }
     };
 
+    // Update the total count to include both selected and existing files
+    const totalFileCount = selectedFiles.length + displayedExistingFiles.length;
+
     const getPlaceholderText = () => {
-      if (selectedFiles.length >= effectiveMaxFiles) {
+      if (totalFileCount >= effectiveMaxFiles) {
         return "Maximum number of files reached";
       }
       
@@ -246,7 +256,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       e.preventDefault();
       e.stopPropagation();
       
-      if (selectedFiles.length < effectiveMaxFiles) {
+      if (totalFileCount < effectiveMaxFiles) {
         const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
         setIsDraggingInvalidFile(!isValidFileType);
         setIsDragging(true);
@@ -272,7 +282,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       e.preventDefault();
       e.stopPropagation();
       
-      if (selectedFiles.length < effectiveMaxFiles) {
+      if (totalFileCount < effectiveMaxFiles) {
         const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
         
         // Set the drop effect based on file type validity
@@ -302,7 +312,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         setError(null);
       }
       
-      if (selectedFiles.length >= effectiveMaxFiles) return;
+      if (totalFileCount >= effectiveMaxFiles) return;
       
       // Check file type validity before processing
       const isValidFileType = checkDraggedFilesValidity(e.dataTransfer);
@@ -335,9 +345,9 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
               isDraggingInvalidFile ? "border-destructive bg-destructive/10" : "hover:bg-muted/50",
             error && !isDragging ? "border-destructive" : 
               !isDragging ? "border-muted-foreground/20" : "",
-            selectedFiles.length >= effectiveMaxFiles ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+            totalFileCount >= effectiveMaxFiles ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           )}
-          onClick={selectedFiles.length < effectiveMaxFiles ? triggerFileInput : undefined}
+          onClick={totalFileCount < effectiveMaxFiles ? triggerFileInput : undefined}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -369,7 +379,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
             onChange={handleFileChange}
             accept={acceptedFileTypes}
             multiple={multiple}
-            disabled={selectedFiles.length >= effectiveMaxFiles}
+            disabled={totalFileCount >= effectiveMaxFiles}
             {...props}
           />
         </div>
@@ -380,7 +390,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         )}
 
         {/* Show existing files */}
-        {displayedExistingFiles.length > 0 && selectedFiles.length === 0 && (
+        {displayedExistingFiles.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium">Existing File{displayedExistingFiles.length > 1 ? "s" : ""}:</p>
             <div className="grid gap-2">
@@ -406,6 +416,7 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
                       e.stopPropagation();
                       handleRemoveExistingFile(index);
                     }}
+                    type="button"
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">Remove file</span>
@@ -446,12 +457,12 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
           </div>
         )}
 
-        {selectedFiles.length < effectiveMaxFiles && (
+        {totalFileCount < effectiveMaxFiles && (
           <Button 
             type="button" 
             onClick={triggerFileInput} 
             className="mt-2"
-            disabled={selectedFiles.length >= effectiveMaxFiles}
+            disabled={totalFileCount >= effectiveMaxFiles}
           >
             {children}
             {!children && buttonText}

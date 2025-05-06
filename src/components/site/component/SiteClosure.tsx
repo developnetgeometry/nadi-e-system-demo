@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -12,13 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUpload } from "@/components/ui/file-upload";
-import { useToast } from "@/hooks/use-toast";
-import { useInsertSiteClosureData } from "../hook/submit-siteclosure-data";
 import { useSiteCode } from "../hook/use-site-code";
-import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { SelectMany } from "@/components/ui/SelectMany";
+import { SelectOne } from "@/components/ui/SelectOne";
 import { fetchClosureCategories, fetchClosureSubCategories, fetchClosureAffectAreas, fetchClosureSession } from "../hook/use-siteclosure";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DateInput } from "../../ui/date-input";
@@ -27,57 +24,150 @@ import { useSessionVisibility } from "../hook/use-session-visibility";
 import TimeInput from "../../ui/TimePicker";
 import { useUserGroup } from "@/hooks/use-user-group";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-
+import { SUPABASE_URL } from "@/integrations/supabase/client";
+import { useSiteClosureForm } from "../hook/use-site-closure-form";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 interface SiteClosureFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   siteId: string;
   onSuccess?: () => void;
+  editData?: any;
+  clearEditData?: () => void;
 }
+
+interface SiteOption {
+  id: string;
+  label: string;
+}
+
+// Function to fetch sites for a specific TP organization
+const fetchTPSites = async (organizationId: string): Promise<SiteOption[]> => {
+  if (!organizationId) return [];
+  
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(`
+        id,
+        sitename,
+        nd_site:nd_site(standard_code)
+      `)
+      .eq("dusp_tp_id", organizationId)
+      .order("sitename", { ascending: true });
+    
+    if (error) throw error;
+    
+    return (data || []).map(site => ({
+      id: site.id,
+      label: `${site.sitename} (${site.nd_site?.[0]?.standard_code || 'No Code'})`,
+    }));
+  } catch (error) {
+    console.error("Error fetching TP sites:", error);
+    return [];
+  }
+};
+
+// Function to fetch all sites for SuperAdmin
+const fetchAllSites = async (): Promise<SiteOption[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(`
+        id,
+        sitename,
+        nd_site:nd_site(standard_code),
+        organizations:dusp_tp_id(
+          id, name, type,
+          parent:parent_id(name)
+        )
+      `)
+      .order("sitename", { ascending: true });
+    
+    if (error) throw error;
+    
+    return (data || []).map(site => ({
+      id: site.id,
+      label: `${site.sitename} (${site.nd_site?.[0]?.standard_code || 'No Code'}) - ${site.organizations?.name || 'N/A'}`,
+    }));
+  } catch (error) {
+    console.error("Error fetching all sites:", error);
+    return [];
+  }
+};
 
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   open,
   onOpenChange,
   siteId,
   onSuccess,
+  editData,
+  clearEditData,
 }) => {
-  const { toast } = useToast();
-  const { insertSiteClosureData, loading: isSubmitting } = useInsertSiteClosureData();
-  const { siteCode } = useSiteCode(siteId);
+  // Get user metadata to check if user is TP
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
+  const organizationId = isTPUser ? parsedMetadata?.organization_id : null;
+  
+  // Get user group information FIRST before using it
   const { isTP, isSuperAdmin } = useUserGroup();
   
-  const [activeSubmission, setActiveSubmission] = useState<"draft" | "submit" | null>(null);
-
+  // State for selected site (used for TP and SuperAdmin users)
+  const [selectedSiteId, setSelectedSiteId] = useState<string>(siteId || "");
   
-  const [formState, setFormState] = useState({
-    remark: "",
-    close_start: "",
-    close_end: "",
-    start_time: "",
-    end_time: "",
-    category_id: "",
-    subcategory_id: "",
-    affectArea: [],
-    session: "",
-    status: "2", // Default status is 2 for submit
+  // Fetch sites for TP user
+  const { data: tpSites = [], isLoading: isLoadingSites } = useQuery({
+    queryKey: ["tpSites", organizationId],
+    queryFn: () => fetchTPSites(organizationId || ""),
+    enabled: !!organizationId && isTPUser && open,
   });
-  const [validationErrors, setValidationErrors] = useState<{
-    close_start?: string;
-    close_end?: string;
-    session?: string;
-    start_time?: string;
-    end_time?: string;
-    category_id?: string;
-    subcategory_id?: string;
-    remark?: string;
-    affectArea?: string;
-  }>({});
-  const [showSubcategory, setShowSubcategory] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const fileUploadRef = React.useRef<any>(null);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
+  // Fetch all sites for SuperAdmin
+  const { data: allSites = [], isLoading: isLoadingAllSites } = useQuery({
+    queryKey: ["allSites"],
+    queryFn: fetchAllSites,
+    enabled: !isTPUser && isSuperAdmin && open,
+  });
+
+  // Use the selected site ID if user is TP or SuperAdmin, otherwise use the provided siteId
+  const effectiveSiteId = isTPUser || isSuperAdmin ? selectedSiteId : siteId;
+  
+  // Get site code for the effective site ID
+  const { siteCode } = useSiteCode(effectiveSiteId);
+  const fileUploadRef = useRef<any>(null);
+
+  // Pass necessary validation states to the form hook
+  const {
+    formState,
+    setFormState,
+    setField,
+    validationErrors,
+    isSubmitting,
+    activeSubmission,
+    selectedFiles,
+    existingAttachments,
+    showConfirmDialog,
+    handleDateChange,
+    resetForm,
+    handleSubmitAsDraft,
+    handleFormSubmit,
+    processSubmit,
+    handleAttachmentsChange,
+    handleExistingAttachmentsChange,
+    resetCleanupFlags,
+    setShowConfirmDialog,
+    validateForm,
+    cleanupFormState,
+  } = useSiteClosureForm(effectiveSiteId, siteCode, editData, isSuperAdmin, onSuccess, onOpenChange);
+
+  // Track whether to show subcategory field based on category selection
+  const [showSubcategory, setShowSubcategory] = useState(false);
+
+  // Data queries for form fields
   const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['closureCategories'],
     queryFn: fetchClosureCategories,
@@ -98,204 +188,76 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     queryFn: fetchClosureSession,
   });
 
-  const setField = (field: string, value: any) => {
-    setValidationErrors(prev => ({ ...prev, [field]: undefined }));
-    setFormState((prevState) => ({ ...prevState, [field]: value }));
-  };
-
-  const isDateWithinAllowedRange = (dateString: string) => {
-    if (!dateString || isSuperAdmin) return true;
-    
-    const selectedDate = new Date(dateString);
-    selectedDate.setHours(0, 0, 0, 0);
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const oneWeekFromToday = new Date();
-    oneWeekFromToday.setDate(today.getDate() + 6); // 6 days ahead for a total of 7 days including today
-    oneWeekFromToday.setHours(23, 59, 59, 999); // End of the 7th day
-    
-    return selectedDate <= oneWeekFromToday;
-  };
-
-  const handleDateChange = (field: string, value: string) => {
-    if (field === "close_start" && value === "" && formState.close_end) {
-      setFormState(prev => ({
-        ...prev,
-        close_start: "",
-        close_end: "",
-      }));
-    } else {
-      setField(field, value);
-      
-      // Add validation for dates that are too far in the future
-      if (field === "close_start" && !isDateWithinAllowedRange(value)) {
-        setValidationErrors(prev => ({
-          ...prev,
-          close_start: "Closure date cannot be more than 1 week in advance"
-        }));
-      }
-    }
-  };
-
-  const validateForm = () => {
-    const errors: {
-      close_start?: string;
-      close_end?: string;
-      session?: string;
-      start_time?: string;
-      end_time?: string;
-      category_id?: string;
-      subcategory_id?: string;
-      remark?: string;
-      affectArea?: string;
-    } = {};
-    
-    if (!formState.close_start) {
-      errors.close_start = "Start date is required";
-    } else if (!isSuperAdmin && !isDateWithinAllowedRange(formState.close_start)) {
-      errors.close_start = "Closure date cannot be more than 1 week in advance";
-    }
-    
-    if (!formState.close_end) {
-      errors.close_end = "End date is required";
-    }
-    
-    if (isDateRangeValid && !formState.session) {
-      errors.session = "Session is required";
-    }
-    
-    if (showTimeInputs) {
-      if (!formState.start_time) {
-        errors.start_time = "Start time is required";
-      }
-      
-      if (!formState.end_time) {
-        errors.end_time = "End time is required";
-      }
-    }
-    
-    if (!formState.category_id) {
-      errors.category_id = "Category is required";
-    }
-    
-    if (showSubcategory && !formState.subcategory_id) {
-      errors.subcategory_id = "Sub-category is required";
-    }
-    
-    if (!formState.remark) {
-      errors.remark = "Reason is required";
-    }
-    
-    if (!formState.affectArea.length) {
-      errors.affectArea = "At least one affected area must be selected";
-    }
-    
-    setValidationErrors(errors);
-    
-    return Object.keys(errors).length === 0;
-  };
-
-  const processSubmit = async () => {
-    setActiveSubmission("submit");
-    setFormState(prev => ({ ...prev, status: "2" }));
-
-    try {
-      console.log("Form State:", formState);
-      const closureData = { site_id: siteId, ...formState, status: "2" };
-      const result = await insertSiteClosureData(closureData, selectedFiles, siteCode);
-
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: "Site closure submitted successfully.",
-        });
-        onSuccess?.(); // Call onSuccess callback if provided
-        onOpenChange(false);
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      console.error("Error submitting site closure:", error);
-      toast({
-        title: "Error",
-        description: "An error occurred while submitting the site closure.",
-        variant: "destructive",
-      });
-    } finally {
-      setActiveSubmission(null);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setShowConfirmDialog(true);
-  };
-
-  const handleReset = () => {
-    setFormState({
-      remark: "",
-      close_start: "",
-      close_end: "",
-      start_time: "",
-      end_time: "",
-      category_id: "",
-      subcategory_id: "",
-      affectArea: [],
-      session: "",
-      status: "2",
-    });
-    setValidationErrors({});
-    setSelectedFiles([]);
-    if (fileUploadRef.current && fileUploadRef.current.reset) {
-      fileUploadRef.current.reset();
-    }
-  };
-
+  // Update selected site when dialog opens
   useEffect(() => {
-    if (!open) {
-      setFormState({
-        remark: "",
-        close_start: "",
-        close_end: "",
-        start_time: "",
-        end_time: "",
-        category_id: "",
-        subcategory_id: "",
-        affectArea: [],
-        session: "",
-        status: "2",
-      });
-      setValidationErrors({});
-      setSelectedFiles([]);
+    if (open && (isTPUser || isSuperAdmin) && !selectedSiteId) {
+      const sites = isTPUser ? tpSites : allSites;
+      if (sites.length > 0) {
+        setSelectedSiteId(sites[0].id);
+      }
     }
-  }, [open]);
+  }, [open, isTPUser, isSuperAdmin, tpSites, allSites, selectedSiteId]);
 
+  // Format existing attachments for FileUpload component
+  const formattedExistingFiles = useMemo(() => {
+    if (!existingAttachments || existingAttachments.length === 0) return null;
+
+    return existingAttachments.map(path => {
+      const fileName = path.split('/').pop() || 'File';
+      const fullUrl = path.startsWith('http') ? path : `${SUPABASE_URL}${path}`;
+      return {
+        url: fullUrl,
+        name: fileName
+      };
+    });
+  }, [existingAttachments]);
+
+  // Date validation helpers
   const isDateRangeValid = useDateRangeValidation(
     formState.close_start,
     formState.close_end,
     0
   );
 
+  // Show time inputs depending on selected session
   const { showTimeInputs, timeRange } = useSessionVisibility(formState.session);
 
+  // Handle file upload component reset
+  const handleReset = () => {
+    resetForm();
+    if (fileUploadRef.current && fileUploadRef.current.reset) {
+      fileUploadRef.current.reset();
+    }
+    // Reset selected site if TP or SuperAdmin user
+    if ((isTPUser || isSuperAdmin) && (tpSites.length > 0 || allSites.length > 0)) {
+      const sites = isTPUser ? tpSites : allSites;
+      setSelectedSiteId(sites[0].id);
+    }
+  };
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      resetCleanupFlags();
+      cleanupFormState();
+    }
+  }, [open, resetCleanupFlags, cleanupFormState]);
+
+  // Clear edit data when dialog closes
+  useEffect(() => {
+    if (!open && clearEditData) {
+      clearEditData();
+    }
+  }, [open, clearEditData]);
+
+  // Reset session when date range is invalid
   useEffect(() => {
     if (!isDateRangeValid) {
       setField("session", "");
     }
-  }, [isDateRangeValid]);
+  }, [isDateRangeValid, setField]);
 
+  // Update time fields based on session selection
   useEffect(() => {
     if (formState.session) {
       let updatedState = {
@@ -303,124 +265,164 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         start_time: "",
         end_time: "",
       };
-      
-      // Check if timeRange exists and has the necessary properties
+
       if (timeRange) {
         if (formState.session === "3" && timeRange.isFixed) {
-          // For full day with fixed time
           updatedState.start_time = timeRange.defaultStart || "08:00";
           updatedState.end_time = timeRange.defaultEnd || "18:00";
         } else if (timeRange.defaultStart && timeRange.defaultEnd) {
-          // For other sessions with default times available
           updatedState.start_time = timeRange.defaultStart;
           updatedState.end_time = timeRange.defaultEnd;
         }
       }
-      
-      setFormState(updatedState);
-    }
-  }, [formState.session, timeRange]);
 
+      setField("start_time", updatedState.start_time);
+      setField("end_time", updatedState.end_time);
+    }
+  }, [formState.session, timeRange, setField]);
+
+  // Update subcategory visibility based on category selection
+  useEffect(() => {
+    const isSpecialCategory = formState.category_id === "6";
+    setShowSubcategory(isSpecialCategory);
+    if (!isSpecialCategory && formState.subcategory_id) {
+      setField("subcategory_id", "");
+    }
+  }, [formState.category_id, setField]);
+
+  // Validate time logic
   useEffect(() => {
     if (formState.start_time && formState.end_time && formState.start_time > formState.end_time) {
-      setFormState((prevState) => ({
-        ...prevState,
-        end_time: "",
-      }));
+      setField("end_time", "");
     }
-  }, [formState.start_time]);
+  }, [formState.start_time, formState.end_time, setField]);
 
   useEffect(() => {
     if (formState.start_time && formState.end_time && formState.end_time < formState.start_time) {
-      setFormState((prevState) => ({
-        ...prevState,
-        start_time: "",
-      }));
+      setField("start_time", "");
     }
-  }, [formState.end_time]);
+  }, [formState.end_time, formState.start_time, setField]);
 
-  useEffect(() => {
-    setShowSubcategory(formState.category_id === "6");
-    if (formState.category_id !== "6" && formState.subcategory_id) {
-      setField("subcategory_id", "");
-    }
-  }, [formState.category_id]);
-
-  const today = new Date().toISOString().split("T")[0];
-  
-  const maxStartDate = useMemo(() => {
-    if (isSuperAdmin) return undefined;
-    
-    const today = new Date();
-    const oneWeekFromToday = new Date();
-    // Set to 6 days ahead, which becomes the 7th day (today + 6 more days)
-    oneWeekFromToday.setDate(today.getDate() + 6);
-    return oneWeekFromToday.toISOString().split("T")[0];
-  }, [isSuperAdmin]);
-
+  // Filter categories based on user permissions
   const filteredCategories = useMemo(() => {
     if (!closureCategories) return [];
-    
+
     if (isSuperAdmin || isTP) return closureCategories;
-    
+
     return closureCategories.filter(category => String(category.id) !== "1");
   }, [closureCategories, isTP, isSuperAdmin]);
 
+  // Restrict category 1 to TP/SuperAdmin
   useEffect(() => {
     const selectedCategoryId = formState.category_id;
     if (selectedCategoryId === "1" && !(isTP || isSuperAdmin)) {
       setField("category_id", "");
       setField("subcategory_id", "");
     }
-  }, [isTP, isSuperAdmin, formState.category_id]);
+  }, [isTP, isSuperAdmin, formState.category_id, setField]);
 
-  const handleSubmitAsDraft = (e: React.MouseEvent) => {
+  const today = new Date().toISOString().split("T")[0];
+
+  const maxStartDate = useMemo(() => {
+    if (isSuperAdmin) return undefined;
+
+    const today = new Date();
+    const oneWeekFromToday = new Date();
+    oneWeekFromToday.setDate(today.getDate() + 6);
+    return oneWeekFromToday.toISOString().split("T")[0];
+  }, [isSuperAdmin]);
+
+  // Update handleFormSubmit to include context information in validation
+  const handleFormValidationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setActiveSubmission("draft");
-    setFormState(prev => ({ ...prev, status: "1" }));
     
-    setTimeout(() => {
-      const formData = { site_id: siteId, ...formState, status: "1" };
-      insertSiteClosureData(formData, selectedFiles, siteCode)
-        .then((result) => {
-          if (result.success) {
-            toast({
-              title: "Success",
-              description: "Site closure saved as draft successfully."
-            });
-            onSuccess?.(); // Call onSuccess callback if provided
-            onOpenChange(false);
-          } else {
-            throw new Error(result.error);
-          }
-        })
-        .catch((error) => {
-          console.error("Error saving draft:", error);
-          toast({
-            title: "Error",
-            description: "An error occurred while saving the draft.",
-            variant: "destructive",
-          });
-        })
-        .finally(() => {
-          setActiveSubmission(null);
-        });
-    }, 0);
+    // Validate site selection for TP and SuperAdmin users
+    if ((isTPUser || isSuperAdmin) && !selectedSiteId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a site",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Modify validation context based on current state
+    const isValid = validateForm({
+      showSubcategory,
+      isDateRangeValid,
+      showTimeInputs
+    });
+
+    if (!isValid) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setShowConfirmDialog(true);
   };
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            console.log("Dialog closing - cleaning up state");
+            resetCleanupFlags();
+            cleanupFormState();
+            if (fileUploadRef.current && fileUploadRef.current.reset) {
+              fileUploadRef.current.reset();
+            }
+            if (clearEditData) {
+              clearEditData();
+            }
+          }
+          onOpenChange(isOpen);
+        }}
+      >
         <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Site Closure Form</DialogTitle>
-            <DialogDescription>Fill in the details for site closure.</DialogDescription>
+            <DialogTitle>
+              {editData ? "Edit Draft Closure Request" : "Site Closure Form"}
+            </DialogTitle>
+            <DialogDescription>
+              {editData
+                ? "Edit your draft closure request details."
+                : "Fill in the details for site closure."}
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+
+          <form onSubmit={handleFormValidationSubmit} className="space-y-4" noValidate>
+            {/* Site Selection Dropdown for TP and SuperAdmin Users */}
+            {(isTPUser || isSuperAdmin) && (
+              <div className="space-y-2">
+                <Label htmlFor="siteSelection">
+                  Select Site <span className="text-red-500">*</span>
+                </Label>
+                <SelectOne
+                  options={isTPUser ? tpSites : allSites}
+                  value={selectedSiteId}
+                  onChange={(value) => setSelectedSiteId(value as string)}
+                  placeholder="Select a site"
+                  disabled={(isTPUser ? isLoadingSites : isLoadingAllSites) || isSubmitting}
+                />
+                {!selectedSiteId && (
+                  <p className="text-sm text-red-500">Please select a site</p>
+                )}
+              </div>
+            )}
+
+            {/* Site Code */}
             <div className="space-y-2">
               <Label htmlFor="siteId">Site Code</Label>
               <Input id="siteId" value={siteCode} readOnly />
             </div>
+
+            {/* Date Range Fields */}
             <div className="flex space-x-4">
               <div className="w-1/2 space-y-2">
                 <Label htmlFor="startDate">
@@ -458,6 +460,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 )}
               </div>
             </div>
+
+            {/* Session Selection */}
             {isDateRangeValid && (
               <div className="space-y-2">
                 <Label htmlFor="session">Session <span className="text-red-500">*</span></Label>
@@ -480,106 +484,100 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 )}
               </div>
             )}
-            <div className="flex space-x-4">
-              {showTimeInputs && (
-                <>
-                  <div className="w-1/2 space-y-2">
-                    <Label htmlFor="startTime">
-                      Start Time <span className="text-red-500">*</span> 
-                      <span className="text-gray-500">(24hrs-format)</span>
-                      {timeRange?.isFixed && (
-                        <span className="text-blue-500 ml-2">(Fixed)</span>
-                      )}
-                    </Label>
-                    <div className={timeRange?.isFixed ? "opacity-70 pointer-events-none" : ""}>
-                      <TimeInput
-                        id="startTime"
-                        value={formState.start_time}
-                        onChange={(val) => setField("start_time", val)}
-                        min={timeRange?.min}
-                        max={formState.end_time || timeRange?.max}
-                        disallowSameAsValue={formState.end_time}
-                        className={validationErrors.start_time ? "border-red-500" : ""}
-                      />
-                    </div>
-                    {validationErrors.start_time && (
-                      <p className="text-sm text-red-500">{validationErrors.start_time}</p>
+
+            {/* Time Selection Fields */}
+            {showTimeInputs && (
+              <div className="flex space-x-4">
+                <div className="w-1/2 space-y-2">
+                  <Label htmlFor="startTime">
+                    Start Time <span className="text-red-500">*</span>
+                    <span className="text-gray-500">(24hrs-format)</span>
+                    {timeRange?.isFixed && (
+                      <span className="text-blue-500 ml-2">(Fixed)</span>
                     )}
+                  </Label>
+                  <div className={timeRange?.isFixed ? "opacity-70 pointer-events-none" : ""}>
+                    <TimeInput
+                      id="startTime"
+                      value={formState.start_time}
+                      onChange={(val) => setField("start_time", val)}
+                      min={timeRange?.min}
+                      max={formState.end_time || timeRange?.max}
+                      disallowSameAsValue={formState.end_time}
+                      className={validationErrors.start_time ? "border-red-500" : ""}
+                    />
                   </div>
-                  <div className="w-1/2 space-y-2">
-                    <Label htmlFor="endTime">
-                      End Time <span className="text-red-500">*</span> 
-                      <span className="text-gray-500">(24hrs-format)</span>
-                      {timeRange?.isFixed && (
-                        <span className="text-blue-500 ml-2">(Fixed)</span>
-                      )}
-                    </Label>
-                    <div className={timeRange?.isFixed ? "opacity-70 pointer-events-none" : ""}>
-                      <TimeInput
-                        id="endTime"
-                        value={formState.end_time}
-                        onChange={(val) => setField("end_time", val)}
-                        min={formState.start_time || timeRange?.min}
-                        max={timeRange?.max}
-                        disallowSameAsValue={formState.start_time}
-                        className={validationErrors.end_time ? "border-red-500" : ""}
-                      />
-                    </div>
-                    {validationErrors.end_time && (
-                      <p className="text-sm text-red-500">{validationErrors.end_time}</p>
+                  {validationErrors.start_time && (
+                    <p className="text-sm text-red-500">{validationErrors.start_time}</p>
+                  )}
+                </div>
+                <div className="w-1/2 space-y-2">
+                  <Label htmlFor="endTime">
+                    End Time <span className="text-red-500">*</span>
+                    <span className="text-gray-500">(24hrs-format)</span>
+                    {timeRange?.isFixed && (
+                      <span className="text-blue-500 ml-2">(Fixed)</span>
                     )}
+                  </Label>
+                  <div className={timeRange?.isFixed ? "opacity-70 pointer-events-none" : ""}>
+                    <TimeInput
+                      id="endTime"
+                      value={formState.end_time}
+                      onChange={(val) => setField("end_time", val)}
+                      min={formState.start_time || timeRange?.min}
+                      max={timeRange?.max}
+                      disallowSameAsValue={formState.start_time}
+                      className={validationErrors.end_time ? "border-red-500" : ""}
+                    />
                   </div>
-                </>
-              )}
-            </div>
+                  {validationErrors.end_time && (
+                    <p className="text-sm text-red-500">{validationErrors.end_time}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Category Selection - replaced with SelectOne */}
             <div className="space-y-2">
               <Label htmlFor="category">Closure Category <span className="text-red-500">*</span></Label>
-              <Select
-                name="category"
+              <SelectOne
+                options={filteredCategories.map((category) => ({
+                  id: String(category.id),
+                  label: category.eng,
+                }))}
                 value={formState.category_id}
-                onValueChange={(value) => setField("category_id", value)}
+                onChange={(value) => setField("category_id", value as string)}
+                placeholder="Select a category"
                 disabled={isLoadingCategories}
-              >
-                <SelectTrigger className={validationErrors.category_id ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredCategories.map((category) => (
-                    <SelectItem key={category.id} value={String(category.id)}>
-                      {category.eng}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                className={validationErrors.category_id ? "border-red-500" : ""}
+              />
               {validationErrors.category_id && (
                 <p className="text-sm text-red-500">{validationErrors.category_id}</p>
               )}
             </div>
+
+            {/* Subcategory Selection (conditional) - replaced with SelectOne */}
             {showSubcategory && (
               <div className="space-y-2">
                 <Label htmlFor="subCategory">Closure Sub-Category <span className="text-red-500">*</span></Label>
-                <Select
-                  name="subCategory"
+                <SelectOne
+                  options={closureSubCategories.map((subCategory) => ({
+                    id: String(subCategory.id),
+                    label: subCategory.eng,
+                  }))}
                   value={formState.subcategory_id}
-                  onValueChange={(value) => setField("subcategory_id", value)}
+                  onChange={(value) => setField("subcategory_id", value as string)}
+                  placeholder="Select a sub-category"
                   disabled={isLoadingSubCategories}
-                >
-                  <SelectTrigger className={validationErrors.subcategory_id ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select a sub-category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {closureSubCategories.map((subCategory) => (
-                      <SelectItem key={subCategory.id} value={String(subCategory.id)}>
-                        {subCategory.eng}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  className={validationErrors.subcategory_id ? "border-red-500" : ""}
+                />
                 {validationErrors.subcategory_id && (
                   <p className="text-sm text-red-500">{validationErrors.subcategory_id}</p>
                 )}
               </div>
             )}
+
+            {/* Affected Areas - keeping SelectMany since this needs multiple selection */}
             <div className="space-y-2">
               <Label htmlFor="affectArea">Closure Affect Area <span className="text-red-500">*</span></Label>
               <SelectMany
@@ -597,6 +595,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 <p className="text-sm text-red-500">{validationErrors.affectArea}</p>
               )}
             </div>
+
+            {/* Reason */}
             <div className="space-y-2">
               <Label htmlFor="reason">Reason <span className="text-red-500">*</span></Label>
               <Textarea
@@ -609,6 +609,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 <p className="text-sm text-red-500">{validationErrors.remark}</p>
               )}
             </div>
+
+            {/* File Upload */}
             <div className="space-y-2">
               <Label htmlFor="attachment">Attachment</Label>
               <FileUpload
@@ -617,10 +619,14 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 acceptedFileTypes=".pdf"
                 maxSizeInMB={2}
                 buttonText="Choose File"
-                onFilesSelected={(files) => setSelectedFiles(files)}
+                onFilesSelected={handleAttachmentsChange}
                 multiple={true}
+                existingFiles={formattedExistingFiles}
+                onExistingFilesChange={(files) => handleExistingAttachmentsChange(files, SUPABASE_URL)}
               />
             </div>
+
+            {/* Form Buttons */}
             <DialogFooter className="flex justify-between sm:justify-end gap-2">
               <Button
                 type="button"
@@ -642,13 +648,15 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 type="button"
                 variant="secondary"
                 onClick={handleSubmitAsDraft}
-                disabled={isSubmitting}
+                disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !selectedSiteId)}
               >
-                {isSubmitting && activeSubmission === "draft" ? "Saving..." : "Save as Draft"}
+                {isSubmitting && activeSubmission === "draft" ?
+                  (editData?.id ? "Updating..." : "Saving...") :
+                  (editData?.id ? "Update Draft" : "Save as Draft")}
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
+              <Button
+                type="submit"
+                disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !selectedSiteId)}
               >
                 {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}
               </Button>
@@ -657,6 +665,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
         </DialogContent>
       </Dialog>
 
+      {/* Confirmation Dialog */}
       <ConfirmationDialog
         open={showConfirmDialog}
         onOpenChange={setShowConfirmDialog}

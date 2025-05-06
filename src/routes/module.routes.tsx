@@ -18,6 +18,7 @@ import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
 import Leave from "@/pages/dashboard/hr/Leave";
+import Payroll from "@/pages/dashboard/hr/Payroll";
 import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
@@ -28,7 +29,6 @@ import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
 import Site from "@/pages/dashboard/site/Site";
-import SiteClosureApproval from "@/pages/dashboard/site/SiteClosureApproval";
 import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 import SiteManagement from "@/pages/dashboard/site/SiteManagement";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
@@ -40,6 +40,8 @@ import Announcements from "@/pages/dashboard/announcements/Announcements";
 import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
+import DashboardPage from "@/pages/dashboard/Dashboard";
+import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPI";
 import NMS from "@/pages/dashboard/site/NMS";
@@ -83,6 +85,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_leave">
       <Leave />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hr/payroll",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_leave">
+      <Payroll />
       // </ProtectedRoute>
     ),
   },
@@ -323,14 +333,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  {
-    path: "/site-management/approval", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <SiteClosureApproval />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/site-management/approval", //For superadmin
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <SiteClosureApproval />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/site/usage",
     element: (
@@ -369,7 +379,7 @@ export const moduleRoutes: RouteObject[] = [
       // <ProtectedRoute requiredPermission="view_site_details">
       <Technician />
       // </ProtectedRoute>
-    )
+    ),
   },
   {
     path: "/graph", //For superadmin
@@ -410,6 +420,23 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <Takwim />
+      // </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: "/dashboard/home",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <DashboardPage />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/closure",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <NADIClosure />
       // </ProtectedRoute>
     ),
   },

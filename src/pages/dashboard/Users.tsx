@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -33,14 +39,18 @@ const Users = () => {
   const queryClient = useQueryClient();
   const pageSize = 20;
 
-  const { data: usersData, isLoading, refetch } = useQuery({
+  const {
+    data: usersData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["users", page, searchTerm, sortField, sortDirection],
     queryFn: async () => {
       let query = supabase
         .from("profiles")
-        .select("*, nd_user_group(group_name)", { count: 'exact' })
-        .neq('user_type', 'member')
-        .ilike('full_name', `%${searchTerm}%`)
+        .select("*, nd_user_group(group_name)", { count: "exact" })
+        .neq("user_type", "member")
+        .ilike("full_name", `%${searchTerm}%`)
         .range((page - 1) * pageSize, page * pageSize - 1);
 
       if (sortField && sortDirection) {
@@ -49,8 +59,7 @@ const Users = () => {
         query = query.order("created_at", { ascending: false });
       }
 
-      const { data, error, count } = await query
-        .returns<Profile[]>();
+      const { data, error, count } = await query.returns<Profile[]>();
 
       if (error) {
         console.error("Error fetching users:", error);
@@ -136,7 +145,11 @@ const Users = () => {
       return;
     }
 
-    if (confirm(`Are you sure you want to delete ${selectedUsers.length} selected users?`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete ${selectedUsers.length} selected users?`
+      )
+    ) {
       try {
         const { error } = await supabase
           .from("profiles")
@@ -168,7 +181,7 @@ const Users = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="container mx-auto max-w-6xl py-6">
         <div className="flex items-center gap-3">
           <UserCog className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold">User Management</h1>
@@ -195,7 +208,10 @@ const Users = () => {
                 />
               </div>
               <div className="flex justify-between items-center">
-                <Button onClick={handleDeleteSelectedUsers} variant="destructive">
+                <Button
+                  onClick={handleDeleteSelectedUsers}
+                  variant="destructive"
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Selected
                 </Button>
