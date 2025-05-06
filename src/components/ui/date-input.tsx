@@ -1,6 +1,6 @@
 import React, { InputHTMLAttributes, forwardRef, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react"; // Import the X icon
+import { X, Calendar } from "lucide-react"; // Import both X and Calendar icons
 
 interface DateInputProps extends InputHTMLAttributes<HTMLInputElement> {
   className?: string;
@@ -41,8 +41,8 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       }
     };
     
-    // Function to handle clicking on the input
-    const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    // Function to handle clicking on the input or button
+    const handleInputClick = (e: React.MouseEvent<HTMLElement>) => {
       // Open the native date picker by simulating a click on the calendar icon
       if (resolvedRef.current) {
         // This triggers the native date picker to open
@@ -50,21 +50,21 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       }
       
       // Call the original onClick if it exists
-      if (onClick) {
-        onClick(e);
+      if (onClick && e.target instanceof HTMLInputElement) {
+        onClick(e as React.MouseEvent<HTMLInputElement>);
       }
     };
 
     return (
-      <div className="relative">
+      <div className="relative group">
         <input
           type="date"
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-            // Add padding-right to accommodate the clear button
-            showClearButton && value ? "pr-8" : "",
-            // Fix calendar icon positioning 
-            "[&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2",
+            "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:border-gray-400 transition-colors cursor-pointer",
+            // Add padding-right to accommodate the clear button and calendar icon
+            showClearButton && value ? "pr-16" : "pr-10",
+            // Hide the native calendar picker icon
+            "[&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:hidden",
             className
           )}
           ref={resolvedRef}
@@ -73,14 +73,24 @@ const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
           onClick={handleInputClick}
           {...props}
         />
+        {/* Calendar Icon Button */}
+        <button
+          type="button"
+          onClick={handleInputClick}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+          aria-label="Open calendar"
+        >
+          <Calendar size={16} />
+        </button>
+        
         {showClearButton && value && (
           <button
             onClick={handleClear}
-            className="absolute right-8 top-1/2 -translate-y-1/2 mr-1 hover:text-muted-foreground cursor-pointer"
+            className="absolute right-8 top-1/2 -translate-y-1/2 mr-1 hover:text-foreground cursor-pointer transition-colors"
             type="button"
             aria-label="Clear date"
           >
-            <X size={16} />
+            <X className="text-muted-foreground" size={16} />
           </button>
         )}
       </div>
