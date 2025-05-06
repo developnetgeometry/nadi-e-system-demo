@@ -64,7 +64,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [editDraftData, setEditDraftData] = useState<any>(null);
   const [deleteDraftId, setDeleteDraftId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   // New state for pending request deletion
   const [deletePendingId, setDeletePendingId] = useState<number | null>(null);
   const [showDeletePendingConfirm, setShowDeletePendingConfirm] = useState(false);
@@ -107,15 +107,15 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
   const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
   const isMCMCUser = parsedMetadata?.user_group_name === "MCMC"; // MCMC users don't require organization_id
-  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff" || 
-                      parsedMetadata?.user_type === "staff_manager" ||
-                      parsedMetadata?.user_type === "staff_assistant_manager";
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff" ||
+    parsedMetadata?.user_type === "staff_manager" ||
+    parsedMetadata?.user_type === "staff_assistant_manager";
 
-  const organizationId = 
-    parsedMetadata?.user_type !== "super_admin" && 
-    (isTPUser || isDUSPUser) && 
-    parsedMetadata?.organization_id
-      ? parsedMetadata.organization_id 
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+      (isTPUser || isDUSPUser) &&
+      parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
       : null;
 
   const effectiveSiteId = siteId || (isStaffUser ? staffSiteId : null);
@@ -134,35 +134,40 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const canApprove = (item: any) => {
     // NADI Staff can't approve
     if (isStaffUser) return false;
-    
+
     // SuperAdmin can approve anything
-    if (isSuperAdmin) return true;
-    
+    if (isSuperAdmin) {
+      if (item.nd_closure_status?.id !== 2) return false;
+      return true;
+    }
+
     // Relocation category (id: 1) always needs DUSP approval
     const isRelocationCategory = item.nd_closure_categories?.id === 1;
+
     // Check if TP user
     if (isTPUser) {
       // TP can NEVER approve relocation requests (category id: 1)
       if (isRelocationCategory) return false;
-      
+
+
       // Only allow TP approval for status id 2 (Submitted)
       if (item.nd_closure_status?.id !== 2) return false;
-      
+
       // TP can only approve non-relocations that are <= 2 days
       return item.duration <= 2;
     }
-    
+
     // Check if DUSP user
     if (isDUSPUser) {
       // Only allow DUSP approval for status id 2 (Submitted)
       if (item.nd_closure_status?.id !== 2) return false;
-      
+
       // DUSP handles:
       // 1. Relocations (regardless of duration)
       // 2. Requests > 2 days
       return isRelocationCategory || item.duration > 2;
     }
-    
+
     // No user type matched
     return false;
   };
@@ -170,31 +175,32 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   // Handle approval action
   const handleApprove = async () => {
     if (!selectedForAction) return;
-    
+
     setIsProcessingAction(true);
     try {
       // Get the closure item
       const closureItem = closurelistdata?.find(item => item.id === selectedForAction);
       if (!closureItem) throw new Error("Closure item not found");
-      
+
       // SAFETY CHECK: Prevent TP users from approving relocation category requests
       const isRelocationCategory = closureItem.nd_closure_categories?.id === 1;
       if (isTPUser && isRelocationCategory) {
         throw new Error("TP users cannot approve relocation requests.");
       }
-      
+
       let newStatusId = 0;
-      
+
       // Determine appropriate status based on user role
       if (isTPUser) {
         // Check if closure needs DUSP authorization due to duration > 2 days
-        if (closureItem.duration > 2) {
-          // Set to "Recommended" status
-          newStatusId = 5; 
-        } else {
-          // Set to "Approved" status - only for short non-relocations
-          newStatusId = 3;
-        }
+        // if (closureItem.duration > 2) {
+        //   // Set to "Recommended" status
+        //   newStatusId = 5; 
+        // } else {
+        // Set to "Approved" status - only for short non-relocations
+        newStatusId = 3;
+        console.log("TP accepted closure request, setting status to Approved (3)");
+        // }
       } else if (isDUSPUser) {
         // DUSP approval sets to "Authorized" status
         newStatusId = 6;
@@ -202,19 +208,19 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         // SuperAdmin can directly approve
         newStatusId = 3;
       }
-      
+
       if (newStatusId === 0) throw new Error("Could not determine appropriate status");
-      
+
       // Update the closure status - using 'status' instead of 'status_id'
       const { error: updateError } = await supabase
         .from("nd_site_closure")
-        .update({ 
+        .update({
           status: newStatusId // Changed from status_id to status
         })
         .eq("id", selectedForAction);
-        
+
       if (updateError) throw updateError;
-      
+
       // Add to closure logs - keep closure_status_id here as it's for the logs table
       const { error: logError } = await supabase
         .from("nd_site_closure_logs")
@@ -223,13 +229,13 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           remark: actionRemark,
           closure_status_id: newStatusId
         });
-        
+
       if (logError) throw logError;
-      
+
       // If the status is "Approved" (3) or "Authorized" (6), update the site profile status
       if (newStatusId === 3 || newStatusId === 6) {
         // Get the site profile ID from the closure item
-        const siteProfileId = closureItem.nd_site_profile?.id;        
+        const siteProfileId = closureItem.nd_site_profile?.id;
         if (siteProfileId) {
           // Update the site profile with both status values
           const { error: siteProfileUpdateError } = await supabase
@@ -238,7 +244,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
               active_status: 3 // Set active_status to 3 for temporarily closed
             })
             .eq("id", siteProfileId);
-            
+
           if (siteProfileUpdateError) {
             console.error("Error updating site profile status:", siteProfileUpdateError);
             // Don't throw error here to prevent blocking the approval process
@@ -248,20 +254,20 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           }
         }
       }
-      
+
       // Create appropriate success message based on the status
       let successMessage = "Closure request approved successfully";
-      if (isTPUser && newStatusId === 5) {
+      if (isTPUser && newStatusId === 3) {
         successMessage = "Closure request recommended for DUSP approval";
       } else if (newStatusId === 3 || newStatusId === 6) {
         successMessage = "Closure request approved and site status set to temporarily closed";
       }
-      
+
       toast({
         title: "Success",
         description: successMessage
       });
-      
+
       refetch();
     } catch (err) {
       console.error("Error approving closure:", err);
@@ -281,15 +287,15 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   // Handle rejection action
   const handleReject = async () => {
     if (!selectedForAction) return;
-    
+
     setIsProcessingAction(true);
     try {
       // Get the closure item
       const closureItem = closurelistdata?.find(item => item.id === selectedForAction);
       if (!closureItem) throw new Error("Closure item not found");
-      
+
       let newStatusId = 0;
-      
+
       // Determine appropriate rejection status based on user role
       if (isTPUser) {
         // TP rejection
@@ -301,19 +307,19 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         // SuperAdmin rejection
         newStatusId = 4; // "Rejected" status
       }
-      
+
       if (newStatusId === 0) throw new Error("Could not determine appropriate status");
-      
+
       // Update the closure status - using 'status' instead of 'status_id'
       const { error: updateError } = await supabase
         .from("nd_site_closure")
-        .update({ 
+        .update({
           status: newStatusId // Changed from status_id to status
         })
         .eq("id", selectedForAction);
-        
+
       if (updateError) throw updateError;
-      
+
       // Add to closure logs
       const { error: logError } = await supabase
         .from("nd_site_closure_logs")
@@ -322,14 +328,14 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           remark: actionRemark,
           closure_status_id: newStatusId
         });
-        
+
       if (logError) throw logError;
-      
+
       toast({
         title: "Success",
         description: "Closure request rejected successfully"
       });
-      
+
       refetch();
     } catch (err) {
       console.error("Error rejecting closure:", err);
@@ -360,14 +366,14 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         .from("nd_site_closure")
         .delete()
         .eq("id", deletePendingId);
-        
+
       if (error) throw error;
-      
+
       toast({
         title: "Success",
         description: "Closure request deleted successfully"
       });
-      
+
       refetch();
     } catch (err) {
       console.error("Error deleting request:", err);
@@ -467,7 +473,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       cell: (item) => {
         let variant = "default";
         const statusName = item.nd_closure_status?.name?.toLowerCase() || 'unknown';
-        
+
         // Map status ID to appropriate variant
         switch (item.nd_closure_status?.id) {
           case 1: variant = "draft"; break; // Draft
@@ -480,7 +486,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           case 8: variant = "completed"; break; // Completed
           default: variant = "default"; break;
         }
-        
+
         return <Badge variant={variant as any}>{item.nd_closure_status?.name || 'N/A'}</Badge>;
       },
       alwaysVisible: true,
@@ -506,14 +512,14 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         const isDraft = item.nd_closure_status?.name === 'Draft';
         const isSubmitted = item.nd_closure_status?.id === 2; // Submitted
         const isPending = isSubmitted && item.created_by === user?.id; // Check if pending and owner
-        
+
         // For small screens - use dropdown menu for all actions
         if (isSmallScreen) {
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full p-0 hover:bg-slate-100 transition-colors"
                 >
@@ -530,7 +536,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                   <Search className="h-4 w-4 mr-2" />
                   View
                 </DropdownMenuItem>
-                
+
                 {/* Edit option - only for drafts */}
                 {isDraft && item.created_by === user?.id && (
                   <DropdownMenuItem onClick={() => handleEditDraft(item.id)}>
@@ -538,10 +544,10 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                     Edit
                   </DropdownMenuItem>
                 )}
-                
+
                 {/* Delete options */}
                 {((isDraft || isPending) && item.created_by === user?.id) && (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     onClick={() => isDraft ? handleDeleteDraftClick(item.id) : handleDeletePendingClick(item.id)}
                     className="text-red-600 focus:text-red-600"
                   >
@@ -549,12 +555,12 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                     Delete
                   </DropdownMenuItem>
                 )}
-                
+
                 {/* Approval options */}
                 {canApprove(item) && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => {
                         setSelectedForAction(item.id);
                         setApprovalDialogOpen(true);
@@ -564,7 +570,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approve
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => {
                         setSelectedForAction(item.id);
                         setRejectionDialogOpen(true);
@@ -586,8 +592,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           if (isDraft && item.created_by === user?.id) {
             return (
               <div className="flex gap-2 items-center">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="icon"
                   onClick={() => handleViewClosure(item.id)}
                   className="h-8 w-8"
@@ -595,8 +601,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                 >
                   <Search className="h-4 w-4" />
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="icon"
                   onClick={() => handleEditDraft(item.id)}
                   className="h-8 w-8"
@@ -604,37 +610,12 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   size="icon"
                   onClick={() => handleDeleteDraftClick(item.id)}
                   className="h-8 w-8 text-red-500 hover:text-red-600"
                   title="Delete Draft"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            );
-          } 
-          // Action buttons for pending request owner
-          else if (isPending) {
-            return (
-              <div className="flex gap-2 items-center">
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => handleViewClosure(item.id)}
-                  className="h-8 w-8"
-                  title="View"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleDeletePendingClick(item.id)}
-                  className="h-8 w-8 text-red-500 hover:text-red-600"
-                  title="Delete Request"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -680,12 +661,37 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                 </Button>
               </div>
             );
-          } 
+          }
+          // Action buttons for pending request owner
+          else if (isPending) {
+            return (
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleViewClosure(item.id)}
+                  className="h-8 w-8"
+                  title="View"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDeletePendingClick(item.id)}
+                  className="h-8 w-8 text-red-500 hover:text-red-600"
+                  title="Delete Request"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          }
           // View only
           else {
             return (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 onClick={() => handleViewClosure(item.id)}
                 className="h-8 w-8"
@@ -703,7 +709,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
 
   const filteredClosureData = useMemo(() => {
     if (!closurelistdata || !user) return [];
-    
+
     return closurelistdata.filter(item => {
       if (item.nd_closure_status?.name !== 'Draft') {
         return true;
@@ -712,7 +718,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       if (isSuperAdmin) {
         return true;
       }
-      
+
       return item.created_by === user.id;
     });
   }, [closurelistdata, user, isSuperAdmin]);
@@ -752,7 +758,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       const isMobile = window.innerWidth < 768;
       const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
       const isDesktop = window.innerWidth >= 1024;
-      
+
       // Set small screen state for action buttons
       setIsSmallScreen(isMobile || isTablet);
 
@@ -909,8 +915,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
               <TableHeader>
                 <TableRow>
                   {visibleColumns.map(column => (
-                    <TableHead 
-                      key={column.id} 
+                    <TableHead
+                      key={column.id}
                       className={column.id === 'number' ? 'w-[60px] text-center' : ''}
                     >
                       {column.header}
@@ -924,8 +930,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
                     <TableRow key={item.id}>
                       {visibleColumns.map(column => (
                         <TableCell key={`${item.id}-${column.id}`}>
-                          {column.id === 'number' 
-                            ? column.cell(null, index) 
+                          {column.id === 'number'
+                            ? column.cell(null, index)
                             : column.cell(item)
                           }
                         </TableCell>
@@ -1012,17 +1018,17 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="approval-remark">Approval Remark</Label>
-              <Textarea 
-                id="approval-remark" 
-                placeholder="Enter your approval remarks here..." 
+              <Textarea
+                id="approval-remark"
+                placeholder="Enter your approval remarks here..."
                 value={actionRemark}
                 onChange={(e) => setActionRemark(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setApprovalDialogOpen(false);
                 setSelectedForAction(null);
@@ -1032,7 +1038,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleApprove}
               disabled={isProcessingAction}
               className="bg-green-600 hover:bg-green-700"
@@ -1065,17 +1071,17 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="rejection-remark">Rejection Reason <span className="text-red-500">*</span></Label>
-              <Textarea 
-                id="rejection-remark" 
-                placeholder="Enter your rejection reason here..." 
+              <Textarea
+                id="rejection-remark"
+                placeholder="Enter your rejection reason here..."
                 value={actionRemark}
                 onChange={(e) => setActionRemark(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setRejectionDialogOpen(false);
                 setSelectedForAction(null);
@@ -1085,7 +1091,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleReject}
               disabled={isProcessingAction || !actionRemark.trim()}
               variant="destructive"
