@@ -1,55 +1,62 @@
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { useUsers } from "@/hooks/use-users"; // Import useUsers hook
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { SuperAdminPage } from "@/components/hr/payroll/SuperAdminPage";
 import { MCMCPage } from "@/components/hr/payroll/MCMCPage";
 import { DUSPPage } from "@/components/hr/payroll/DUSPPage";
 import { TPPage } from "@/components/hr/payroll/TPPage";
 import { StaffPage } from "@/components/hr/payroll/StaffPage";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 
 export default function PayrollPage() {
-  const { role, changeRole } = useUserRole(); // Use the hook outside the component
-  const { useUsersQuery } = useUsers(); // Fetch user profile
-  const { data: userProfiles } = useUsersQuery();
-  const userProfile = userProfiles?.[0]; // Assuming the first profile is needed
-  const [showRoleSelector, setShowRoleSelector] = useState(true);
+  const userMetadata = useUserMetadata(); // e.g. '{"user_type":"super_admin",…}' or just 'tp_admin'
+  const [role, setRole] = useState<string>("");
 
   useEffect(() => {
-    if (userProfile?.user_group) {
-      changeRole(userProfile.user_group as UserRole); // Update role based on user_type
+    if (!userMetadata) return;
+
+    let userType = userMetadata;
+    // if it looks like JSON, try to parse and extract .user_type
+    if (userMetadata.trim().startsWith("{")) {
+      try {
+        const obj = JSON.parse(userMetadata);
+        if (typeof obj === "object" && obj.user_type) {
+          userType = obj.user_type;
+        }
+      } catch {
+        // invalid JSON, fall back to raw
+      }
     }
-  }, [userProfile, changeRole]);
+    setRole(userType);
+  }, [userMetadata]);
 
-  function useUserRole(): {
-    role: string;
-    changeRole: (newRole: string) => void;
-  } {
-    const [role, setRole] = useState<string>("");
-
-    const changeRole = (newRole: string) => {
-      setRole(newRole);
-    };
-
-    console.log("Current role:", role);
-    return { role, changeRole };
+  if (userMetadata === null) {
+    return <DashboardLayout>Loading…</DashboardLayout>;
   }
 
-  // Render the appropriate dashboard based on user role
+  // 4. pick the right page
   const renderDashboard = () => {
     switch (role) {
       case "super_admin":
         return <SuperAdminPage />;
-      //   case "2":
-      //     return <MCMCPage />;
-      //   case "1":
-      //     return <DUSPPage />;
-      case "3":
-        return <TPPage />;
-      case "6":
+      case "mcmc":
+        return <MCMCPage />;
+      case "dusp":
+        return <DUSPPage />;
+      case "staff_manager":
+      case "staff_assistant_manager":
         return <StaffPage />;
+      case "tp_operation":
+      case "tp_admin":
+      case "tp_hr":
+      case "tp_pic":
+      case "tp_site":
+        return <TPPage />;
       default:
-        return <SuperAdminPage />;
+        return (
+          <div>
+            No Access found for <strong>{role || "unknown"}</strong>
+          </div>
+        );
     }
   };
 

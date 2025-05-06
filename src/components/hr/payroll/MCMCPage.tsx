@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { PayrollTable } from "@/components/hr/payroll/PayrollTable";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data for compliance check
 const complianceData = [

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -12,11 +11,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserGroup } from "./types";
-import { Edit, Trash2, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { UserGroupDialog } from "./UserGroupDialog";
 import { DeleteUserGroupDialog } from "./DeleteUserGroupDialog";
 import { EmptyState } from "@/components/ui/empty-state";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { UserTypeChips } from "./UserTypeChips";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
@@ -68,21 +74,25 @@ export const UserGroupList = () => {
 
   const sortedUserGroups = () => {
     if (!sortField || !sortDirection) return userGroups;
-    
+
     return [...userGroups].sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
-      
-      const compareResult = String(aValue || "").localeCompare(String(bValue || ""));
+
+      const compareResult = String(aValue || "").localeCompare(
+        String(bValue || "")
+      );
       return sortDirection === "asc" ? compareResult : -compareResult;
     });
   };
 
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    return sortDirection === "asc" ? 
-      <ArrowUp className="ml-2 h-4 w-4" /> : 
-      <ArrowDown className="ml-2 h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4" />
+    );
   };
 
   const handleEdit = (group: UserGroup) => {
@@ -97,7 +107,10 @@ export const UserGroupList = () => {
 
   const sorted = sortedUserGroups();
   const totalPages = Math.ceil(sorted.length / pageSize);
-  const paginatedGroups = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const paginatedGroups = sorted.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   if (isLoading) {
     return <div className="py-4">Loading user groups...</div>;
@@ -131,8 +144,8 @@ export const UserGroupList = () => {
               <TableRow>
                 <TableHead className="w-[60px] text-center">No.</TableHead>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onClick={() => handleSort("group_name")}
                     className="p-0 hover:bg-transparent font-medium flex items-center"
                   >
@@ -140,8 +153,8 @@ export const UserGroupList = () => {
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     onClick={() => handleSort("description")}
                     className="p-0 hover:bg-transparent font-medium flex items-center"
                   >
@@ -155,8 +168,12 @@ export const UserGroupList = () => {
             <TableBody>
               {paginatedGroups.map((group, index) => (
                 <TableRow key={group.id}>
-                  <TableRowNumber index={(currentPage - 1) * pageSize + index} />
-                  <TableCell className="font-medium">{group.group_name}</TableCell>
+                  <TableRowNumber
+                    index={(currentPage - 1) * pageSize + index}
+                  />
+                  <TableCell className="font-medium">
+                    {group.group_name}
+                  </TableCell>
                   <TableCell>{group.description || "—"}</TableCell>
                   <TableCell>
                     <UserTypeChips userTypes={group.user_types} />

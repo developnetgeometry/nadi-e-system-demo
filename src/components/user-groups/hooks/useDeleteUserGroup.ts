@@ -1,7 +1,6 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { UserGroup } from "../types";
 
 export const useDeleteUserGroup = () => {
@@ -23,7 +22,9 @@ export const useDeleteUserGroup = () => {
     },
     onError: (error) => {
       console.error("Error deleting user group:", error);
-      toast.error("Failed to delete user group. It may be in use by one or more users.");
+      toast.error(
+        "Failed to delete user group. It may be in use by one or more users."
+      );
     },
   });
 
