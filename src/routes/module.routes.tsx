@@ -47,6 +47,7 @@ import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPI";
 import NMS from "@/pages/dashboard/site/NMS";
+import { BookingManagement } from "@/pages/dashboard/site/BookingManagement";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -363,7 +364,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/usage",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <Usage/>
+      <Usage />
       // </ProtectedRoute>
     ),
   },
@@ -371,7 +372,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/kpi",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <KPI/>
+      <KPI />
       // </ProtectedRoute>
     ),
   },
@@ -379,7 +380,15 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/nms",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <NMS/>
+      <NMS />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/booking-management",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <BookingManagement />
       // </ProtectedRoute>
     ),
   },
