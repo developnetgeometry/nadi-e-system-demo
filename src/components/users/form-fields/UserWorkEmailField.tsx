@@ -10,28 +10,21 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { UserFormData } from "../types";
 
-interface UserEmailFieldProps {
+interface UserWorkEmailFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
-  isEditMode: boolean;
-  required?: boolean;
 }
 
-export function UserEmailField({ form, isLoading, isEditMode, required }: UserEmailFieldProps) {
+export function UserWorkEmailField({ form, isLoading }: UserWorkEmailFieldProps) {
   return (
     <FormField
       control={form.control}
-      name="email"
+      name="work_email"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{required ? "Email *" : "Email"}</FormLabel>
+          <FormLabel>Work Email</FormLabel>
           <FormControl>
-            <Input
-              {...field}
-              type="email"
-              disabled={isEditMode || isLoading}
-              placeholder="user@example.com"
-            />
+            <Input {...field} disabled={isLoading} type="email" />
           </FormControl>
           <FormMessage />
         </FormItem>

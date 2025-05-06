@@ -19,19 +19,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface UserTypeFieldProps {
+interface UserPositionFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
-  required?: boolean;
 }
 
-export function UserTypeField({ form, isLoading, required = true }: UserTypeFieldProps) {
-  const { data: userTypes, isLoading: isLoadingTypes } = useQuery({
-    queryKey: ["user-types"],
+export function UserPositionField({ form, isLoading }: UserPositionFieldProps) {
+  const { data: positions, isLoading: isLoadingPositions } = useQuery({
+    queryKey: ["positions"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("roles")
-        .select("name, description")
+        .from("nd_position")
+        .select("id, name")
         .order("name", { ascending: true });
         
       if (error) throw error;
@@ -42,11 +41,11 @@ export function UserTypeField({ form, isLoading, required = true }: UserTypeFiel
   return (
     <FormField
       control={form.control}
-      name="user_type"
+      name="position_id"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{required ? "User Type *" : "User Type"}</FormLabel>
-          {isLoadingTypes ? (
+          <FormLabel>Position</FormLabel>
+          {isLoadingPositions ? (
             <Skeleton className="h-10 w-full" />
           ) : (
             <Select
@@ -56,13 +55,13 @@ export function UserTypeField({ form, isLoading, required = true }: UserTypeFiel
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a user type" />
+                  <SelectValue placeholder="Select a position" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {userTypes?.map((type) => (
-                  <SelectItem key={type.name} value={type.name}>
-                    {type.name} {type.description ? `- ${type.description}` : ""}
+                {positions?.map((position) => (
+                  <SelectItem key={position.id} value={position.id.toString()}>
+                    {position.name}
                   </SelectItem>
                 ))}
               </SelectContent>

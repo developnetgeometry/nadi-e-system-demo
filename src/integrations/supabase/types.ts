@@ -2382,7 +2382,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           description?: string | null;
-          id: number;
+          id?: number;
           is_active?: boolean | null;
           name?: string | null;
           updated_at?: string | null;
@@ -2485,7 +2485,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           description?: string | null;
-          id: number;
+          id?: number;
           is_active?: boolean | null;
           name?: string | null;
           program_id?: number | null;
@@ -2503,7 +2503,15 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_module_nd_event_program_fk";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_event_program";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_event_participant: {
         Row: {
@@ -2560,7 +2568,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           description?: string | null;
-          id: number;
+          id?: number;
           is_active?: boolean | null;
           name?: string | null;
           subcategory_id?: number | null;
@@ -2578,7 +2586,15 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_program_nd_event_subcategory_fk";
+            columns: ["subcategory_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_event_subcategory";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_event_status: {
         Row: {
@@ -2630,7 +2646,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           description?: string | null;
-          id: number;
+          id?: number;
           is_active?: boolean | null;
           name?: string | null;
           updated_at?: string | null;
@@ -2647,7 +2663,15 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_subcategory_nd_event_category_fk";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_event_category";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_event_success_story: {
         Row: {
@@ -2880,7 +2904,7 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           created_by?: string | null;
-          id: number;
+          id?: number;
           name?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
@@ -2909,7 +2933,7 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           created_by?: string | null;
-          id: number;
+          id?: number;
           insurance_type_id?: number | null;
           report_detail?: string | null;
           site_remark_id?: number | null;
@@ -2926,7 +2950,22 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_insurance_report_insurance_type_id_fkey";
+            columns: ["insurance_type_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_insurance_coverage_type";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_insurance_report_site_remark_id_fkey";
+            columns: ["site_remark_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_remark";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_interview_panel: {
         Row: {
@@ -3981,6 +4020,7 @@ export type Database = {
           description: string | null;
           id: number;
           requester_by: string | null;
+          sla_id: number | null;
           status: boolean | null;
           type_id: number | null;
           updated_at: string | null;
@@ -3994,6 +4034,7 @@ export type Database = {
           description?: string | null;
           id?: number;
           requester_by?: string | null;
+          sla_id?: number | null;
           status?: boolean | null;
           type_id?: number | null;
           updated_at?: string | null;
@@ -4007,6 +4048,7 @@ export type Database = {
           description?: string | null;
           id?: number;
           requester_by?: string | null;
+          sla_id?: number | null;
           status?: boolean | null;
           type_id?: number | null;
           updated_at?: string | null;
@@ -4018,6 +4060,13 @@ export type Database = {
             columns: ["asset_id"];
             isOneToOne: false;
             referencedRelation: "nd_asset";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_maintenance_request_sla_id_fkey";
+            columns: ["sla_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_sla_categories";
             referencedColumns: ["id"];
           },
           {
@@ -4204,6 +4253,13 @@ export type Database = {
             columns: ["district_id"];
             isOneToOne: false;
             referencedRelation: "nd_district";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_member_address_member_id_fkey";
+            columns: ["member_id"];
+            isOneToOne: true;
+            referencedRelation: "nd_member_profile";
             referencedColumns: ["id"];
           },
           {
@@ -4702,6 +4758,66 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [];
+      };
+      nd_off_days: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          description: string | null;
+          end_date: string;
+          id: string;
+          is_recurring: boolean | null;
+          recurrence_pattern: string | null;
+          site_id: number;
+          start_date: string;
+          title: string;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          description?: string | null;
+          end_date: string;
+          id?: string;
+          is_recurring?: boolean | null;
+          recurrence_pattern?: string | null;
+          site_id: number;
+          start_date: string;
+          title: string;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          description?: string | null;
+          end_date?: string;
+          id?: string;
+          is_recurring?: boolean | null;
+          recurrence_pattern?: string | null;
+          site_id?: number;
+          start_date?: string;
+          title?: string;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fk_site";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fk_site";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile_name";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_parliaments: {
         Row: {
@@ -5622,8 +5738,8 @@ export type Database = {
           created_at: string | null;
           created_by: string | null;
           id: number;
-          refid_mcmc: number | null;
-          refid_tp: number | null;
+          refid_mcmc: string | null;
+          refid_tp: string | null;
           site_profile_id: number | null;
           standard_code: string | null;
           updated_at: string | null;
@@ -5633,8 +5749,8 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           id?: number;
-          refid_mcmc?: number | null;
-          refid_tp?: number | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
           site_profile_id?: number | null;
           standard_code?: string | null;
           updated_at?: string | null;
@@ -5644,8 +5760,8 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           id?: number;
-          refid_mcmc?: number | null;
-          refid_tp?: number | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
           site_profile_id?: number | null;
           standard_code?: string | null;
           updated_at?: string | null;
@@ -5673,6 +5789,7 @@ export type Database = {
           active_status: number | null;
           address1: string | null;
           address2: string | null;
+          address3: string | null;
           city: string | null;
           created_at: string | null;
           created_by: string | null;
@@ -5689,6 +5806,7 @@ export type Database = {
           active_status?: number | null;
           address1?: string | null;
           address2?: string | null;
+          address3?: string | null;
           city?: string | null;
           created_at?: string | null;
           created_by?: string | null;
@@ -5705,6 +5823,7 @@ export type Database = {
           active_status?: number | null;
           address1?: string | null;
           address2?: string | null;
+          address3?: string | null;
           city?: string | null;
           created_at?: string | null;
           created_by?: string | null;
@@ -5762,7 +5881,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           file_path?: string | null;
-          id: number;
+          id?: number;
           site_remark_id?: number | null;
           updated_at?: string | null;
           updated_by?: string | null;
@@ -5776,7 +5895,15 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_attachment_site_remark_id_fkey";
+            columns: ["site_remark_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_remark";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_site_closure: {
         Row: {
@@ -5977,6 +6104,48 @@ export type Database = {
           }
         ];
       };
+      nd_site_closure_logs: {
+        Row: {
+          closure_status_id: number | null;
+          created_at: string;
+          created_by: string | null;
+          id: number;
+          remark: string | null;
+          site_closure_id: number | null;
+        };
+        Insert: {
+          closure_status_id?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          id?: number;
+          remark?: string | null;
+          site_closure_id?: number | null;
+        };
+        Update: {
+          closure_status_id?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          id?: number;
+          remark?: string | null;
+          site_closure_id?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_closure_logs_closure_status_id_fkey";
+            columns: ["closure_status_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_closure_status";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_site_closure_logs_site_closure_id_fkey";
+            columns: ["site_closure_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_closure";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       nd_site_contracts: {
         Row: {
           contract_end: string | null;
@@ -6034,7 +6203,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           days_of_week?: string | null;
-          id: number;
+          id?: number;
           is_closed?: boolean | null;
           open_time?: string | null;
           site_id?: number | null;
@@ -6095,7 +6264,8 @@ export type Database = {
           operate_date: string | null;
           parliament_rfid: number | null;
           phase_id: number | null;
-          ref_id: string | null;
+          refid_mcmc: string | null;
+          refid_tp: string | null;
           region_id: number | null;
           remark: string | null;
           sitename: string | null;
@@ -6132,7 +6302,8 @@ export type Database = {
           operate_date?: string | null;
           parliament_rfid?: number | null;
           phase_id?: number | null;
-          ref_id?: string | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
           region_id?: number | null;
           remark?: string | null;
           sitename?: string | null;
@@ -6169,7 +6340,8 @@ export type Database = {
           operate_date?: string | null;
           parliament_rfid?: number | null;
           phase_id?: number | null;
-          ref_id?: string | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
           region_id?: number | null;
           remark?: string | null;
           sitename?: string | null;
@@ -6298,7 +6470,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           description?: string | null;
-          id: number;
+          id?: number;
           site_id?: number | null;
           type_id?: number | null;
           updated_at?: string | null;
@@ -6314,7 +6486,29 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_remark_nd_site_profile_fk";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_site_remark_nd_site_profile_fk";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile_name";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_site_remark_type_id_fkey";
+            columns: ["type_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_incident_type";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_site_socioeconomic: {
         Row: {
@@ -6449,7 +6643,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           eng?: string | null;
-          id: number;
+          id?: number;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -8869,6 +9063,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      nd_work_hour_config: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          day_of_week: string;
+          end_time: string;
+          id: string;
+          is_active: boolean | null;
+          site_id: number;
+          start_time: string;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          day_of_week: string;
+          end_time: string;
+          id?: string;
+          is_active?: boolean | null;
+          site_id: number;
+          start_time: string;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          day_of_week?: string;
+          end_time?: string;
+          id?: string;
+          is_active?: boolean | null;
+          site_id?: number;
+          start_time?: string;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fk_site";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fk_site";
+            columns: ["site_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile_name";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       nd_work_order: {
         Row: {
           created_at: string | null;
@@ -9469,79 +9717,61 @@ export type Database = {
         Row: {
           address: string | null;
           category: string | null;
-          district: string | null;
           district_id: number | null;
-          dun: string | null;
           dun_id: number | null;
           dusp_id: number | null;
           latitude: number | null;
           longtitude: number | null;
           "NADI SITENAME": string | null;
-          NO: number | null;
-          parliament: string | null;
+          no_id: number | null;
           parliament_id: number | null;
-          phase: string | null;
           phase_id: number | null;
-          "REFID MCMC": string | null;
-          "REFID TP": string | null;
+          refid_mcmc: string | null;
+          refid_tp: string | null;
           remark: string | null;
           "START OPERATION DATE": string | null;
           state_id: number | null;
-          status: string | null;
           status_id: number | null;
-          zone: string | null;
           zone_id: number | null;
         };
         Insert: {
           address?: string | null;
           category?: string | null;
-          district?: string | null;
           district_id?: number | null;
-          dun?: string | null;
           dun_id?: number | null;
           dusp_id?: number | null;
           latitude?: number | null;
           longtitude?: number | null;
           "NADI SITENAME"?: string | null;
-          NO?: number | null;
-          parliament?: string | null;
+          no_id?: number | null;
           parliament_id?: number | null;
-          phase?: string | null;
           phase_id?: number | null;
-          "REFID MCMC"?: string | null;
-          "REFID TP"?: string | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
           remark?: string | null;
           "START OPERATION DATE"?: string | null;
           state_id?: number | null;
-          status?: string | null;
           status_id?: number | null;
-          zone?: string | null;
           zone_id?: number | null;
         };
         Update: {
           address?: string | null;
           category?: string | null;
-          district?: string | null;
           district_id?: number | null;
-          dun?: string | null;
           dun_id?: number | null;
           dusp_id?: number | null;
           latitude?: number | null;
           longtitude?: number | null;
           "NADI SITENAME"?: string | null;
-          NO?: number | null;
-          parliament?: string | null;
+          no_id?: number | null;
           parliament_id?: number | null;
-          phase?: string | null;
           phase_id?: number | null;
-          "REFID MCMC"?: string | null;
-          "REFID TP"?: string | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
           remark?: string | null;
           "START OPERATION DATE"?: string | null;
           state_id?: number | null;
-          status?: string | null;
           status_id?: number | null;
-          zone?: string | null;
           zone_id?: number | null;
         };
         Relationships: [];
@@ -9573,6 +9803,105 @@ export type Database = {
           submodule_path?: string | null;
           updated_at?: string;
           visible_to?: Database["public"]["Enums"]["user_type"][];
+        };
+        Relationships: [];
+      };
+      testing_real_site: {
+        Row: {
+          address1: string | null;
+          address2: string | null;
+          address3: string | null;
+          building_status: string | null;
+          cluster: string | null;
+          commence_date: number | null;
+          dusp: string | null;
+          google_map: string | null;
+          id: number | null;
+          jenis_ekonomi1: string | null;
+          jenis_ekonomy2: string | null;
+          mukim: string | null;
+          mukim_id: number | null;
+          nadicategory: string | null;
+          population_3km: string | null;
+          population_5km: string | null;
+          postcode: string | null;
+          priority_nadi: string | null;
+          refid_mcmc: string | null;
+          refid_tp: string | null;
+          sector_economy1: string | null;
+          sektor_economy2: string | null;
+          semak: string | null;
+          sitename: string | null;
+          speed_mbps: string | null;
+          standard_code: string | null;
+          technology: string | null;
+          technology_partner: string | null;
+          type_of_building: string | null;
+          url_nadi: string | null;
+        };
+        Insert: {
+          address1?: string | null;
+          address2?: string | null;
+          address3?: string | null;
+          building_status?: string | null;
+          cluster?: string | null;
+          commence_date?: number | null;
+          dusp?: string | null;
+          google_map?: string | null;
+          id?: number | null;
+          jenis_ekonomi1?: string | null;
+          jenis_ekonomy2?: string | null;
+          mukim?: string | null;
+          mukim_id?: number | null;
+          nadicategory?: string | null;
+          population_3km?: string | null;
+          population_5km?: string | null;
+          postcode?: string | null;
+          priority_nadi?: string | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
+          sector_economy1?: string | null;
+          sektor_economy2?: string | null;
+          semak?: string | null;
+          sitename?: string | null;
+          speed_mbps?: string | null;
+          standard_code?: string | null;
+          technology?: string | null;
+          technology_partner?: string | null;
+          type_of_building?: string | null;
+          url_nadi?: string | null;
+        };
+        Update: {
+          address1?: string | null;
+          address2?: string | null;
+          address3?: string | null;
+          building_status?: string | null;
+          cluster?: string | null;
+          commence_date?: number | null;
+          dusp?: string | null;
+          google_map?: string | null;
+          id?: number | null;
+          jenis_ekonomi1?: string | null;
+          jenis_ekonomy2?: string | null;
+          mukim?: string | null;
+          mukim_id?: number | null;
+          nadicategory?: string | null;
+          population_3km?: string | null;
+          population_5km?: string | null;
+          postcode?: string | null;
+          priority_nadi?: string | null;
+          refid_mcmc?: string | null;
+          refid_tp?: string | null;
+          sector_economy1?: string | null;
+          sektor_economy2?: string | null;
+          semak?: string | null;
+          sitename?: string | null;
+          speed_mbps?: string | null;
+          standard_code?: string | null;
+          technology?: string | null;
+          technology_partner?: string | null;
+          type_of_building?: string | null;
+          url_nadi?: string | null;
         };
         Relationships: [];
       };
@@ -10105,7 +10434,7 @@ export type Database = {
         | "sso"
         | "dusp_admin"
         | "super_admin"
-        | "tp_region"
+        | "tp_pic"
         | "tp_hr"
         | "tp_finance"
         | "tp_admin"
@@ -10122,7 +10451,8 @@ export type Database = {
         | "staff_assistant_manager"
         | "staff_manager"
         | "vendor_admin"
-        | "vendor_staff";
+        | "vendor_staff"
+        | "tp_site";
       workflow_status: "draft" | "active" | "completed" | "cancelled";
     };
     CompositeTypes: {
@@ -10281,7 +10611,7 @@ export const Constants = {
         "sso",
         "dusp_admin",
         "super_admin",
-        "tp_region",
+        "tp_pic",
         "tp_hr",
         "tp_finance",
         "tp_admin",
@@ -10299,6 +10629,7 @@ export const Constants = {
         "staff_manager",
         "vendor_admin",
         "vendor_staff",
+        "tp_site",
       ],
       workflow_status: ["draft", "active", "completed", "cancelled"],
     },

@@ -44,22 +44,22 @@ export const useUserGroup = (): UserGroupInfo => {
     if (userMetadataStr) {
       try {
         const userData: UserMetadata = JSON.parse(userMetadataStr);
-        
+
         // Check for specific user types/groups
         const isSuperAdmin = userData.user_type === "super_admin";
         const isTP = userData.user_group_name === "TP";
         const isDUSP = userData.user_group_name === "DUSP";
-        
+
         // Create the isUserInGroup function that checks if user belongs to specified group
         const isUserInGroup = (groupName: string): boolean => {
           // Super admin has access to all group features
           if (isSuperAdmin) return true;
           return userData.user_group_name === groupName;
         };
-        
+
         // Super admin has full access
         const hasFullAccess = isSuperAdmin;
-        
+
         setUserGroupInfo({
           userType: userData.user_type || "",
           groupId: userData.user_group || null,

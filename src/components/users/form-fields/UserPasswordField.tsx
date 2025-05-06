@@ -17,9 +17,10 @@ interface UserPasswordFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
   isEditMode: boolean;
+  required?: boolean;
 }
 
-export function UserPasswordField({ form, isLoading, isEditMode }: UserPasswordFieldProps) {
+export function UserPasswordField({ form, isLoading, isEditMode, required = false }: UserPasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -28,7 +29,11 @@ export function UserPasswordField({ form, isLoading, isEditMode }: UserPasswordF
       name="password"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Password {isEditMode && "(leave blank to keep current)"}</FormLabel>
+          <FormLabel>
+            {isEditMode 
+              ? (required ? "Password * (leave blank to keep current)" : "Password (leave blank to keep current)") 
+              : (required ? "Password *" : "Password")}
+          </FormLabel>
           <FormControl>
             <div className="relative">
               <Input
