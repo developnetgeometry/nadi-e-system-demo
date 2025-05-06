@@ -42,6 +42,7 @@ import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSe
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
+import { BookingManagement } from "@/pages/dashboard/site/BookingManagement";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -337,6 +338,14 @@ export const moduleRoutes: RouteObject[] = [
       <SiteClosureApproval />
       // </ProtectedRoute>
     ),
+  },
+  {
+    path: "/site/booking-management",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <BookingManagement/>
+      // </ProtectedRoute>
+    )
   },
   {
     path: "/docket-status", //For superadmin
