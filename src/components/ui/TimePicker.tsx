@@ -15,15 +15,21 @@ interface TimeInputProps {
   className?: string; // Make className optional
 }
 
-const parseTime = (str) => {
+// Define proper TypeScript interfaces for time objects
+interface TimeObject {
+  hour: number;
+  minute: number;
+}
+
+const parseTime = (str: string): TimeObject => {
   const [h, m] = str.split(":").map(Number);
   return { hour: h, minute: m };
 };
 
-const toTimeString = ({ hour, minute }) =>
+const toTimeString = ({ hour, minute }: TimeObject): string =>
   `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 
-const toMinutes = ({ hour, minute }) => hour * 60 + minute;
+const toMinutes = ({ hour, minute }: TimeObject): number => hour * 60 + minute;
 
 const TimeInput: React.FC<TimeInputProps> = ({
   id,
@@ -40,10 +46,10 @@ const TimeInput: React.FC<TimeInputProps> = ({
   const parsedMax = parseTime(max || "23:59");
   const parsedDisallowed = disallowSameAsValue ? parseTime(disallowSameAsValue) : null;
 
-  const [hour, setHour] = useState(() =>
+  const [hour, setHour] = useState<number | null>(() =>
     parsedValue && parsedValue.hour !== undefined ? parsedValue.hour : null
   );
-  const [minute, setMinute] = useState(() =>
+  const [minute, setMinute] = useState<number | null>(() =>
     parsedValue && parsedValue.minute !== undefined ? parsedValue.minute : null
   );
 
@@ -68,7 +74,7 @@ const TimeInput: React.FC<TimeInputProps> = ({
     }
   }, [value]);
 
-  const isValid = (h, m) => {
+  const isValid = (h: number | null, m: number | null): boolean => {
     if (h === null || m === null) return false;
 
     const test = toMinutes({ hour: h, minute: m });
@@ -82,7 +88,7 @@ const TimeInput: React.FC<TimeInputProps> = ({
     return test >= minMinutes && test <= maxMinutes;
   };
 
-  const handleChange = (newHour, newMinute) => {
+  const handleChange = (newHour: number | null, newMinute: number | null): void => {
     setHour(newHour);
     setMinute(newMinute);
 
@@ -101,7 +107,7 @@ const TimeInput: React.FC<TimeInputProps> = ({
     }
   };
 
-  const handleClear = (e) => {
+  const handleClear = (e: React.MouseEvent): void => {
     e.stopPropagation();
     setHour(null);
     setMinute(null);
@@ -112,7 +118,7 @@ const TimeInput: React.FC<TimeInputProps> = ({
     ? `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
     : "Select Time";
 
-  const getValidMinutes = (h) => {
+  const getValidMinutes = (h: number): number[] => {
     if (h === null) return [];
 
     return [...Array(60).keys()].filter((m) => {

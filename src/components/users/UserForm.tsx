@@ -91,14 +91,18 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
     setIsLoading(true);
     setError(null);
     try {
+      const cleanedData = {
+        ...data,
+        ic_number: data.ic_number.replace(/-/g, ""), // Remove dashes
+      };
       if (user) {
-        await handleUpdateUser(data, user);
+        await handleUpdateUser(cleanedData, user);
         toast({
           title: "Success",
           description: "User updated successfully",
         });
       } else {
-        await handleCreateUser(data);
+        await handleCreateUser(cleanedData);
         
         toast({
           title: "Success",

@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 // Sample data
 const programmeTypes = [

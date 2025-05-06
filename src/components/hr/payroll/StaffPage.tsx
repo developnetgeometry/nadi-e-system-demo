@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 // Helper function to safely format currency values
 const formatCurrency = (value?: number) => {

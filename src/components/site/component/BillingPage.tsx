@@ -14,6 +14,7 @@ import { ArrowUp, ArrowDown, ArrowUpDown, FilePlus, Settings, Trash2 } from "luc
 import BillingFormDialog from "../BillingFormDialog";
 import { supabase } from "@/lib/supabase";
 import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 interface BillingPageProps {
   siteId: string;
@@ -83,63 +84,67 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
     }
   }, [isDialogOpen]);
 
-    // Function to handle delete a record
-    const handleDelete = async (id: string) => {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this record?"
-      );
-      if (!confirmDelete) return;
-    
-      try {
-        const { data: attachmentData, error: attachmentError } = await supabase
-          .from("nd_utilities_attachment") // Replace with your actual table name
-          .select("file_path")
-          .eq("utilities_id", id) // Assuming `utilities_id` links the file to the record
-          .single();
-    
-        if (attachmentError) {
-          console.warn("No associated file found or error fetching file path:", attachmentError);
-          // Proceed with record deletion even if the file path is not found
-        } else if (attachmentData?.file_path) {
-          const filePath = attachmentData.file_path;
-    
-          // Extract the part of the file path after "//"
-          const relativeFilePath = filePath.split(`${BUCKET_NAME_UTILITIES}/`)[1];
-    
-          // Delete the file from storage
-          const { error: storageError } = await supabase.storage
-            .from(BUCKET_NAME_UTILITIES) // Replace with your storage bucket name
-            .remove([relativeFilePath]);
-    
-          if (storageError) {
-            console.error("Error deleting file from storage:", storageError);
-            alert("Failed to delete the associated file. Please try again.");
-            return;
-          }
-        }
-    
-        // Proceed with record deletion
-        const { error } = await supabase
-          .from("nd_utilities")
-          .delete()
-          .eq("id", id);
-    
-        if (error) {
-          console.error("Error deleting record:", error);
-          alert("An error occurred while deleting the record.");
+  // Function to handle delete a record
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this record?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const { data: attachmentData, error: attachmentError } = await supabase
+        .from("nd_utilities_attachment") // Replace with your actual table name
+        .select("file_path")
+        .eq("utilities_id", id) // Assuming `utilities_id` links the file to the record
+        .single();
+
+      if (attachmentError) {
+        console.warn("No associated file found or error fetching file path:", attachmentError);
+        // Proceed with record deletion even if the file path is not found
+      } else if (attachmentData?.file_path) {
+        const filePath = attachmentData.file_path;
+
+        // Extract the part of the file path after "//"
+        const relativeFilePath = filePath.split(`${BUCKET_NAME_UTILITIES}/`)[1];
+
+        // Delete the file from storage
+        const { error: storageError } = await supabase.storage
+          .from(BUCKET_NAME_UTILITIES) // Replace with your storage bucket name
+          .remove([relativeFilePath]);
+
+        if (storageError) {
+          console.error("Error deleting file from storage:", storageError);
+          alert("Failed to delete the associated file. Please try again.");
           return;
         }
-    
-        alert("Record and associated file deleted successfully.");
-        setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
-      } catch (error) {
-        console.error("Error deleting record:", error);
-        alert("An unexpected error occurred. Please try again.");
       }
-    };
+
+      // Proceed with record deletion
+      const { error } = await supabase
+        .from("nd_utilities")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting record:", error);
+        alert("An error occurred while deleting the record.");
+        return;
+      }
+
+      alert("Record and associated file deleted successfully.");
+      setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      alert("An unexpected error occurred. Please try again.");
+    }
+  };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -268,21 +273,32 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleEdit(item)} // Open dialog with initial data
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-destructive"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEdit(item)} // Open dialog with initial data
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Edit</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => handleDelete(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
                   </div>
                 </TableCell>
               </TableRow>

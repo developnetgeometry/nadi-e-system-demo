@@ -31,8 +31,8 @@ export const SidebarAccordion = ({
   );
   const AccordionIcon = getAccordionIcon(label);
 
-  console.log("SidebarAccordion isCollapsed", isCollapsed);
-  console.log("SidebarAccordion state", state);
+  // console.log("SidebarAccordion isCollapsed", isCollapsed);
+  // console.log("SidebarAccordion state", state);
 
   // Render a simpler version when the sidebar is collapsed
   if (isCollapsed) {

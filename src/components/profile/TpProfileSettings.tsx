@@ -7,9 +7,16 @@ const TpProfileSettings = () => {
   const { data: tpProfile, isLoading, isError, error, refetch } = useTPProfile();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Show a loading state while fetching data
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    ); // Show a loading state while fetching data
   }
 
+  if (!tpProfile) {
+    return <div className="text-center">This user does not have a profile yet.</div>;
+  }
   if (isError) {
     return <div>Error: {error?.message}</div>; // Show an error message if fetching fails
   }

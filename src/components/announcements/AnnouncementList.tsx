@@ -137,7 +137,6 @@ export function AnnouncementList() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">&nbsp;</h2>
         <Button onClick={() => navigate("/announcements/create-announcement")}>
           <Plus className="mr-2 h-4 w-4" />
           Create Announcement

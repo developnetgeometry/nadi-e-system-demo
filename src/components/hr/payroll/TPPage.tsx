@@ -2,7 +2,7 @@ import { StatCard } from "@/components/hr/payroll/StatCard";
 import { PayrollTable } from "@/components/hr/payroll/PayrollTable";
 import { Button } from "@/components/ui/button";
 import { FileText, Upload } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data
 const teamData = [
