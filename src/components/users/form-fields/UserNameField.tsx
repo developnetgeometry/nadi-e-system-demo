@@ -1,3 +1,4 @@
+
 import {
   FormControl,
   FormField,
@@ -12,16 +13,17 @@ import { UserFormData } from "../types";
 interface UserNameFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
+  required?: boolean;
 }
 
-export function UserNameField({ form, isLoading }: UserNameFieldProps) {
+export function UserNameField({ form, isLoading, required }: UserNameFieldProps) {
   return (
     <FormField
       control={form.control}
       name="full_name"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Full Name</FormLabel>
+          <FormLabel>{required ? "Full Name *" : "Full Name"}</FormLabel>
           <FormControl>
             <Input {...field} disabled={isLoading} />
           </FormControl>

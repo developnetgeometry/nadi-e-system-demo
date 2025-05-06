@@ -1,119 +1,118 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "./useAuth";
 
 interface StaffSite {
   id: string;
   sitename: string;
 }
 
-/**
- * Hook to get all sites that a staff user is assigned to
- * This is used to determine which site closures a staff user can see
- */
 export const useStaffSites = () => {
-  const [staffSites, setStaffSites] = useState<StaffSite[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  // Fetch staff sites
+  const staffSitesQuery = useQuery({
+    queryKey: ["staffSites"],
+    queryFn: async () => {
+      // First get current user profile to determine user type
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
 
-  useEffect(() => {
-    const fetchStaffSites = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
+      if (userError) throw userError;
+
+      const userId = userData?.user?.id;
+
+      if (!userId) {
+        throw new Error("User not logged in");
       }
 
-      try {
-        setIsLoading(true);
-        
-        // First check if the user has an associated staff profile
-        const { data: staffProfile, error: staffProfileError } = await supabase
-          .from("nd_staff_profile")
-          .select("id")
-          .eq("user_id", user.id)
-          .single();
-          
-        if (staffProfileError) {
-          if (staffProfileError.code === 'PGRST116') {
-            // No staff profile found
-            setStaffSites([]);
-            return;
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("id", userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Different queries based on user type
+      switch (profile.user_type) {
+        case "super_admin":
+        case "tp_management":
+        case "tp_admin":
+        case "tp_hr":
+        case "dusp_admin":
+        case "mcmc_admin": {
+          // These roles can see all sites
+          const { data, error } = await supabase
+            .from("nd_site_profile")
+            .select("id, sitename")
+            .eq("is_active", true)
+            .order("sitename");
+
+          if (error) throw error;
+          return data as StaffSite[];
+        }
+
+        case "staff_manager":
+        case "staff_assistant_manager": {
+          // Managers can see sites they are assigned to
+          const { data: staffData, error: staffError } = await supabase
+            .from("nd_staff_profile")
+            .select("id")
+            .eq("user_id", userId)
+            .single();
+
+          if (staffError) throw staffError;
+
+          const { data: jobData, error: jobError } = await supabase
+            .from("nd_staff_job")
+            .select("site_id")
+            .eq("staff_id", staffData.id)
+            .eq("is_active", true);
+
+          if (jobError) throw jobError;
+
+          // If no specific sites, show all sites
+          if (!jobData || jobData.length === 0) {
+            const { data, error } = await supabase
+              .from("nd_site_profile")
+              .select("id, sitename")
+              .eq("is_active", true)
+              .order("sitename");
+
+            if (error) throw error;
+            return data as StaffSite[];
           }
-          throw staffProfileError;
+
+          // Get list of sites
+          const siteIds = jobData.map((job) => job.site_id);
+
+          const { data: siteData, error } = await supabase
+            .from("nd_site_profile")
+            .select("id, sitename")
+            .in("id", siteIds)
+            .eq("is_active", true)
+            .order("sitename");
+
+          if (error) throw error;
+          return siteData as StaffSite[];
         }
-        
-        if (!staffProfile) {
-          setStaffSites([]);
-          return;
+
+        default: {
+          // Default to showing all sites
+          const { data, error } = await supabase
+            .from("nd_site_profile")
+            .select("id, sitename")
+            .eq("is_active", true)
+            .order("sitename");
+
+          if (error) throw error;
+          return data as StaffSite[];
         }
-        
-        // Method 1: Check staff job assignments
-        const { data: staffJobs, error: jobsError } = await supabase
-          .from("nd_staff_job")
-          .select(`
-            site_id,
-            nd_site_profile:site_id (
-              id, 
-              sitename
-            )
-          `)
-          .eq("staff_id", staffProfile.id)
-          .eq("is_active", true);
-          
-        if (jobsError) throw jobsError;
-        
-        // Method 2: Check staff contracts as backup
-        const { data: staffContracts, error: contractsError } = await supabase
-          .from("nd_staff_contract")
-          .select(`
-            site_profile_id,
-            nd_site_profile:site_profile_id (
-              id, 
-              sitename
-            )
-          `)
-          .eq("user_id", user.id)
-          .eq("is_active", true);
-          
-        if (contractsError) throw contractsError;
-        
-        // Combine results from both queries
-        const sitesFromJobs = staffJobs
-          ? staffJobs
-              .filter(job => job.nd_site_profile)
-              .map(job => ({
-                id: job.nd_site_profile.id,
-                sitename: job.nd_site_profile.sitename
-              }))
-          : [];
-          
-        const sitesFromContracts = staffContracts
-          ? staffContracts
-              .filter(contract => contract.nd_site_profile)
-              .map(contract => ({
-                id: contract.nd_site_profile.id,
-                sitename: contract.nd_site_profile.sitename
-              }))
-          : [];
-          
-        // Combine and remove duplicates based on site ID
-        const combinedSites = [...sitesFromJobs, ...sitesFromContracts];
-        const uniqueSites = Array.from(
-          new Map(combinedSites.map(site => [site.id, site])).values()
-        );
-        
-        setStaffSites(uniqueSites);
-      } catch (err) {
-        console.error("Error fetching staff sites:", err);
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
-      } finally {
-        setIsLoading(false);
       }
-    };
+    },
+  });
 
-    fetchStaffSites();
-  }, [user]);
-
-  return { staffSites, isLoading, error };
+  return {
+    staffSites: staffSitesQuery.data ?? [],
+    isLoading: staffSitesQuery.isLoading,
+    error: staffSitesQuery.error,
+  };
 };

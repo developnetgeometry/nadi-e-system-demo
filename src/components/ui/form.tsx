@@ -87,8 +87,28 @@ FormItem.displayName = "FormItem";
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
+>(({ className, children, ...props }, ref) => {
   const { error, formItemId } = useFormField();
+
+  // Check if the children string contains an asterisk and apply red color to it
+  const formattedChildren =
+    React.isValidElement(children) || typeof children !== "string"
+      ? children
+      : children.toString().includes("*")
+      ? children
+          .toString()
+          .split("*")
+          .map((part, i, arr) =>
+            i < arr.length - 1 ? (
+              <React.Fragment key={i}>
+                {part}
+                <span className="text-red-500">*</span>
+              </React.Fragment>
+            ) : (
+              part
+            )
+          )
+      : children;
 
   return (
     <Label
@@ -96,7 +116,9 @@ const FormLabel = React.forwardRef<
       className={cn(error && "text-destructive", className)}
       htmlFor={formItemId}
       {...props}
-    />
+    >
+      {formattedChildren}
+    </Label>
   );
 });
 FormLabel.displayName = "FormLabel";

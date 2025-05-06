@@ -1,4 +1,3 @@
-
 import {
   Dialog,
   DialogContent,
@@ -23,7 +22,7 @@ export function UserFormDialog({
 }: UserFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-6">
+      <DialogContent className="sm:max-w-[600px] p-6 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             {user ? "Edit User" : "Create New User"}

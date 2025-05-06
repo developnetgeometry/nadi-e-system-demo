@@ -13,9 +13,10 @@ import { UserFormData } from "../types";
 interface UserICNumberFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
+  required?: boolean;
 }
 
-export function UserICNumberField({ form, isLoading }: UserICNumberFieldProps) {
+export function UserICNumberField({ form, isLoading, required }: UserICNumberFieldProps) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/[^0-9-]/g, '');
     
@@ -41,7 +42,7 @@ export function UserICNumberField({ form, isLoading }: UserICNumberFieldProps) {
       name="ic_number"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>IC Number</FormLabel>
+          <FormLabel>{required ? "IC Number *" : "IC Number"}</FormLabel>
           <FormControl>
             <Input 
               {...field} 

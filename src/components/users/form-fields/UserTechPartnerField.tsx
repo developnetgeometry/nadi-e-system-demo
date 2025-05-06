@@ -19,19 +19,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 
-interface UserTypeFieldProps {
+interface UserTechPartnerFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
-  required?: boolean;
 }
 
-export function UserTypeField({ form, isLoading, required = true }: UserTypeFieldProps) {
-  const { data: userTypes, isLoading: isLoadingTypes } = useQuery({
-    queryKey: ["user-types"],
+export function UserTechPartnerField({ form, isLoading }: UserTechPartnerFieldProps) {
+  const { data: techPartners, isLoading: isLoadingPartners } = useQuery({
+    queryKey: ["tech-partners"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("roles")
-        .select("name, description")
+        .from("nd_tech_partner")
+        .select("id, name")
         .order("name", { ascending: true });
         
       if (error) throw error;
@@ -42,11 +41,11 @@ export function UserTypeField({ form, isLoading, required = true }: UserTypeFiel
   return (
     <FormField
       control={form.control}
-      name="user_type"
+      name="tech_partner_id"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{required ? "User Type *" : "User Type"}</FormLabel>
-          {isLoadingTypes ? (
+          <FormLabel>Technology Partner</FormLabel>
+          {isLoadingPartners ? (
             <Skeleton className="h-10 w-full" />
           ) : (
             <Select
@@ -56,13 +55,13 @@ export function UserTypeField({ form, isLoading, required = true }: UserTypeFiel
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a user type" />
+                  <SelectValue placeholder="Select a tech partner" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {userTypes?.map((type) => (
-                  <SelectItem key={type.name} value={type.name}>
-                    {type.name} {type.description ? `- ${type.description}` : ""}
+                {techPartners?.map((partner) => (
+                  <SelectItem key={partner.id} value={partner.id.toString()}>
+                    {partner.name}
                   </SelectItem>
                 ))}
               </SelectContent>
