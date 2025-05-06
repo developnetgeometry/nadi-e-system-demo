@@ -24,7 +24,8 @@ import {
 export const fetchSites = async (
   organizationId: string | null,
   isTPUser: boolean = false,
-  isDUSPUser: boolean = false
+  isDUSPUser: boolean = false,
+  isMCMCUser: boolean = false
 ): Promise<Site[]> => {
   try {
     let query = supabase
@@ -68,6 +69,7 @@ export const fetchSites = async (
         ]);
       }
     }
+    // MCMC users don't have an organization filter - they can see all sites
 
     const { data, error } = await query;
     if (error) throw error;
