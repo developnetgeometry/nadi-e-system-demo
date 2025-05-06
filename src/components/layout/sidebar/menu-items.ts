@@ -19,7 +19,7 @@ export const menuItems = [
 
 export const hrMenuItems = [
   { title: "HR Dashboard", path: "/hr" },
-  { title: "HR Settings", path: "/under-development" },
+  { title: "HR Settings", path: "/hr/settings" },
   { title: "Staff Management", path: "/hr/employees" },
   { title: "Site Staff Management", path: "/hr/site-staff" },
   { title: "Leave Management", path: "/hr/leave" },

@@ -50,7 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { AddLeaveRequestDialog } from "@/components/hr/AddLeaveRequestDialog";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSuperAdmin, SiteInfo } from "@/hooks/useSuperAdmin";
 import {

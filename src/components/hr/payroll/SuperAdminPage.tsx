@@ -9,7 +9,7 @@ import {
   BarChart3,
   Download,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 // Mock data
 const payrollData = [

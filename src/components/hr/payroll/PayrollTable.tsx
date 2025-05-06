@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useUsers } from "@/hooks/use-users";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,

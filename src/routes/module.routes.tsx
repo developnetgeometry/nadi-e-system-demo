@@ -19,6 +19,8 @@ import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
 import Leave from "@/pages/dashboard/hr/Leave";
 import Payroll from "@/pages/dashboard/hr/Payroll";
+import StaffTraining from "@/pages/dashboard/hr/StaffTraining";
+import HRSettings from "@/pages/dashboard/hr/HRSettings";
 import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
@@ -50,6 +52,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_hr_dashboard">
       <HRDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hr/settings",
+    element: (
+      // <ProtectedRoute requiredPermission="view_hr_dashboard">
+      <HRSettings />
       // </ProtectedRoute>
     ),
   },
@@ -90,6 +100,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_leave">
       <Payroll />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/hr/staff-training",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_leave">
+      <StaffTraining />
       // </ProtectedRoute>
     ),
   },
