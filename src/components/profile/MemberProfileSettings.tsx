@@ -8,7 +8,15 @@ const MemberProfileSettings = () => {
   const { data: memberProfile, isLoading, isError, error, refetch } = useMemberProfile();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Show a loading state while fetching data
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    ); // Show a loading state while fetching data
+  }
+
+  if (!memberProfile) {
+    return <div className="text-center">This user does not have a profile yet.</div>;
   }
 
   if (isError) {
@@ -25,7 +33,7 @@ const MemberProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the member profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={memberProfile} refetch={refetch} userType={""} userGroup={7}/>
+            <ProfileOverviewPage profileData={memberProfile} refetch={refetch} userType={""} userGroup={7} />
           </div>
         </Card>
       </TabsContent>

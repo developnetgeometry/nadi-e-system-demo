@@ -44,6 +44,9 @@ import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnounceme
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
 import NADIClosure from "@/pages/dashboard/site/NADIClosure";
+import Usage from "@/pages/dashboard/site/Usage";
+import KPI from "@/pages/dashboard/site/KPI";
+import NMS from "@/pages/dashboard/site/NMS";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -356,6 +359,30 @@ export const moduleRoutes: RouteObject[] = [
   //     // </ProtectedRoute>
   //   ),
   // },
+  {
+    path: "/site/usage",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Usage/>
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/kpi",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <KPI/>
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/nms",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <NMS/>
+      // </ProtectedRoute>
+    ),
+  },
   {
     path: "/docket-status", //For superadmin
     element: (
