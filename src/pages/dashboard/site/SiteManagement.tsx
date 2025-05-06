@@ -470,7 +470,7 @@ const SiteDashboard = () => {
               <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-md px-3 py-1.5 text-sm">
                 <span className="font-medium">{selectedSites.length} sites selected</span>
                 <div className="flex gap-2">
-                  {isSuperAdmin && (
+                  {isSuperAdmin || isMCMCUser && (
                     <Button
                       size="sm"
                       variant="destructive"
@@ -842,7 +842,7 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>
-                  {isSuperAdmin && <TableHead
+                  {isSuperAdmin || isMCMCUser && <TableHead
                     className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("dusp_tp")}
                   >
@@ -896,7 +896,7 @@ const SiteDashboard = () => {
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
                       </TableCell>
-                      {isSuperAdmin && (
+                      {isSuperAdmin || isMCMCUser && (
                         <TableCell>
                           <Skeleton className="h-4 w-28" />
                         </TableCell>
@@ -915,7 +915,7 @@ const SiteDashboard = () => {
                   ))
                 ) : sitesData?.data.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin ? 10 : 9} className="text-center py-10">
+                    <TableCell colSpan={isSuperAdmin || isMCMCUser ? 10 : 9} className="text-center py-10">
                       <p className="text-gray-500">No sites found matching your criteria</p>
                     </TableCell>
                   </TableRow>
@@ -936,7 +936,7 @@ const SiteDashboard = () => {
                       <TableCell>{site?.nd_phases?.name || ""}</TableCell>
                       <TableCell>{site?.nd_region?.eng || ""}</TableCell>
                       <TableCell>{getStateName(site)}</TableCell>
-                      {isSuperAdmin && (
+                      {isSuperAdmin || isMCMCUser && (
                         <TableCell>
                           {site.dusp_tp_id_display || "N/A"}
                         </TableCell>
