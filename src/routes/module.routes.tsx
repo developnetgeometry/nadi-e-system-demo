@@ -49,6 +49,7 @@ import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPI";
 import NMS from "@/pages/dashboard/site/NMS";
 import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
+import Billing from "@/pages/dashboard/site/Billing";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -338,7 +339,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site-management/:id", //For superadmin
+    path: "/site-management/site", //For superadmin
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <SiteDetails />
@@ -358,6 +359,22 @@ export const moduleRoutes: RouteObject[] = [
   //   element: (
   //     // <ProtectedRoute requiredPermission="view_site_details">
   //     <SiteClosureApproval />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  {
+    path: "/site/utilities-billing",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Billing/>
+      // </ProtectedRoute>
+    ),
+  },
+  // {
+  //   path: "/site/insurance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Usage/>
   //     // </ProtectedRoute>
   //   ),
   // },

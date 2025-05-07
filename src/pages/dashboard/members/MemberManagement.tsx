@@ -96,7 +96,7 @@ const MemberManagement = () => {
   };
 
   const handleViewDetailsClick = (userId: string) => {
-    navigate(`/dashboard/members/details/${userId}`);
+    navigate(`/members/profile?id=${userId}`);
   };
 
 

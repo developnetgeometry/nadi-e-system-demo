@@ -69,6 +69,8 @@ export const useInsertInsuranceData = () => {
                     site_remark_id: siteRemarkId,
                     insurance_type_id: insuranceData.insurance_type_id,
                     report_detail: insuranceData.report_detail, // Save report_detail
+                    start_date: insuranceData.start_date, // Save start_date
+                    end_date: insuranceData.end_date,     // Save end_date
                 }]);
 
             if (insuranceReportError) {
@@ -137,6 +139,8 @@ export const useUpdateInsuranceData = () => {
                 .update({
                     insurance_type_id: insuranceData.insurance_type_id,
                     report_detail: insuranceData.report_detail, // Update report_detail
+                    start_date: insuranceData.start_date, // Update start_date
+                    end_date: insuranceData.end_date,     // Update end_date
                 })
                 .eq("site_remark_id", siteRemarkId);
 
