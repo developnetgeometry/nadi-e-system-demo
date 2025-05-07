@@ -136,3 +136,54 @@ export const useMemberProfileByUserId = (userId: string) => {
 
   return { data, isLoading, isError, error, refetch };
 };
+
+export const useMemberAddress = (memberId: string) => {
+  const fetchMemberAddress = async () => {
+    if (!memberId) {
+      throw new Error("Member ID is required.");
+    }
+
+    // Fetch the member address data using the provided memberId
+    const { data: address, error: addressError } = await supabase
+      .from("nd_member_address")
+      .select(`
+        id, address1, address2, 
+        city, 
+        postcode,
+        state_id (id, abbr, name ),
+        district_id (id, code, name)
+      `)
+      .eq("member_id", memberId)
+      .single();
+
+    if (addressError) {
+      throw new Error(addressError.message);
+    }
+
+    return address;
+  };
+
+  // Use React Query's useQuery to fetch the data
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["memberAddress", memberId],
+    queryFn: fetchMemberAddress,
+    enabled: !!memberId, // Only run the query if memberId is provided
+  });
+
+  return { data, isLoading, isError, error, refetch };
+};
+
+export const updateMemberAddress = async (memberId: string, updatedData: any) => {
+  if (!memberId) {
+    throw new Error("MemberId is required.");
+  }
+
+  const { error: updateError } = await supabase
+    .from("nd_member_address")
+    .update(updatedData)
+    .eq("member_id", memberId);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+};

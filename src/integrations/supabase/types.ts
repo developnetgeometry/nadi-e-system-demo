@@ -2929,6 +2929,8 @@ export type Database = {
           site_remark_id: number | null;
           updated_at: string | null;
           updated_by: string | null;
+          start_date: string | null;
+          end_date: string | null;
         };
         Insert: {
           created_at?: string | null;

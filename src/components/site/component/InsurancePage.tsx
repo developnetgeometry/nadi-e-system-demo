@@ -9,12 +9,15 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { FilePlus, Settings, Trash2 } from "lucide-react";
+import { Edit, Eye, FilePlus, Settings, Trash2 } from "lucide-react";
 import InsuranceFormDialog from "../InsuranceFormDialog";
 import { useSiteInsurance } from "../hook/use-site-insurance";
 import { supabase } from "@/lib/supabase";
 import { BUCKET_NAME_SITE_INSURANCE } from "@/integrations/supabase/client";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast"; // Import the useToast hook
+import InsurancePageView from "./InsurancePageView";
 
 interface InsurancePageProps {
   siteId: string;
@@ -24,7 +27,18 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
   const [refreshInsurance, setRefreshInsurance] = useState(false);
   const { data, loading, error } = useSiteInsurance(siteId, refreshInsurance);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for delete confirmation dialog
+  const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null); // State to store the record ID to delete
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
+  const { toast } = useToast(); // Initialize the toast hook
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false); // State for view dialog
+  const [viewData, setViewData] = useState<any>(null); // State for selected data to view
+
+
+  const handleView = (insurance: any) => {
+    setViewData(insurance); // Set the selected insurance data
+    setIsViewDialogOpen(true); // Open the view dialog
+  };
 
   const handleEdit = (insurance: any) => {
     setSelectedInsurance(insurance);
@@ -37,29 +51,15 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
     }
   }, [isDialogOpen]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div className="text-red-500">Error: {error}</div>;
-  }
-  const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this record?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = async () => {
+    if (!deleteRecordId) return;
 
     try {
       // Step 1: Delete from `nd_site_attachment` and get file path
       const { data: attachmentData, error: attachmentError } = await supabase
         .from("nd_site_attachment")
         .select("file_path")
-        .eq("site_remark_id", id)
+        .eq("site_remark_id", deleteRecordId)
         .single();
 
       if (attachmentError) {
@@ -77,7 +77,11 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
 
         if (storageError) {
           console.error("Error deleting file from storage:", storageError);
-          alert("Failed to delete the associated file. Please try again.");
+          toast({
+            title: "Error",
+            description: "Failed to delete the associated file. Please try again.",
+            variant: "destructive",
+          });
           return;
         }
 
@@ -85,11 +89,15 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
         const { error: attachmentDeleteError } = await supabase
           .from("nd_site_attachment")
           .delete()
-          .eq("site_remark_id", id);
+          .eq("site_remark_id", deleteRecordId);
 
         if (attachmentDeleteError) {
           console.error("Error deleting from nd_site_attachment:", attachmentDeleteError);
-          alert("Failed to delete the attachment record. Please try again.");
+          toast({
+            title: "Error",
+            description: "Failed to delete the attachment record. Please try again.",
+            variant: "destructive",
+          });
           return;
         }
       }
@@ -98,11 +106,15 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
       const { error: reportError } = await supabase
         .from("nd_insurance_report")
         .delete()
-        .eq("site_remark_id", id);
+        .eq("site_remark_id", deleteRecordId);
 
       if (reportError) {
         console.error("Error deleting from nd_insurance_report:", reportError);
-        alert("Failed to delete the insurance report. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to delete the insurance report. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -110,21 +122,48 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
       const { error: remarkError } = await supabase
         .from("nd_site_remark")
         .delete()
-        .eq("id", id);
+        .eq("id", deleteRecordId);
 
       if (remarkError) {
         console.error("Error deleting from nd_site_remark:", remarkError);
-        alert("Failed to delete the remark. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to delete the remark. Please try again.",
+          variant: "destructive",
+        });
         return;
       }
 
-      alert("Record and associated file deleted successfully.");
+      toast({
+        title: "Success",
+        description: "Record and associated file deleted successfully.",
+        variant: "default",
+      });
       setRefreshInsurance((prev) => !prev); // Trigger re-fetch
     } catch (error) {
       console.error("Error deleting record:", error);
-      alert("An unexpected error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false); // Close the dialog
+      setDeleteRecordId(null); // Reset the record ID
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div>
@@ -150,6 +189,8 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
               <TableHead>Description</TableHead>
               <TableHead>Incident Type</TableHead>
               <TableHead>Insurance Type</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
               <TableHead>File</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -158,9 +199,19 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
             {data.map((item, index) => (
               <TableRow key={item.id}>
                 <TableRowNumber index={index} />
-                <TableCell>{item.description}</TableCell>
-                <TableCell>{item.type_name}</TableCell>
-                <TableCell>{item.insurance_type_name}</TableCell>
+                <TableCell>{item.description ?? "N/A"}</TableCell>
+                <TableCell>{item.type_name ?? "N/A"}</TableCell>
+                <TableCell>{item.insurance_type_name ?? "N/A"}</TableCell>
+                <TableCell>
+                  {item.start_date
+                    ? new Intl.DateTimeFormat("en-GB").format(new Date(item.start_date))
+                    : "N/A"}
+                </TableCell>
+                <TableCell>
+                  {item.end_date
+                    ? new Intl.DateTimeFormat("en-GB").format(new Date(item.end_date))
+                    : "N/A"}
+                </TableCell>
                 <TableCell>
                   {item.file_path ? (
                     <a href={item.file_path} target="_blank" rel="noopener noreferrer">
@@ -172,10 +223,19 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
+                  <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="icon" onClick={() => handleView(item)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>View</TooltipContent>
+                    </Tooltip>
+                    
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="outline" size="icon" onClick={() => handleEdit(item)}>
-                          <Settings className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Edit</TooltipContent>
@@ -187,7 +247,10 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
                           variant="outline"
                           size="icon"
                           className="text-destructive"
-                          onClick={() => handleDelete(String(item.id))}
+                          onClick={() => {
+                            setDeleteRecordId(item.id.toString()); // Set the record ID to delete
+                            setIsDeleteDialogOpen(true); // Open the dialog
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -202,12 +265,38 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
         </Table>
       </div>
 
+      <InsurancePageView
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        data={viewData}
+      />
+      
       <InsuranceFormDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         siteId={siteId}
         initialData={selectedInsurance}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this record? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

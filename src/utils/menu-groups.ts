@@ -22,6 +22,7 @@ import {
   iotDashboardItems,
   announcementsItems,
   takwimItems,
+  bookingItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups = [
@@ -137,11 +138,11 @@ export const menuGroups = [
     items: takwimItems,
   },
 
-  // {
-  //   label: "Booking Management",
-  //   route: "/booking",
-  //   items: programmesItems,
-  // },
+  {
+    label: "Booking Management",
+    route: "/booking",
+    items: bookingItems,
+  },
   // {
   //   label: "PC Booking Management",
   //   route: "/programmes",

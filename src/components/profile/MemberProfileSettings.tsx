@@ -1,13 +1,16 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMemberProfile } from "./hook/use-member-profile";
+import { useMemberAddress } from "./hook/use-member-profile";
 import ProfileOverviewPage from "./components/OverviewPage";
 import ProfileAddressPage from "./components/AddressPage";
 
 const MemberProfileSettings = () => {
-  const { data: memberProfile, isLoading, isError, error, refetch } = useMemberProfile();
+  const { data: memberProfile, isLoading: isProfileLoading, isError: isProfileError, error: profileError, refetch: refetchProfile } = useMemberProfile();
+  const memberId = memberProfile?.id; // Extract member_id from memberProfile
+  const { data: memberAddress, isLoading: isAddressLoading, isError: isAddressError, error: addressError, refetch: refetchAddress } = useMemberAddress(memberId);
 
-  if (isLoading) {
+  if (isProfileLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -19,9 +22,7 @@ const MemberProfileSettings = () => {
     return <div className="text-center">This user does not have a profile yet.</div>;
   }
 
-  if (isError) {
-    return <div>Error: {error?.message}</div>; // Show an error message if fetching fails
-  }
+
 
   return (
     <Tabs defaultValue="overview" className="mt-6">
@@ -33,14 +34,19 @@ const MemberProfileSettings = () => {
         <Card className="h-full">
           <div className="p-6 h-full">
             {/* Pass the member profile data to ProfileOverviewPage */}
-            <ProfileOverviewPage profileData={memberProfile} refetch={refetch} userType={""} userGroup={7} />
+            <ProfileOverviewPage profileData={memberProfile} refetch={refetchProfile} userType={""} userGroup={7} />
           </div>
         </Card>
       </TabsContent>
       <TabsContent value="address" className="h-full mt-0">
         <Card className="h-full">
           <div className="p-6 h-full">
-            <ProfileAddressPage />
+            {/* Pass the member address data to ProfileAddressPage */}
+            <ProfileAddressPage
+              addressData={memberAddress}
+              memberId={memberId}
+              refetch={refetchAddress} // Pass refetch function
+            />
           </div>
         </Card>
       </TabsContent>

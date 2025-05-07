@@ -10,11 +10,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { ArrowUp, ArrowDown, ArrowUpDown, FilePlus, Settings, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, FilePlus, Settings, Trash2, Edit, Eye } from "lucide-react";
 import BillingFormDialog from "../BillingFormDialog";
 import { supabase } from "@/lib/supabase";
 import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast"; // Import the useToast hook
+import BillingPageView from "./BillingPageView";
 
 interface BillingPageProps {
   siteId: string;
@@ -30,7 +33,12 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
   const [selectedBilling, setSelectedBilling] = useState<any>(null); // State to store the selected billing data
-
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State to manage dialog visibility
+  const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null); // State to store the record ID to delete
+  const { toast } = useToast(); // Initialize the toast hook
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false); // State to manage view dialog visibility
+  const [viewData, setViewData] = useState<any>(null); // State to store the data to view
+  
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       if (sortDirection === "asc") {
@@ -77,6 +85,11 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
     setIsDialogOpen(true); // Open the dialog
   };
 
+  const handleView = (billing: any) => {
+    setViewData(billing); // Set the selected billing data
+    setIsViewDialogOpen(true); // Open the view dialog
+  };
+
   // Trigger re-fetch when the dialog is closed
   useEffect(() => {
     if (!isDialogOpen) {
@@ -85,57 +98,69 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   }, [isDialogOpen]);
 
   // Function to handle delete a record
-  const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this record?"
-    );
-    if (!confirmDelete) return;
+  const handleDelete = async () => {
+    if (!deleteRecordId) return;
 
     try {
       const { data: attachmentData, error: attachmentError } = await supabase
-        .from("nd_utilities_attachment") // Replace with your actual table name
+        .from("nd_utilities_attachment")
         .select("file_path")
-        .eq("utilities_id", id) // Assuming `utilities_id` links the file to the record
+        .eq("utilities_id", deleteRecordId)
         .single();
 
       if (attachmentError) {
         console.warn("No associated file found or error fetching file path:", attachmentError);
-        // Proceed with record deletion even if the file path is not found
       } else if (attachmentData?.file_path) {
         const filePath = attachmentData.file_path;
-
-        // Extract the part of the file path after "//"
         const relativeFilePath = filePath.split(`${BUCKET_NAME_UTILITIES}/`)[1];
 
-        // Delete the file from storage
         const { error: storageError } = await supabase.storage
-          .from(BUCKET_NAME_UTILITIES) // Replace with your storage bucket name
+          .from(BUCKET_NAME_UTILITIES)
           .remove([relativeFilePath]);
 
         if (storageError) {
           console.error("Error deleting file from storage:", storageError);
-          alert("Failed to delete the associated file. Please try again.");
+          toast({
+            title: "Error",
+            description: "Failed to delete the associated file. Please try again.",
+            variant: "destructive",
+          });
           return;
         }
       }
 
-      // Proceed with record deletion
       const { error } = await supabase
         .from("nd_utilities")
         .delete()
-        .eq("id", id);
+        .eq("id", deleteRecordId);
 
       if (error) {
         console.error("Error deleting record:", error);
-        alert("An error occurred while deleting the record.");
+        toast({
+          title: "Error",
+          description: "An error occurred while deleting the record.",
+          variant: "destructive",
+        });
         return;
       }
 
-      alert("Record and associated file deleted successfully.");
-      setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
+      toast({
+        title: "Success",
+        description: "Record and associated file deleted successfully.",
+        variant: "default",
+      });
+
+      setRefreshBilling((prev) => !prev); // Trigger re-fetch
     } catch (error) {
       console.error("Error deleting record:", error);
-      alert("An unexpected error occurred. Please try again.");
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false); // Close the dialog
+      setDeleteRecordId(null); // Reset the record ID
     }
   };
 
@@ -273,6 +298,20 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
+
+                  <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleView(item)} // Open view dialog with data
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>View</TooltipContent>
+                </Tooltip>
+                
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -280,7 +319,7 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
                           size="icon"
                           onClick={() => handleEdit(item)} // Open dialog with initial data
                         >
-                          <Settings className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Edit</TooltipContent>
@@ -292,7 +331,10 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
                           variant="outline"
                           size="icon"
                           className="text-destructive"
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => {
+                            setDeleteRecordId(item.id); // Set the record ID to delete
+                            setIsDeleteDialogOpen(true); // Open the dialog
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -314,6 +356,34 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
         siteId={siteId} // Pass the siteId to the dialog
         initialData={selectedBilling} // Pass the selected billing data
       />
+
+      {/* View Dialog */}
+      <BillingPageView
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        data={viewData} // Pass the selected data to the view dialog
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this record? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
