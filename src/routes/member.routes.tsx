@@ -8,23 +8,23 @@ import MemberProfilePages from "@/pages/dashboard/members/MemberProfilePages";
 
 export const memberRoutes: RouteObject[] = [
   {
-    path: "/dashboard/members",
+    path: "/members",
     element: <MemberManagement />,
   },
   {
-    path: "/dashboard/members/details",
+    path: "/members/details",
     element: <PersonalDetails />,
   },
   {
-    path: "/dashboard/members/details/:id",
+    path: "/members/profile",
     element: <MemberProfilePages />,
   },
   {
-    path: "/dashboard/members/registration",
+    path: "/members/registration",
     element: <Registration />,
   },
   {
-    path: "/dashboard/members/activity",
+    path: "/members/activity",
     element: <ActivityLogs />,
   },
 ];

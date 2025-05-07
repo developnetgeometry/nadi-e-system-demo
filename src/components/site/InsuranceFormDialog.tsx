@@ -44,23 +44,23 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
     description: "",
     type_id: "",
     insurance_type_id: "",
-    report_detail: "", // New field
+    report_detail: "",
+    start_date: "", // New field
+    end_date: "",   // New field
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { incidentTypes, insuranceCoverageTypes, loading: typesLoading } = useFetchInsuranceTypes();
   const { insertInsuranceData, loading: insertLoading } = useInsertInsuranceData();
   const { updateInsuranceData, loading: updateLoading } = useUpdateInsuranceData();
+
   const handleFilesSelected = (files: File[]) => {
     if (files.length > 0) {
       setSelectedFile(files[0]);
-      console.log("Selected File:", files[0]);
-      console.log("File Type:", files[0].type);
-      console.log("File Name:", files[0].name);
-    } else {
-      console.log("No file selected.");
     }
   };
+
   const [existingFilePath, setExistingFilePath] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -69,7 +69,9 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
       description: formState.description,
       type_id: Number(formState.type_id),
       insurance_type_id: Number(formState.insurance_type_id),
-      report_detail: formState.report_detail, // Include report_detail
+      report_detail: formState.report_detail,
+      start_date: formState.start_date, // Include start_date
+      end_date: formState.end_date,     // Include end_date
     };
 
     let result;
@@ -105,6 +107,8 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
         type_id: initialData.type_id.toString(),
         insurance_type_id: initialData.insurance_type_id.toString(),
         report_detail: initialData.report_detail || "",
+        start_date: initialData.start_date || "", // Populate start_date
+        end_date: initialData.end_date || "",     // Populate end_date
       });
       setExistingFilePath(initialData.file_path || null);
     } else if (!open) {
@@ -113,6 +117,8 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
         type_id: "",
         insurance_type_id: "",
         report_detail: "",
+        start_date: "",
+        end_date: "",
       });
       setSelectedFile(null);
       setExistingFilePath(null);
@@ -177,7 +183,6 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="report_detail">Report Detail</Label>
             <Textarea
@@ -185,6 +190,28 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
               name="report_detail"
               value={formState.report_detail}
               onChange={(e) => setField("report_detail", e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="start_date">Start Date</Label>
+            <Input
+              id="start_date"
+              name="start_date"
+              type="date"
+              value={formState.start_date}
+              onChange={(e) => setField("start_date", e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="end_date">End Date</Label>
+            <Input
+              id="end_date"
+              name="end_date"
+              type="date"
+              value={formState.end_date}
+              onChange={(e) => setField("end_date", e.target.value)}
               required
             />
           </div>
@@ -197,12 +224,12 @@ const InsuranceFormDialog: React.FC<InsuranceFormDialogProps> = ({
             existingFile={
               initialData
                 ? {
-                  url: existingFilePath,
-                  name: existingFilePath?.split("/").pop(), // Extract the file name from the path
-                }
-                : null // No existing file for new insurance data
+                    url: existingFilePath,
+                    name: existingFilePath?.split("/").pop(),
+                  }
+                : null
             }
-          />;
+          />
           <DialogFooter>
             <Button
               type="button"
