@@ -92,11 +92,11 @@ const MemberManagement = () => {
   };
 
   const handleAddNewMember = () => {
-    navigate("/members/registration");
+    navigate("/member-management/registration");
   };
 
   const handleViewDetailsClick = (userId: string) => {
-    navigate(`/members/profile?id=${userId}`);
+    navigate(`/member-management/profile?id=${userId}`);
   };
 
 
