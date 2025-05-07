@@ -338,7 +338,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site-management/:id", //For superadmin
+    path: "/site-management/site", //For superadmin
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <SiteDetails />
@@ -369,14 +369,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  {
-    path: "/site/insurance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Usage/>
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/site/insurance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Usage/>
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/site/usage",
     element: (

@@ -205,7 +205,7 @@ const SiteDashboard = () => {
   };
 
   const handleViewDetailsClick = (siteId: string) => {
-    navigate(`/site-management/${siteId}`);
+    navigate(`/site-management/site?id=${siteId}`);
   };
 
   const handleEditClick = (site: Site) => {
