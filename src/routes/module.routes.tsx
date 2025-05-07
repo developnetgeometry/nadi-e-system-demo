@@ -48,7 +48,6 @@ import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPI";
 import NMS from "@/pages/dashboard/site/NMS";
-import { BookingManagement } from "@/pages/dashboard/site/BookingManagement";
 import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
 
 export const moduleRoutes: RouteObject[] = [
@@ -398,9 +397,9 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/booking-management",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <BookingManagement/>
+      <BookingManagement />
       // </ProtectedRoute>
-    )
+    ),
   },
   {
     path: "/docket-status", //For superadmin

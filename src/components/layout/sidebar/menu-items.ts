@@ -191,3 +191,8 @@ export const takwimItems = [
   { title: "Takwim Management", path: "/takwim" },
   { title: "Takwim Settings", path: "/takwim/settings" },
 ];
+
+export const bookingItems = [
+  { title: "Booking Management", path: "/booking" },
+  { title: "Booking Settings", path: "/booking/settings" },
+];
