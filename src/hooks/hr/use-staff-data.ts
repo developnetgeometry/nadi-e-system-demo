@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,10 +19,7 @@ interface OrganizationInfo {
   organization_name: string | null;
 }
 
-export const useStaffData = (
-  user: any,
-  organizationInfo: OrganizationInfo
-) => {
+export const useStaffData = (user: any, organizationInfo: OrganizationInfo) => {
   const { toast } = useToast();
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,66 +29,71 @@ export const useStaffData = (
     const fetchStaffData = async () => {
       try {
         if (!organizationInfo.organization_id) return;
-        
+
         setIsLoading(true);
-        
+
         // Fetch users with user_group=3 (TP users) under the same organization_id
-        const { data: staffProfiles, error: staffProfilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, phone_number, ic_number, user_type, created_at, user_group')
-          .eq('user_group', 3)
-          .neq('id', user?.id); // Exclude current user
-          
+        const { data: staffProfiles, error: staffProfilesError } =
+          await supabase
+            .from("profiles")
+            .select(
+              "id, full_name, email, phone_number, ic_number, user_type, created_at, user_group"
+            )
+            .eq("user_group", 3)
+            .neq("id", user?.id); // Exclude current user
+
         if (staffProfilesError) throw staffProfilesError;
-        
+
         // Get the user IDs from all staff profiles
-        const userIds = staffProfiles?.map(profile => profile.id) || [];
-        
+        const userIds = staffProfiles?.map((profile) => profile.id) || [];
+
         if (userIds.length === 0) {
           setStaffList([]);
           setIsLoading(false);
           return;
         }
-        
+
         // For TP staff (user_group=3), check organization_users table
         const { data: orgUsers, error: orgUsersError } = await supabase
-          .from('organization_users')
-          .select('user_id, role')
-          .eq('organization_id', organizationInfo.organization_id)
-          .in('user_id', userIds);
-          
+          .from("organization_users")
+          .select("user_id, role")
+          .eq("organization_id", organizationInfo.organization_id)
+          .in("user_id", userIds);
+
         if (orgUsersError) throw orgUsersError;
-        
+
         // For TP staff, get the ones directly associated with the organization
-        const orgUserIds = orgUsers?.map(ou => ou.user_id) || [];
-        const filteredTPStaff = staffProfiles?.filter(
-          profile => orgUserIds.includes(profile.id)
-        ) || [];
-        
+        const orgUserIds = orgUsers?.map((ou) => ou.user_id) || [];
+        const filteredTPStaff =
+          staffProfiles?.filter((profile) => orgUserIds.includes(profile.id)) ||
+          [];
+
         // Map the data to our staffList format
-        const formattedStaff = filteredTPStaff.map(profile => {
-          const orgUser = orgUsers?.find(ou => ou.user_id === profile.id);
-          
+        const formattedStaff = filteredTPStaff.map((profile) => {
+          const orgUser = orgUsers?.find((ou) => ou.user_id === profile.id);
+
           return {
             id: profile.id,
-            name: profile.full_name || 'Unknown',
-            email: profile.email || '',
-            userType: profile.user_type || 'Unknown',
+            name: profile.full_name || "Unknown",
+            email: profile.email || "",
+            userType: profile.user_type || "Unknown",
             employDate: profile.created_at,
-            status: 'Active', // Default status
-            phone_number: profile.phone_number || '',
-            ic_number: profile.ic_number || '',
-            role: orgUser?.role || 'Member',
+            status: "Active", // Default status
+            phone_number: profile.phone_number || "",
+            ic_number: profile.ic_number || "",
+            role: orgUser?.role || "Member",
           };
         });
-        
+
         setStaffList(formattedStaff);
-        
+
         // Extract status options
-        const statuses = [...new Set(formattedStaff.map(staff => staff.status))];
+        const statuses = [
+          ...new Set(formattedStaff.map((staff) => staff.status)),
+        ];
         setStatusOptions(statuses);
       } catch (error) {
-        console.error('Error fetching staff data:', error);
+        console.error("Error fetching staff data:", error);
         toast({
           title: "Error",
           description: "Failed to load staff data. Please try again.",
@@ -102,7 +103,7 @@ export const useStaffData = (
         setIsLoading(false);
       }
     };
-    
+
     fetchStaffData();
   }, [organizationInfo.organization_id, toast, user?.id]);
 
@@ -120,8 +121,21 @@ export const useStaffData = (
       ic_number: newStaff.ic_no || newStaff.ic_number,
       role: newStaff.role || "Member",
     };
-    
-    setStaffList(prevStaff => [staffMember, ...prevStaff]);
+
+    setStaffList((prevStaff) => [staffMember, ...prevStaff]);
+  };
+  const updateStaffMember = (updatedStaff: StaffMember) => {
+    setStaffList((prevList) =>
+      prevList.map((staff) =>
+        staff.id === updatedStaff.id ? updatedStaff : staff
+      )
+    );
+  };
+
+  const removeStaffMember = (staffId: string) => {
+    setStaffList((prevList) =>
+      prevList.filter((staff) => staff.id !== staffId)
+    );
   };
 
   return {
@@ -129,5 +143,7 @@ export const useStaffData = (
     isLoading,
     statusOptions,
     addStaffMember,
+    updateStaffMember,
+    removeStaffMember,
   };
 };
