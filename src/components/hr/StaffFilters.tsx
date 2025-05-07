@@ -1,6 +1,6 @@
-
 import { Input } from "@/components/ui/input";
-import { Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Filter, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,6 +15,7 @@ interface StaffFiltersProps {
   statusFilter: string;
   setStatusFilter: (status: string) => void;
   statusOptions: string[];
+  onResetFilters?: () => void;
 }
 
 export const StaffFilters = ({
@@ -23,27 +24,25 @@ export const StaffFilters = ({
   statusFilter,
   setStatusFilter,
   statusOptions,
+  onResetFilters,
 }: StaffFiltersProps) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
-      <div className="relative flex-1">
+    <div className="mb-6 space-y-4">
+      <div className="relative">
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search staff by name, email, or user type..."
-          className="pl-9"
+          placeholder="Search staff by name, email, user type..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-4 h-12 w-full bg-white"
         />
       </div>
-      
-      <div className="flex gap-2">
-        <Select
-          value={statusFilter}
-          onValueChange={setStatusFilter}
-        >
-          <SelectTrigger className="w-[150px]">
+
+      <div className="flex gap-3">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[200px] h-12 flex items-center">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Filter by Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
@@ -54,6 +53,17 @@ export const StaffFilters = ({
             ))}
           </SelectContent>
         </Select>
+
+        {(searchQuery || statusFilter !== "all") && (
+          <Button
+            variant="outline"
+            onClick={onResetFilters}
+            className="flex items-center gap-2"
+          >
+            <X className="h-4 w-4" />
+            Reset
+          </Button>
+        )}
       </div>
     </div>
   );

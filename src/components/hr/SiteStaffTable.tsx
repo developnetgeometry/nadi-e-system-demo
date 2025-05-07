@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface StaffMember {
+interface SiteStaffMember {
   id: string;
   name: string;
   email: string;
@@ -20,15 +21,12 @@ interface StaffMember {
   status: string;
   phone_number: string;
   ic_number: string;
-  role?: string;
   siteLocation?: string;
-  dusp?: string;
-  tp?: string;
 }
 
-interface StaffTableProps {
+interface SiteStaffTableProps {
   isLoading: boolean;
-  filteredStaff: StaffMember[];
+  filteredStaff: SiteStaffMember[];
   formatDate: (dateString: string) => string;
   statusColors: Record<string, string>;
   onEdit: (staffId: string) => void;
@@ -40,7 +38,7 @@ interface StaffTableProps {
   onSelectAll: (isSelected: boolean) => void;
 }
 
-export const StaffTable = ({
+export const SiteStaffTable = ({
   isLoading,
   filteredStaff,
   formatDate,
@@ -52,10 +50,9 @@ export const StaffTable = ({
   selectedStaff,
   onSelectStaff,
   onSelectAll,
-}: StaffTableProps) => {
-  const allSelected =
-    filteredStaff.length > 0 && selectedStaff.length === filteredStaff.length;
-
+}: SiteStaffTableProps) => {
+  const allSelected = filteredStaff.length > 0 && selectedStaff.length === filteredStaff.length;
+  
   return (
     <div className="rounded-md border">
       <Table>
@@ -73,17 +70,15 @@ export const StaffTable = ({
             <TableHead>User Type</TableHead>
             <TableHead>Employ Date</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Role</TableHead>
+            <TableHead>Phone Number</TableHead>
             <TableHead>Site Location</TableHead>
-            <TableHead>DUSP</TableHead>
-            <TableHead>TP</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={11} className="text-center py-8">
+              <TableCell colSpan={9} className="text-center py-8">
                 <div className="flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                 </div>
@@ -96,11 +91,9 @@ export const StaffTable = ({
             filteredStaff.map((staff) => (
               <TableRow key={staff.id}>
                 <TableCell>
-                  <Checkbox
+                  <Checkbox 
                     checked={selectedStaff.includes(staff.id)}
-                    onCheckedChange={(checked) =>
-                      onSelectStaff(staff.id, !!checked)
-                    }
+                    onCheckedChange={(checked) => onSelectStaff(staff.id, !!checked)}
                     aria-label={`Select ${staff.name}`}
                   />
                 </TableCell>
@@ -120,10 +113,8 @@ export const StaffTable = ({
                     {staff.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{staff.role || "Staff"}</TableCell>
+                <TableCell>{staff.phone_number || "-"}</TableCell>
                 <TableCell>{staff.siteLocation || "-"}</TableCell>
-                <TableCell>{staff.dusp || "-"}</TableCell>
-                <TableCell>{staff.tp || "-"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
                     <Button
@@ -173,7 +164,7 @@ export const StaffTable = ({
           ) : (
             <TableRow>
               <TableCell
-                colSpan={11}
+                colSpan={9}
                 className="text-center py-4 text-muted-foreground"
               >
                 No staff members found matching your criteria
