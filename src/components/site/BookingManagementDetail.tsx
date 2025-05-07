@@ -62,6 +62,33 @@ const BookingContent = () => {
 }
 
 const PcBookings = ({value}) => {
+
+    const statsItems = [
+        {
+            title: "Total PCs",
+            value: "0",
+            icon: Server,
+            description: "",
+            iconBgColor: "bg-gray-200",
+            iconTextColor: "text-black",
+        },
+        {
+            title: "In Use",
+            value: "0",
+            icon: RotateCcwSquare,
+            description: "",
+            iconBgColor: "bg-red-100",
+            iconTextColor: "text-red-500",
+        },{
+            title: "Available",
+            value: "0",
+            icon: CircleCheckBig,
+            description: "",
+            iconBgColor: "bg-green-100",
+            iconTextColor: "text-green-500",
+        },
+    ]
+
     return (
         <TabsContent value={value}>
             {/* just for an example content */}
