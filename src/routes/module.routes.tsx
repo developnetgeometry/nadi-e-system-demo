@@ -47,6 +47,7 @@ import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPI";
 import NMS from "@/pages/dashboard/site/NMS";
+import Billing from "@/pages/dashboard/site/Billing";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -359,6 +360,22 @@ export const moduleRoutes: RouteObject[] = [
   //     // </ProtectedRoute>
   //   ),
   // },
+  {
+    path: "/site/utilities-billing",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Billing/>
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/site/insurance",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Usage/>
+      // </ProtectedRoute>
+    ),
+  },
   {
     path: "/site/usage",
     element: (
