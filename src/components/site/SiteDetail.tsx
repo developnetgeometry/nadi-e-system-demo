@@ -17,7 +17,7 @@ interface SiteDetailProps {
 }
 
 const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
-  const { data, socioeconomics, space, loading, error } = useSiteProfile(siteId);
+  const { data, socioeconomics, space, address, loading, error } = useSiteProfile(siteId); // Pass address
   const { siteCode, loading: codeLoading, error: codeError } = useSiteCode(siteId);
   const { siteStatus } = useSiteGeneralData();
 
@@ -59,12 +59,8 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
       </div>);
   }
 
-
   return (
-    // <pre>{JSON.stringify(data, null, 2)}</pre>
     <div className="space-y-6">
-      {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
-      {/* Top Section: Fullname, Site Code, Status */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">{data.fullname || "Site Name"}</h1>
@@ -74,7 +70,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
           <div className="font-medium flex items-center gap-2">
             <span className="text-muted-foreground">Status: </span>
             <span className="font-medium flex items-center gap-2">
-              {data.active_status?.eng || "N/A"} {/* Access the 'eng' property directly */}
+              {data.active_status?.eng || "N/A"}
               {data.is_active ? (
                 <Eye className="h-4 w-4" />
               ) : (
@@ -85,7 +81,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         </div>
       </div>
 
-      {/* Stats Cards Section */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <StatsCard
@@ -99,7 +94,6 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         ))}
       </div>
 
-      {/* Tabs Section */}
       <Tabs defaultValue="overview" className="mt-6">
         <TabsList className="border-b dark:border-gray-700 w-full justify-start bg-transparent p-0 h-auto overflow-x-auto mb-6">
           <TabsTrigger value="overview" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Overview</TabsTrigger>
@@ -109,7 +103,7 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
         <TabsContent value="overview" className="h-full mt-0">
           <Card className="h-full">
             <div className="p-6 h-full">
-              <OverviewPage site={data} socioeconomics={socioeconomics} space={space} />
+              <OverviewPage site={data} socioeconomics={socioeconomics} space={space} address={address} /> {/* Pass address */}
             </div>
           </Card>
         </TabsContent>
