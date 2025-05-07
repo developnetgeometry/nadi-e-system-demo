@@ -90,9 +90,15 @@ const PcBookings = ({value}) => {
     ]
 
     return (
-        <TabsContent value={value}>
-            {/* just for an example content */}
-            <h1>{`${value} content`}</h1>
+        <TabsContent className="w-full mt-6" value={value}>
+            <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {
+                    statsItems.map((item) => (
+                        <StatsCard key={item.title} {...item} />
+                    ))
+                }
+            </section>
+            <PcMainContent />
         </TabsContent>
     )
 }
