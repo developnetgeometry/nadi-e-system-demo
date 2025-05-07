@@ -92,11 +92,11 @@ const MemberManagement = () => {
   };
 
   const handleAddNewMember = () => {
-    navigate("/dashboard/members/registration");
+    navigate("/members/registration");
   };
 
   const handleViewDetailsClick = (userId: string) => {
-    navigate(`/dashboard/members/details/${userId}`);
+    navigate(`/members/profile?id=${userId}`);
   };
 
 
@@ -265,9 +265,6 @@ const MemberManagement = () => {
                   </TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Site</TableHead>
-                  <TableHead>Phase</TableHead>
-                  <TableHead>State</TableHead>
                   <TableHead>Join Date</TableHead>
                   <TableHead>Reg. Date</TableHead>
                   <TableHead>Action</TableHead>
@@ -306,9 +303,6 @@ const MemberManagement = () => {
                           Active
                         </Badge>
                       </TableCell>
-                      <TableCell>Main Center</TableCell>
-                      <TableCell>Advanced</TableCell>
-                      <TableCell>California</TableCell>
                       <TableCell>{formatDate(member.created_at)}</TableCell>
                       <TableCell>{formatDate(member.created_at)}</TableCell>
                       <TableCell>

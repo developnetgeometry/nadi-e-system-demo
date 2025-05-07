@@ -38,26 +38,26 @@ export const useLogin = () => {
 
       console.log("Auth successful, checking profile...");
 
-      // Fetch user profile
+      // ✅ Fetch user profile with group_profile
       const { profile, profileError } = await fetchUserProfile(
         authData.user.id
       );
 
       if (profileError && profileError.code !== "PGRST116") {
-        // Ignore "not found" error
         console.error("Profile fetch error:", profileError);
         throw profileError;
       }
 
-      // Handle organization details for tp_admin
+      // ✅ Fetch organization details (optional logic)
       const { organizationId, organizationName } =
         await fetchOrganizationDetails(authData.user.id, profile);
 
-      // Create user metadata
+      // ✅ Prepare metadata
       const userMetadata: Record<string, any> = {
         user_type: profile?.user_type || "member",
         organization_id: organizationId,
         organization_name: organizationName,
+        group_profile: profile?.group_profile || null,
       };
 
       if (profile?.user_group) {
@@ -68,10 +68,8 @@ export const useLogin = () => {
 
       console.log("User metadata:", userMetadata);
 
-      // Store user session
+      // ✅ Store session
       createUserSession(authData.user, profile, userMetadata);
-
-      console.log("Login successful with metadata:", userMetadata);
 
       toast({
         title: "Success",

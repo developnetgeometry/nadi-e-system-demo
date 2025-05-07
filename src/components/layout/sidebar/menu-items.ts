@@ -85,10 +85,10 @@ export const workflowItems = [
 ];
 
 export const memberManagementItems = [
-  { title: "Member Management", path: "/dashboard/members" },
-  { title: "Member Profile", path: "/dashboard/members/details" },
-  { title: "Registration", path: "/dashboard/members/registration" },
-  { title: "Activity Logs", path: "/dashboard/members/activity" },
+  { title: "Member Management", path: "/members" },
+  { title: "Member Profile", path: "/members/details" },
+  { title: "Registration", path: "/members/registration" },
+  { title: "Activity Logs", path: "/members/activity" },
 ];
 
 export const serviceModuleItems = [
@@ -190,4 +190,9 @@ export const announcementsItems = [
 export const takwimItems = [
   { title: "Takwim Management", path: "/takwim" },
   { title: "Takwim Settings", path: "/takwim/settings" },
+];
+
+export const bookingItems = [
+  { title: "Booking Management", path: "/booking" },
+  { title: "Booking Settings", path: "/booking/settings" },
 ];

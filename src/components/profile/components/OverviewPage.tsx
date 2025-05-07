@@ -22,7 +22,7 @@ const ProfileOverviewPage = ({
   refetch: () => void;
   userType: string;
   userGroup: number;
-}) => {  
+}) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isStaffDialogOpen, setIsStaffDialogOpen] = useState(false);
   const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
@@ -54,7 +54,14 @@ const ProfileOverviewPage = ({
       <div className="flex flex-col items-center mb-4">
         <div className="h-24 w-24 border-4 border-gray-100 rounded-full overflow-hidden">
           <img
-            src={profileData.file_path || "/user-solid.svg"}
+            src={
+              profileData.file_path &&
+                profileData.file_path !== "null" &&
+                profileData.file_path !== "undefined" &&
+                !profileData.file_path.includes("null")
+                ? profileData.file_path
+                : "/user-solid.svg"
+            }
             alt={profileData.fullname || "Profile Image"}
             className="h-full w-full object-cover"
           />
