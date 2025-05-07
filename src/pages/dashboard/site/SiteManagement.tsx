@@ -1125,6 +1125,7 @@ const SiteDashboard = () => {
                       <TableCell>{getStatusBadge(site?.nd_site_status?.eng)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
+                          {/* Temporarily hiding the visibility toggle button 
                           {(isTPUser || isSuperAdmin) && (
                             <Button
                               variant="outline"
@@ -1138,6 +1139,7 @@ const SiteDashboard = () => {
                               )}
                             </Button>
                           )}
+                          */}
                           {!isRestrictedUser && (
                             <Button
                               variant="outline"

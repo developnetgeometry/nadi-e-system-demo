@@ -2,14 +2,14 @@
 // TODO DUSP_TP UST CLUSTER
 // 
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
@@ -48,6 +48,9 @@ import operationTimesData from "@/data/operation-times.json";
 import { SiteOperationHours } from "@/components/site/SiteOperationHours";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { FileUpload } from "@/components/ui/file-upload";
+import { useSiteImage } from "./hook/use-site-image";
+import { SUPABASE_URL } from "@/integrations/supabase/client";
 
 interface SiteFormDialogProps {
   open: boolean;
@@ -81,15 +84,13 @@ interface ValidationErrors {
   dusp_tp_id?: string; // Add validation for DUSP TP ID
 }
 
-// const DAYS_OF_WEEK = [
-//   'Monday',
-//   'Tuesday',
-//   'Wednesday',
-//   'Thursday',
-//   'Friday',
-//   'Saturday',
-//   'Sunday'
-// ];
+// Add site image related interfaces
+interface SiteImage {
+  id: number;
+  site_profile_id: string | number;
+  file_url: string;
+  file_urls?: string[];
+}
 
 export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps) => {
   const { toast } = useToast();
@@ -101,6 +102,18 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   // Add state to store operation hours between tab changes
   const [savedOperationTimes, setSavedOperationTimes] = useState<OperationTime[]>([]);
+  
+  // Add state for site images
+  const [siteImages, setSiteImages] = useState<SiteImage[]>([]);
+  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
+  const [existingImagePaths, setExistingImagePaths] = useState<string[]>([]);
+  // Add state to track images marked for deletion
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [hasInitializedImages, setHasInitializedImages] = useState(false);
+  const fileUploadRef = useRef<any>(null);
+  
+  // Use the site image hook
+  const { fetchSiteImages, uploadSiteImages, deleteSiteImage, loading: imageLoading } = useSiteImage();
 
   // Retrieve user metadata
   const userMetadata = useUserMetadata();
@@ -111,6 +124,119 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
+
+  // Fetch site images when editing a site
+  useEffect(() => {
+    const loadSiteImages = async () => {
+      if (site?.id && !hasInitializedImages) {
+        console.log("Fetching images for site ID:", site.id);
+        const images = await fetchSiteImages(site.id);
+        console.log("Fetched site images:", images);
+        setSiteImages(images);
+        
+        // For each image, extract all available URLs
+        const allImagePaths = images.flatMap(img => img.file_urls || [img.file_url]);
+        console.log("Setting image paths:", allImagePaths);
+        setExistingImagePaths(allImagePaths);
+        setHasInitializedImages(true); // Mark as initialized to prevent re-fetching
+      }
+    };
+
+    if (open && site) {
+      loadSiteImages();
+    }
+    
+    // Reset the initialization flag when the dialog is closed
+    if (!open) {
+      setHasInitializedImages(false);
+    }
+  }, [site, open, fetchSiteImages, hasInitializedImages]);
+
+  // Handle image selection
+  const handleImagesChange = (files: File[]) => {
+    setSelectedImageFiles(files);
+  };
+
+  // Handle existing images change (when user removes an image)
+  const handleExistingImagesChange = (updatedImages: Array<{url: string, name: string}>, supabaseUrl: string) => {
+    const updatedPaths = updatedImages.map(img => 
+      img.url.startsWith(supabaseUrl) ? img.url.substring(supabaseUrl.length) : img.url
+    );
+    
+    // Find removed images
+    const removedPaths = existingImagePaths.filter(path => !updatedPaths.includes(path));
+    
+    // Instead of deleting immediately, mark them for deletion when form is submitted
+    if (removedPaths.length > 0) {
+      console.log("Images marked for deletion:", removedPaths);
+      setImagesToDelete(prev => [...prev, ...removedPaths]);
+      // Update the visible image paths (but don't actually delete from database yet)
+      setExistingImagePaths(updatedPaths);
+    }
+  };
+
+  // Reset form and image states when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+      setActiveTab("basic-info");
+      setSelectedImageFiles([]);
+      
+      // Only reset site images if we're not editing an existing site
+      if (!site) {
+        setSiteImages([]);
+        setExistingImagePaths([]);
+      }
+      
+      // Reset file upload component
+      if (fileUploadRef.current && fileUploadRef.current.reset) {
+        fileUploadRef.current.reset();
+      }
+    }
+  }, [open]);
+
+  // Format existing images for FileUpload component
+  const formattedExistingImages = useMemo(() => {
+    console.log("Formatting site images:", siteImages);
+    
+    if (!siteImages || siteImages.length === 0) {
+      console.log("No site images to format");
+      return null;
+    }
+    
+    // Handle case where an image might have multiple URLs in file_urls array
+    const allImages = siteImages.flatMap(image => {
+      console.log("Processing image:", image);
+      
+      if (image.file_urls && image.file_urls.length > 0) {
+        // Return each URL in file_urls as a separate image entry
+        return image.file_urls.map(url => {
+          const fileName = url.split('/').pop() || 'Image';
+          const fullUrl = url.startsWith('http') ? url : `${SUPABASE_URL}${url}`;
+          console.log(`Creating image entry: ${fileName}, URL: ${fullUrl}`);
+          return {
+            url: fullUrl,
+            name: fileName
+          };
+        });
+      } else if (image.file_url) {
+        // Handle single file_url case
+        const fileName = image.file_url.split('/').pop() || 'Image';
+        const fullUrl = image.file_url.startsWith('http') ? image.file_url : `${SUPABASE_URL}${image.file_url}`;
+        console.log(`Creating single image entry: ${fileName}, URL: ${fullUrl}`);
+        return [{
+          url: fullUrl,
+          name: fileName
+        }];
+      } else {
+        console.log("Image has no URLs");
+        return [];
+      }
+    });
+    
+    console.log("Formatted images:", allImages);
+    return allImages.length > 0 ? allImages : null;
+  }, [siteImages]);
 
   // Hooks must be called unconditionally
   const [formState, setFormState] = useState({
@@ -394,7 +520,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
         city: site.nd_site_address[0]?.city || '',
         postCode: site.nd_site_address[0]?.postcode || '',
         district: site.nd_site_address[0]?.district_id ? String(site.nd_site_address[0].district_id) : undefined,
-        state: site.nd_site_address[0]?.state_id ? String(site.nd_site_address[0].state_id) : undefined,
+        state: site.nd_site_address[0]?.state_id ? String(site.nd_site_address[0]?.state_id) : undefined,
         technology: site.technology ? String(site.technology) : undefined,
         bandwidth: site.bandwidth ? String(site.bandwidth) : undefined,
         building_type: site.building_type_id ? String(site.building_type_id) : undefined,
@@ -706,6 +832,40 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
 
         siteId = Number(site.id);
 
+        // Process any images marked for deletion
+        if (imagesToDelete.length > 0) {
+          console.log("Processing images marked for deletion:", imagesToDelete);
+          
+          for (const path of imagesToDelete) {
+            try {
+              // Find which image record contains this path
+              const imageRecord = siteImages.find(img => 
+                img.file_url === path || (img.file_urls && img.file_urls.includes(path))
+              );
+              
+              if (imageRecord) {
+                console.log("Deleting image:", path);
+                await deleteSiteImage(imageRecord.id, path);
+              }
+            } catch (error) {
+              console.error("Error deleting image:", error);
+              // Don't throw error here, continue with the rest of the submission
+            }
+          }
+          
+          // Clear the images to delete array
+          setImagesToDelete([]);
+        }
+
+        // Upload new site images if any
+        if (selectedImageFiles.length > 0) {
+          const result = await uploadSiteImages(siteId, selectedImageFiles, standard_code);
+          if (!result.success) {
+            console.error("Error uploading site images:", result.error);
+            // Don't throw error here, continue with the rest of the submission
+          }
+        }
+
         toast({
           title: "Site updated successfully",
           description: `The ${site.sitename} site has been updated in the system.`,
@@ -777,6 +937,15 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
           if (operationError) throw operationError;
         }
 
+        // Upload new site images if any
+        if (selectedImageFiles.length > 0) {
+          const result = await uploadSiteImages(siteId, selectedImageFiles, standard_code);
+          if (!result.success) {
+            console.error("Error uploading site images:", result.error);
+            // Don't throw error here, continue with the rest of the submission
+          }
+        }
+
         toast({
           title: "Site added successfully",
           description: `The ${site_profile.sitename} site has been added to the system.`,
@@ -788,6 +957,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
       queryClient.invalidateQueries({ queryKey: ['sites'] });
 
       resetForm();
+      setSelectedImageFiles([]);
     } catch (error) {
       console.error('Error adding/updating site:', error);
       toast({
@@ -849,6 +1019,7 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
               </TabsTrigger>
               <TabsTrigger value="facilities">Facilities</TabsTrigger>
               <TabsTrigger value="operation">Operation Hours</TabsTrigger>
+              <TabsTrigger value="images">Site Images</TabsTrigger>
             </TabsList>
             
             {/* Basic Info Tab */}
@@ -1426,20 +1597,57 @@ export const SiteFormDialog = ({ open, onOpenChange, site }: SiteFormDialogProps
                 initialTimes={savedOperationTimes}
               />
             </TabsContent>
+
+            {/* Site Images Tab */}
+            <TabsContent value="images" className="space-y-4">
+              <DialogTitle>Site Images</DialogTitle>
+              <div className="space-y-4">
+                {imagesToDelete.length > 0 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4">
+                    <div className="flex items-center text-amber-700">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      </svg>
+                      <span>
+                        {imagesToDelete.length} image{imagesToDelete.length > 1 ? 's' : ''} marked for deletion. 
+                        Click "Update Site" to apply these changes.
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <FileUpload
+                  ref={fileUploadRef}
+                  maxFiles={3}
+                  acceptedFileTypes=".jpg,.jpeg,.png,.gif,.webp"
+                  maxSizeInMB={5}
+                  buttonText="Choose Images"
+                  onFilesSelected={handleImagesChange}
+                  multiple={true}
+                  existingFiles={formattedExistingImages}
+                  onExistingFilesChange={(files) => handleExistingImagesChange(files, SUPABASE_URL)}
+                >
+                  Add Site Images
+                </FileUpload>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Upload images of the site. Accepted formats: jpg, jpeg, png, gif, webp. Max 5 images, each up to 5MB.
+                </p>
+                {/* <p className="text-sm text-amber-600">
+                  <strong>Note:</strong> When you remove an image, it will be marked for deletion but only deleted when you click "Update Site".
+                </p> */}
+              </div>
+            </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (site ? "Updating..." : "Adding...") : (site ? "Update Site" : "Add Site")}
+            <Button type="submit" disabled={isSubmitting} className="ml-2">
+              {isSubmitting ? 'Saving...' : site ? 'Update Site' : 'Add Site'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
