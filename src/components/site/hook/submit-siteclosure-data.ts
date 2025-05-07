@@ -730,6 +730,7 @@ export const useDraftClosure = () => {
         session: draftData.session ? String(draftData.session) : "",
         affectArea: affectAreas,
         site_id: draftData.site_id || "",
+        selectedSiteId: draftData.site_id || "", // Add this to map site_id to selectedSiteId
         status: "1", // Keep as draft
         existingAttachments: existingAttachments // Add existing attachments
       };
@@ -756,6 +757,7 @@ export const useDraftClosure = () => {
         session: "",
         affectArea: [],
         site_id: "",
+        selectedSiteId: "", // Add this to map site_id to selectedSiteId
         status: "1",
         existingAttachments: []
       };
