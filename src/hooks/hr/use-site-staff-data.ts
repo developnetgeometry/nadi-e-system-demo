@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
+// Interface for staff members data
 interface SiteStaffMember {
   id: string;
   name: string;
@@ -9,28 +10,29 @@ interface SiteStaffMember {
   userType: string;
   employDate: string;
   status: string;
-  siteLocation: string;
   phone_number: string;
   ic_number: string;
+  siteLocation: string;
 }
 
-interface OrganizationInfo {
-  organization_id: string | null;
-  organization_name: string | null;
-}
-
-export const useSiteStaffData = (
-  user: any,
-  organizationInfo: OrganizationInfo
-) => {
-  const { toast } = useToast();
+// Hook to fetch and manage site staff data
+export const useSiteStaffData = (user: any, organizationInfo: any) => {
   const [staffList, setStaffList] = useState<SiteStaffMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [locationOptions, setLocationOptions] = useState<string[]>([]);
-  const [statusOptions, setStatusOptions] = useState<string[]>([]);
+  const [statusOptions, setStatusOptions] = useState<string[]>([
+    "Active",
+    "On Leave",
+    "Inactive",
+  ]);
 
   useEffect(() => {
-    const fetchStaffData = async () => {
+    const fetchSiteStaffData = async () => {
+      if (!user || !organizationInfo.organization_id) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         if (!organizationInfo.organization_id) return;
 
@@ -143,8 +145,8 @@ export const useSiteStaffData = (
       }
     };
 
-    fetchStaffData();
-  }, [organizationInfo.organization_id, toast, user?.id]);
+    fetchSiteStaffData();
+  }, [organizationInfo.organization_id, user?.id]);
 
   // Add method to update staff list
   const addStaffMember = (newStaff: any) => {
