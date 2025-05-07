@@ -56,7 +56,7 @@ const BookingContent = () => {
             <PcBookings value="PC Bookings"/>
             <PcCalender value="PC Calendar" />
             <FacilityBooking value="Facility Bookings" />
-            <FacilityCalender value="Facility Calender" />
+            <FacilityCalender value="Facility Calendar" />
         </Tabs>
     )
 }
