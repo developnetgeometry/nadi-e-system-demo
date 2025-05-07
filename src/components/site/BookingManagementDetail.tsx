@@ -1,4 +1,24 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CircleCheckBig, RotateCcwSquare, Server } from "lucide-react";
+import { StatsCard } from "../dashboard/StatsCard";
+import FilterBar from "./component/FilterBar";
+import { Badge } from "../ui/badge";
+import DataCard from "./component/DataCard";
+import { useEffect, useState } from "react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+
+type FilterParams = {
+    pcAvailability: string,
+    pcTypeTabs: string,
+    searchQuery?: string
+};
 
 const tabsMenu = ["PC Bookings", "PC Calendar", "Facility Bookings", "Facility Calendar"];
 
@@ -21,6 +41,9 @@ const BookingHeader = () => {
 }
 
 const BookingContent = () => {
+    // Upcoming function to get booking data
+    // const { data, error, isLoading } = useBookingData();
+
     return (
         <Tabs defaultValue="PC Bookings" className="w-full grid place-items-center mt-7">
             <TabsList className="bg-white inline-flex h-11 flex-wrap justify-center items-center">
