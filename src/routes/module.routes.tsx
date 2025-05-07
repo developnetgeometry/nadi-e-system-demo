@@ -414,9 +414,9 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site/booking-management",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <BookingManagement/>
+      <BookingManagement />
       // </ProtectedRoute>
-    )
+    ),
   },
   {
     path: "/docket-status", //For superadmin
