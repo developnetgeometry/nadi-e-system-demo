@@ -1,3 +1,4 @@
+
 import {
   Table,
   TableBody,
@@ -21,12 +22,11 @@ interface StaffMember {
   phone_number: string;
   ic_number: string;
   role?: string;
-  siteLocation?: string;
   dusp?: string;
   tp?: string;
 }
 
-interface StaffTableProps {
+interface TPStaffTableProps {
   isLoading: boolean;
   filteredStaff: StaffMember[];
   formatDate: (dateString: string) => string;
@@ -40,7 +40,7 @@ interface StaffTableProps {
   onSelectAll: (isSelected: boolean) => void;
 }
 
-export const StaffTable = ({
+export const TPStaffTable = ({
   isLoading,
   filteredStaff,
   formatDate,
@@ -52,10 +52,9 @@ export const StaffTable = ({
   selectedStaff,
   onSelectStaff,
   onSelectAll,
-}: StaffTableProps) => {
-  const allSelected =
-    filteredStaff.length > 0 && selectedStaff.length === filteredStaff.length;
-
+}: TPStaffTableProps) => {
+  const allSelected = filteredStaff.length > 0 && selectedStaff.length === filteredStaff.length;
+  
   return (
     <div className="rounded-md border">
       <Table>
@@ -74,7 +73,6 @@ export const StaffTable = ({
             <TableHead>Employ Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Site Location</TableHead>
             <TableHead>DUSP</TableHead>
             <TableHead>TP</TableHead>
             <TableHead className="text-right">Actions</TableHead>
@@ -83,7 +81,7 @@ export const StaffTable = ({
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={11} className="text-center py-8">
+              <TableCell colSpan={10} className="text-center py-8">
                 <div className="flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
                 </div>
@@ -96,11 +94,9 @@ export const StaffTable = ({
             filteredStaff.map((staff) => (
               <TableRow key={staff.id}>
                 <TableCell>
-                  <Checkbox
+                  <Checkbox 
                     checked={selectedStaff.includes(staff.id)}
-                    onCheckedChange={(checked) =>
-                      onSelectStaff(staff.id, !!checked)
-                    }
+                    onCheckedChange={(checked) => onSelectStaff(staff.id, !!checked)}
                     aria-label={`Select ${staff.name}`}
                   />
                 </TableCell>
@@ -121,7 +117,6 @@ export const StaffTable = ({
                   </Badge>
                 </TableCell>
                 <TableCell>{staff.role || "Staff"}</TableCell>
-                <TableCell>{staff.siteLocation || "-"}</TableCell>
                 <TableCell>{staff.dusp || "-"}</TableCell>
                 <TableCell>{staff.tp || "-"}</TableCell>
                 <TableCell className="text-right">
@@ -173,7 +168,7 @@ export const StaffTable = ({
           ) : (
             <TableRow>
               <TableCell
-                colSpan={11}
+                colSpan={10}
                 className="text-center py-4 text-muted-foreground"
               >
                 No staff members found matching your criteria
