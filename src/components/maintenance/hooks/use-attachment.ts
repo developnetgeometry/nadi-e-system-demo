@@ -1,11 +1,12 @@
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 
 export function useAttachment() {
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState<string>("");
   const { isUploading, uploadFile } = useFileUpload();
+
   const handleAttachmentChange = (files: File[]) => {
     if (files.length > 0) {
       const file = files[0];
@@ -17,7 +18,7 @@ export function useAttachment() {
       }
 
       console.log(
-        `Selected logo file: ${file.name}, type: ${file.type}, size: ${file.size}`
+        `Selected attachment file: ${file.name}, type: ${file.type}, size: ${file.size}`
       );
       setAttachmentFile(file);
 
@@ -32,7 +33,7 @@ export function useAttachment() {
 
     try {
       console.log(
-        `Uploading logo file: ${attachmentFile.name}, type: ${attachmentFile.type}`
+        `Uploading attachment file: ${attachmentFile.name}, type: ${attachmentFile.type}`
       );
 
       // Verify one more time that it's an image type
@@ -41,28 +42,12 @@ export function useAttachment() {
         return null;
       }
 
-      const userData = await supabase.auth.getUser();
-      const userId = userData.data.user?.id;
-      const folder = userId || "anonymous";
-
-      // Pass the file directly to the uploadFile function
-      //   const url = await uploadFile(
-      //     attachmentFile,
-      //     "maintenance-attachment",
-      //     folder
-      //   );
-
-      //   async function testDirectUpload(fileInput: HTMLInputElement) {
-      // const file = fileInput.files?.[0];
       const file = attachmentFile;
       if (!file) return;
 
-      console.log("Testing file:", file);
-      console.log("Type:", file.type);
-
       const { data, error } = await supabase.storage
         .from("maintenance-attachment")
-        .upload(`test/${file.name}`, file, {
+        .upload(`maintenance/${file.name}`, file, {
           contentType: file.type,
           upsert: true,
         });
@@ -76,14 +61,9 @@ export function useAttachment() {
         .from("maintenance-attachment")
         .getPublicUrl(data.path);
 
-      console.log("✅ Public URL:", publicUrlData.publicUrl);
-      //   }
-
-      //   console.log(`Logo uploaded, URL: ${url}`);
-      //   return url;
       return publicUrlData.publicUrl;
     } catch (error) {
-      console.error("Error uploading logo:", error);
+      console.error("Error uploading attachment:", error);
       return null;
     }
   };

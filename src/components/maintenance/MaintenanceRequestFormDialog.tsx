@@ -17,7 +17,7 @@ import {
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/asset";
 import { MaintenanceDocketType, MaintenanceRequest } from "@/types/maintenance";
 import { useQueryClient } from "@tanstack/react-query";
@@ -198,8 +198,6 @@ export const MaintenanceRequestFormDialog = ({
                   </SelectContent>
                 </Select>
               </div>
-
-              <input type="file" onchange="testDirectUpload(this)" />
 
               {maintenanceDocketType === MaintenanceDocketType.Corrective && (
                 <>
