@@ -949,7 +949,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
               {needsApproval && (
                 <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
               )}
-              <Search className="h-4 w-4" />
+              <Eye className="h-4 w-4" />
             </Button>
             
             {/* Edit button - only for drafts */}
