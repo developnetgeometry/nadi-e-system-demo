@@ -9,8 +9,6 @@ import { Link } from "react-router-dom";
 export const DashboardSidebar = () => {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
-  console.log("state:", state);
-  console.log("isCollapsed:", isCollapsed);
 
   return (
     <aside

@@ -2,15 +2,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
 interface InsuranceData {
-  id: number; // Changed to number
+  id: number;
   description: string;
-  type_id: number; // Changed to number
+  type_id: number;
   type_name: string;
-  insurance_type_id: number; // Changed to number
+  insurance_type_id: number;
   insurance_type_name: string;
   report_detail: string;
   file_path: string;
+  start_date: string | null; // Added start_date
+  end_date: string | null;   // Added end_date
 }
+
 export const useSiteInsurance = (siteId: string, refresh: boolean) => {
   const [data, setData] = useState<InsuranceData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +49,7 @@ export const useSiteInsurance = (siteId: string, refresh: boolean) => {
         const remarkIds = siteRemarks.map((remark) => remark.id);
         const { data: insuranceReports, error: insuranceReportsError } = await supabase
           .from("nd_insurance_report")
-          .select("site_remark_id, insurance_type_id, report_detail")
+          .select("site_remark_id, insurance_type_id, report_detail, start_date, end_date") // Include start_date and end_date
           .in("site_remark_id", remarkIds);
 
         if (insuranceReportsError) throw insuranceReportsError;
@@ -79,14 +82,16 @@ export const useSiteInsurance = (siteId: string, refresh: boolean) => {
           const report = reportsWithTypes.find((r) => r.site_remark_id === remark.id) || {} as Partial<typeof reportsWithTypes[number]>;
           const attachment = attachments.find((a) => a.site_remark_id === remark.id) || { file_path: "" };
           return {
-            id: remark.id, // Ensure id is a number
+            id: remark.id,
             description: remark.description,
-            type_id: remark.type_id, // Ensure type_id is a number
+            type_id: remark.type_id,
             type_name: remark.type_name,
-            insurance_type_id: report.insurance_type_id || 0, // Default to 0 if not found
+            insurance_type_id: report.insurance_type_id || 0,
             insurance_type_name: report.insurance_type_name || "N/A",
             report_detail: report.report_detail || "",
             file_path: attachment.file_path || "",
+            start_date: report.start_date || null, // Include start_date
+            end_date: report.end_date || null,     // Include end_date
           };
         });
 

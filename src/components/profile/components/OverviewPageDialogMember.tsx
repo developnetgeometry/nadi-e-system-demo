@@ -104,7 +104,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {(userType === "super_admin") && (
+                        {(userType === "super_admin" || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="fullname">Full Name</Label>
@@ -150,7 +150,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                 </div>
                             </>
                         )}
-                        {(userType === "super_admin" || userGroup === 7) && (
+                        {(userType === "super_admin" || userGroup === 7  || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="mobile_no">Mobile Number</Label>
@@ -172,7 +172,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                 </div>
                             </>
                         )}
-                        {(userType === "super_admin") && (
+                        {(userType === "super_admin" || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="dob">Date Of Birth</Label>
@@ -267,7 +267,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
 
                             </>
                         )}
-                        {(userType === "super_admin" || userGroup === 7) && (
+                        {(userType === "super_admin" || userGroup === 7 || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="occupation_id">Occupation</Label>
@@ -376,7 +376,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                 </div>
                             </>
                         )}
-                        {(userType === "super_admin") && (
+                        {(userType === "super_admin" || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="join_date">Join Date</Label>

@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { useToast } from "@/components/ui/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserAccess } from "@/hooks/use-user-access";
-import { createStaffMember } from "@/lib/staff";
-import { StaffHeader } from "@/components/hr/StaffHeader";
+import { createStaffMember, deleteStaffMember } from "@/lib/staff";
 import { StaffFilters } from "@/components/hr/StaffFilters";
-import { StaffTable } from "@/components/hr/StaffTable";
+import { TPStaffTable } from "@/components/hr/TPStaffTable";
+import { StaffToolbar } from "@/components/hr/StaffToolbar";
 import { useStaffData } from "@/hooks/hr/use-staff-data";
 import {
   AlertDialog,
@@ -21,6 +20,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
 
 const statusColors = {
   Active: "bg-green-100 text-green-800",
@@ -38,6 +39,7 @@ const Employees = () => {
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState(null);
+  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
   const userMetadataString = useUserMetadata();
   const { user } = useAuth();
   const { userType } = useUserAccess();
@@ -87,6 +89,11 @@ const Employees = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+  };
+
   const handleEditStaff = (staffId) => {
     const staff = staffList.find((s) => s.id === staffId);
     if (staff) {
@@ -95,8 +102,45 @@ const Employees = () => {
     }
   };
 
-  const handleViewStaff = (staffId) => {
-    navigate(`/dashboard/hr/staff/${staffId}`);
+  const handleViewStaff = async (staffId) => {
+    try {
+      // Convert staffId to string if it's not already, to avoid type mismatches
+      const idToUse = String(staffId);
+
+      // Fetch complete staff profile data from nd_tech_partner_profile
+      const { data, error } = await supabase
+        .from("nd_tech_partner_profile")
+        .select("*, tech_partner_id(name)")
+        .eq("id", idToUse)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching staff details:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to load staff details.",
+        });
+        return;
+      }
+
+      if (data) {
+        // Navigate to staff details page with data
+        navigate(`/dashboard/hr/staff/${staffId}`, {
+          state: { staffData: data },
+        });
+      } else {
+        toast({
+          title: "Staff Not Found",
+          description: "Unable to find staff details.",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching staff details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load staff details. Please try again.",
+      });
+    }
   };
 
   const handleDeleteStaff = (staffId) => {
@@ -111,7 +155,18 @@ const Employees = () => {
     if (!staffToDelete) return;
 
     try {
-      await deleteStaffMember(staffToDelete.id);
+      // Convert staffId to string if it's not already
+      const idToUse = String(staffToDelete.id);
+
+      // Perform actual deletion from the database
+      const { error } = await supabase
+        .from("nd_tech_partner_profile")
+        .delete()
+        .eq("id", idToUse);
+
+      if (error) throw error;
+
+      // Update UI after successful deletion
       removeStaffMember(staffToDelete.id);
 
       toast({
@@ -124,7 +179,6 @@ const Employees = () => {
         title: "Error",
         description:
           error.message || "Failed to delete staff member. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsDeleteDialogOpen(false);
@@ -139,7 +193,18 @@ const Employees = () => {
     const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
 
     try {
-      await updateStaffStatus(staffId, newStatus);
+      // Convert staffId to string if it's not already
+      const idToUse = String(staffId);
+
+      // Update staff status in the database
+      const { error } = await supabase
+        .from("nd_tech_partner_profile")
+        .update({ is_active: newStatus === "Active" })
+        .eq("id", idToUse);
+
+      if (error) throw error;
+
+      // Update UI after successful status change
       updateStaffMember({
         ...staff,
         status: newStatus,
@@ -155,7 +220,6 @@ const Employees = () => {
         title: "Error",
         description:
           error.message || "Failed to update staff status. Please try again.",
-        variant: "destructive",
       });
     }
   };
@@ -185,7 +249,7 @@ const Employees = () => {
     setIsAddStaffOpen(true);
   };
 
-  const handleStaffAdded = async (newStaff: any) => {
+  const handleStaffAdded = async (newStaff) => {
     try {
       console.log("Adding new staff member with data:", newStaff);
 
@@ -236,7 +300,6 @@ const Employees = () => {
     try {
       // Update staff on the server would go here
       updateStaffMember(updatedStaff);
-
       toast({
         title: "Staff Updated",
         description: `${updatedStaff.name}'s information has been updated successfully.`,
@@ -256,6 +319,7 @@ const Employees = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-MY", {
       year: "numeric",
@@ -264,12 +328,39 @@ const Employees = () => {
     });
   };
 
+  // Handle select all staff
+  const handleSelectAll = (isSelected: boolean) => {
+    if (isSelected) {
+      const allIds = filteredStaff.map((staff) => staff.id);
+      setSelectedStaffIds(allIds);
+    } else {
+      setSelectedStaffIds([]);
+    }
+  };
+
+  // Handle select individual staff
+  const handleSelectStaff = (staffId: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedStaffIds((prev) => [...prev, staffId]);
+    } else {
+      setSelectedStaffIds((prev) => prev.filter((id) => id !== staffId));
+    }
+  };
+
+  // Get the selected staff objects for export
+  const getSelectedStaffObjects = () => {
+    return staffList.filter((staff) => selectedStaffIds.includes(staff.id));
+  };
+
   return (
     <DashboardLayout>
       <div className="container mx-auto max-w-6xl">
-        <StaffHeader
-          organizationName={organizationInfo.organization_name}
+        <StaffToolbar
+          selectedStaff={getSelectedStaffObjects()}
+          allStaff={staffList}
           onAddStaff={handleAddStaff}
+          organizationName={organizationInfo.organization_name}
+          staffType="tp"
         />
 
         <StaffFilters
@@ -278,13 +369,21 @@ const Employees = () => {
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           statusOptions={statusOptions}
+          onResetFilters={handleResetFilters}
         />
 
-        <StaffTable
+        <TPStaffTable
           isLoading={isLoading}
           filteredStaff={filteredStaff}
           formatDate={formatDate}
           statusColors={statusColors}
+          onEdit={handleEditStaff}
+          onDelete={handleDeleteStaff}
+          onView={handleViewStaff}
+          onToggleStatus={handleToggleStatus}
+          selectedStaff={selectedStaffIds}
+          onSelectStaff={handleSelectStaff}
+          onSelectAll={handleSelectAll}
         />
       </div>
 

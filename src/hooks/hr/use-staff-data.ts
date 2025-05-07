@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 
+// Interface for staff members data
 interface StaffMember {
   id: string;
   name: string;
@@ -12,6 +13,8 @@ interface StaffMember {
   phone_number: string;
   ic_number: string;
   role: string;
+  dusp?: string;
+  tp?: string;
 }
 
 interface OrganizationInfo {
@@ -23,10 +26,19 @@ export const useStaffData = (user: any, organizationInfo: OrganizationInfo) => {
   const { toast } = useToast();
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [statusOptions, setStatusOptions] = useState<string[]>([]);
+  const [statusOptions, setStatusOptions] = useState<string[]>([
+    "Active",
+    "On Leave",
+    "Inactive",
+  ]);
 
   useEffect(() => {
     const fetchStaffData = async () => {
+      if (!user || !organizationInfo.organization_id) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         if (!organizationInfo.organization_id) return;
 
@@ -56,11 +68,34 @@ export const useStaffData = (user: any, organizationInfo: OrganizationInfo) => {
         // For TP staff (user_group=3), check organization_users table
         const { data: orgUsers, error: orgUsersError } = await supabase
           .from("organization_users")
-          .select("user_id, role")
+          .select("user_id, role, organization_id")
           .eq("organization_id", organizationInfo.organization_id)
           .in("user_id", userIds);
 
         if (orgUsersError) throw orgUsersError;
+
+        // Get organization details for DUSP and TP info
+        const { data: organizations, error: orgsError } = await supabase
+          .from("organizations")
+          .select("id, name, type, parent_id");
+
+        if (orgsError) throw orgsError;
+
+        // Get all tech partner profiles for additional data
+        const { data: techPartnerProfiles, error: tpProfilesError } =
+          await supabase
+            .from("nd_tech_partner_profile")
+            .select("user_id, tech_partner_id")
+            .in("user_id", userIds);
+
+        if (tpProfilesError) throw tpProfilesError;
+
+        // Get tech partner names
+        const { data: techPartners, error: tpError } = await supabase
+          .from("nd_tech_partner")
+          .select("id, name");
+
+        if (tpError) throw tpError;
 
         // For TP staff, get the ones directly associated with the organization
         const orgUserIds = orgUsers?.map((ou) => ou.user_id) || [];
@@ -71,6 +106,28 @@ export const useStaffData = (user: any, organizationInfo: OrganizationInfo) => {
         // Map the data to our staffList format
         const formattedStaff = filteredTPStaff.map((profile) => {
           const orgUser = orgUsers?.find((ou) => ou.user_id === profile.id);
+          const techPartnerProfile = techPartnerProfiles?.find(
+            (tp) => tp.user_id === profile.id
+          );
+
+          // Find the organization
+          const organization = organizations?.find(
+            (org) => org.id === organizationInfo.organization_id
+          );
+
+          // Find tech partner details
+          const techPartner = techPartnerProfile
+            ? techPartners?.find(
+                (tp) => tp.id === techPartnerProfile.tech_partner_id
+              )
+            : null;
+
+          // Find DUSP (parent organization)
+          const dusp =
+            organization?.type === "tp" && organization.parent_id
+              ? organizations?.find((org) => org.id === organization.parent_id)
+                  ?.name
+              : null;
 
           return {
             id: profile.id,
@@ -82,6 +139,8 @@ export const useStaffData = (user: any, organizationInfo: OrganizationInfo) => {
             phone_number: profile.phone_number || "",
             ic_number: profile.ic_number || "",
             role: orgUser?.role || "Member",
+            dusp: dusp || organizationInfo.organization_name || "",
+            tp: techPartner?.name || organization?.name || "",
           };
         });
 
@@ -120,10 +179,13 @@ export const useStaffData = (user: any, organizationInfo: OrganizationInfo) => {
       phone_number: newStaff.mobile_no || newStaff.phone_number,
       ic_number: newStaff.ic_no || newStaff.ic_number,
       role: newStaff.role || "Member",
+      dusp: newStaff.dusp || organizationInfo.organization_name || "",
+      tp: newStaff.tp || "",
     };
 
     setStaffList((prevStaff) => [staffMember, ...prevStaff]);
   };
+
   const updateStaffMember = (updatedStaff: StaffMember) => {
     setStaffList((prevList) =>
       prevList.map((staff) =>
