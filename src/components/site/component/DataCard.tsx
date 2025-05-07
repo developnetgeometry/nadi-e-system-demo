@@ -10,6 +10,8 @@ interface DataCardProps {
   footer?: React.ReactNode;
   icon?: React.ReactNode;
   className?: string;
+  name?: string;
+  label?: React.ReactNode
   trend?: {
     value: number;
     label: string;
@@ -22,6 +24,8 @@ export const DataCard = ({
   title,
   value,
   description,
+  name,
+  label,
   footer,
   icon,
   className,
@@ -31,8 +35,23 @@ export const DataCard = ({
   return (
     <Card className={cn("h-full", className)}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon && <div className="h-4 w-4 text-muted-foreground">{icon}</div>}
+        {!!label ? 
+          (
+            <>
+              <div className='flex items-center justify-center gap-3'>
+                {icon && <div className="h-4 w-4 text-muted-foreground">{icon}</div>}
+                <CardTitle className="text-lg font-medium">{title}</CardTitle>
+              </div>
+              <span>{label}</span>
+            </>
+          ) :
+          (
+            <>
+              <CardTitle className="text-sm font-medium">{title}</CardTitle>
+              {icon && <div className="h-4 w-4 text-muted-foreground">{icon}</div>}
+            </>
+          )
+        }
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
@@ -40,6 +59,11 @@ export const DataCard = ({
           <CardDescription className="text-xs text-muted-foreground mt-1">
             {description}
           </CardDescription>
+        )}
+        {name && (
+          <CardDescription className='font-semibold text-lg text-black'>
+            {name}
+          </CardDescription> 
         )}
         {trend && (
           <div className="flex items-center mt-2">
