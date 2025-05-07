@@ -1,12 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GeneralInformation from "./GeneralInformation";
 import TechnicalBuilding from "./TechnicalBuilding";
+import Address from "./Address"; // Import Address component
 import SiteBanner from "./SiteBanner";
 import { SUPABASE_URL } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const OverviewPage = ({ site, socioeconomics, space }: { site: any; socioeconomics: any[]; space: any[] }) => {
+const OverviewPage = ({ site, socioeconomics, space, address }: { site: any; socioeconomics: any[]; space: any[]; address: any }) => { // Add address prop
   const [bannerImages, setBannerImages] = useState<string[]>([
     "/nadi-site.jpg",
     "/nadi-site2.jpg",
@@ -52,12 +53,16 @@ const OverviewPage = ({ site, socioeconomics, space }: { site: any; socioeconomi
         <TabsList className="mb-6">
           <TabsTrigger value="general">General Information</TabsTrigger>
           <TabsTrigger value="technical">Technical & Building</TabsTrigger>
+          <TabsTrigger value="address">Address</TabsTrigger>
         </TabsList>
         <TabsContent value="general" className="space-y-6">
           <GeneralInformation site={site} />
         </TabsContent>
         <TabsContent value="technical" className="space-y-6">
           <TechnicalBuilding site={site} socioeconomics={socioeconomics} space={space} />
+        </TabsContent>
+        <TabsContent value="address" className="space-y-6">
+          <Address address={address} /> {/* Pass address */}
         </TabsContent>
       </Tabs>
     </div>
