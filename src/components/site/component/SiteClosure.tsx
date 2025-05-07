@@ -116,9 +116,12 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   // Get user group information FIRST before using it
   const { isTP, isSuperAdmin } = useUserGroup();
   
-  // State for selected site (used for TP and SuperAdmin users)
-  const [selectedSiteId, setSelectedSiteId] = useState<string>(siteId || "");
-  
+  // Initialize the fileUploadRef
+  const fileUploadRef = useRef<any>(null);
+
+  // Add a ref to track whether initial site selection has been done
+  const hasSetInitialSite = useRef(false);
+
   // Fetch sites for TP user
   const { data: tpSites = [], isLoading: isLoadingSites } = useQuery({
     queryKey: ["tpSites", organizationId],
@@ -130,15 +133,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const { data: allSites = [], isLoading: isLoadingAllSites } = useQuery({
     queryKey: ["allSites"],
     queryFn: fetchAllSites,
-    enabled: !isTPUser && isSuperAdmin && open,
+    enabled: isSuperAdmin && open,
   });
-
-  // Use the selected site ID if user is TP or SuperAdmin, otherwise use the provided siteId
-  const effectiveSiteId = isTPUser || isSuperAdmin ? selectedSiteId : siteId;
-  
-  // Get site code for the effective site ID
-  const { siteCode } = useSiteCode(effectiveSiteId);
-  const fileUploadRef = useRef<any>(null);
 
   // Pass necessary validation states to the form hook
   const {
@@ -162,11 +158,18 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     setShowConfirmDialog,
     validateForm,
     cleanupFormState,
-  } = useSiteClosureForm(effectiveSiteId, siteCode, editData, isSuperAdmin, onSuccess, onOpenChange);
-
+  } = useSiteClosureForm(siteId, "", editData, isSuperAdmin, onSuccess, onOpenChange);
+  
+  // Now use the selected site ID from form state for the effective site ID
+  // This is what we'll use for siteCode lookup and form submission
+  const effectiveSiteId = (isTPUser || isSuperAdmin) ? formState?.selectedSiteId || "" : siteId;
+  
+  // Get site code for the effective site ID
+  const { siteCode } = useSiteCode(effectiveSiteId);
+  
   // Track whether to show subcategory field based on category selection
   const [showSubcategory, setShowSubcategory] = useState(false);
-
+  
   // Data queries for form fields
   const { data: closureCategories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['closureCategories'],
@@ -188,15 +191,14 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     queryFn: fetchClosureSession,
   });
 
-  // Update selected site when dialog opens
+  // Update selected site when dialog opens - DISABLED auto-selection behavior
   useEffect(() => {
-    if (open && (isTPUser || isSuperAdmin) && !selectedSiteId) {
-      const sites = isTPUser ? tpSites : allSites;
-      if (sites.length > 0) {
-        setSelectedSiteId(sites[0].id);
-      }
+    // Reset the flag when the dialog closes (but don't auto-select)
+    if (!open) {
+      hasSetInitialSite.current = false;
     }
-  }, [open, isTPUser, isSuperAdmin, tpSites, allSites, selectedSiteId]);
+    // Auto-selection code has been removed as per requirements
+  }, [open]);
 
   // Format existing attachments for FileUpload component
   const formattedExistingFiles = useMemo(() => {
@@ -228,10 +230,11 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
     if (fileUploadRef.current && fileUploadRef.current.reset) {
       fileUploadRef.current.reset();
     }
-    // Reset selected site if TP or SuperAdmin user
-    if ((isTPUser || isSuperAdmin) && (tpSites.length > 0 || allSites.length > 0)) {
-      const sites = isTPUser ? tpSites : allSites;
-      setSelectedSiteId(sites[0].id);
+    // Clear selected site ID
+    if (isTPUser || isSuperAdmin) {
+      setField("selectedSiteId", "");
+      // Prevent auto-selection after clearing
+      hasSetInitialSite.current = false;
     }
   };
 
@@ -336,16 +339,6 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   const handleFormValidationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate site selection for TP and SuperAdmin users
-    if ((isTPUser || isSuperAdmin) && !selectedSiteId) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a site",
-        variant: "destructive",
-      });
-      return;
-    }
-
     // Modify validation context based on current state
     const isValid = validateForm({
       showSubcategory,
@@ -380,6 +373,11 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             if (clearEditData) {
               clearEditData();
             }
+            // Also reset selectedSiteId when dialog closes
+            if (isTPUser || isSuperAdmin) {
+              setField("selectedSiteId", "");
+              hasSetInitialSite.current = false;
+            }
           }
           onOpenChange(isOpen);
         }}
@@ -405,22 +403,25 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 </Label>
                 <SelectOne
                   options={isTPUser ? tpSites : allSites}
-                  value={selectedSiteId}
-                  onChange={(value) => setSelectedSiteId(value as string)}
+                  value={formState.selectedSiteId}
+                  onChange={(value) => setField("selectedSiteId", value as string)}
                   placeholder="Select a site"
                   disabled={(isTPUser ? isLoadingSites : isLoadingAllSites) || isSubmitting}
+                  className={validationErrors.selectedSiteId ? "border-red-500" : ""}
                 />
-                {!selectedSiteId && (
-                  <p className="text-sm text-red-500">Please select a site</p>
+                {validationErrors.selectedSiteId && (
+                  <p className="text-sm text-red-500">{validationErrors.selectedSiteId}</p>
                 )}
               </div>
             )}
 
-            {/* Site Code */}
-            <div className="space-y-2">
-              <Label htmlFor="siteId">Site Code</Label>
-              <Input id="siteId" value={siteCode} readOnly />
-            </div>
+            {/* Site Code - only show for users who are not TP or SuperAdmin */}
+            {!(isTPUser || isSuperAdmin) && (
+              <div className="space-y-2">
+                <Label htmlFor="siteId">Site Code</Label>
+                <Input id="siteId" value={siteCode} readOnly />
+              </div>
+            )}
 
             {/* Date Range Fields */}
             <div className="flex space-x-4">
@@ -565,12 +566,12 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                     id: String(subCategory.id),
                     label: subCategory.eng,
                   }))}
-                  value={formState.subcategory_id}
-                  onChange={(value) => setField("subcategory_id", value as string)}
-                  placeholder="Select a sub-category"
-                  disabled={isLoadingSubCategories}
-                  className={validationErrors.subcategory_id ? "border-red-500" : ""}
-                />
+                value={formState.subcategory_id}
+                onChange={(value) => setField("subcategory_id", value as string)}
+                placeholder="Select a sub-category"
+                disabled={isLoadingSubCategories}
+                className={validationErrors.subcategory_id ? "border-red-500" : ""}
+              />
                 {validationErrors.subcategory_id && (
                   <p className="text-sm text-red-500">{validationErrors.subcategory_id}</p>
                 )}
@@ -648,7 +649,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                 type="button"
                 variant="secondary"
                 onClick={handleSubmitAsDraft}
-                disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !selectedSiteId)}
+                // disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !formState.selectedSiteId)}
+                disabled={isSubmitting}
               >
                 {isSubmitting && activeSubmission === "draft" ?
                   (editData?.id ? "Updating..." : "Saving...") :
@@ -656,7 +658,8 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !selectedSiteId)}
+                // disabled={isSubmitting || ((isTPUser || isSuperAdmin) && !formState.selectedSiteId)}
+                disabled={isSubmitting}
               >
                 {isSubmitting && activeSubmission === "submit" ? "Submitting..." : "Submit"}
               </Button>

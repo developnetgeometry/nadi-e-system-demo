@@ -105,43 +105,63 @@ export const exportToPDF = (
   doc.save(`${title.toLowerCase().replace(/\s+/g, "_")}.pdf`);
 };
 
-export const exportToCSV = (
-  services: Service[],
-  title: string = "services_report"
-) => {
-  // Header row
-  const header = [
-    "ID",
-    "Name",
-    "Type",
-    "Status",
-    "Users",
-    "Last Updated",
-    "Location",
-  ];
+export const exportToCSV = (data: Record<string, any>[], filename: string) => {
+  if (!data || !data.length) {
+    console.error("No data to export");
+    return;
+  }
 
-  // Format data rows
-  const dataRows = services.map((service) => [
-    typeof service.id === "number"
-      ? `S${String(service.id).padStart(3, "0")}`
-      : service.id,
-    service.name,
-    service.type,
-    service.status,
-    service.users.toString(),
-    service.lastUpdated,
-    service.location,
-  ]);
+  // Get headers from the first object
+  const headers = Object.keys(data[0]);
 
-  // Combine header and data rows
+  // Create CSV content with headers as first row
   const csvContent = [
-    header.join(","),
-    ...dataRows.map((row) => row.join(",")),
+    headers.join(","), // Header row
+    ...data.map(row => 
+      headers.map(header => {
+        // Convert cell value to string and handle special characters
+        const cellValue = (row[header] === null || row[header] === undefined) 
+          ? '' 
+          : String(row[header]);
+          
+        // Escape quotes and wrap in quotes if the value contains comma, quote or newline
+        if (cellValue.includes(',') || cellValue.includes('"') || cellValue.includes('\n')) {
+          return `"${cellValue.replace(/"/g, '""')}"`;
+        }
+        return cellValue;
+      }).join(",")
+    )
   ].join("\n");
 
-  // Create and download CSV file
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
-  saveAs(blob, `${title}.csv`);
+  // Create a Blob and download link
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  
+  // Create download link and trigger download
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `${filename}.csv`);
+  link.style.visibility = "hidden";
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+export const formatDateForExport = (date: Date | string | null | undefined): string => {
+  if (!date) return '';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  } catch (e) {
+    console.error("Invalid date format:", date);
+    return '';
+  }
 };
 
 export const exportFinancialToPDF = (
@@ -586,3 +606,74 @@ export const exportSitesToCSV = (
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
   saveAs(blob, `${title}.csv`);
 };
+
+export const exportSiteClosureToCSV = (
+  closureData: Record<string, any>[],
+  title: string = "site_closure_report"
+) => {
+  if (!closureData || !Array.isArray(closureData) || closureData.length === 0) {
+    console.error("No data to export");
+    return;
+  }
+
+  // Process the data to ensure we handle any potential null/undefined values
+  const processedData = closureData.map(row => {
+    const newRow = { ...row };
+    // Convert any null values to empty strings
+    Object.keys(newRow).forEach(key => {
+      if (newRow[key] === null || newRow[key] === undefined) {
+        newRow[key] = "";
+      }
+    });
+    return newRow;
+  });
+
+  try {
+    // Combine all rows into CSV format
+    const csvContent = convertToCSV(processedData);
+
+    // Create and download CSV file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    saveAs(blob, `${title}.csv`);
+  } catch (error) {
+    console.error("Error exporting data to CSV:", error);
+  }
+};
+
+// Helper function to convert any array of objects to CSV
+function convertToCSV(objArray: Record<string, any>[]) {
+  // Get all unique headers from all objects
+  const headers = objArray.reduce((allHeaders, obj) => {
+    Object.keys(obj).forEach(header => {
+      if (!allHeaders.includes(header)) {
+        allHeaders.push(header);
+      }
+    });
+    return allHeaders;
+  }, [] as string[]);
+
+  // Create header row
+  let csv = headers.join(',') + '\n';
+
+  // Add rows
+  objArray.forEach(obj => {
+    const row = headers.map(header => {
+      // Get value or empty string if not exists
+      let value = obj[header] !== undefined ? obj[header] : '';
+      
+      // If value contains commas, quotes, or newlines, wrap it in quotes
+      if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+        // Replace any double quotes with two double quotes
+        value = value.replace(/"/g, '""');
+        // Wrap in quotes
+        value = `"${value}"`;
+      }
+      
+      return value;
+    }).join(',');
+    
+    csv += row + '\n';
+  });
+
+  return csv;
+}

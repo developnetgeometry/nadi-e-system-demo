@@ -71,12 +71,16 @@ const SiteDashboard = () => {
   const [selectedRegionFilters, setSelectedRegionFilters] = useState<string[]>([]);
   const [selectedStateFilters, setSelectedStateFilters] = useState<string[]>([]);
   const [selectedStatusFilters, setSelectedStatusFilters] = useState<string[]>([]);
+  const [duspFilter, setDuspFilter] = useState<string | null>(null);
+  const [tpFilter, setTpFilter] = useState<string | null>(null);
 
   // Applied filters (used in actual filtering)
   const [phaseFilters, setPhaseFilters] = useState<string[]>([]);
   const [regionFilters, setRegionFilters] = useState<string[]>([]);
   const [stateFilters, setStateFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [appliedDuspFilter, setAppliedDuspFilter] = useState<string | null>(null);
+  const [appliedTpFilter, setAppliedTpFilter] = useState<string | null>(null);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
@@ -90,7 +94,7 @@ const SiteDashboard = () => {
 
   // Fetch sites data with sorting and filtering
   const { data: sitesData, isLoading } = useQuery({
-    queryKey: ['sites', organizationId, searchTerm, sortField, sortDirection, currentPage, phaseFilters, regionFilters, stateFilters, statusFilters],
+    queryKey: ['sites', organizationId, searchTerm, sortField, sortDirection, currentPage, phaseFilters, regionFilters, stateFilters, statusFilters, appliedDuspFilter, appliedTpFilter],
     queryFn: async () => {
       console.log("ismcmcuser", isMCMCUser);
       const sites = await fetchSites(organizationId, isTPUser, isDUSPUser, isMCMCUser);
@@ -109,7 +113,11 @@ const SiteDashboard = () => {
           (site.nd_site_address && site.nd_site_address.length > 0 &&
             stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) :
           true) &&
-        (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true)
+        (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true) &&
+        // Apply DUSP filter
+        (appliedDuspFilter ? site.dusp_tp?.parent?.id === appliedDuspFilter : true) &&
+        // Apply TP filter
+        (appliedTpFilter ? site.dusp_tp?.id === appliedTpFilter : true)
       );
 
       // Apply sorting
@@ -249,12 +257,16 @@ const SiteDashboard = () => {
     setSelectedRegionFilters([]);
     setSelectedStateFilters([]);
     setSelectedStatusFilters([]);
+    setDuspFilter(null);
+    setTpFilter(null);
 
     // Reset applied filters (active)
     setPhaseFilters([]);
     setRegionFilters([]);
     setStateFilters([]);
     setStatusFilters([]);
+    setAppliedDuspFilter(null);
+    setAppliedTpFilter(null);
 
     // Reset sorting
     setSortField(null);
@@ -285,7 +297,11 @@ const SiteDashboard = () => {
           (site.nd_site_address && site.nd_site_address.length > 0 &&
             stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) :
           true) &&
-        (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true)
+        (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true) &&
+        // Apply DUSP filter
+        (appliedDuspFilter ? site.dusp_tp?.parent?.id === appliedDuspFilter : true) &&
+        // Apply TP filter
+        (appliedTpFilter ? site.dusp_tp?.id === appliedTpFilter : true)
       );
 
       // Apply the same sorting if specified
@@ -379,10 +395,10 @@ const SiteDashboard = () => {
     return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
-  const hasActiveFilters = phaseFilters.length > 0 || regionFilters.length > 0 || stateFilters.length > 0 || statusFilters.length > 0;
+  const hasActiveFilters = phaseFilters.length > 0 || regionFilters.length > 0 || stateFilters.length > 0 || statusFilters.length > 0 || appliedDuspFilter || appliedTpFilter;
 
   const getActiveFilterCount = () => {
-    return phaseFilters.length + regionFilters.length + stateFilters.length + statusFilters.length;
+    return phaseFilters.length + regionFilters.length + stateFilters.length + statusFilters.length + (appliedDuspFilter ? 1 : 0) + (appliedTpFilter ? 1 : 0);
   };
 
   // Checkbox selection handlers
@@ -444,7 +460,7 @@ const SiteDashboard = () => {
     </DashboardLayout>
 
   }
-
+  console.log("sitesData", sitesData);
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -663,6 +679,119 @@ const SiteDashboard = () => {
               </PopoverContent>
             </Popover>
 
+            {/* DUSP Filter - Only for MCMC and Super Admin */}
+            {(isSuperAdmin || isMCMCUser) && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 h-10"
+                  >
+                    <Box className="h-4 w-4 text-gray-500" />
+                    DUSP
+                    <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[220px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search DUSP..." />
+                    <CommandList>
+                      <CommandEmpty>No DUSP found.</CommandEmpty>
+                      <CommandGroup className="max-h-[300px] overflow-y-auto">
+                        {sitesData?.allSites && Array.from(new Set(sitesData.allSites
+                          .filter(site => site.dusp_tp?.parent?.id && site.dusp_tp?.parent?.name)
+                          .map(site => ({ id: site.dusp_tp.parent.id, name: site.dusp_tp.parent.name }))
+                          .map(JSON.stringify)))
+                          .map(JSON.parse)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((dusp) => (
+                            <CommandItem
+                              key={dusp.id}
+                              onSelect={() => {
+                                setDuspFilter(duspFilter === dusp.id ? null : dusp.id);
+                              }}
+                            >
+                              <div
+                                className={cn(
+                                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                                  duspFilter === dusp.id
+                                    ? "bg-primary border-primary"
+                                    : "opacity-50"
+                                )}
+                              >
+                                {duspFilter === dusp.id && (
+                                  <Check className="h-3 w-3 text-white" />
+                                )}
+                              </div>
+                              {dusp.name}
+                            </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* TP Filter - Only for DUSP, MCMC and Super Admin */}
+            {(isSuperAdmin || isMCMCUser || isDUSPUser) && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 h-10"
+                  >
+                    <Building className="h-4 w-4 text-gray-500" />
+                    TP
+                    <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[220px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search TP..." />
+                    <CommandList>
+                      <CommandEmpty>No TP found.</CommandEmpty>
+                      <CommandGroup className="max-h-[300px] overflow-y-auto">
+                        {sitesData?.allSites && Array.from(new Set(sitesData.allSites
+                          .filter(site => {
+                            if (duspFilter) {
+                              return site.dusp_tp?.id && site.dusp_tp?.name && site.dusp_tp?.parent?.id === duspFilter;
+                            }
+                            return site.dusp_tp?.id && site.dusp_tp?.name;
+                          })
+                          .map(site => ({ id: site.dusp_tp.id, name: site.dusp_tp.name }))
+                          .map(JSON.stringify)))
+                          .map(JSON.parse)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((tp) => (
+                            <CommandItem
+                              key={tp.id}
+                              onSelect={() => {
+                                setTpFilter(tpFilter === tp.id ? null : tp.id);
+                              }}
+                            >
+                              <div
+                                className={cn(
+                                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                                  tpFilter === tp.id
+                                    ? "bg-primary border-primary"
+                                    : "opacity-50"
+                                )}
+                              >
+                                {tpFilter === tp.id && (
+                                  <Check className="h-3 w-3 text-white" />
+                                )}
+                              </div>
+                              {tp.name}
+                            </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
+
             <Button
               variant="outline"
               className="flex items-center gap-2 h-10"
@@ -681,6 +810,8 @@ const SiteDashboard = () => {
               setRegionFilters(selectedRegionFilters);
               setStateFilters(selectedStateFilters);
               setStatusFilters(selectedStatusFilters);
+              setAppliedDuspFilter(duspFilter);
+              setAppliedTpFilter(tpFilter);
               setCurrentPage(1);
 
               toast({
@@ -755,6 +886,38 @@ const SiteDashboard = () => {
                   onClick={() => {
                     setStatusFilters([]);
                     setSelectedStatusFilters([]);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            {appliedDuspFilter && (
+              <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
+                <span>DUSP Filter</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-1"
+                  onClick={() => {
+                    setAppliedDuspFilter(null);
+                    setDuspFilter(null);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
+            )}
+            {appliedTpFilter && (
+              <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
+                <span>TP Filter</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0 ml-1"
+                  onClick={() => {
+                    setAppliedTpFilter(null);
+                    setTpFilter(null);
                   }}
                 >
                   <X className="h-3 w-3" />
@@ -842,7 +1005,20 @@ const SiteDashboard = () => {
                       )}
                     </div>
                   </TableHead>
-                  {isSuperAdmin || isMCMCUser && <TableHead
+                  {isDUSPUser && <TableHead
+                    className="cursor-pointer w-[120px]"
+                    onClick={() => handleSort("dusp_tp")}
+                  >
+                    <div className="flex items-center">
+                      TP
+                      {sortField === "dusp_tp" ? (
+                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </TableHead>}
+                  {(isSuperAdmin || isMCMCUser) && <TableHead
                     className="cursor-pointer w-[120px]"
                     onClick={() => handleSort("dusp_tp")}
                   >
@@ -896,7 +1072,7 @@ const SiteDashboard = () => {
                       <TableCell>
                         <Skeleton className="h-4 w-24" />
                       </TableCell>
-                      {isSuperAdmin || isMCMCUser && (
+                      {(isSuperAdmin || isMCMCUser) && (
                         <TableCell>
                           <Skeleton className="h-4 w-28" />
                         </TableCell>
@@ -936,7 +1112,12 @@ const SiteDashboard = () => {
                       <TableCell>{site?.nd_phases?.name || ""}</TableCell>
                       <TableCell>{site?.nd_region?.eng || ""}</TableCell>
                       <TableCell>{getStateName(site)}</TableCell>
-                      {isSuperAdmin || isMCMCUser && (
+                      {isDUSPUser && (
+                        <TableCell>
+                          {site.dusp_tp?.name || "N/A"}
+                        </TableCell>
+                      )}
+                      {(isSuperAdmin || isMCMCUser) && (
                         <TableCell>
                           {site.dusp_tp_id_display || "N/A"}
                         </TableCell>

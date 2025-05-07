@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +52,9 @@ export function SiteSelector({
         if (selectedSiteId) {
           const site = data.find((site: Site) => site.id === selectedSiteId);
           if (site) setSelectedSite(site);
+        } else {
+          // Ensure selectedSite is null if selectedSiteId is null
+          setSelectedSite(null);
         }
       } catch (error) {
         console.error("Error fetching sites:", error);
@@ -70,6 +73,12 @@ export function SiteSelector({
     setOpen(false);
   };
 
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the dropdown
+    setSelectedSite(null);
+    onSiteChange(null);
+  };
+
   if (loading) {
     return <Skeleton className="h-10 w-full" />;
   }
@@ -83,13 +92,35 @@ export function SiteSelector({
           aria-expanded={open}
           className="w-full justify-between md:w-[300px]"
         >
-          {selectedSite ? selectedSite.sitename : "Select a site..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <span className="truncate">
+            {selectedSite ? selectedSite.sitename : "Select a site..."}
+          </span>
+          <div className="flex items-center">
+            {selectedSite && (
+              <X
+                className="h-4 w-4 mr-1 cursor-pointer opacity-70 hover:opacity-100"
+                onClick={handleClear}
+              />
+            )}
+            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0 md:w-[300px]">
         <Command>
-          <CommandInput placeholder="Search sites..." />
+          <div className="flex items-center border-b px-3 py-2">
+            <CommandInput placeholder="Search sites..." className="flex-1" />
+            {selectedSite && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 ml-2" 
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
           <CommandEmpty>No sites found.</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-y-auto">
             {sites.map((site) => (

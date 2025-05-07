@@ -75,6 +75,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -535,14 +536,6 @@ const LeaveManagement = () => {
 
           {isSuperAdmin && (
             <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className="bg-purple-100 text-purple-800 border-purple-300 flex items-center gap-1 px-3 py-1"
-              >
-                <Building2 size={14} />
-                <span>Super Admin</span>
-              </Badge>
-
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="flex items-center gap-2">
@@ -653,13 +646,15 @@ const LeaveManagement = () => {
               data={filteredLeaveRequests}
               title="Leave Requests Report"
             />
-            <Button
-              onClick={() => setIsAddLeaveOpen(true)}
-              className="bg-[#8079b9]"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New Leave Request
-            </Button>
+            {useUserMetadata()?.user_group === 6 && (
+              <Button
+                onClick={() => setIsAddLeaveOpen(true)}
+                className="bg-[#8079b9]"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Leave Request
+              </Button>
+            )}
           </div>
         </div>
 

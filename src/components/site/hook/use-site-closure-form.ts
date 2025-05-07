@@ -13,6 +13,7 @@ type FormData = {
   affectArea: string[];
   session: string;
   status: string;
+  selectedSiteId?: string; // Add selectedSiteId to form data
 };
 
 type ValidationErrors = {
@@ -25,6 +26,7 @@ type ValidationErrors = {
   subcategory_id?: string;
   remark?: string;
   affectArea?: string;
+  selectedSiteId?: string; // Add validation error for site selection
 };
 
 type SubmissionType = "draft" | "submit" | null;
@@ -63,6 +65,7 @@ export const useSiteClosureForm = (
     affectArea: [],
     session: "",
     status: "2", // Default status is 2 for submit
+    selectedSiteId: undefined, // Initialize selectedSiteId
   });
   
   // Validation errors
@@ -100,6 +103,7 @@ export const useSiteClosureForm = (
         affectArea: editData.affectArea || [],
         session: editData.session || "",
         status: "1", // Keep as draft
+        selectedSiteId: editData.selectedSiteId || undefined, // Populate selectedSiteId
       });
       
       // Set attachment states
@@ -126,6 +130,7 @@ export const useSiteClosureForm = (
         affectArea: [],
         session: "",
         status: "2", // Default status is 2 for submit
+        selectedSiteId: undefined, // Initialize selectedSiteId
       });
       
       // Clear attachment states
@@ -240,6 +245,10 @@ export const useSiteClosureForm = (
       errors.affectArea = "At least one affected area must be selected";
     }
     
+    if (!formState.selectedSiteId) {
+      errors.selectedSiteId = "Site selection is required";
+    }
+    
     setValidationErrors(errors);
     
     return Object.keys(errors).length === 0;
@@ -257,6 +266,7 @@ export const useSiteClosureForm = (
       affectArea: [],
       session: "",
       status: "2",
+      selectedSiteId: undefined, // Reset selectedSiteId
     });
     setValidationErrors({});
     setSelectedFiles([]);
@@ -282,6 +292,7 @@ export const useSiteClosureForm = (
       affectArea: [],
       session: "",
       status: "2", // Reset to default status
+      selectedSiteId: undefined, // Reset selectedSiteId
     });
     setValidationErrors({});
     setSelectedFiles([]);
@@ -296,8 +307,11 @@ export const useSiteClosureForm = (
     setActiveSubmission("draft");
     setFormState(prev => ({ ...prev, status: "1" }));
     
+    // Use the selectedSiteId from formState if available (for TP/SuperAdmin users)
+    const effectiveSiteId = formState.selectedSiteId || siteId;
+    
     const formData = { 
-      site_id: siteId, 
+      site_id: effectiveSiteId, 
       ...formState, 
       status: "1",
       ...(editData?.id ? { 
@@ -364,9 +378,12 @@ export const useSiteClosureForm = (
     try {
       let result;
       
+      // Use the selectedSiteId from formState if available (for TP/SuperAdmin users)
+      const effectiveSiteId = formState.selectedSiteId || siteId;
+      
       if (editData?.id) {
         const closureData = { 
-          site_id: siteId, 
+          site_id: effectiveSiteId, 
           ...formState, 
           status: "2", 
           id: editData.id,
@@ -376,7 +393,7 @@ export const useSiteClosureForm = (
         };
         result = await updateSiteClosureData(closureData, selectedFiles, siteCode);
       } else {
-        const closureData = { site_id: siteId, ...formState, status: "2" };
+        const closureData = { site_id: effectiveSiteId, ...formState, status: "2" };
         result = await insertSiteClosureData(closureData, selectedFiles, siteCode);
       }
 
@@ -435,6 +452,7 @@ export const useSiteClosureForm = (
       affectArea: [],
       session: "",
       status: "2",
+      selectedSiteId: undefined, // Reset selectedSiteId
     });
     setValidationErrors({});
     setSelectedFiles([]);
