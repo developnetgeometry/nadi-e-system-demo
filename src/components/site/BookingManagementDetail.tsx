@@ -46,7 +46,7 @@ const BookingContent = () => {
 
     return (
         <Tabs defaultValue="PC Bookings" className="w-full grid place-items-center mt-7">
-            <TabsList className="bg-white inline-flex h-11 flex-wrap justify-center items-center">
+            <TabsList className="bg-white inline-flex h-11 flex-wrap justify-center gap-2 items-center">
                 {
                     tabsMenu.map((menu) => (
                         <TabsTrigger className="text-md px-2 py-1 min-w-max data-[state=active]:bg-muted rounded whitespace-nowrap" key={menu} value={menu}>{menu}</TabsTrigger>
