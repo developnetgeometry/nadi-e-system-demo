@@ -18,12 +18,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface FilterBarProps {
   showDateRange?: boolean;
   showRegion?: boolean;
   showCenterType?: boolean;
   showSearch?: boolean;
+  showPcBookingFilter?: boolean;
   onFilterChange?: (filters: any) => void;
   children?: React.ReactNode;
   className?: string;
@@ -33,6 +35,7 @@ export function FilterBar({
   showDateRange = true,
   showRegion = true,
   showCenterType = true,
+  showPcBookingFilter = false,
   showSearch = true,
   onFilterChange,
   children,
@@ -43,8 +46,19 @@ export function FilterBar({
   const [region, setRegion] = React.useState<string>('all');
   const [centerType, setCenterType] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
+  const [pcAvailability, setPcAvailability] = React.useState<string>('all');
+  const [pcTypeTabs, setPcTypeTabs] = React.useState<string>('all');
 
   const handleFilterChange = () => {
+    if (showPcBookingFilter && onFilterChange) {
+      onFilterChange({
+        pcAvailability,
+        pcTypeTabs,
+        searchQuery
+      });
+      return;
+    }
+
     if (onFilterChange) {
       onFilterChange({
         dateRange: { start: startDate, end: endDate },
@@ -57,7 +71,7 @@ export function FilterBar({
 
   React.useEffect(() => {
     handleFilterChange();
-  }, [startDate, endDate, region, centerType, searchQuery]);
+  }, [startDate, endDate, region, centerType, searchQuery, pcAvailability, pcTypeTabs]);
 
   return (
     <div className={cn("flex flex-wrap gap-2 items-center", className)}>
@@ -139,6 +153,26 @@ export function FilterBar({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+      )}
+
+      {showPcBookingFilter && (
+
+        <section className='flex gap-2' id="filterPcBooking">
+            <Tabs value={pcAvailability} defaultValue='all' onValueChange={(value: string) => { setPcAvailability(value) }}>
+              <TabsList className='bg-white' defaultValue={'all'}>
+                <TabsTrigger value='all'>All</TabsTrigger>
+                <TabsTrigger value='available'>Free</TabsTrigger>
+                <TabsTrigger value='in-use'>Used</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Tabs value={pcTypeTabs} defaultValue='all' onValueChange={(value: string) => { setPcTypeTabs(value) }}>
+              <TabsList className='bg-white' defaultValue={'all'}>
+                <TabsTrigger value='all'>All</TabsTrigger>
+                <TabsTrigger value='gaming'>Gaming</TabsTrigger>
+              </TabsList>
+            </Tabs>            
+        </section>
+
       )}
 
       {children}
