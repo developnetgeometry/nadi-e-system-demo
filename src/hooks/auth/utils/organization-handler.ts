@@ -11,7 +11,8 @@ export const fetchOrganizationDetails = async (
   // If user is tp_admin or has an organization_id, fetch organization details
   if (
     (profile?.nd_user_group?.group_name === "DUSP" ||
-      profile?.nd_user_group?.group_name === "TP") &&
+      profile?.nd_user_group?.group_name === "TP" ||
+      profile?.nd_user_group?.group_name === "Site") &&
     profile
   ) {
     console.log(
