@@ -91,7 +91,8 @@ export const useSiteClosureLogs = () => {
     setError(null);
     
     try {
-      const { data, error: fetchError } = await supabase
+      // First, fetch the logs
+      const { data: logsData, error: fetchError } = await supabase
         .from("nd_site_closure_logs")
         .select(`
           id,
@@ -99,21 +100,69 @@ export const useSiteClosureLogs = () => {
           remark,
           created_at,
           created_by,
-          closure_status_id,
-          nd_closure_status:closure_status_id(
-            id,
-            name
-          ),
-          profiles:created_by(
-            full_name,
-            user_type
-          )
+          closure_status_id
         `)
         .eq("site_closure_id", siteClosureId)
         .order("created_at", { ascending: true });
 
       if (fetchError) throw new Error(fetchError.message);
-      return data;
+      
+      if (!logsData || logsData.length === 0) {
+        return [];
+      }
+
+      // Get the status information
+      const statusIds = logsData
+        .filter(log => log.closure_status_id !== null)
+        .map(log => log.closure_status_id);
+      
+      let statusMap: Record<number, any> = {};
+      if (statusIds.length > 0) {
+        const { data: statusData, error: statusError } = await supabase
+          .from("nd_closure_status")
+          .select("id, name")
+          .in("id", statusIds);
+        
+        if (statusError) {
+          console.error("Error fetching status data:", statusError);
+        } else if (statusData) {
+          statusMap = statusData.reduce((acc, status) => {
+            acc[status.id] = status;
+            return acc;
+          }, {} as Record<number, any>);
+        }
+      }
+
+      // Get the profile information
+      const userIds = logsData
+        .filter(log => log.created_by !== null)
+        .map(log => log.created_by);
+      
+      let profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name, user_type")
+          .in("id", userIds);
+        
+        if (profileError) {
+          console.error("Error fetching profile data:", profileError);
+        } else if (profileData) {
+          profileMap = profileData.reduce((acc, profile) => {
+            acc[profile.id] = profile;
+            return acc;
+          }, {} as Record<string, any>);
+        }
+      }
+
+      // Combine the data
+      const enhancedLogs = logsData.map(log => ({
+        ...log,
+        nd_closure_status: log.closure_status_id ? statusMap[log.closure_status_id] || null : null,
+        profiles: log.created_by ? profileMap[log.created_by] || null : null
+      }));
+
+      return enhancedLogs;
     } catch (err: any) {
       setError(err.message);
       console.error("Error fetching site closure logs:", err);

@@ -164,7 +164,8 @@ export const fetchClosureSession = async (): Promise<ClosureSession[]> => {
 };
 
 export const fetchClosureDetail = async (closureId: number | string): Promise<any> => {
-  const { data, error } = await supabase
+  // First, fetch the closure data
+  const { data: closureData, error } = await supabase
     .from("nd_site_closure")
     .select(`
       id,
@@ -225,5 +226,22 @@ export const fetchClosureDetail = async (closureId: number | string): Promise<an
     .single();
   
   if (error) throw error;
-  return data;
+  
+  // If we have a requester_id, fetch the requestor profile information
+  if (closureData && closureData.requester_id) {
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, user_type')
+      .eq('id', closureData.requester_id)
+      .single();
+      
+    if (profileError) {
+      console.error("Error fetching requestor profile:", profileError);
+    } else {
+      // Add the profile data to the closure data
+      closureData.profiles = profileData;
+    }
+  }
+  
+  return closureData;
 };
