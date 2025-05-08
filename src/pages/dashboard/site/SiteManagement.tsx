@@ -1,16 +1,51 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Box, Package, Settings, DollarSign, Plus, CheckCircle, Clock, PauseCircle, Building2, Bell, Search, Download, Filter, RotateCcw, Users, Eye, EyeOff, Edit, Trash2, MapPin, Calendar, ChevronsUpDown, X, Check, Building } from "lucide-react";
+import {
+  Box,
+  Package,
+  Settings,
+  DollarSign,
+  Plus,
+  CheckCircle,
+  Clock,
+  PauseCircle,
+  Building2,
+  Bell,
+  Search,
+  Download,
+  Filter,
+  RotateCcw,
+  Users,
+  Eye,
+  EyeOff,
+  Edit,
+  Trash2,
+  MapPin,
+  Calendar,
+  ChevronsUpDown,
+  X,
+  Check,
+  Building,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { SiteList } from "@/components/site/SiteList";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { SiteFormDialog } from "@/components/site/SiteFormDialog";
-import { fetchSites, fetchRegion, fetchPhase, fetchAllStates, fetchSiteStatus, Site, toggleSiteActiveStatus, deleteSite } from "@/components/site/hook/site-utils";
+import {
+  fetchSites,
+  fetchRegion,
+  fetchPhase,
+  fetchAllStates,
+  fetchSiteStatus,
+  Site,
+  toggleSiteActiveStatus,
+  deleteSite,
+} from "@/components/site/hook/site-utils";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { fetchActionableRequestCount } from "@/components/site/queries/site-closure";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -21,7 +56,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { toast } from "@/components/ui/use-toast";
@@ -30,12 +65,23 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { exportSitesToCSV } from "@/utils/export-utils";
 import { MultiSelect, Option } from "@/components/ui/multi-select";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableSkeleton } from "@/components/site/TableSkeleton";
@@ -45,15 +91,19 @@ const SiteDashboard = () => {
   const { user } = useAuth();
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
-  const isDUSPUser = parsedMetadata?.user_group_name === "DUSP" && !!parsedMetadata?.organization_id;
+  const isTPUser =
+    parsedMetadata?.user_group_name === "TP" &&
+    !!parsedMetadata?.organization_id;
+  const isDUSPUser =
+    parsedMetadata?.user_group_name === "DUSP" &&
+    !!parsedMetadata?.organization_id;
   const isMCMCUser = parsedMetadata?.user_group_name === "MCMC"; // MCMC users don't require organization_id
   const isRestrictedUser = isDUSPUser || isMCMCUser; // Combined check for both DUSP and MCMC users
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const organizationId =
     parsedMetadata?.user_type !== "super_admin" &&
-      (isTPUser || isDUSPUser) &&
-      parsedMetadata?.organization_id
+    (isTPUser || isDUSPUser) &&
+    parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
   // MCMC users don't need an organization_id for access
@@ -64,13 +114,23 @@ const SiteDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
+    null
+  );
 
   // Selected filters (pending application)
-  const [selectedPhaseFilters, setSelectedPhaseFilters] = useState<string[]>([]);
-  const [selectedRegionFilters, setSelectedRegionFilters] = useState<string[]>([]);
-  const [selectedStateFilters, setSelectedStateFilters] = useState<string[]>([]);
-  const [selectedStatusFilters, setSelectedStatusFilters] = useState<string[]>([]);
+  const [selectedPhaseFilters, setSelectedPhaseFilters] = useState<string[]>(
+    []
+  );
+  const [selectedRegionFilters, setSelectedRegionFilters] = useState<string[]>(
+    []
+  );
+  const [selectedStateFilters, setSelectedStateFilters] = useState<string[]>(
+    []
+  );
+  const [selectedStatusFilters, setSelectedStatusFilters] = useState<string[]>(
+    []
+  );
   const [duspFilter, setDuspFilter] = useState<string | null>(null);
   const [tpFilter, setTpFilter] = useState<string | null>(null);
 
@@ -79,7 +139,9 @@ const SiteDashboard = () => {
   const [regionFilters, setRegionFilters] = useState<string[]>([]);
   const [stateFilters, setStateFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
-  const [appliedDuspFilter, setAppliedDuspFilter] = useState<string | null>(null);
+  const [appliedDuspFilter, setAppliedDuspFilter] = useState<string | null>(
+    null
+  );
   const [appliedTpFilter, setAppliedTpFilter] = useState<string | null>(null);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -94,30 +156,64 @@ const SiteDashboard = () => {
 
   // Fetch sites data with sorting and filtering
   const { data: sitesData, isLoading } = useQuery({
-    queryKey: ['sites', organizationId, searchTerm, sortField, sortDirection, currentPage, phaseFilters, regionFilters, stateFilters, statusFilters, appliedDuspFilter, appliedTpFilter],
+    queryKey: [
+      "sites",
+      organizationId,
+      searchTerm,
+      sortField,
+      sortDirection,
+      currentPage,
+      phaseFilters,
+      regionFilters,
+      stateFilters,
+      statusFilters,
+      appliedDuspFilter,
+      appliedTpFilter,
+    ],
     queryFn: async () => {
       console.log("ismcmcuser", isMCMCUser);
-      const sites = await fetchSites(organizationId, isTPUser, isDUSPUser, isMCMCUser);
+      const sites = await fetchSites(
+        organizationId,
+        isTPUser,
+        isDUSPUser,
+        isMCMCUser
+      );
 
       // Apply search filter
-      let filteredSites = sites.filter(site =>
-        site.sitename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        site.nd_site[0]?.standard_code.toLowerCase().includes(searchTerm.toLowerCase())
+      let filteredSites = sites.filter(
+        (site) =>
+          site.sitename.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          site.nd_site[0]?.standard_code
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
 
       // Apply dropdown filters
-      filteredSites = filteredSites.filter(site =>
-        (phaseFilters.length > 0 ? phaseFilters.includes(site.nd_phases?.name || "") : true) &&
-        (regionFilters.length > 0 ? regionFilters.includes(site.nd_region?.eng || "") : true) &&
-        (stateFilters.length > 0 ?
-          (site.nd_site_address && site.nd_site_address.length > 0 &&
-            stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) :
-          true) &&
-        (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true) &&
-        // Apply DUSP filter
-        (appliedDuspFilter ? site.dusp_tp?.parent?.id === appliedDuspFilter : true) &&
-        // Apply TP filter
-        (appliedTpFilter ? site.dusp_tp?.id === appliedTpFilter : true)
+      filteredSites = filteredSites.filter(
+        (site) =>
+          (phaseFilters.length > 0
+            ? phaseFilters.includes(site.nd_phases?.name || "")
+            : true) &&
+          (regionFilters.length > 0
+            ? regionFilters.includes(site.nd_region?.eng || "")
+            : true) &&
+          (stateFilters.length > 0
+            ? site.nd_site_address &&
+              site.nd_site_address.length > 0 &&
+              stateFilters.includes(
+                states.find((s) => s.id === site.nd_site_address[0]?.state_id)
+                  ?.name || ""
+              )
+            : true) &&
+          (statusFilters.length > 0
+            ? statusFilters.includes(site.nd_site_status?.eng || "")
+            : true) &&
+          // Apply DUSP filter
+          (appliedDuspFilter
+            ? site.dusp_tp?.parent?.id === appliedDuspFilter
+            : true) &&
+          // Apply TP filter
+          (appliedTpFilter ? site.dusp_tp?.id === appliedTpFilter : true)
       );
 
       // Apply sorting
@@ -127,41 +223,46 @@ const SiteDashboard = () => {
 
           // Handle different fields
           switch (sortField) {
-            case 'sitename':
-              valueA = a.sitename || '';
-              valueB = b.sitename || '';
+            case "sitename":
+              valueA = a.sitename || "";
+              valueB = b.sitename || "";
               break;
-            case 'site_code':
-              valueA = a.nd_site[0]?.standard_code || '';
-              valueB = b.nd_site[0]?.standard_code || '';
+            case "site_code":
+              valueA = a.nd_site[0]?.standard_code || "";
+              valueB = b.nd_site[0]?.standard_code || "";
               break;
-            case 'phase':
-              valueA = a.nd_phases?.name || '';
-              valueB = b.nd_phases?.name || '';
+            case "phase":
+              valueA = a.nd_phases?.name || "";
+              valueB = b.nd_phases?.name || "";
               break;
-            case 'region':
-              valueA = a.nd_region?.eng || '';
-              valueB = b.nd_region?.eng || '';
+            case "region":
+              valueA = a.nd_region?.eng || "";
+              valueB = b.nd_region?.eng || "";
               break;
-            case 'state':
-              valueA = states.find(s => s.id === a.nd_site_address[0]?.state_id)?.name || '';
-              valueB = b.nd_site_address[0]?.state_id ? states.find(s => s.id === b.nd_site_address[0]?.state_id)?.name || '' : '';
+            case "state":
+              valueA =
+                states.find((s) => s.id === a.nd_site_address[0]?.state_id)
+                  ?.name || "";
+              valueB = b.nd_site_address[0]?.state_id
+                ? states.find((s) => s.id === b.nd_site_address[0]?.state_id)
+                    ?.name || ""
+                : "";
               break;
-            case 'dusp_tp':
-              valueA = a.dusp_tp_id_display || '';
-              valueB = b.dusp_tp_id_display || '';
+            case "dusp_tp":
+              valueA = a.dusp_tp_id_display || "";
+              valueB = b.dusp_tp_id_display || "";
               break;
-            case 'status':
-              valueA = a.nd_site_status?.eng || '';
-              valueB = b.nd_site_status?.eng || '';
+            case "status":
+              valueA = a.nd_site_status?.eng || "";
+              valueB = b.nd_site_status?.eng || "";
               break;
             default:
-              valueA = a[sortField as keyof Site] || '';
-              valueB = b[sortField as keyof Site] || '';
+              valueA = a[sortField as keyof Site] || "";
+              valueB = b[sortField as keyof Site] || "";
           }
 
           // Compare based on direction
-          if (sortDirection === 'asc') {
+          if (sortDirection === "asc") {
             return valueA > valueB ? 1 : -1;
           } else {
             return valueA < valueB ? 1 : -1;
@@ -171,12 +272,15 @@ const SiteDashboard = () => {
 
       // Calculate total and paginate
       const totalCount = filteredSites.length;
-      const paginatedSites = filteredSites.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+      const paginatedSites = filteredSites.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+      );
 
       return {
         data: paginatedSites,
         count: totalCount,
-        allSites: sites // Keep original data for stats
+        allSites: sites, // Keep original data for stats
       };
     },
     enabled: !!organizationId || isSuperAdmin || isMCMCUser,
@@ -184,22 +288,22 @@ const SiteDashboard = () => {
 
   // Fetch filter options
   const { data: phases = [] } = useQuery({
-    queryKey: ['phases'],
+    queryKey: ["phases"],
     queryFn: fetchPhase,
   });
 
   const { data: regions = [] } = useQuery({
-    queryKey: ['regions'],
+    queryKey: ["regions"],
     queryFn: fetchRegion,
   });
 
   const { data: states = [] } = useQuery({
-    queryKey: ['states'],
+    queryKey: ["states"],
     queryFn: fetchAllStates,
   });
 
   const { data: statuses = [] } = useQuery({
-    queryKey: ['statuses'],
+    queryKey: ["statuses"],
     queryFn: fetchSiteStatus,
   });
 
@@ -227,8 +331,8 @@ const SiteDashboard = () => {
       await toggleSiteActiveStatus(site.id, site.is_active);
       // Invalidate and refetch the sites query to update the UI
       // This will trigger a re-render with the updated visibility status
-      queryClient.invalidateQueries({ queryKey: ['sites'] });
-      queryClient.invalidateQueries({ queryKey: ['site-stats'] });
+      queryClient.invalidateQueries({ queryKey: ["sites"] });
+      queryClient.invalidateQueries({ queryKey: ["site-stats"] });
       toast({
         title: `Site visibility updated`,
         description: `The site ${site.sitename} visibility has been successfully updated.`,
@@ -284,24 +388,40 @@ const SiteDashboard = () => {
     // Create a filtered sites array based on the current filters
     if (sitesData?.allSites) {
       // Apply the same filtering logic as in the main query
-      let filteredSites = sitesData.allSites.filter(site =>
-        site.sitename.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        site.nd_site[0]?.standard_code.toLowerCase().includes(searchTerm.toLowerCase())
+      let filteredSites = sitesData.allSites.filter(
+        (site) =>
+          site.sitename.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          site.nd_site[0]?.standard_code
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
 
       // Apply dropdown filters
-      filteredSites = filteredSites.filter(site =>
-        (phaseFilters.length > 0 ? phaseFilters.includes(site.nd_phases?.name || "") : true) &&
-        (regionFilters.length > 0 ? regionFilters.includes(site.nd_region?.eng || "") : true) &&
-        (stateFilters.length > 0 ?
-          (site.nd_site_address && site.nd_site_address.length > 0 &&
-            stateFilters.includes(states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "")) :
-          true) &&
-        (statusFilters.length > 0 ? statusFilters.includes(site.nd_site_status?.eng || "") : true) &&
-        // Apply DUSP filter
-        (appliedDuspFilter ? site.dusp_tp?.parent?.id === appliedDuspFilter : true) &&
-        // Apply TP filter
-        (appliedTpFilter ? site.dusp_tp?.id === appliedTpFilter : true)
+      filteredSites = filteredSites.filter(
+        (site) =>
+          (phaseFilters.length > 0
+            ? phaseFilters.includes(site.nd_phases?.name || "")
+            : true) &&
+          (regionFilters.length > 0
+            ? regionFilters.includes(site.nd_region?.eng || "")
+            : true) &&
+          (stateFilters.length > 0
+            ? site.nd_site_address &&
+              site.nd_site_address.length > 0 &&
+              stateFilters.includes(
+                states.find((s) => s.id === site.nd_site_address[0]?.state_id)
+                  ?.name || ""
+              )
+            : true) &&
+          (statusFilters.length > 0
+            ? statusFilters.includes(site.nd_site_status?.eng || "")
+            : true) &&
+          // Apply DUSP filter
+          (appliedDuspFilter
+            ? site.dusp_tp?.parent?.id === appliedDuspFilter
+            : true) &&
+          // Apply TP filter
+          (appliedTpFilter ? site.dusp_tp?.id === appliedTpFilter : true)
       );
 
       // Apply the same sorting if specified
@@ -310,40 +430,45 @@ const SiteDashboard = () => {
           let valueA, valueB;
 
           switch (sortField) {
-            case 'sitename':
-              valueA = a.sitename || '';
-              valueB = b.sitename || '';
+            case "sitename":
+              valueA = a.sitename || "";
+              valueB = b.sitename || "";
               break;
-            case 'site_code':
-              valueA = a.nd_site[0]?.standard_code || '';
-              valueB = b.nd_site[0]?.standard_code || '';
+            case "site_code":
+              valueA = a.nd_site[0]?.standard_code || "";
+              valueB = b.nd_site[0]?.standard_code || "";
               break;
-            case 'phase':
-              valueA = a.nd_phases?.name || '';
-              valueB = b.nd_phases?.name || '';
+            case "phase":
+              valueA = a.nd_phases?.name || "";
+              valueB = b.nd_phases?.name || "";
               break;
-            case 'region':
-              valueA = a.nd_region?.eng || '';
-              valueB = b.nd_region?.eng || '';
+            case "region":
+              valueA = a.nd_region?.eng || "";
+              valueB = b.nd_region?.eng || "";
               break;
-            case 'state':
-              valueA = states.find(s => s.id === a.nd_site_address[0]?.state_id)?.name || '';
-              valueB = b.nd_site_address[0]?.state_id ? states.find(s => s.id === b.nd_site_address[0]?.state_id)?.name || '' : '';
+            case "state":
+              valueA =
+                states.find((s) => s.id === a.nd_site_address[0]?.state_id)
+                  ?.name || "";
+              valueB = b.nd_site_address[0]?.state_id
+                ? states.find((s) => s.id === b.nd_site_address[0]?.state_id)
+                    ?.name || ""
+                : "";
               break;
-            case 'dusp_tp':
-              valueA = a.dusp_tp_id_display || '';
-              valueB = b.dusp_tp_id_display || '';
+            case "dusp_tp":
+              valueA = a.dusp_tp_id_display || "";
+              valueB = b.dusp_tp_id_display || "";
               break;
-            case 'status':
-              valueA = a.nd_site_status?.eng || '';
-              valueB = b.nd_site_status?.eng || '';
+            case "status":
+              valueA = a.nd_site_status?.eng || "";
+              valueB = b.nd_site_status?.eng || "";
               break;
             default:
-              valueA = a[sortField as keyof Site] || '';
-              valueB = b[sortField as keyof Site] || '';
+              valueA = a[sortField as keyof Site] || "";
+              valueB = b[sortField as keyof Site] || "";
           }
 
-          if (sortDirection === 'asc') {
+          if (sortDirection === "asc") {
             return valueA > valueB ? 1 : -1;
           } else {
             return valueA < valueB ? 1 : -1;
@@ -352,7 +477,11 @@ const SiteDashboard = () => {
       }
 
       // Export the filtered sites
-      exportSitesToCSV(filteredSites, states, `site_report_${new Date().toISOString().split('T')[0]}`);
+      exportSitesToCSV(
+        filteredSites,
+        states,
+        `site_report_${new Date().toISOString().split("T")[0]}`
+      );
 
       toast({
         title: "Export successful",
@@ -366,7 +495,10 @@ const SiteDashboard = () => {
   // Format state name helper
   const getStateName = (site: Site) => {
     if (site?.nd_site_address && site.nd_site_address.length > 0) {
-      return states.find(s => s.id === site.nd_site_address[0]?.state_id)?.name || "";
+      return (
+        states.find((s) => s.id === site.nd_site_address[0]?.state_id)?.name ||
+        ""
+      );
     }
     return "";
   };
@@ -375,7 +507,8 @@ const SiteDashboard = () => {
   const getStatusBadge = (status: string | undefined) => {
     if (!status) return <Badge variant="outline">Unknown</Badge>;
 
-    let variant: "default" | "destructive" | "outline" | "secondary" = "default";
+    let variant: "default" | "destructive" | "outline" | "secondary" =
+      "default";
 
     switch (status) {
       case "In Operation":
@@ -392,21 +525,34 @@ const SiteDashboard = () => {
         break;
     }
 
-    return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
+    return <Badge variant={variant}>{status.replace("_", " ")}</Badge>;
   };
 
-  const hasActiveFilters = phaseFilters.length > 0 || regionFilters.length > 0 || stateFilters.length > 0 || statusFilters.length > 0 || appliedDuspFilter || appliedTpFilter;
+  const hasActiveFilters =
+    phaseFilters.length > 0 ||
+    regionFilters.length > 0 ||
+    stateFilters.length > 0 ||
+    statusFilters.length > 0 ||
+    appliedDuspFilter ||
+    appliedTpFilter;
 
   const getActiveFilterCount = () => {
-    return phaseFilters.length + regionFilters.length + stateFilters.length + statusFilters.length + (appliedDuspFilter ? 1 : 0) + (appliedTpFilter ? 1 : 0);
+    return (
+      phaseFilters.length +
+      regionFilters.length +
+      stateFilters.length +
+      statusFilters.length +
+      (appliedDuspFilter ? 1 : 0) +
+      (appliedTpFilter ? 1 : 0)
+    );
   };
 
   // Checkbox selection handlers
   const handleSelectSite = (siteId: string) => {
-    setSelectedSites(prev => {
+    setSelectedSites((prev) => {
       // If already selected, remove it
       if (prev.includes(siteId)) {
-        return prev.filter(id => id !== siteId);
+        return prev.filter((id) => id !== siteId);
       }
       // Otherwise, add it
       return [...prev, siteId];
@@ -417,17 +563,21 @@ const SiteDashboard = () => {
     if (!sitesData?.data) return;
 
     // If all sites on current page are selected, deselect them
-    const currentPageSiteIds = sitesData.data.map(site => site.id);
-    const allSelected = currentPageSiteIds.every(id => selectedSites.includes(id));
+    const currentPageSiteIds = sitesData.data.map((site) => site.id);
+    const allSelected = currentPageSiteIds.every((id) =>
+      selectedSites.includes(id)
+    );
 
     if (allSelected) {
       // Remove all current page site IDs from selection
-      setSelectedSites(prev => prev.filter(id => !currentPageSiteIds.includes(id)));
+      setSelectedSites((prev) =>
+        prev.filter((id) => !currentPageSiteIds.includes(id))
+      );
     } else {
       // Add any unselected site IDs from current page
-      setSelectedSites(prev => {
+      setSelectedSites((prev) => {
         const newSelection = [...prev];
-        currentPageSiteIds.forEach(id => {
+        currentPageSiteIds.forEach((id) => {
           if (!newSelection.includes(id)) {
             newSelection.push(id);
           }
@@ -440,7 +590,7 @@ const SiteDashboard = () => {
   // Helper to check if all sites on current page are selected
   const areAllSitesSelected = () => {
     if (!sitesData?.data || sitesData.data.length === 0) return false;
-    return sitesData.data.every(site => selectedSites.includes(site.id));
+    return sitesData.data.every((site) => selectedSites.includes(site.id));
   };
 
   // Helper to check if a specific site is selected
@@ -451,14 +601,26 @@ const SiteDashboard = () => {
   // Reset selectedSites when changing pages or filters
   useEffect(() => {
     setSelectedSites([]);
-  }, [currentPage, phaseFilters, regionFilters, stateFilters, statusFilters, searchTerm]);
+  }, [
+    currentPage,
+    phaseFilters,
+    regionFilters,
+    stateFilters,
+    statusFilters,
+    searchTerm,
+  ]);
 
   // Access control logic - moved after all hooks
-  if (parsedMetadata?.user_type !== "super_admin" && !organizationId && !isMCMCUser) {
-    return <DashboardLayout>
-      <div>You do not have access to this dashboard.</div>;
-    </DashboardLayout>
-
+  if (
+    parsedMetadata?.user_type !== "super_admin" &&
+    !organizationId &&
+    !isMCMCUser
+  ) {
+    return (
+      <DashboardLayout>
+        <div>You do not have access to this dashboard.</div>;
+      </DashboardLayout>
+    );
   }
   console.log("sitesData", sitesData);
   return (
@@ -466,7 +628,9 @@ const SiteDashboard = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold">Site Management</h1>
-          <p className="text-gray-500 mt-1">Manage all physical centres and locations</p>
+          <p className="text-gray-500 mt-1">
+            Manage all physical centres and locations
+          </p>
         </div>
 
         {/* Search and Filter Row */}
@@ -484,23 +648,31 @@ const SiteDashboard = () => {
           <div className="flex gap-2 self-end">
             {selectedSites.length > 0 && (
               <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-md px-3 py-1.5 text-sm">
-                <span className="font-medium">{selectedSites.length} sites selected</span>
+                <span className="font-medium">
+                  {selectedSites.length} sites selected
+                </span>
                 <div className="flex gap-2">
-                  {isSuperAdmin || isMCMCUser && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="h-8"
-                      onClick={() => {
-                        setIsDeleteDialogOpen(true);
-                        setSiteToDelete(null); // Indicate that we're doing batch delete
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  )}
-                  <Button size="sm" variant="outline" className="h-8" onClick={() => setSelectedSites([])}>
+                  {isSuperAdmin ||
+                    (isMCMCUser && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="h-8"
+                        onClick={() => {
+                          setIsDeleteDialogOpen(true);
+                          setSiteToDelete(null); // Indicate that we're doing batch delete
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    ))}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8"
+                    onClick={() => setSelectedSites([])}
+                  >
                     Clear
                   </Button>
                 </div>
@@ -553,7 +725,9 @@ const SiteDashboard = () => {
                             const value = phase.name;
                             setSelectedPhaseFilters(
                               selectedPhaseFilters.includes(value)
-                                ? selectedPhaseFilters.filter((item) => item !== value)
+                                ? selectedPhaseFilters.filter(
+                                    (item) => item !== value
+                                  )
                                 : [...selectedPhaseFilters, value]
                             );
                           }}
@@ -603,7 +777,9 @@ const SiteDashboard = () => {
                             const value = region.eng;
                             setSelectedRegionFilters(
                               selectedRegionFilters.includes(value)
-                                ? selectedRegionFilters.filter((item) => item !== value)
+                                ? selectedRegionFilters.filter(
+                                    (item) => item !== value
+                                  )
                                 : [...selectedRegionFilters, value]
                             );
                           }}
@@ -653,7 +829,9 @@ const SiteDashboard = () => {
                             const value = state.name;
                             setSelectedStateFilters(
                               selectedStateFilters.includes(value)
-                                ? selectedStateFilters.filter((item) => item !== value)
+                                ? selectedStateFilters.filter(
+                                    (item) => item !== value
+                                  )
                                 : [...selectedStateFilters, value]
                             );
                           }}
@@ -698,34 +876,48 @@ const SiteDashboard = () => {
                     <CommandList>
                       <CommandEmpty>No DUSP found.</CommandEmpty>
                       <CommandGroup className="max-h-[300px] overflow-y-auto">
-                        {sitesData?.allSites && Array.from(new Set(sitesData.allSites
-                          .filter(site => site.dusp_tp?.parent?.id && site.dusp_tp?.parent?.name)
-                          .map(site => ({ id: site.dusp_tp.parent.id, name: site.dusp_tp.parent.name }))
-                          .map(JSON.stringify)))
-                          .map(JSON.parse)
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map((dusp) => (
-                            <CommandItem
-                              key={dusp.id}
-                              onSelect={() => {
-                                setDuspFilter(duspFilter === dusp.id ? null : dusp.id);
-                              }}
-                            >
-                              <div
-                                className={cn(
-                                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                                  duspFilter === dusp.id
-                                    ? "bg-primary border-primary"
-                                    : "opacity-50"
-                                )}
+                        {sitesData?.allSites &&
+                          Array.from(
+                            new Set(
+                              sitesData.allSites
+                                .filter(
+                                  (site) =>
+                                    site.dusp_tp?.parent?.id &&
+                                    site.dusp_tp?.parent?.name
+                                )
+                                .map((site) => ({
+                                  id: site.dusp_tp.parent.id,
+                                  name: site.dusp_tp.parent.name,
+                                }))
+                                .map(JSON.stringify)
+                            )
+                          )
+                            .map(JSON.parse)
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((dusp) => (
+                              <CommandItem
+                                key={dusp.id}
+                                onSelect={() => {
+                                  setDuspFilter(
+                                    duspFilter === dusp.id ? null : dusp.id
+                                  );
+                                }}
                               >
-                                {duspFilter === dusp.id && (
-                                  <Check className="h-3 w-3 text-white" />
-                                )}
-                              </div>
-                              {dusp.name}
-                            </CommandItem>
-                        ))}
+                                <div
+                                  className={cn(
+                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                                    duspFilter === dusp.id
+                                      ? "bg-primary border-primary"
+                                      : "opacity-50"
+                                  )}
+                                >
+                                  {duspFilter === dusp.id && (
+                                    <Check className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                                {dusp.name}
+                              </CommandItem>
+                            ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -752,39 +944,53 @@ const SiteDashboard = () => {
                     <CommandList>
                       <CommandEmpty>No TP found.</CommandEmpty>
                       <CommandGroup className="max-h-[300px] overflow-y-auto">
-                        {sitesData?.allSites && Array.from(new Set(sitesData.allSites
-                          .filter(site => {
-                            if (duspFilter) {
-                              return site.dusp_tp?.id && site.dusp_tp?.name && site.dusp_tp?.parent?.id === duspFilter;
-                            }
-                            return site.dusp_tp?.id && site.dusp_tp?.name;
-                          })
-                          .map(site => ({ id: site.dusp_tp.id, name: site.dusp_tp.name }))
-                          .map(JSON.stringify)))
-                          .map(JSON.parse)
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map((tp) => (
-                            <CommandItem
-                              key={tp.id}
-                              onSelect={() => {
-                                setTpFilter(tpFilter === tp.id ? null : tp.id);
-                              }}
-                            >
-                              <div
-                                className={cn(
-                                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                                  tpFilter === tp.id
-                                    ? "bg-primary border-primary"
-                                    : "opacity-50"
-                                )}
+                        {sitesData?.allSites &&
+                          Array.from(
+                            new Set(
+                              sitesData.allSites
+                                .filter((site) => {
+                                  if (duspFilter) {
+                                    return (
+                                      site.dusp_tp?.id &&
+                                      site.dusp_tp?.name &&
+                                      site.dusp_tp?.parent?.id === duspFilter
+                                    );
+                                  }
+                                  return site.dusp_tp?.id && site.dusp_tp?.name;
+                                })
+                                .map((site) => ({
+                                  id: site.dusp_tp.id,
+                                  name: site.dusp_tp.name,
+                                }))
+                                .map(JSON.stringify)
+                            )
+                          )
+                            .map(JSON.parse)
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((tp) => (
+                              <CommandItem
+                                key={tp.id}
+                                onSelect={() => {
+                                  setTpFilter(
+                                    tpFilter === tp.id ? null : tp.id
+                                  );
+                                }}
                               >
-                                {tpFilter === tp.id && (
-                                  <Check className="h-3 w-3 text-white" />
-                                )}
-                              </div>
-                              {tp.name}
-                            </CommandItem>
-                        ))}
+                                <div
+                                  className={cn(
+                                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                                    tpFilter === tp.id
+                                      ? "bg-primary border-primary"
+                                      : "opacity-50"
+                                  )}
+                                >
+                                  {tpFilter === tp.id && (
+                                    <Check className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                                {tp.name}
+                              </CommandItem>
+                            ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -947,7 +1153,9 @@ const SiteDashboard = () => {
                     <div className="flex items-center">
                       Site ID
                       {sortField === "site_code" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
                       ) : (
                         <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       )}
@@ -960,7 +1168,9 @@ const SiteDashboard = () => {
                     <div className="flex items-center">
                       Name
                       {sortField === "sitename" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
                       ) : (
                         <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       )}
@@ -973,7 +1183,9 @@ const SiteDashboard = () => {
                     <div className="flex items-center">
                       Phase
                       {sortField === "phase" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
                       ) : (
                         <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       )}
@@ -986,7 +1198,9 @@ const SiteDashboard = () => {
                     <div className="flex items-center">
                       Region
                       {sortField === "region" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
                       ) : (
                         <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       )}
@@ -999,38 +1213,48 @@ const SiteDashboard = () => {
                     <div className="flex items-center">
                       State
                       {sortField === "state" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
                       ) : (
                         <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       )}
                     </div>
                   </TableHead>
-                  {isDUSPUser && <TableHead
-                    className="cursor-pointer w-[120px]"
-                    onClick={() => handleSort("dusp_tp")}
-                  >
-                    <div className="flex items-center">
-                      TP
-                      {sortField === "dusp_tp" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      ) : (
-                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
-                      )}
-                    </div>
-                  </TableHead>}
-                  {(isSuperAdmin || isMCMCUser) && <TableHead
-                    className="cursor-pointer w-[120px]"
-                    onClick={() => handleSort("dusp_tp")}
-                  >
-                    <div className="flex items-center">
-                      TP (DUSP)
-                      {sortField === "dusp_tp" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                      ) : (
-                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
-                      )}
-                    </div>
-                  </TableHead>}
+                  {isDUSPUser && (
+                    <TableHead
+                      className="cursor-pointer w-[120px]"
+                      onClick={() => handleSort("dusp_tp")}
+                    >
+                      <div className="flex items-center">
+                        TP
+                        {sortField === "dusp_tp" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
+                  {(isSuperAdmin || isMCMCUser) && (
+                    <TableHead
+                      className="cursor-pointer w-[120px]"
+                      onClick={() => handleSort("dusp_tp")}
+                    >
+                      <div className="flex items-center">
+                        TP (DUSP)
+                        {sortField === "dusp_tp" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                  )}
                   <TableHead
                     className="cursor-pointer w-[100px]"
                     onClick={() => handleSort("status")}
@@ -1038,7 +1262,9 @@ const SiteDashboard = () => {
                     <div className="flex items-center">
                       Status
                       {sortField === "status" ? (
-                        <span className="ml-2">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
                       ) : (
                         <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       )}
@@ -1049,50 +1275,57 @@ const SiteDashboard = () => {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  Array(5).fill(0).map((_, index) => (
-                    <TableRow key={`skeleton-row-${index}`}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-4" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-6" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-40" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-20" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      {(isSuperAdmin || isMCMCUser) && (
+                  Array(5)
+                    .fill(0)
+                    .map((_, index) => (
+                      <TableRow key={`skeleton-row-${index}`}>
                         <TableCell>
-                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-4 w-4" />
                         </TableCell>
-                      )}
-                      <TableCell>
-                        <Skeleton className="h-6 w-24 rounded-full" />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Skeleton className="h-8 w-8 rounded-md" />
-                          <Skeleton className="h-8 w-8 rounded-md" />
-                          <Skeleton className="h-8 w-8 rounded-md" />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        <TableCell>
+                          <Skeleton className="h-4 w-6" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-24" />
+                        </TableCell>
+                        {(isSuperAdmin || isMCMCUser) && (
+                          <TableCell>
+                            <Skeleton className="h-4 w-28" />
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <Skeleton className="h-6 w-24 rounded-full" />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Skeleton className="h-8 w-8 rounded-md" />
+                            <Skeleton className="h-8 w-8 rounded-md" />
+                            <Skeleton className="h-8 w-8 rounded-md" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
                 ) : sitesData?.data.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isSuperAdmin || isMCMCUser ? 10 : 9} className="text-center py-10">
-                      <p className="text-gray-500">No sites found matching your criteria</p>
+                    <TableCell
+                      colSpan={isSuperAdmin || isMCMCUser ? 10 : 9}
+                      className="text-center py-10"
+                    >
+                      <p className="text-gray-500">
+                        No sites found matching your criteria
+                      </p>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -1107,22 +1340,24 @@ const SiteDashboard = () => {
                       <TableCell className="font-medium">
                         {(currentPage - 1) * pageSize + index + 1}
                       </TableCell>
-                      <TableCell>{site?.nd_site[0]?.standard_code || ""}</TableCell>
+                      <TableCell>
+                        {site?.nd_site[0]?.standard_code || ""}
+                      </TableCell>
                       <TableCell>{site?.sitename || ""}</TableCell>
                       <TableCell>{site?.nd_phases?.name || ""}</TableCell>
                       <TableCell>{site?.nd_region?.eng || ""}</TableCell>
                       <TableCell>{getStateName(site)}</TableCell>
                       {isDUSPUser && (
-                        <TableCell>
-                          {site.dusp_tp?.name || "N/A"}
-                        </TableCell>
+                        <TableCell>{site.dusp_tp?.name || "N/A"}</TableCell>
                       )}
                       {(isSuperAdmin || isMCMCUser) && (
                         <TableCell>
                           {site.dusp_tp_id_display || "N/A"}
                         </TableCell>
                       )}
-                      <TableCell>{getStatusBadge(site?.nd_site_status?.eng)}</TableCell>
+                      <TableCell>
+                        {getStatusBadge(site?.nd_site_status?.eng)}
+                      </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           {/* Temporarily hiding the visibility toggle button 
@@ -1196,10 +1431,9 @@ const SiteDashboard = () => {
               <DialogTitle>Confirm Deletion</DialogTitle>
             </DialogHeader>
             <div>
-              {siteToDelete ?
-                "Are you sure you want to delete this site?" :
-                `Are you sure you want to delete ${selectedSites.length} selected sites?`
-              }
+              {siteToDelete
+                ? "Are you sure you want to delete this site?"
+                : `Are you sure you want to delete ${selectedSites.length} selected sites?`}
               Type "DELETE" to confirm.
             </div>
             <Input
@@ -1236,7 +1470,9 @@ const SiteDashboard = () => {
                     } else if (selectedSites.length > 0) {
                       // Batch deletion for multiple selected sites
                       // Use Promise.all to delete all selected sites in parallel
-                      await Promise.all(selectedSites.map(id => deleteSite(id)));
+                      await Promise.all(
+                        selectedSites.map((id) => deleteSite(id))
+                      );
 
                       toast({
                         title: "Sites deleted",
@@ -1248,13 +1484,14 @@ const SiteDashboard = () => {
                     }
 
                     // Invalidate queries to refresh the data
-                    queryClient.invalidateQueries({ queryKey: ['sites'] });
-                    queryClient.invalidateQueries({ queryKey: ['site-stats'] });
+                    queryClient.invalidateQueries({ queryKey: ["sites"] });
+                    queryClient.invalidateQueries({ queryKey: ["site-stats"] });
                   } catch (error) {
                     console.error("Failed to delete site(s):", error);
                     toast({
                       title: "Error",
-                      description: "Failed to delete the site(s). Please try again.",
+                      description:
+                        "Failed to delete the site(s). Please try again.",
                       variant: "destructive",
                     });
                   } finally {

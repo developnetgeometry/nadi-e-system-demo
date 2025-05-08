@@ -10,12 +10,32 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { ArrowUp, ArrowDown, ArrowUpDown, FilePlus, Settings, Trash2, Edit, Eye } from "lucide-react";
+import {
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  FilePlus,
+  Settings,
+  Trash2,
+  Edit,
+  Eye,
+} from "lucide-react";
 import BillingFormDialog from "../BillingFormDialog";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast"; // Import the useToast hook
 import BillingPageView from "./BillingPageView";
 
@@ -24,7 +44,15 @@ interface BillingPageProps {
 }
 
 type SortDirection = "asc" | "desc" | null;
-type SortField = "id" | "type_name" | "year" | "month" | "reference_no" | "amount_bill" | "remark" | null;
+type SortField =
+  | "id"
+  | "type_name"
+  | "year"
+  | "month"
+  | "reference_no"
+  | "amount_bill"
+  | "remark"
+  | null;
 
 const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   const [refreshBilling, setRefreshBilling] = useState(false); // State to trigger re-fetch
@@ -38,7 +66,7 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   const { toast } = useToast(); // Initialize the toast hook
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false); // State to manage view dialog visibility
   const [viewData, setViewData] = useState<any>(null); // State to store the data to view
-  
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       if (sortDirection === "asc") {
@@ -109,7 +137,10 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
         .single();
 
       if (attachmentError) {
-        console.warn("No associated file found or error fetching file path:", attachmentError);
+        console.warn(
+          "No associated file found or error fetching file path:",
+          attachmentError
+        );
       } else if (attachmentData?.file_path) {
         const filePath = attachmentData.file_path;
         const relativeFilePath = filePath.split(`${BUCKET_NAME_UTILITIES}/`)[1];
@@ -122,7 +153,8 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
           console.error("Error deleting file from storage:", storageError);
           toast({
             title: "Error",
-            description: "Failed to delete the associated file. Please try again.",
+            description:
+              "Failed to delete the associated file. Please try again.",
             variant: "destructive",
           });
           return;
@@ -298,20 +330,19 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleView(item)} // Open view dialog with data
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>View</TooltipContent>
+                    </Tooltip>
 
-                  <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleView(item)} // Open view dialog with data
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>View</TooltipContent>
-                </Tooltip>
-                
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -370,11 +401,15 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this record? This action cannot be undone.
+              Are you sure you want to delete this record? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
@@ -383,7 +418,6 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
