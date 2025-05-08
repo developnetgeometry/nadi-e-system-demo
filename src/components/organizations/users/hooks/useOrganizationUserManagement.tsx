@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { UserType } from "@/types/auth";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define an extended interface for the user profile that includes user_group_name
 interface ExtendedUserProfile {
