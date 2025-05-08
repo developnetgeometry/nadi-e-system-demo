@@ -60,10 +60,6 @@ export const ViewMaintenanceDetailsDialog = ({
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Description</h3>
-            <p>{maintenanceRequest?.description}</p>
-          </div>
-          <div>
             <h3 className="text-lg font-semibold mb-2">Asset</h3>
             <p>{maintenanceRequest?.asset?.name}</p>
           </div>

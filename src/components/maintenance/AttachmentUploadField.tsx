@@ -16,7 +16,7 @@ export function AttachmentUploadField({
   onRemoveAttachment,
 }: AttachmentUploadFieldProps) {
   return (
-    <>
+    <div className="space-y-2">
       <Label htmlFor="attachment">Attachment</Label>
       <div className="space-y-4">
         {previewUrl ? (
@@ -49,9 +49,7 @@ export function AttachmentUploadField({
             )}
           </FileUpload>
         )}
-        {/* <input type="hidden" {...field} value={field.value || ""} /> */}
       </div>
-      {/* <FormMessage /> */}
-    </>
+    </div>
   );
 }

@@ -69,6 +69,75 @@ export const assetClient = {
 
     return filteredData;
   },
+  fetchAssetsByName: async (
+    organizationId: string | null,
+    siteId: string | null,
+    name: string | null
+  ): Promise<Asset[]> => {
+    if (!name) return [];
+
+    const allSites = await fetchSites(organizationId);
+
+    let query = supabase
+      .from("nd_asset")
+      .select(
+        `*,
+        nd_asset_type ( id, name ),
+        nd_brand ( id, name ),
+        site:nd_site (
+          id,
+          standard_code,
+          site_profile_id
+        )`
+      )
+      .is("deleted_at", null);
+
+    if (siteId) {
+      query = query.eq("site_id", siteId);
+    }
+
+    if (name) {
+      query = query.textSearch("name", name);
+    }
+
+    query = query.limit(5).order("id");
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching assets:", error);
+      throw error;
+    }
+
+    const formatProfile = (profile: Site) => ({
+      ...profile,
+      dusp_tp_id_display: profile?.dusp_tp?.parent
+        ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
+        : profile?.dusp_tp?.name ?? "N/A",
+    });
+
+    const filteredData = await Promise.all(
+      data.map(async (item) => {
+        let profile = null;
+
+        if (siteId) {
+          profile = await fetchSiteBySiteId(siteId);
+        } else {
+          profile = allSites.find((s) => s.id === item.site?.site_profile_id);
+          profile = formatProfile(profile);
+        }
+
+        return {
+          ...item,
+          type: item.nd_asset_type,
+          brand: item.nd_brand,
+          site: profile ? { ...profile } : null,
+        };
+      })
+    );
+
+    return filteredData;
+  },
 
   fetchAssetById: async (id: string): Promise<Asset> => {
     const { data, error } = await supabase
