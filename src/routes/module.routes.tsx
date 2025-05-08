@@ -44,12 +44,12 @@ import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnounceme
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
 import BookingManagement from "@/pages/dashboard/site/BookingManagement";
+import NADIClosure from "@/pages/dashboard/site/SiteClosure";
 import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPIPerformance";
 import NMS from "@/pages/dashboard/site/NMS";
 import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
 import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
-import SiteClosure from "@/pages/dashboard/site/SiteClosure";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -366,7 +366,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site-management/utilities-billing",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <UtilitiesBilling/>
+      <UtilitiesBilling />
       // </ProtectedRoute>
     ),
   },
@@ -490,6 +490,23 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="">
       <SiteManagementDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: "/nadi-dashboard",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <NadiDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/iot-dashboard",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <IotDashboard />
       // </ProtectedRoute>
     ),
   },
