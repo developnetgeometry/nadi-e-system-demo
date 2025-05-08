@@ -217,87 +217,91 @@ const InsurancePage: React.FC<InsurancePageProps> = ({ siteId }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableRowNumber index={index} />
-                <TableCell>{item.description ?? "N/A"}</TableCell>
-                <TableCell>{item.type_name ?? "N/A"}</TableCell>
-                <TableCell>{item.insurance_type_name ?? "N/A"}</TableCell>
-                <TableCell>
-                  {item.start_date
-                    ? new Intl.DateTimeFormat("en-GB").format(
-                        new Date(item.start_date)
-                      )
-                    : "N/A"}
-                </TableCell>
-                <TableCell>
-                  {item.end_date
-                    ? new Intl.DateTimeFormat("en-GB").format(
-                        new Date(item.end_date)
-                      )
-                    : "N/A"}
-                </TableCell>
-                <TableCell>
-                  {item.file_path ? (
-                    <a
-                      href={item.file_path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View File
-                    </a>
-                  ) : (
-                    "N/A"
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleView(item)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>View</TooltipContent>
-                    </Tooltip>
+            {data.length > 0 ? (
+              data.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableRowNumber index={index} />
+                  <TableCell>{item.description ?? "N/A"}</TableCell>
+                  <TableCell>{item.type_name ?? "N/A"}</TableCell>
+                  <TableCell>{item.insurance_type_name ?? "N/A"}</TableCell>
+                  <TableCell>
+                    {item.start_date
+                      ? new Intl.DateTimeFormat("en-GB").format(new Date(item.start_date))
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {item.end_date
+                      ? new Intl.DateTimeFormat("en-GB").format(new Date(item.end_date))
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    {item.file_path ? (
+                      <a
+                        href={item.file_path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View File
+                      </a>
+                    ) : (
+                      "N/A"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleView(item)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View</TooltipContent>
+                      </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Edit</TooltipContent>
-                    </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleEdit(item)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit</TooltipContent>
+                      </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => {
-                            setDeleteRecordId(item.id.toString()); // Set the record ID to delete
-                            setIsDeleteDialogOpen(true); // Open the dialog
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Delete</TooltipContent>
-                    </Tooltip>
-                  </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setDeleteRecordId(item.id.toString()); // Set the record ID to delete
+                              setIsDeleteDialogOpen(true); // Open the dialog
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-gray-500">
+                  No data available
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>

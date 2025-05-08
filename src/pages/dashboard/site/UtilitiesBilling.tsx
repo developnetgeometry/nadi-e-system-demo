@@ -9,7 +9,7 @@ const UtilitiesBilling = () => {
     const userGroup = parsedMetadata?.user_group;
     const userType = parsedMetadata?.user_type;
 
-    if (userGroup === 3 || userGroup === 1 || userGroup === 6 || userType === "super_admin") {
+    if (userGroup === 3 || userGroup === 1 || userGroup === 9 || userType === "super_admin") {
         return (
             <DashboardLayout>
                 <BillingOverview/>
@@ -18,7 +18,7 @@ const UtilitiesBilling = () => {
     }
 
 
-    if (userGroup === 2 || userGroup === 4 || userGroup === 5 || userGroup === 7) { // MCMC, SSO, Vendor, STAFF, MEMBER
+    if (userGroup === 2 || userGroup === 4 || userGroup === 5 || userGroup === 6 || userGroup === 7) { // MCMC, SSO, Vendor, STAFF, MEMBER
         return (
             <DashboardLayout>
                 <div className="space-y-8">

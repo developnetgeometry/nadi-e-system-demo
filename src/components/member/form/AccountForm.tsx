@@ -23,15 +23,15 @@ export function AccountForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const passwordsMatch = password === confirmPassword;
+
   return (
     <>
       <DialogTitle className="mb-4">Account Information</DialogTitle>
 
       {/* Username */}
       <div className="space-y-2 mb-4">
-        <Label className="flex items-center">
-          Username
-        </Label>
+        <Label className="flex items-center">Username</Label>
         <Input
           type="text"
           value={email}
@@ -74,6 +74,13 @@ export function AccountForm({
             value={confirmPassword}
             onChange={(e) => updateFields({ confirmPassword: e.target.value })}
             required
+            className={
+              confirmPassword && !passwordsMatch
+                ? "border-red-500"
+                : confirmPassword && passwordsMatch
+                ? "border-green-500"
+                : ""
+            }
           />
           <Button
             type="button"
@@ -84,6 +91,12 @@ export function AccountForm({
             {showConfirmPassword ? "Hide" : "Show"}
           </Button>
         </div>
+        {confirmPassword && !passwordsMatch && (
+          <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+        )}
+        {confirmPassword && passwordsMatch && (
+          <p className="text-green-500 text-sm mt-1">Passwords match</p>
+        )}
       </div>
     </>
   );

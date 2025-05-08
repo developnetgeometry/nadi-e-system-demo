@@ -67,7 +67,7 @@ export function AddressForm({
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">State <span className="text-red-500 ml-1">*</span></Label>
         <Select
-          value={state_id}
+          value={state_id || ""}
           onValueChange={(value) => {
             updateFields({ state_id: value, district_id: null }); // Set district_id to null when state changes
           }}
@@ -90,7 +90,7 @@ export function AddressForm({
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">District <span className="text-red-500 ml-1">*</span></Label>
         <Select
-          value={district_id}
+          value={district_id || ""}
           onValueChange={(value) => updateFields({ district_id: value })}
           disabled={!state_id} // Disable if state_id is not selected
           required

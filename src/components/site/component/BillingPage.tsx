@@ -266,64 +266,72 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableRowNumber index={index} />
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.type_name}</TableCell>
-                <TableCell>{item.year}</TableCell>
-                <TableCell>{item.month}</TableCell>
-                <TableCell>{item.reference_no}</TableCell>
-                <TableCell>{item.amount_bill}</TableCell>
-                <TableCell>{item.remark}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleView(item)} // Open view dialog with data
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>View</TooltipContent>
-                    </Tooltip>
+            {sorted.length > 0 ? (
+              sorted.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableRowNumber index={index} />
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.type_name}</TableCell>
+                  <TableCell>{item.year}</TableCell>
+                  <TableCell>{item.month}</TableCell>
+                  <TableCell>{item.reference_no}</TableCell>
+                  <TableCell>{item.amount_bill}</TableCell>
+                  <TableCell>{item.remark}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleView(item)} // Open view dialog with data
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View</TooltipContent>
+                      </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleEdit(item)} // Open dialog with initial data
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Edit</TooltipContent>
-                    </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleEdit(item)} // Open dialog with initial data
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit</TooltipContent>
+                      </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => {
-                            setDeleteRecordId(item.id); // Set the record ID to delete
-                            setIsDeleteDialogOpen(true); // Open the dialog
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Delete</TooltipContent>
-                    </Tooltip>
-                  </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setDeleteRecordId(item.id); // Set the record ID to delete
+                              setIsDeleteDialogOpen(true); // Open the dialog
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-gray-500">
+                  No data available
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>

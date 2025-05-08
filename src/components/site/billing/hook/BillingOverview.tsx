@@ -18,9 +18,17 @@ import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/utils/export-utils";
 import BillingPageView from "../../component/BillingPageView";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const BillingOverview = () => {
   const { data, loading, error } = useSiteBillingDynamic();
+
+    const userMetadata = useUserMetadata();
+    const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+    const userGroup = parsedMetadata?.user_group;
+    const userType = parsedMetadata?.user_type;
+    const organizationId = parsedMetadata?.organization_id;
+    const siteId = parsedMetadata?.group_profile?.site_profile_id;
 
   const [search, setSearch] = useState("");
   const [filterYear, setFilterYear] = useState<string | null>(null);

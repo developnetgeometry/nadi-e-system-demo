@@ -10,6 +10,8 @@ import {
   Activity,
   UserCheck,
   Search,
+  Edit,
+  Eye,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/auth";
@@ -436,7 +438,7 @@ const MemberManagement = () => {
                           size="icon"
                           onClick={() => handleViewDetailsClick(member.id)} // Add view details button
                         >
-                          <Search className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>

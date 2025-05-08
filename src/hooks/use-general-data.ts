@@ -16,6 +16,7 @@ const useGeneralData = () => {
   const [positions, setPositions] = useState<any[]>([]);
   const [ethnics, setEthnics] = useState<any[]>([]);
   const [statusMemberships, setStatusMemberships] = useState<any[]>([]);
+  const [identityNoTypes, setIdentityNoTypes] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -201,6 +202,19 @@ const useGeneralData = () => {
       }
     };
 
+    const fetchIdentityNoTypes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nd_identity_no_type")
+          .select("id, eng, bm");
+        if (error) throw error;
+        setIdentityNoTypes(data);
+      } catch (error) {
+        console.error("Error fetching Identity No Types:", error);
+        setError(error.message);
+      }
+    };
+
     fetchGenders();
     fetchMaritalStatuses();
     fetchRaces();
@@ -215,6 +229,7 @@ const useGeneralData = () => {
     fetchPositions();
     fetchEthnics();
     fetchStatusMemberships();
+    fetchIdentityNoTypes();
   }, []);
 
   return {
@@ -232,6 +247,7 @@ const useGeneralData = () => {
     positions,
     ethnics,
     statusMemberships,
+    identityNoTypes,
     error,
   };
 };

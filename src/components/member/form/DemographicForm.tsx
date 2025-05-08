@@ -66,7 +66,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Nationality <span className="text-red-500 ml-1">*</span></Label>
           <Select
-            value={nationality_id}
+            value={nationality_id || ""}
             onValueChange={(value) => updateFields({ nationality_id: value })}
             required
           >
@@ -87,7 +87,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Race <span className="text-red-500 ml-1">*</span></Label>
           <Select
-            value={race_id}
+            value={race_id || ""}
             onValueChange={(value) => updateFields({ race_id: value })}
             required
           >
@@ -108,7 +108,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Ethnic <span className="text-red-500 ml-1">*</span></Label>
           <Select
-            value={ethnic_id}
+            value={ethnic_id || ""}
             onValueChange={(value) => updateFields({ ethnic_id: value })}
             required
           >
@@ -129,7 +129,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Occupation</Label>
           <Select
-            value={occupation_id}
+            value={occupation_id || ""}
             onValueChange={(value) => updateFields({ occupation_id: value })}
           >
             <SelectTrigger>
@@ -149,7 +149,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Sector</Label>
           <Select
-            value={type_sector}
+            value={type_sector || ""}
             onValueChange={(value) => updateFields({ type_sector: value })}
           >
             <SelectTrigger>
@@ -169,7 +169,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Socioeconomic</Label>
           <Select
-            value={socio_id}
+            value={socio_id || ""}
             onValueChange={(value) => updateFields({ socio_id: value })}
           >
             <SelectTrigger>
@@ -189,7 +189,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Income Range</Label>
           <Select
-            value={income_range}
+            value={income_range || ""}
             onValueChange={(value) => updateFields({ income_range: value })}
           >
             <SelectTrigger>
@@ -209,7 +209,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">ICT Knowledge</Label>
           <Select
-            value={ict_knowledge}
+            value={ict_knowledge || ""}
             onValueChange={(value) => updateFields({ ict_knowledge: value })}
           >
             <SelectTrigger>
@@ -229,7 +229,7 @@ export function DemographicForm({
         <div className="space-y-2 mb-4">
           <Label className="flex items-center">Education Level</Label>
           <Select
-            value={education_level}
+            value={education_level || ""}
             onValueChange={(value) => updateFields({ education_level: value })}
           >
             <SelectTrigger>

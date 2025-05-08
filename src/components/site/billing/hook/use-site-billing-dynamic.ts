@@ -28,6 +28,7 @@ export const useSiteBillingDynamic = () => {
   const userGroup = parsedMetadata?.user_group;
   const userType = parsedMetadata?.user_type;
   const organizationId = parsedMetadata?.organization_id;
+  const siteId = parsedMetadata?.group_profile?.site_profile_id;
 
   useEffect(() => {
     const fetchBillingData = async () => {
@@ -37,28 +38,9 @@ export const useSiteBillingDynamic = () => {
         let siteIds: string[] = [];
         let dusp_tp_id: string | null = null;
 
-        // If userGroup === 6, fetch multiple site IDs from nd_staff_contract
-        if (userGroup === 6) {
-          const { data: userData, error: userError } =
-            await supabase.auth.getUser();
-          if (userError || !userData?.user) {
-            throw new Error(userError?.message || "User not found.");
-          }
-
-          const userId = userData.user.id;
-
-          const { data: staffContracts, error: staffError } = await supabase
-            .from("nd_staff_contract")
-            .select("site_profile_id")
-            .eq("user_id", userId);
-
-          if (staffError || !staffContracts || staffContracts.length === 0) {
-            throw new Error(
-              staffError?.message || "No site IDs found for the user."
-            );
-          }
-
-          siteIds = staffContracts.map((contract) => contract.site_profile_id);
+        // If userGroup === 9, use the siteId directly
+        if (userGroup === 9 && siteId) {
+          siteIds = [siteId]; // Insert siteId into an array
         }
 
         if (userGroup === 1) {
@@ -123,15 +105,7 @@ export const useSiteBillingDynamic = () => {
           .order("year", { ascending: false })
           .order("month", { ascending: false });
 
-        if (userGroup === 6 && siteIds.length > 0) {
-          utilitiesQuery = utilitiesQuery.in("site_id", siteIds);
-        }
-
-        if (userGroup === 1 && siteIds.length > 0) {
-          utilitiesQuery = utilitiesQuery.in("site_id", siteIds);
-        }
-
-        if (userGroup === 3 && userType !== "tp_site" && siteIds.length > 0) {
+        if (siteIds.length > 0) {
           utilitiesQuery = utilitiesQuery.in("site_id", siteIds);
         }
 

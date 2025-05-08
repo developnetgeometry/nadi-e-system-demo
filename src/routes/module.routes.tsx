@@ -50,6 +50,8 @@ import KPI from "@/pages/dashboard/site/KPIPerformance";
 import NMS from "@/pages/dashboard/site/NMS";
 import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
 import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
+import NadiDashboard from "@/pages/dashboard/NadiDashboard";
+import IotDashboard from "@/pages/dashboard/IotDashboard";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -481,7 +483,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site-management/closure",
     element: (
       // <ProtectedRoute requiredPermission="">
-      <SiteClosure />
+      <NADIClosure />
       // </ProtectedRoute>
     ),
   },

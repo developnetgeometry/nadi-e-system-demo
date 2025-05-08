@@ -29,6 +29,7 @@ type FormData = {
   status_entrepreneur: boolean;
   join_date: string;
   register_method: string;
+
   nationality_id: string;
   race_id: string;
   ethnic_id: string;
@@ -39,6 +40,7 @@ type FormData = {
   education_level: string;
   oku_status: boolean;
   income_range: string;
+
   distance: string;
   address1: string;
   address2: string;
@@ -46,8 +48,10 @@ type FormData = {
   state_id: string;
   city: string;
   postcode: string;
+
   pdpa_declare: boolean;
   agree_declare: boolean;
+
   password: string;
   confirmPassword: string;
 };
@@ -55,33 +59,33 @@ type FormData = {
 const INITIAL_DATA: FormData = {
   fullname: "",
   identity_no: "",
-  ref_id: "",
+  ref_id: null,
   community_status: false,
-  dob: "",
+  dob: null,
   mobile_no: "",
   email: "",
-  gender: "",
+  gender: null,
   supervision: "",
   registration_status: true,
-  status_membership: "",
+  status_membership: null,
   status_entrepreneur: false,
-  join_date: "",
+  join_date: null,
   register_method: "",
-  nationality_id: "",
-  race_id: "",
-  ethnic_id: "",
-  occupation_id: "",
-  type_sector: "",
-  socio_id: "",
-  ict_knowledge: "",
-  education_level: "",
+  nationality_id: null,
+  race_id: null,
+  ethnic_id: null,
+  occupation_id: null,
+  type_sector: null,
+  socio_id: null,
+  ict_knowledge: null,
+  education_level: null,
   oku_status: false,
-  income_range: "",
-  distance: "",
+  income_range: null,
+  distance: null,
   address1: "",
   address2: "",
-  district_id: "",
-  state_id: "",
+  district_id: null,
+  state_id: null,
   city: "",
   postcode: "",
   pdpa_declare: false,
@@ -94,7 +98,7 @@ const RegistrationDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   const [data, setData] = useState(INITIAL_DATA);
   const [error, setError] = useState("");
   const [isValidating, setIsValidating] = useState(false);
-  const { genders, statusMemberships, nationalities, races, ethnics, occupations, typeSectors, socioeconomics, incomeLevels, ictKnowledge, educationLevels } = useGeneralData();
+  const { genders, statusMemberships, nationalities, races, ethnics, occupations, typeSectors, socioeconomics, incomeLevels, ictKnowledge, educationLevels, identityNoTypes } = useGeneralData();
   const { siteProfiles } = useSiteGeneralData();
   const { states, districts, fetchDistrictsByState } = useGeoData();
   const { toast } = useToast();
@@ -111,8 +115,8 @@ const RegistrationDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     });
   };
 
-  const { currentStepIndex, step, isFirstStep, isLastStep, back, next } = useMultistepForm([
-    <PersonalForm genders={genders} statusMemberships={statusMemberships} {...data} updateFields={updateFields} validateIdentityNo={validateIdentityNo} error={error} isValidating={isValidating} />,
+  const { currentStepIndex, step, isFirstStep, isLastStep, back, next, reset } = useMultistepForm([
+    <PersonalForm genders={genders} statusMemberships={statusMemberships} identityNoTypes={identityNoTypes} {...data} updateFields={updateFields} validateIdentityNo={validateIdentityNo} error={error} isValidating={isValidating} />,
     <AddressForm states={states} districts={districts} fetchDistrictsByState={fetchDistrictsByState} {...data} updateFields={updateFields} />,
     <DemographicForm nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} socioeconomics={socioeconomics} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} {...data} updateFields={updateFields} />,
     <ReviewForm genders={genders} statusMemberships={statusMemberships} siteProfiles={siteProfiles} districts={districts} states={states} nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} socioeconomics={socioeconomics} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} {...data} updateFields={updateFields} />,
@@ -170,6 +174,11 @@ const RegistrationDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       if (!data.agree_declare) return showValidationError("Please agree to Terms and Conditions before proceeding.");
       if (!data.pdpa_declare) return showValidationError("Please agree to the PDPA declaration before proceeding.");
     }
+    if (currentStepIndex === 4) {
+      if (!data.password) return showValidationError("Please enter a password.");
+      if (!data.confirmPassword) return showValidationError("Please confirm your password.");
+      if (data.password !== data.confirmPassword) return showValidationError("Passwords do not match.");
+    }
 
     if (!isLastStep) {
       next();
@@ -178,10 +187,11 @@ const RegistrationDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         await insertMemberData(data);
         toast({
           title: "Success",
-          description: "Successful Account Creation.",
+          description: "The new member has been successfully registered.",
           variant: "default",
-        });
+        });        
         setData(INITIAL_DATA);
+        reset();
         onClose();
       } catch (error: any) {
         console.error("Error saving data:", error);
