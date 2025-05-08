@@ -231,11 +231,7 @@ export const MaintenanceRequestFormDialog = ({
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="maintenanceType">Maintenance Type</Label>
-                    <Select
-                      name="maintenanceType"
-                      required
-                      onValueChange={setMaintenanceType}
-                    >
+                    <Select name="maintenanceType" required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select maintenance type" />
                       </SelectTrigger>
@@ -251,7 +247,7 @@ export const MaintenanceRequestFormDialog = ({
 
                   <div className="space-y-2">
                     <Label htmlFor="sla">SLA</Label>
-                    <Select name="sla" required onValueChange={setSLACategory}>
+                    <Select name="sla" required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select SLA" />
                       </SelectTrigger>
