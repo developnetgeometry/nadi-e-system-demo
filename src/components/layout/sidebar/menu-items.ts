@@ -117,7 +117,10 @@ export const siteManagementItems = [
   { title: "Booking Management", path: "/site-management/booking-management" },
   { title: "NADI Closure", path: "/site-management/closure" },
   { title: "Insurance", path: "/site-management/insurance" },
-  { title: "Inventory Management", path: "/site-management/inventory-management" },
+  {
+    title: "Inventory Management",
+    path: "/site-management/inventory-management",
+  },
   { title: "Utilities Billing", path: "/site-management/utilities-billing" },
   { title: "Vendor Management", path: "/site-management/vendor-management" },
   { title: "KPI Performance", path: "/site-management/kpi-performance" },
@@ -158,22 +161,24 @@ export const dashboardItems = [
 ];
 
 export const nadiDashboardItems = [
-  { title: "NADI Information", path: "/nadi-dashboard-nadi-information" },
-  { title: "Membership", path: "/nadi-dashboard-membership" },
-  { title: "Events", path: "/nadi-dashboard-events" },
-  { title: "Maps", path: "/nadi-dashboard-aps" },
-  { title: "NADI Location", path: "/nadi-dashboard-nadi-location" },
-  { title: "Operation Hour", path: "/nadi-dashboard-operation-hour" },
-  { title: "Service Provider", path: "/nadi-dashboard-service-provider" },
-  { title: "Contact Information", path: "/nadi-dashboard-contact-information" },
-  { title: "Others", path: "/nadi-dashboard-others" },
+  { title: "NADI Dashboard", path: "/nadi-dashboard" },
+  // { title: "NADI Information", path: "/nadi-dashboard-nadi-information" },
+  // { title: "Membership", path: "/nadi-dashboard-membership" },
+  // { title: "Events", path: "/nadi-dashboard-events" },
+  // { title: "Maps", path: "/nadi-dashboard-aps" },
+  // { title: "NADI Location", path: "/nadi-dashboard-nadi-location" },
+  // { title: "Operation Hour", path: "/nadi-dashboard-operation-hour" },
+  // { title: "Service Provider", path: "/nadi-dashboard-service-provider" },
+  // { title: "Contact Information", path: "/nadi-dashboard-contact-information" },
+  // { title: "Others", path: "/nadi-dashboard-others" },
 ];
 
 export const iotDashboardItems = [
-  { title: "Rain Gauge", path: "/iot-dashboard-rain-gauge" },
-  { title: "Temperature", path: "/iot-dashboard-temperature" },
-  { title: "Humidity", path: "/iot-dashboard-humidity" },
-  { title: "Pressure", path: "/iot-dashboard-pressure" },
+  { title: "IOT Dashboard", path: "/iot-dashboard" },
+  // { title: "Rain Gauge", path: "/iot-dashboard-rain-gauge" },
+  // { title: "Temperature", path: "/iot-dashboard-temperature" },
+  // { title: "Humidity", path: "/iot-dashboard-humidity" },
+  // { title: "Pressure", path: "/iot-dashboard-pressure" },
 ];
 
 export const announcementsItems = [
