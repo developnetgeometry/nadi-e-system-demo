@@ -44,7 +44,7 @@ import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnounceme
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
 import BookingManagement from "@/pages/dashboard/site/BookingManagement";
-import NADIClosure from "@/pages/dashboard/site/SiteClosure";
+import NADIClosure from "@/pages/dashboard/site/NADIClosure";
 import Usage from "@/pages/dashboard/site/Usage";
 import KPI from "@/pages/dashboard/site/KPIPerformance";
 import NMS from "@/pages/dashboard/site/NMS";
@@ -399,14 +399,6 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <NMS />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/booking-management",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <BookingManagement />
       // </ProtectedRoute>
     ),
   },
