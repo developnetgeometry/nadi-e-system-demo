@@ -86,14 +86,13 @@ export const workflowItems = [
 ];
 
 export const memberManagementItems = [
-  { title: "Member Management", path: "/members" },
-  { title: "Member Profile", path: "/members/details" },
-  { title: "Registration", path: "/members/registration" },
-  { title: "Activity Logs", path: "/members/activity" },
+  { title: "Member Management", path: "/member-management" },
+  { title: "Registration", path: "/member-management/registration" },
+  { title: "Activity Logs", path: "/member-management/activity" },
 ];
 
 export const serviceModuleItems = [
-  { title: "Service Information", path: "/services/info" },
+  { title: "Service Information", path: "/services" },
   { title: "Transactions", path: "/services/transactions" },
 ];
 
@@ -115,16 +114,15 @@ export const complianceItems = [
 
 export const siteManagementItems = [
   { title: "Site Management", path: "/site-management" },
-  { title: "Site Profile", path: "/site" },
-  { title: "Usage", path: "/site/usage" },
-  { title: "Booking Management", path: "/site/booking-management" },
-  { title: "NADI Closure", path: "/site/closure" },
-  { title: "Insurance", path: "/site/insurance" },
-  { title: "Inventory Management", path: "/site/inventory-management" },
-  { title: "Utilities Billing", path: "/site/utilities-billing" },
-  { title: "Vendor Management", path: "/site/vendor-management" },
-  { title: "KPI Performance", path: "/site/kpi" },
-  { title: "NMS", path: "/site/nms" },
+  { title: "Usage", path: "/site-management/usage" },
+  { title: "Booking Management", path: "/site-management/booking-management" },
+  { title: "NADI Closure", path: "/site-management/closure" },
+  { title: "Insurance", path: "/site-management/insurance" },
+  { title: "Inventory Management", path: "/site-management/inventory-management" },
+  { title: "Utilities Billing", path: "/site-management/utilities-billing" },
+  { title: "Vendor Management", path: "/site-management/vendor-management" },
+  { title: "KPI Performance", path: "/site-management/kpi-performance" },
+  { title: "NMS", path: "/site-management/nms" },
 ];
 
 export const dashboardItems = [
