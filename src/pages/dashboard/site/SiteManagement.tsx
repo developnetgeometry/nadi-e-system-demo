@@ -4,6 +4,7 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import SiteDashboard from "./SiteDashboard";
 import Site from "./Site";
 import SiteDetail from "@/components/site/SiteDetail";
+import NoAccess from "@/pages/NoAccess";
 
 const SiteManagement = () => {
   const userMetadata = useUserMetadata();
@@ -31,7 +32,7 @@ const SiteManagement = () => {
     );
   }
 
-  if (!userGroup) { 
+  if (!userGroup) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center p-8">
@@ -66,35 +67,25 @@ const SiteManagement = () => {
 
   if (userGroup === 4) { // SSO
     return (
-      <DashboardLayout>
-        <SiteDashboard />
-      </DashboardLayout>
+      <NoAccess />
     );
   }
 
   if (userGroup === 5) { // Vendor
     return (
-      <DashboardLayout>
-        <SiteDashboard />
-      </DashboardLayout>
+      <NoAccess />
     );
   }
 
   if (userGroup === 6) { // Staff
     return (
-      <DashboardLayout>
-        <Site />
-      </DashboardLayout>
+      <NoAccess />
     );
   }
 
   if (userGroup === 7) { // Member
     return (
-      <DashboardLayout>
-        <div className="space-y-8">
-          <p>You have no permission to this page</p>
-        </div>
-      </DashboardLayout>
+      <NoAccess />
     );
   }
 
@@ -107,12 +98,7 @@ const SiteManagement = () => {
   }
 
   return (
-    <DashboardLayout>
-      <ProfileHeader />
-      <div className="space-y-8">
-        <p>User type not recognized.</p>
-      </div>
-    </DashboardLayout>
+    <NoAccess />
   );
 };
 

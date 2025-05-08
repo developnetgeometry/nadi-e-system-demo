@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogTrigger, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText, MapPin, User } from "lucide-react";
 
@@ -128,12 +128,8 @@ export function ReviewForm({
 
   return (
     <>
-      <div className="flex flex-col gap-1 mb-6">
-        <h1 className="font-bold text-xl">Review Details</h1>
-        <p className="text-muted-foreground">
-          Review all the information you have provided and ensure that it is correct.
-        </p>
-      </div>
+      <DialogTitle className="mb-4">Review Details</DialogTitle>
+      
       <div className="border rounded-md p-4">
         <h3 className="font-semibold mb-2 flex items-center">
           <User className="h-4 w-4 mr-2" />
@@ -413,7 +409,7 @@ export function ReviewForm({
       </div>
 
       {/* Agree Declaration */}
-      <div className="space-y-2 flex items-center">
+      <div className="space-y-2 flex items-center mt-4">
         <Dialog open={isAgreeDialogOpen} onOpenChange={setIsAgreeDialogOpen}>
           <DialogTrigger asChild>
             <Checkbox

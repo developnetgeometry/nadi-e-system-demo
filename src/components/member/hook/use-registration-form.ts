@@ -215,11 +215,17 @@ export const validateIdentityNo = async (identity_no: string) => {
       .eq("ic_number", identity_no) // Use the raw identity_no directly
       .single();
 
-    if (profileError || !profileData) {
-      throw new Error("This IC number does not register to this system.");
+    if (profileError && profileError.code !== "PGRST116") {
+      // Handle unexpected errors (PGRST116 indicates no rows found)
+      throw new Error(profileError.message || "Error fetching profile data.");
     }
 
-    return profileData.id; // Return the user ID if found
+    if (profileData) {
+      // If the user is already registered, throw an error
+      throw new Error("This IC number is already registered to this system.");
+    }
+
+    // If no profileData is found, do nothing (implicitly return undefined)
   } catch (error) {
     console.error("Error validating identity_no:", error);
     throw error; // Re-throw the error to be handled by the caller
