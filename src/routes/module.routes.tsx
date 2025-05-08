@@ -43,13 +43,15 @@ import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSe
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import DashboardPage from "@/pages/dashboard/Dashboard";
-import { BookingManagement } from "@/pages/dashboard/site/BookingManagement";
-import NADIClosure from "@/pages/dashboard/site/NADIClosure";
+import BookingManagement from "@/pages/dashboard/site/BookingManagement";
+import NADIClosure from "@/pages/dashboard/site/SiteClosure";
 import Usage from "@/pages/dashboard/site/Usage";
-import KPI from "@/pages/dashboard/site/KPI";
+import KPI from "@/pages/dashboard/site/KPIPerformance";
 import NMS from "@/pages/dashboard/site/NMS";
 import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
-import Billing from "@/pages/dashboard/site/Billing";
+import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
+import NadiDashboard from "@/pages/dashboard/NadiDashboard";
+import IotDashboard from "@/pages/dashboard/IotDashboard";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -363,10 +365,10 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   {
-    path: "/site/utilities-billing",
+    path: "/site-management/utilities-billing",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <Billing/>
+      <UtilitiesBilling />
       // </ProtectedRoute>
     ),
   },
@@ -379,7 +381,7 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   {
-    path: "/site/usage",
+    path: "/site-management/usage",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <Usage />
@@ -387,7 +389,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site/kpi",
+    path: "/site-management/kpi",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <KPI />
@@ -395,7 +397,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site/nms",
+    path: "/site-management/nms",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <NMS />
@@ -403,15 +405,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site/booking-management",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <BookingManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site/booking-management",
+    path: "/site-management/booking-management",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <BookingManagement />
@@ -471,7 +465,7 @@ export const moduleRoutes: RouteObject[] = [
   {
     path: "/takwim",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
+      // <ProtectedRoute requiredPermission="">
       <Takwim />
       // </ProtectedRoute>
     ),
@@ -480,15 +474,15 @@ export const moduleRoutes: RouteObject[] = [
   {
     path: "/dashboard/home",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
+      // <ProtectedRoute requiredPermission="">
       <DashboardPage />
       // </ProtectedRoute>
     ),
   },
   {
-    path: "/site/closure",
+    path: "/site-management/closure",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
+      // <ProtectedRoute requiredPermission="">
       <NADIClosure />
       // </ProtectedRoute>
     ),
@@ -496,8 +490,25 @@ export const moduleRoutes: RouteObject[] = [
   {
     path: "/dashboard/site-management",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
+      // <ProtectedRoute requiredPermission="">
       <SiteManagementDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: "/nadi-dashboard",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <NadiDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/iot-dashboard",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <IotDashboard />
       // </ProtectedRoute>
     ),
   },
