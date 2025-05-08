@@ -41,10 +41,11 @@ export const useOrganizationUserManagement = () => {
       : [
           "tp_admin",
           "tp_management",
-          "tp_region",
+          "tp_pic",
           "tp_hr",
           "tp_finance",
           "tp_operation",
+          "tp_site",
         ];
 
   // Get user groups based on organization type
