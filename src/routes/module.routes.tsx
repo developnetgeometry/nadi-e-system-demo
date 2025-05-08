@@ -25,6 +25,8 @@ import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
+import POSSales from "@/pages/dashboard/pos/POSSales";
+import PUDO from "@/pages/dashboard/pos/PUDO";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
@@ -139,6 +141,22 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_pos_transactions">
       <POSTransactions />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pos/sales",
+    element: (
+      // <ProtectedRoute requiredPermission="view_pos_transactions">
+      <POSSales />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pos/PUDO",
+    element: (
+      // <ProtectedRoute requiredPermission="view_pos_transactions">
+      <PUDO />
       // </ProtectedRoute>
     ),
   },
