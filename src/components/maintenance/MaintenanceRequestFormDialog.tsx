@@ -114,7 +114,33 @@ export const MaintenanceRequestFormDialog = ({
       }
     }
 
+    /**
+     * Docket number generation
+     * Format: XYYYYMMDDHHMMSSTT
+     *
+     * X: 1 -> cm, 2 -> pm
+     * YYYY: year
+     * MM: month
+     * DD: day
+     * HH: hour
+     * MM: minute
+     * SS: second
+     * TT: type_id
+     */
+    const now = new Date();
+
+    const docketNumber =
+      (maintenanceDocketType === MaintenanceDocketType.Corrective ? "1" : "2") +
+      now.getFullYear() +
+      ("0" + (now.getMonth() + 1)).slice(-2) +
+      ("0" + now.getDate()).slice(-2) +
+      ("0" + now.getHours()).slice(-2) +
+      ("0" + now.getMinutes()).slice(-2) +
+      ("0" + now.getSeconds()).slice(-2) +
+      ("0" + Number(formData.get("maintenanceType") ?? "")).slice(-2);
+
     const request = {
+      no_docket: docketNumber,
       description: description,
       asset_id: selectedAsset?.id as number,
       type_id: Number(formData.get("maintenanceType")),
@@ -123,55 +149,33 @@ export const MaintenanceRequestFormDialog = ({
     };
 
     try {
-      if (maintenanceRequest) {
-        const { error: updateError } = await supabase
-          .from("nd_maintenance_request")
-          .update({
+      const { error: insertError } = await supabase
+        .from("nd_maintenance_request")
+        .insert([
+          {
             ...request,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", maintenanceRequest.id);
+            created_at: now.toISOString(),
+            updated_at: now.toISOString(),
+          },
+        ]);
 
-        if (updateError) throw updateError;
+      if (insertError) throw insertError;
 
-        toast({
-          title: "Maintenance Request updated successfully",
-          description:
-            "The maintenance request has been updated in the system.",
-        });
-      } else {
-        const { error: insertError } = await supabase
-          .from("nd_maintenance_request")
-          .insert([
-            {
-              ...request,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          ]);
-
-        if (insertError) throw insertError;
-
-        toast({
-          title: "Maintenance Request added successfully",
-          description:
-            "The new maintenance request has been added to the system.",
-        });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["maintenanceRequests"] });
-      onOpenChange(false);
+      toast({
+        title: "Maintenance Request added successfully",
+        description:
+          "The new maintenance request has been added to the system.",
+      });
     } catch (error) {
       console.error("Error adding maintenance request:", error);
       toast({
         title: "Error",
-        description: `Failed to ${
-          maintenanceRequest ? "update" : "add"
-        } the maintenance request. Please try again.`,
+        description: `Failed to add the maintenance request. Please try again.`,
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
+      onOpenChange(false);
     }
   };
 
@@ -242,22 +246,6 @@ export const MaintenanceRequestFormDialog = ({
                       </SelectTrigger>
                       <SelectContent>
                         {maintenanceTypes.map((type, index) => (
-                          <SelectItem key={index} value={type.id.toString()}>
-                            {type?.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="sla">SLA</Label>
-                    <Select name="sla" required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select SLA" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {slaCategories.map((type, index) => (
                           <SelectItem key={index} value={type.id.toString()}>
                             {type?.name}
                           </SelectItem>

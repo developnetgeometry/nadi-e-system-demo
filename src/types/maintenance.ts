@@ -2,6 +2,7 @@ import { Asset } from "@/types/asset";
 
 export interface MaintenanceRequest {
   id: number;
+  no_docket: string;
   description: string;
   asset_id?: number;
   asset?: Asset;

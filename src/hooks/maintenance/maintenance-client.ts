@@ -19,7 +19,8 @@ export const maintenanceClient = {
           name,
           site_id
         )`
-      );
+      )
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching maintenance requests:", error);

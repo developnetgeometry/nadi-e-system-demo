@@ -3868,6 +3868,7 @@ export type Database = {
       nd_maintenance_request: {
         Row: {
           id: number;
+          no_docket: string | null;
           asset_id: number | null;
           description: string | null;
           type_id?: number | null;
@@ -3880,6 +3881,7 @@ export type Database = {
           updated_by: string | null;
         };
         Insert: {
+          no_docket: string | null;
           asset_id?: number | null;
           description?: string | null;
           type_id?: number | null;
