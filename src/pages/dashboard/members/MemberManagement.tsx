@@ -134,7 +134,7 @@ const MemberManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-6 flex items-start justify-between">
             <div>
-              <h3 className="text-lg text-gray-600">Total Members</h3>
+              <h3 className="text-l text-gray-600">Total Members</h3>
               <p className="text-3xl font-bold">{stats.totalMembers}</p>
               <p className="text-sm text-green-500">↑ 8% vs last month</p>
             </div>
@@ -145,9 +145,9 @@ const MemberManagement = () => {
 
           <Card className="p-6 flex items-start justify-between">
             <div>
-              <h3 className="text-lg text-gray-600">Premium Members</h3>
+              <h3 className="text-l text-gray-600">MADANI Community</h3>
               <p className="text-3xl font-bold">{stats.premiumMembers}</p>
-              <p className="text-sm text-green-500">↑ 12% vs last month</p>
+              {/* <p className="text-sm text-green-500">↑ 12% vs last month</p> */}
             </div>
             <div className="bg-purple-100 p-3 rounded-full">
               <Users className="h-6 w-6 text-purple-600" />
@@ -156,9 +156,9 @@ const MemberManagement = () => {
 
           <Card className="p-6 flex items-start justify-between">
             <div>
-              <h3 className="text-lg text-gray-600">Active Members</h3>
+              <h3 className="text-l text-gray-600">Active Members</h3>
               <p className="text-3xl font-bold">{stats.activeMembers}</p>
-              <p className="text-sm text-green-500">↑ 5% vs last month</p>
+              {/* <p className="text-sm text-green-500">↑ 5% vs last month</p> */}
             </div>
             <div className="bg-green-100 p-3 rounded-full">
               <UserCheck className="h-6 w-6 text-green-600" />
@@ -167,14 +167,14 @@ const MemberManagement = () => {
 
           <Card className="p-6 flex items-start justify-between">
             <div>
-              <h3 className="text-lg text-gray-600">Recent Activity</h3>
-              <p className="text-3xl font-bold">3 min ago</p>
+              <h3 className="text-l text-gray-600">Entrepreneur Members</h3>
+              <p className="text-3xl font-bold">0</p>
               <p className="text-sm text-gray-500">
                 Last registration: 15 minutes ago
               </p>
             </div>
             <div className="bg-amber-100 p-3 rounded-full">
-              <Clock className="h-6 w-6 text-amber-600" />
+              <Users className="h-6 w-6 text-amber-600" />
             </div>
           </Card>
         </div>

@@ -52,6 +52,7 @@ import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManage
 import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
 import NadiDashboard from "@/pages/dashboard/NadiDashboard";
 import IotDashboard from "@/pages/dashboard/IotDashboard";
+import Insurance from "@/pages/dashboard/site/Insurance";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -372,14 +373,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/site/insurance",
-  //   element: (
-  //     // <ProtectedRoute requiredPermission="view_site_details">
-  //     <Usage/>
-  //     // </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/site-management/insurance",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Insurance/>
+      // </ProtectedRoute>
+    ),
+  },
   {
     path: "/site-management/usage",
     element: (

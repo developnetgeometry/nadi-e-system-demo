@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 interface BillingData {
   id: string;
@@ -18,83 +17,15 @@ interface BillingData {
   standard_code?: string;
 }
 
-export const useSiteBillingDynamic = () => {
+export const useSiteBillingDynamic = (siteIds: string[], refresh: boolean) => {
   const [data, setData] = useState<BillingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const userMetadata = useUserMetadata();
-  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-  const userGroup = parsedMetadata?.user_group;
-  const userType = parsedMetadata?.user_type;
-  const organizationId = parsedMetadata?.organization_id;
-  const siteId = parsedMetadata?.group_profile?.site_profile_id;
 
   useEffect(() => {
     const fetchBillingData = async () => {
       try {
         setLoading(true);
-
-        let siteIds: string[] = [];
-        let dusp_tp_id: string | null = null;
-
-        // If userGroup === 9, use the siteId directly
-        if (userGroup === 9 && siteId) {
-          siteIds = [siteId]; // Insert siteId into an array
-        }
-
-        if (userGroup === 1) {
-          const { data: organization, error: organizationError } =
-            await supabase
-              .from("organizations")
-              .select("id")
-              .eq("parent_id", organizationId)
-              .single();
-
-          if (organizationError || !organization?.id) {
-            throw new Error(
-              organizationError?.message || "DUSP TP ID not found."
-            );
-          }
-
-          dusp_tp_id = organization.id;
-
-          // Fetch site IDs from nd_site_profile where dusp_tp_id matches
-          const { data: siteProfiles, error: siteProfilesError } =
-            await supabase
-              .from("nd_site_profile")
-              .select("id")
-              .eq("dusp_tp_id", dusp_tp_id);
-
-          if (siteProfilesError || !siteProfiles || siteProfiles.length === 0) {
-            throw new Error(
-              siteProfilesError?.message ||
-                "No site IDs found for the DUSP TP ID."
-            );
-          }
-
-          siteIds = siteProfiles.map((profile) => profile.id);
-        }
-
-        if (userGroup === 3 && userType !== "tp_site") {
-          dusp_tp_id = organizationId;
-
-          // Fetch site IDs from nd_site_profile where dusp_tp_id matches
-          const { data: siteProfiles, error: siteProfilesError } =
-            await supabase
-              .from("nd_site_profile")
-              .select("id")
-              .eq("dusp_tp_id", dusp_tp_id);
-
-          if (siteProfilesError || !siteProfiles || siteProfiles.length === 0) {
-            throw new Error(
-              siteProfilesError?.message ||
-                "No site IDs found for the DUSP TP ID."
-            );
-          }
-
-          siteIds = siteProfiles.map((profile) => profile.id);
-        }
 
         // Fetch utilities data
         let utilitiesQuery = supabase
@@ -105,9 +36,7 @@ export const useSiteBillingDynamic = () => {
           .order("year", { ascending: false })
           .order("month", { ascending: false });
 
-        if (siteIds.length > 0) {
-          utilitiesQuery = utilitiesQuery.in("site_id", siteIds);
-        }
+        utilitiesQuery = utilitiesQuery.in("site_id", siteIds);
 
         const { data: utilities, error: utilitiesError } = await utilitiesQuery;
 
@@ -183,7 +112,7 @@ export const useSiteBillingDynamic = () => {
     };
 
     fetchBillingData();
-  }, [userType, userGroup]);
+  }, [siteIds, refresh]); // Add refresh to dependency array
 
   return { data, loading, error };
 };

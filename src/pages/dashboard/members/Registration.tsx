@@ -116,7 +116,7 @@ const RegistrationDialog = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
   };
 
   const { currentStepIndex, step, isFirstStep, isLastStep, back, next, reset } = useMultistepForm([
-    <PersonalForm genders={genders} statusMemberships={statusMemberships} identityNoTypes={identityNoTypes} {...data} updateFields={updateFields} validateIdentityNo={validateIdentityNo} error={error} isValidating={isValidating} />,
+    <PersonalForm genders={genders} statusMemberships={statusMemberships}  {...data} updateFields={updateFields} validateIdentityNo={validateIdentityNo} error={error} isValidating={isValidating} />,
     <AddressForm states={states} districts={districts} fetchDistrictsByState={fetchDistrictsByState} {...data} updateFields={updateFields} />,
     <DemographicForm nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} socioeconomics={socioeconomics} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} {...data} updateFields={updateFields} />,
     <ReviewForm genders={genders} statusMemberships={statusMemberships} siteProfiles={siteProfiles} districts={districts} states={states} nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} socioeconomics={socioeconomics} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} {...data} updateFields={updateFields} />,
