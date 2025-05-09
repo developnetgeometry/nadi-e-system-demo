@@ -25,6 +25,7 @@ export enum MaintenanceDocketType {
 }
 
 export enum MaintenanceStatus {
+  Approved = "approved",
   Issued = "issued",
   InProgress = "in_progress",
   Completed = "completed",

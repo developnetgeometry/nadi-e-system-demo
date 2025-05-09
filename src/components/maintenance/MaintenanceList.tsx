@@ -398,6 +398,7 @@ export const MaintenanceList = ({
         open={isViewDetailsDialogOpen}
         onOpenChange={setIsViewDetailsDialogOpen}
         maintenanceRequest={selectedItem}
+        userMetadata={parsedMetadata}
       />
     </div>
   );

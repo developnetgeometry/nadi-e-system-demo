@@ -18,8 +18,8 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
   humanizeMaintenanceStatus,
-  MaintenanceDocketType,
   MaintenanceRequest,
+  MaintenanceStatus,
 } from "@/types/maintenance";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -29,15 +29,15 @@ export interface ViewMaintenanceDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   maintenanceRequest?: MaintenanceRequest;
+  userMetadata?: Record<string, unknown>; // Use Record<string, any>
 }
 
 export const ViewMaintenanceDetailsDialog = ({
   open,
   onOpenChange,
   maintenanceRequest,
+  userMetadata,
 }: ViewMaintenanceDetailsDialogProps) => {
-  const maintenanceDocketTypes = Object.values(MaintenanceDocketType);
-
   const {
     attachmentFile,
     attachmentPreviewUrl,
@@ -51,6 +51,48 @@ export const ViewMaintenanceDetailsDialog = ({
   if (maintenanceRequest?.attachment) {
     const attachmenUrl = new URL(maintenanceRequest?.attachment);
     attachmentFileName = attachmenUrl.pathname.split("/").pop();
+  }
+
+  function UpdateDUSP() {
+    const updateStatus = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+
+      setIsSubmitting(true);
+
+      try {
+        const { error: updateError } = await supabase
+          .from("nd_maintenance_request")
+          .update({
+            status: MaintenanceStatus.Approved,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", maintenanceRequest.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Success",
+          description: `The maintenance request has been successfully approved.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to update the maintenance request. Please try again.`,
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+        onOpenChange(false);
+      }
+    };
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    return (
+      <form onSubmit={updateStatus} className="space-y-4">
+        <Button type="submit" disabled={isSubmitting} className="pt-2 w-full">
+          {isSubmitting ? "Updating..." : "Approve"}
+        </Button>
+      </form>
+    );
   }
 
   function UpdateSLACategory() {
@@ -185,6 +227,8 @@ export const ViewMaintenanceDetailsDialog = ({
             )}
           </div>
           {maintenanceRequest?.sla_id == null && <UpdateSLACategory />}
+          {maintenanceRequest?.sla?.min_day >= 15 &&
+            userMetadata?.user_group_name == "DUSP" && <UpdateDUSP />}
         </div>
       </DialogContent>
     </Dialog>
