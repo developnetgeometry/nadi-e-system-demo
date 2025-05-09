@@ -5,14 +5,6 @@ import FilterBar from "./component/FilterBar";
 import { Badge } from "../ui/badge";
 import DataCard from "./component/DataCard";
 import { useEffect, useState } from "react";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import { useAssets } from "@/hooks/use-assets";
 import { UseQueryResult } from "@tanstack/react-query";
 import { Asset } from "@/types/asset";
