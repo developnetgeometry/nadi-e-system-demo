@@ -1,5 +1,4 @@
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 
 export function useAttachment() {
@@ -45,23 +44,13 @@ export function useAttachment() {
       const file = attachmentFile;
       if (!file) return;
 
-      const { data, error } = await supabase.storage
-        .from("maintenance-attachment")
-        .upload(`maintenance/${file.name}`, file, {
-          contentType: file.type,
-          upsert: true,
-        });
+      const url = await uploadFile(
+        file,
+        "maintenance-attachment",
+        "maintenance"
+      );
 
-      if (error) {
-        console.error("Upload error:", error);
-        return;
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from("maintenance-attachment")
-        .getPublicUrl(data.path);
-
-      return publicUrlData.publicUrl;
+      return url;
     } catch (error) {
       console.error("Error uploading attachment:", error);
       return null;
