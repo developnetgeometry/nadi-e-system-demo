@@ -12,14 +12,14 @@ export const menuItems = [
     path: "/admin/state-holidays",
     visibleTo: ["super_admin"],
   },
-  { title: "Notifications", path: "/admin/notifications" },
+  { title: "Notification Management", path: "/admin/notification-management" },
   { title: "Organizations", path: "/admin/organizations" },
   { title: "Settings", path: "/admin/settings" },
 ];
 
 export const hrMenuItems = [
   { title: "HR Dashboard", path: "/hr" },
-  { title: "HR Settings", path: "/under-development" },
+  { title: "HR Settings", path: "/hr/settings" },
   { title: "Staff Management", path: "/hr/employees" },
   { title: "Site Staff Management", path: "/hr/site-staff" },
   { title: "Leave Management", path: "/hr/leave" },
@@ -31,6 +31,7 @@ export const hrMenuItems = [
 export const posMenuItems = [
   { title: "POS Dashboard", path: "/pos" },
   { title: "Products", path: "/pos/products" },
+  { title: "Sales", path: "/pos/sales" },
   { title: "Transactions", path: "/pos/transactions" },
   { title: "PUDO", path: "/pos/pudo" },
 ];
@@ -85,14 +86,12 @@ export const workflowItems = [
 ];
 
 export const memberManagementItems = [
-  { title: "Member Management", path: "/dashboard/members" },
-  { title: "Member Profile", path: "/dashboard/members/details" },
-  { title: "Registration", path: "/dashboard/members/registration" },
-  { title: "Activity Logs", path: "/dashboard/members/activity" },
+  { title: "Member Management", path: "/member-management" },
+  { title: "Activity Logs", path: "/member-management/activity" },
 ];
 
 export const serviceModuleItems = [
-  { title: "Service Information", path: "/services/info" },
+  { title: "Service Information", path: "/services" },
   { title: "Transactions", path: "/services/transactions" },
 ];
 
@@ -114,60 +113,89 @@ export const complianceItems = [
 
 export const siteManagementItems = [
   { title: "Site Management", path: "/site-management" },
-  { title: "Site Profile", path: "/site" },
-  { title: "Usage", path: "/site/usage" },
-  { title: "Booking Management", path: "/site/booking-management" },
-  { title: "NADI Closure", path: "/site/closure" },
-  { title: "Insurance", path: "/site/insurance" },
-  { title: "Inventory Management", path: "/site/inventory-management" },
-  { title: "Utilities Billing", path: "/site/utilities-billing" },
-  { title: "Vendor Management", path: "/site/vendor-management" },
-  { title: "KPI Performance", path: "/site/kpi" },
-  { title: "NMS", path: "/site/nms" },
+  { title: "Usage", path: "/site-management/usage" },
+  { title: "Booking Management", path: "/site-management/booking-management" },
+  { title: "NADI Closure", path: "/site-management/closure" },
+  { title: "Insurance", path: "/site-management/insurance" },
+  {
+    title: "Inventory Management",
+    path: "/site-management/inventory-management",
+  },
+  { title: "Utilities Billing", path: "/site-management/utilities-billing" },
+  { title: "Vendor Management", path: "/site-management/vendor-management" },
+  { title: "KPI Performance", path: "/site-management/kpi-performance" },
+  { title: "NMS", path: "/site-management/nms" },
 ];
 
 export const dashboardItems = [
-  { title: "Home", path: "/dashboard" },
-  { title: "Membership", path: "/member" },
-  { title: "Smart Services", path: "/smart-services" },
-  { title: "Operation", path: "/operation" },
-  { title: "Takwim", path: "/takwim" },
-  { title: "Claim", path: "/claim" },
-  { title: "Staff Summary", path: "/staff-summary" },
-  { title: "Leave Summary", path: "/leave-summary" },
-  { title: "Attendance", path: "/attendance" },
-  { title: "Site Management", path: "/site-management" },
-  { title: "Staff Training", path: "/staff-training" },
-  { title: "Payroll", path: "/payroll" },
-  { title: "Calendar", path: "/calendar" },
-  { title: "Leave Application Summary", path: "/leave-application-summary" },
-  { title: "Replacement Leave Summary", path: "/replacement-leave-summary" },
-  { title: "Events", path: "/events" },
-  { title: "Health", path: "/health" },
-  { title: "PC Booking", path: "/pc-booking" },
-  { title: "Upcoming Event", path: "/upcoming-event" },
-  { title: "Participations", path: "/participation" },
-  { title: "Event Breakdown", path: "/event-breakdown" },
-  { title: "Docket Status", path: "/docket-status" },
-  { title: "Technician", path: "/technician" },
-  { title: "Graph", path: "/graph" },
+  { title: "Home", path: "/dahsboard/home" },
+  { title: "Membership", path: "/dahsboard/member" },
+  { title: "Smart Services", path: "/dahsboard/smart-services" },
+  { title: "Operation", path: "/dahsboard/operation" },
+  { title: "Takwim", path: "/dahsboard/takwim" },
+  { title: "Claim", path: "/dahsboard/claim" },
+  { title: "Staff Summary", path: "/dahsboard/staff-summary" },
+  { title: "Leave Summary", path: "/dahsboard/leave-summary" },
+  { title: "Attendance", path: "/dahsboard/attendance" },
+  { title: "Site Management", path: "/dahsboard/site-management" },
+  { title: "Staff Training", path: "/dahsboard/staff-training" },
+  { title: "Payroll", path: "/dahsboard/payroll" },
+  { title: "Calendar", path: "/dahsboard/calendar" },
+  {
+    title: "Leave Application Summary",
+    path: "/dahsboard-leave-application-summary",
+  },
+  {
+    title: "Replacement Leave Summary",
+    path: "/dahsboard-replacement-leave-summary",
+  },
+  { title: "Events", path: "/dahsboard-events" },
+  { title: "Health", path: "/dahsboard-health" },
+  { title: "PC Booking", path: "/dahsboard-pc-booking" },
+  { title: "Upcoming Event", path: "/dahsboard-upcoming-event" },
+  { title: "Participations", path: "/dahsboard-participation" },
+  { title: "Event Breakdown", path: "/dahsboard-event-breakdown" },
+  { title: "Docket Status", path: "/dahsboard-docket-status" },
+  { title: "Technician", path: "/dahsboard-technician" },
+  { title: "Graph", path: "/dahsboard-graph" },
 ];
 
 export const nadiDashboardItems = [
-  { title: "NADI Information", path: "/nadi-information" },
-  { title: "Membership", path: "/membership" },
-  { title: "Events", path: "/events" },
-  { title: "Maps", path: "/maps" },
-  { title: "NADI Location", path: "/nadi-location" },
-  { title: "Operation Hour", path: "/operation-hour" },
-  { title: "Service Provider", path: "/service-provider" },
-  { title: "Contact Information", path: "/contact-information" },
-  { title: "Others", path: "/others" },
+  { title: "NADI Dashboard", path: "/nadi-dashboard" },
+  // { title: "NADI Information", path: "/nadi-dashboard-nadi-information" },
+  // { title: "Membership", path: "/nadi-dashboard-membership" },
+  // { title: "Events", path: "/nadi-dashboard-events" },
+  // { title: "Maps", path: "/nadi-dashboard-aps" },
+  // { title: "NADI Location", path: "/nadi-dashboard-nadi-location" },
+  // { title: "Operation Hour", path: "/nadi-dashboard-operation-hour" },
+  // { title: "Service Provider", path: "/nadi-dashboard-service-provider" },
+  // { title: "Contact Information", path: "/nadi-dashboard-contact-information" },
+  // { title: "Others", path: "/nadi-dashboard-others" },
 ];
 
 export const iotDashboardItems = [
-  { title: "Rain Gauge", path: "/iot-rain-gauge" },
-  { title: "Temperature", path: "/iot-temperature" },
-  { title: "Humidity", path: "/iot-humidity" },
-  { title: "Pressure", path: "/iot-pressure" },
+  { title: "IOT Dashboard", path: "/iot-dashboard" },
+  // { title: "Rain Gauge", path: "/iot-dashboard-rain-gauge" },
+  // { title: "Temperature", path: "/iot-dashboard-temperature" },
+  // { title: "Humidity", path: "/iot-dashboard-humidity" },
+  // { title: "Pressure", path: "/iot-dashboard-pressure" },
+];
+
+export const announcementsItems = [
+  { title: "Announcements", path: "/announcements" },
+  { title: "Create Announcements", path: "/announcements/create-announcement" },
+  {
+    title: "Announcements Settings",
+    path: "/announcements/announcements-settings",
+  },
+];
+
+export const takwimItems = [
+  { title: "Takwim Management", path: "/takwim" },
+  { title: "Takwim Settings", path: "/takwim/settings" },
+];
+
+export const bookingItems = [
+  { title: "Booking Management", path: "/booking" },
+  { title: "Booking Settings", path: "/booking/settings" },
 ];

@@ -1,4 +1,3 @@
-
 import { supabase } from "./supabase";
 
 export async function createStaffMember(staffData: any) {
@@ -39,17 +38,18 @@ export async function createStaffMember(staffData: any) {
 
     // 1. Create auth user through admin API instead of regular signup
     // This prevents session switching
-    const { data: authUser, error: authError } = await supabase.functions.invoke('create-user', {
-      body: {
-        email: staffData.email,
-        password: generateTemporaryPassword(),
-        fullName: staffData.name,
-        userType: staffData.userType,
-        icNumber: staffData.ic_number,
-        phoneNumber: staffData.phone_number,
-        createdBy: currentUser.id
-      }
-    });
+    const { data: authUser, error: authError } =
+      await supabase.functions.invoke("create-user", {
+        body: {
+          email: staffData.email,
+          password: generateTemporaryPassword(),
+          fullName: staffData.name,
+          userType: staffData.userType,
+          icNumber: staffData.ic_number,
+          phoneNumber: staffData.phone_number,
+          createdBy: currentUser.id,
+        },
+      });
 
     if (authError) {
       console.error("Error creating auth user:", authError);
@@ -64,13 +64,13 @@ export async function createStaffMember(staffData: any) {
 
     // Current timestamp for standardization
     const timestamp = new Date().toISOString();
-    
+
     // Metadata object used in all INSERT operations
     const metaData = {
       created_by: currentUser.id,
       created_at: timestamp,
       updated_by: currentUser.id,
-      updated_at: timestamp
+      updated_at: timestamp,
     };
 
     // 2. Create staff profile - Ensure proper data types are used and add metadata
@@ -83,7 +83,7 @@ export async function createStaffMember(staffData: any) {
         mobile_no: staffData.phone_number,
         work_email: staffData.email,
         is_active: staffData.status === "Active",
-        ...metaData  // Add standard metadata
+        ...metaData, // Add standard metadata
       })
       .select()
       .single();
@@ -125,7 +125,7 @@ export async function createStaffMember(staffData: any) {
       site_id: siteLocationId, // Make sure this is properly converted to a bigint
       join_date: staffData.employDate,
       is_active: true,
-      ...metaData  // Add standard metadata
+      ...metaData, // Add standard metadata
     });
 
     if (jobError) {
@@ -134,51 +134,59 @@ export async function createStaffMember(staffData: any) {
     }
 
     // Initialize other staff-related tables that we want to provision with this staff member
-    
+
     // Create empty staff pay info record
-    const { error: payInfoError } = await supabase.from("nd_staff_pay_info").insert({
-      staff_id: staffProfile.id,
-      ...metaData
-    });
-    
+    const { error: payInfoError } = await supabase
+      .from("nd_staff_pay_info")
+      .insert({
+        staff_id: staffProfile.id,
+        ...metaData,
+      });
+
     if (payInfoError) {
       console.error("Staff pay info creation error:", payInfoError);
       // Not throwing, as this is a non-critical error
     }
-    
+
     // Create default staff address record (empty)
-    const { error: addressError } = await supabase.from("nd_staff_address").insert({
-      staff_id: staffProfile.id,
-      is_active: true,
-      ...metaData
-    });
-    
+    const { error: addressError } = await supabase
+      .from("nd_staff_address")
+      .insert({
+        staff_id: staffProfile.id,
+        is_active: true,
+        ...metaData,
+      });
+
     if (addressError) {
       console.error("Staff address creation error:", addressError);
       // Not throwing, as this is a non-critical error
     }
-    
+
     // Create default staff contact (emergency contact) record (empty)
-    const { error: contactError } = await supabase.from("nd_staff_contact").insert({
-      staff_id: staffProfile.id,
-      ...metaData
-    });
-    
+    const { error: contactError } = await supabase
+      .from("nd_staff_contact")
+      .insert({
+        staff_id: staffProfile.id,
+        ...metaData,
+      });
+
     if (contactError) {
       console.error("Staff contact creation error:", contactError);
       // Not throwing, as this is a non-critical error
     }
-    
+
     // Create initial staff contract record
-    const { error: contractError } = await supabase.from("nd_staff_contract").insert({
-      staff_id: staffProfile.id,
-      is_active: true,
-      site_id: siteLocationId,
-      contract_start: staffData.employDate,
-      user_id: authUser.id,
-      ...metaData
-    });
-    
+    const { error: contractError } = await supabase
+      .from("nd_staff_contract")
+      .insert({
+        staff_id: staffProfile.id,
+        is_active: true,
+        site_id: siteLocationId,
+        contract_start: staffData.employDate,
+        user_id: authUser.id,
+        ...metaData,
+      });
+
     if (contractError) {
       console.error("Staff contract creation error:", contractError);
       // Not throwing, as this is a non-critical error

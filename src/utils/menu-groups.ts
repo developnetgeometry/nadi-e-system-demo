@@ -20,6 +20,9 @@ import {
   dashboardItems,
   nadiDashboardItems,
   iotDashboardItems,
+  announcementsItems,
+  takwimItems,
+  bookingItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups = [
@@ -124,44 +127,25 @@ export const menuGroups = [
     route: "/services",
     items: serviceModuleItems,
   },
+  {
+    label: "Announcements",
+    route: "/announcements",
+    items: announcementsItems,
+  },
+  {
+    label: "Takwim",
+    route: "/takwim",
+    items: takwimItems,
+  },
 
-  // {
-  //   label: "Smart Service Management",
-  //   route: "/smartservice",
-  //   items: claimItems,
-  // },
-  // {
-  //   label: "Takwim Management",
-  //   route: "/takwim",
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "Booking Management",
-  //   route: "/booking",
-  //   items: programmesItems,
-  // },
+  {
+    label: "Booking Management",
+    route: "/booking",
+    items: bookingItems,
+  },
   // {
   //   label: "PC Booking Management",
   //   route: "/programmes",
-  //   items: programmesItems,
-  // },
-
-  // {
-  //   label: "Events",
-  //   route: "/events",
-  //   // items: eventItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "Participations",
-  //   route: "/participations",
-  //   // items: participationsItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "Event Breakdown",
-  //   route: "/event-breakdown",
-  //   // items: eventBreakdownItems,
   //   items: programmesItems,
   // },
   // {
@@ -183,34 +167,9 @@ export const menuGroups = [
   //   items: programmesItems,
   // },
   // {
-  //   label: "Graph",
-  //   route: "/graph",
-  //   // items: graphItems,
-  //   items: programmesItems,
-  // },
-  // {
-  //   label: "IoT",
-  //   route: "/iot",
-  //   // items: iotItems,
-  //   items: programmesItems,
-  // },
-  // {
   //   label: "Attendance Module",
   //   route: "/attendance",
   //   // items: iotItems,
   //   items: programmesItems,
-  // },
-  // {
-  //   label: "Announcement Module",
-  //   route: "/announcement",
-  //   // items: iotItems,
-  //   items: programmesItems,
-  // },
-
-  //
-  // {
-  //   label: "POS Management",
-  //   route: "/pos",
-  //   items: posMenuItems,
   // },
 ];

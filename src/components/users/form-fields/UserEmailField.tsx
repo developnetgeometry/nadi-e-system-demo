@@ -1,3 +1,4 @@
+
 import {
   FormControl,
   FormField,
@@ -13,16 +14,17 @@ interface UserEmailFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
   isEditMode: boolean;
+  required?: boolean;
 }
 
-export function UserEmailField({ form, isLoading, isEditMode }: UserEmailFieldProps) {
+export function UserEmailField({ form, isLoading, isEditMode, required }: UserEmailFieldProps) {
   return (
     <FormField
       control={form.control}
       name="email"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Email</FormLabel>
+          <FormLabel>{required ? "Email *" : "Email"}</FormLabel>
           <FormControl>
             <Input
               {...field}

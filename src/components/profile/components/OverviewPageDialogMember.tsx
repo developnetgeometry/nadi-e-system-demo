@@ -31,7 +31,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
     onSave,
 }) => {
     const { toast } = useToast();
-    const { races, genders, ethnics, occupations, typeSectors, socioeconomics, ictKnowledge, educationLevels, statusMemberships } = useGeneralData();
+    const { races, nationalities, genders, ethnics, occupations, typeSectors, socioeconomics, ictKnowledge, educationLevels, statusMemberships } = useGeneralData();
     const [formState, setFormState] = useState<any>({});
     const userMetadata = useUserMetadata();
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
@@ -53,14 +53,14 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
 
         try {
             // Call the updateMemberProfile function with the updated formState
-            await updateMemberProfile({
-                user_id: formState.user_id, // Pass the unique user_id
+            await updateMemberProfile(formState.user_id, {
                 fullname: formState.fullname,
                 identity_no: formState.identity_no,
                 mobile_no: formState.mobile_no,
                 email: formState.email,
                 dob: formState.dob,
                 race_id: formState.race_id?.id,
+                nationality_id: formState.nationality_id?.id,
                 gender: formState.gender?.id,
                 community_status: formState.community_status,
                 ethnic_id: formState.ethnic_id?.id,
@@ -94,9 +94,6 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
         }
     };
 
-    if (!userGroup) {
-        return "Loading data...";
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,7 +104,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {(userType === "super_admin") && (
+                        {(userType === "super_admin" || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="fullname">Full Name</Label>
@@ -153,7 +150,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                 </div>
                             </>
                         )}
-                        {(userType === "super_admin" || userGroup === 7) && (
+                        {(userType === "super_admin" || userGroup === 7  || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="mobile_no">Mobile Number</Label>
@@ -175,7 +172,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                 </div>
                             </>
                         )}
-                        {(userType === "super_admin") && (
+                        {(userType === "super_admin" || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="dob">Date Of Birth</Label>
@@ -185,6 +182,28 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                         value={formState.dob || ""}
                                         onChange={(e) => setField("dob", e.target.value)}
                                     />
+                                </div>
+                                {/* Nationality*/}
+                                <div>
+                                    <Label htmlFor="nationality_id">Nationality</Label>
+                                    <Select
+                                        name="nationality_id"
+                                        value={formState.nationality_id?.id?.toString() || ""}
+                                        onValueChange={(value) =>
+                                            setField("nationality_id", nationalities.find((nationality) => nationality.id.toString() === value))
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select nationality" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {nationalities.map((nationality) => (
+                                                <SelectItem key={nationality.id} value={nationality.id.toString()}>
+                                                    {nationality.eng}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 {/* Race */}
                                 <div>
@@ -248,7 +267,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
 
                             </>
                         )}
-                        {(userType === "super_admin" || userGroup === 7) && (
+                        {(userType === "super_admin" || userGroup === 7 || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="occupation_id">Occupation</Label>
@@ -357,7 +376,7 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                 </div>
                             </>
                         )}
-                        {(userType === "super_admin") && (
+                        {(userType === "super_admin" || userGroup ===6 || userGroup ===3) && (
                             <>
                                 <div>
                                     <Label htmlFor="join_date">Join Date</Label>
@@ -402,6 +421,22 @@ const ProfileEditDialogMember: React.FC<ProfileEditDialogMemberProps> = ({
                                             <Label htmlFor="status_entrepreneur_yes">Yes</Label>
                                             <RadioGroupItem value="false" id="status_entrepreneur_no" />
                                             <Label htmlFor="status_entrepreneur_no">No</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                <div>
+                                    <Label htmlFor="community_status">MADANI Community Status</Label>
+                                    <RadioGroup
+                                        value={formState.community_status?.toString() ?? "null"} // Map value to string
+                                        onValueChange={(value) =>
+                                            setField("community_status", value === "true" ? true : value === "false" ? false : null)
+                                        }
+                                    >
+                                        <div className="flex items-center space-x-4 mt-3">
+                                            <RadioGroupItem value="true" id="community_status_yes" />
+                                            <Label htmlFor="community_status_yes">Active</Label>
+                                            <RadioGroupItem value="false" id="community_status_no" />
+                                            <Label htmlFor="community_statusr_no">Inactive</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>

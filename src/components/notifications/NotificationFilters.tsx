@@ -1,12 +1,20 @@
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface NotificationFiltersProps {
   typeFilter: string;
   setTypeFilter: (type: string) => void;
 }
 
-export const NotificationFilters = ({ typeFilter, setTypeFilter }: NotificationFiltersProps) => {
+export const NotificationFilters = ({
+  typeFilter,
+  setTypeFilter,
+}: NotificationFiltersProps) => {
   return (
     <div className="bg-background p-4 border-b">
       <div className="flex flex-col sm:flex-row gap-4">

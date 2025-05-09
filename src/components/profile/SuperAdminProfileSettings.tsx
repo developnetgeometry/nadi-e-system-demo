@@ -7,7 +7,15 @@ const SuperAdminProfileSettings = () => {
   const { data: superadminProfile, isLoading, isError, error, refetch} = useSuperAdminProfile();
 
   if (isLoading) {
-    return <div>Loading...</div>; // Show a loading state while fetching data
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    ); // Show a loading state while fetching data
+  }
+
+  if (!superadminProfile) {
+    return <div className="text-center">This user does not have a profile yet.</div>;
   }
 
   if (isError) {
@@ -22,7 +30,7 @@ const SuperAdminProfileSettings = () => {
       <TabsContent value="overview" className="h-full mt-0">
         <Card className="h-full">
           <div className="p-6 h-full">
-            <ProfileOverviewPage profileData={superadminProfile} refetch={refetch}/>
+            <ProfileOverviewPage profileData={superadminProfile} refetch={refetch} userType={"super_admin"} userGroup={999}/>
           </div>
         </Card>
       </TabsContent>

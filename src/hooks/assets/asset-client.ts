@@ -1,8 +1,8 @@
 import {
   fetchSiteBySiteId,
   fetchSites,
-} from "@/components/site/component/site-utils";
-import { supabase } from "@/lib/supabase";
+} from "@/components/site/hook/site-utils";
+import { supabase } from "@/integrations/supabase/client";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
 import { Site } from "@/types/site";
 
@@ -211,6 +211,20 @@ export const assetClient = {
       ...item,
       category: item.nd_asset_categories,
     }));
+  },
+
+  fetchAssetsByType: async (typeId: number): Promise<Asset[]> => {
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select("*")
+      .eq("type_id", typeId);
+
+    if (error) {
+      console.error("Error fetching assets by type:", error);
+      throw error;
+    }
+
+    return data ?? [];
   },
 
   toggleAssetActiveStatus: async (

@@ -17,9 +17,10 @@ interface UserConfirmPasswordFieldProps {
   form: UseFormReturn<UserFormData>;
   isLoading: boolean;
   isEditMode: boolean;
+  required?: boolean;
 }
 
-export function UserConfirmPasswordField({ form, isLoading, isEditMode }: UserConfirmPasswordFieldProps) {
+export function UserConfirmPasswordField({ form, isLoading, isEditMode, required = false }: UserConfirmPasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -28,7 +29,7 @@ export function UserConfirmPasswordField({ form, isLoading, isEditMode }: UserCo
       name="confirm_password"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Confirm Password</FormLabel>
+          <FormLabel>{required ? "Confirm Password *" : "Confirm Password"}</FormLabel>
           <FormControl>
             <div className="relative">
               <Input

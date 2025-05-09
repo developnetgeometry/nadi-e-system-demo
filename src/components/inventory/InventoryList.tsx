@@ -6,7 +6,7 @@ import { Inventory } from "@/types/inventory";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Search, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { fetchSites } from "../site/component/site-utils";
+import { fetchSites } from "../site/hook/site-utils";
 import { Input } from "../ui/input";
 import { PaginationComponent } from "../ui/PaginationComponent";
 import { Skeleton } from "../ui/skeleton";

@@ -1,43 +1,98 @@
-import * as React from "react";
+import React, { InputHTMLAttributes, forwardRef, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { X, Calendar } from "lucide-react"; // Import both X and Calendar icons
 
-const DateInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, placeholder, ...props }, ref) => {
-    const inputRef = React.useRef<HTMLInputElement>(null);
+interface DateInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+  showClearButton?: boolean; // Optional prop to control visibility of clear button
+}
 
-    React.useImperativeHandle(ref, () => inputRef.current!);
+const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
+  ({ className, showClearButton = true, value, onChange, onClick, ...props }, ref) => {
+    // Create an internal ref if no ref is provided
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const resolvedRef = (ref || inputRef) as React.MutableRefObject<HTMLInputElement | null>;
+    
+    // Function to handle clearing the input
+    const handleClear = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Create a proper synthetic event to ensure full clearing of the date
+      const inputElement = document.createElement('input');
+      inputElement.type = 'date';
+      inputElement.name = props.name || '';
+      inputElement.value = '';
+      
+      const syntheticEvent = {
+        target: inputElement,
+        currentTarget: inputElement,
+        bubbles: true,
+        cancelable: true,
+        defaultPrevented: false,
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        nativeEvent: e.nativeEvent,
+        type: 'change'
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      
+      if (onChange) {
+        onChange(syntheticEvent);
+      }
+    };
+    
+    // Function to handle clicking on the input or button
+    const handleInputClick = (e: React.MouseEvent<HTMLElement>) => {
+      // Open the native date picker by simulating a click on the calendar icon
+      if (resolvedRef.current) {
+        // This triggers the native date picker to open
+        resolvedRef.current.showPicker();
+      }
+      
+      // Call the original onClick if it exists
+      if (onClick && e.target instanceof HTMLInputElement) {
+        onClick(e as React.MouseEvent<HTMLInputElement>);
+      }
+    };
 
     return (
-      <div className="relative">
+      <div className="relative group">
         <input
           type="date"
-          placeholder={placeholder}
           className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm appearance-none pr-10 [&::-webkit-calendar-picker-indicator]:opacity-0",
+            "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 hover:border-gray-400 transition-colors cursor-pointer",
+            // Add padding-right to accommodate the clear button and calendar icon
+            showClearButton && value ? "pr-16" : "pr-10",
+            // Hide the native calendar picker icon
+            "[&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:hidden",
             className
           )}
-          ref={inputRef}
+          ref={resolvedRef}
+          value={value}
+          onChange={onChange}
+          onClick={handleInputClick}
           {...props}
         />
-        <div
-          className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
-          onClick={() => inputRef.current?.showPicker()}
+        {/* Calendar Icon Button */}
+        <button
+          type="button"
+          onClick={handleInputClick}
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+          aria-label="Open calendar"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <Calendar size={16} />
+        </button>
+        
+        {showClearButton && value && (
+          <button
+            onClick={handleClear}
+            className="absolute right-8 top-1/2 -translate-y-1/2 mr-1 hover:text-foreground cursor-pointer transition-colors"
+            type="button"
+            aria-label="Clear date"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
+            <X className="text-muted-foreground" size={16} />
+          </button>
+        )}
       </div>
     );
   }

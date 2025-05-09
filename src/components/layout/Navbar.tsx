@@ -18,8 +18,8 @@ export const Navbar = () => {
   return (
     <nav className="border-b">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold">
-          CMMS
+        <Link to="/admin/dashboard" className="text-xl font-bold">
+          <img src="/cmms-logo.png" alt="Logo" className="h-12 mx-auto" />
         </Link>
         <div className="flex items-center space-x-4">
           <DropdownMenu>

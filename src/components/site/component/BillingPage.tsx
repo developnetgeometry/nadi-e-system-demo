@@ -10,17 +10,41 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { ArrowUp, ArrowDown, ArrowUpDown, FilePlus, Settings, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, FilePlus, Trash2, Edit, Eye } from "lucide-react";
 import BillingFormDialog from "../BillingFormDialog";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { BUCKET_NAME_UTILITIES } from "@/integrations/supabase/client";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast"; // Import the useToast hook
+import BillingPageView from "./BillingPageView";
+import { useDeleteBillingData } from "../hook/use-utilities-data";
 
 interface BillingPageProps {
   siteId: string;
 }
 
 type SortDirection = "asc" | "desc" | null;
-type SortField = "id" | "type_name" | "year" | "month" | "reference_no" | "amount_bill" | "remark" | null;
+type SortField =
+  | "id"
+  | "type_name"
+  | "year"
+  | "month"
+  | "reference_no"
+  | "amount_bill"
+  | "remark"
+  | null;
 
 const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   const [refreshBilling, setRefreshBilling] = useState(false); // State to trigger re-fetch
@@ -29,6 +53,12 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
   const [selectedBilling, setSelectedBilling] = useState<any>(null); // State to store the selected billing data
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State to manage dialog visibility
+  const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null); // State to store the record ID to delete
+  const { toast } = useToast(); // Initialize the toast hook
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false); // State to manage view dialog visibility
+  const [viewData, setViewData] = useState<any>(null); // State to store the data to view
+  const { deleteBillingData, loading: deleteLoading } = useDeleteBillingData(); // Use the new hook
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -42,15 +72,6 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
       setSortField(field);
       setSortDirection("asc");
     }
-  };
-
-  const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    return sortDirection === "asc" ? (
-      <ArrowUp className="ml-2 h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-2 h-4 w-4" />
-    );
   };
 
   const sortedData = () => {
@@ -76,6 +97,11 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
     setIsDialogOpen(true); // Open the dialog
   };
 
+  const handleView = (billing: any) => {
+    setViewData(billing); // Set the selected billing data
+    setIsViewDialogOpen(true); // Open the view dialog
+  };
+
   // Trigger re-fetch when the dialog is closed
   useEffect(() => {
     if (!isDialogOpen) {
@@ -83,63 +109,21 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
     }
   }, [isDialogOpen]);
 
-    // Function to handle delete a record
-    const handleDelete = async (id: string) => {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this record?"
-      );
-      if (!confirmDelete) return;
-    
-      try {
-        const { data: attachmentData, error: attachmentError } = await supabase
-          .from("nd_utilities_attachment") // Replace with your actual table name
-          .select("file_path")
-          .eq("utilities_id", id) // Assuming `utilities_id` links the file to the record
-          .single();
-    
-        if (attachmentError) {
-          console.warn("No associated file found or error fetching file path:", attachmentError);
-          // Proceed with record deletion even if the file path is not found
-        } else if (attachmentData?.file_path) {
-          const filePath = attachmentData.file_path;
-    
-          // Extract the part of the file path after "//"
-          const relativeFilePath = filePath.split(`${BUCKET_NAME_UTILITIES}/`)[1];
-    
-          // Delete the file from storage
-          const { error: storageError } = await supabase.storage
-            .from(BUCKET_NAME_UTILITIES) // Replace with your storage bucket name
-            .remove([relativeFilePath]);
-    
-          if (storageError) {
-            console.error("Error deleting file from storage:", storageError);
-            alert("Failed to delete the associated file. Please try again.");
-            return;
-          }
-        }
-    
-        // Proceed with record deletion
-        const { error } = await supabase
-          .from("nd_utilities")
-          .delete()
-          .eq("id", id);
-    
-        if (error) {
-          console.error("Error deleting record:", error);
-          alert("An error occurred while deleting the record.");
-          return;
-        }
-    
-        alert("Record and associated file deleted successfully.");
-        setRefreshBilling((prev) => !prev); // Toggle refreshBilling state to trigger re-fetch
-      } catch (error) {
-        console.error("Error deleting record:", error);
-        alert("An unexpected error occurred. Please try again.");
-      }
-    };
+  // Function to handle delete a record
+  const handleDelete = async () => {
+    if (!deleteRecordId) return;
 
+    await deleteBillingData(deleteRecordId, toast); // Call the hook function
+    setRefreshBilling((prev) => !prev); // Trigger re-fetch
+    setIsDeleteDialogOpen(false); // Close the dialog
+    setDeleteRecordId(null); // Reset the record ID
+  };
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -149,25 +133,19 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
   const sorted = sortedData();
 
   return (
-    <div>
+    <div >
       <h2 className="text-xl font-bold mb-4">Billing Information</h2>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-        <div className="w-full md:w-[400px]">
-          {/* Optional: search or input field can go here */}
-        </div>
-
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            onClick={() => {
-              setSelectedBilling(null); // Clear selected billing for new entry
-              setIsDialogOpen(true); // Open the dialog
-            }}
-          >
-            <FilePlus className="mr-2 h-4 w-4" />
-            Add New Billing
-          </Button>
-        </div>
+      <div className="flex justify-end mb-4">
+        <Button
+          onClick={() => {
+            setSelectedBilling(null); // Clear selected billing for new entry
+            setIsDialogOpen(true); // Open the dialog
+          }}
+        >
+          <FilePlus className="mr-2 h-4 w-4" />
+          Add New Billing
+        </Button>
       </div>
 
       <div className="rounded-md border overflow-hidden">
@@ -175,118 +153,125 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[60px] text-center">No.</TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("id")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  ID{renderSortIcon("id")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "id" ? sortDirection : null}
+                onSort={() => handleSort("id")}
+              >
+                ID
               </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("type_name")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  Type{renderSortIcon("type_name")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "type_name" ? sortDirection : null}
+                onSort={() => handleSort("type_name")}
+              >
+                Type
               </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("year")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  Year{renderSortIcon("year")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "year" ? sortDirection : null}
+                onSort={() => handleSort("year")}
+              >
+                Year
               </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("month")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  Month{renderSortIcon("month")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "month" ? sortDirection : null}
+                onSort={() => handleSort("month")}
+              >
+                Month
               </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("reference_no")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  Reference No{renderSortIcon("reference_no")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "reference_no" ? sortDirection : null}
+                onSort={() => handleSort("reference_no")}
+              >
+                Reference No
               </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("amount_bill")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  Amount{renderSortIcon("amount_bill")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "amount_bill" ? sortDirection : null}
+                onSort={() => handleSort("amount_bill")}
+              >
+                Amount
               </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("remark")}
-                  className="p-0 hover:bg-transparent font-medium flex items-center"
-                >
-                  Remark{renderSortIcon("remark")}
-                </Button>
+              <TableHead
+                sortable
+                sorted={sortField === "remark" ? sortDirection : null}
+                onSort={() => handleSort("remark")}
+              >
+                Remark
               </TableHead>
-              <TableHead>File</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableRowNumber index={index} />
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.type_name}</TableCell>
-                <TableCell>{item.year}</TableCell>
-                <TableCell>{item.month}</TableCell>
-                <TableCell>{item.reference_no}</TableCell>
-                <TableCell>{item.amount_bill}</TableCell>
-                <TableCell>{item.remark}</TableCell>
-                <TableCell>
-                  {item.file_path ? (
-                    <a
-                      href={item.file_path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View PDF
-                    </a>
-                  ) : (
-                    "N/A"
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleEdit(item)} // Open dialog with initial data
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-destructive"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {sorted.length > 0 ? (
+              sorted.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableRowNumber index={index} />
+                  <TableCell>{item.id}</TableCell>
+                  <TableCell>{item.type_name}</TableCell>
+                  <TableCell>{item.year}</TableCell>
+                  <TableCell>{item.month}</TableCell>
+                  <TableCell>{item.reference_no}</TableCell>
+                  <TableCell>{item.amount_bill}</TableCell>
+                  <TableCell>{item.remark}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleView(item)} // Open view dialog with data
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleEdit(item)} // Open dialog with initial data
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => {
+                              setDeleteRecordId(item.id); // Set the record ID to delete
+                              setIsDeleteDialogOpen(true); // Open the dialog
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-gray-500">
+                  No data available
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
@@ -298,6 +283,37 @@ const BillingPage: React.FC<BillingPageProps> = ({ siteId }) => {
         siteId={siteId} // Pass the siteId to the dialog
         initialData={selectedBilling} // Pass the selected billing data
       />
+
+      {/* View Dialog */}
+      <BillingPageView
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        data={viewData} // Pass the selected data to the view dialog
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this record? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

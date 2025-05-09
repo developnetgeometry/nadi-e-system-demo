@@ -1,4 +1,3 @@
-
 export type UserType =
   | "member"
   | "vendor"
@@ -6,7 +5,7 @@ export type UserType =
   | "sso"
   | "dusp_admin"
   | "super_admin"
-  | "tp_region"
+  | "tp_pic"
   | "tp_hr"
   | "tp_finance"
   | "tp_admin"
@@ -37,7 +36,9 @@ export interface Profile {
   avatar_url?: string;
   user_type: UserType;
   user_group?: string; // Added user_group property
-  nd_user_group?: { 
+  gender?: string; // Added gender property
+  work_email?: string; // Added work_email property
+  nd_user_group?: {
     group_name: string;
     id: string;
   }; // Added nd_user_group property for the join

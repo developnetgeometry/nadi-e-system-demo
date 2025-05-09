@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 const useGeneralData = () => {
   const [genders, setGenders] = useState<any[]>([]);
@@ -16,12 +16,15 @@ const useGeneralData = () => {
   const [positions, setPositions] = useState<any[]>([]);
   const [ethnics, setEthnics] = useState<any[]>([]);
   const [statusMemberships, setStatusMemberships] = useState<any[]>([]);
+  const [identityNoTypes, setIdentityNoTypes] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGenders = async () => {
       try {
-        const { data, error } = await supabase.from("nd_genders").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_genders")
+          .select("id, eng, bm");
         if (error) throw error;
         setGenders(data);
       } catch (error) {
@@ -32,7 +35,9 @@ const useGeneralData = () => {
 
     const fetchMaritalStatuses = async () => {
       try {
-        const { data, error } = await supabase.from("nd_marital_status").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_marital_status")
+          .select("id, eng, bm");
         if (error) throw error;
         setMaritalStatuses(data);
       } catch (error) {
@@ -43,7 +48,9 @@ const useGeneralData = () => {
 
     const fetchRaces = async () => {
       try {
-        const { data, error } = await supabase.from("nd_races").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_races")
+          .select("id, eng, bm");
         if (error) throw error;
         setRaces(data);
       } catch (error) {
@@ -54,7 +61,9 @@ const useGeneralData = () => {
 
     const fetchReligions = async () => {
       try {
-        const { data, error } = await supabase.from("nd_religion").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_religion")
+          .select("id, eng, bm");
         if (error) throw error;
         setReligions(data);
       } catch (error) {
@@ -65,7 +74,9 @@ const useGeneralData = () => {
 
     const fetchNationalities = async () => {
       try {
-        const { data, error } = await supabase.from("nd_nationalities").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_nationalities")
+          .select("id, eng, bm");
         if (error) throw error;
         setNationalities(data);
       } catch (error) {
@@ -76,7 +87,9 @@ const useGeneralData = () => {
 
     const fetchOccupations = async () => {
       try {
-        const { data, error } = await supabase.from("nd_occupation").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_occupation")
+          .select("id, eng, bm");
         if (error) throw error;
         setOccupations(data);
       } catch (error) {
@@ -87,7 +100,9 @@ const useGeneralData = () => {
 
     const fetchTypeSectors = async () => {
       try {
-        const { data, error } = await supabase.from("nd_type_sector").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_type_sector")
+          .select("id, eng, bm");
         if (error) throw error;
         setTypeSectors(data);
       } catch (error) {
@@ -98,7 +113,9 @@ const useGeneralData = () => {
 
     const fetchSocioeconomics = async () => {
       try {
-        const { data, error } = await supabase.from("nd_socioeconomics").select("id, sector_id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_socioeconomics")
+          .select("id, sector_id, eng, bm");
         if (error) throw error;
         setSocioeconomics(data);
       } catch (error) {
@@ -109,7 +126,9 @@ const useGeneralData = () => {
 
     const fetchIctKnowledge = async () => {
       try {
-        const { data, error } = await supabase.from("nd_ict_knowledge").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_ict_knowledge")
+          .select("id, eng, bm");
         if (error) throw error;
         setIctKnowledge(data);
       } catch (error) {
@@ -120,7 +139,9 @@ const useGeneralData = () => {
 
     const fetchEducationLevels = async () => {
       try {
-        const { data, error } = await supabase.from("nd_education").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_education")
+          .select("id, eng, bm");
         if (error) throw error;
         setEducationLevels(data);
       } catch (error) {
@@ -131,7 +152,9 @@ const useGeneralData = () => {
 
     const fetchIncomeLevels = async () => {
       try {
-        const { data, error } = await supabase.from("nd_income_levels").select("id, eng, bm");
+        const { data, error } = await supabase
+          .from("nd_income_levels")
+          .select("id, eng, bm");
         if (error) throw error;
         setIncomeLevels(data);
       } catch (error) {
@@ -142,7 +165,9 @@ const useGeneralData = () => {
 
     const fetchPositions = async () => {
       try {
-        const { data, error } = await supabase.from("nd_position").select("id, name");
+        const { data, error } = await supabase
+          .from("nd_position")
+          .select("id, name");
         if (error) throw error;
         setPositions(data);
       } catch (error) {
@@ -153,7 +178,9 @@ const useGeneralData = () => {
 
     const fetchEthnics = async () => {
       try {
-        const { data, error } = await supabase.from("nd_ethnics").select("id, bm, eng");
+        const { data, error } = await supabase
+          .from("nd_ethnics")
+          .select("id, bm, eng");
         if (error) throw error;
         setEthnics(data);
       } catch (error) {
@@ -164,11 +191,26 @@ const useGeneralData = () => {
 
     const fetchStatusMemberships = async () => {
       try {
-        const { data, error } = await supabase.from("nd_status_membership").select("id, name");
+        const { data, error } = await supabase
+          .from("nd_status_membership")
+          .select("id, name");
         if (error) throw error;
         setStatusMemberships(data);
       } catch (error) {
         console.error("Error fetching status membership:", error);
+        setError(error.message);
+      }
+    };
+
+    const fetchIdentityNoTypes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nd_identity_no_type")
+          .select("id, eng, bm");
+        if (error) throw error;
+        setIdentityNoTypes(data);
+      } catch (error) {
+        console.error("Error fetching Identity No Types:", error);
         setError(error.message);
       }
     };
@@ -187,6 +229,7 @@ const useGeneralData = () => {
     fetchPositions();
     fetchEthnics();
     fetchStatusMemberships();
+    fetchIdentityNoTypes();
   }, []);
 
   return {
@@ -204,6 +247,7 @@ const useGeneralData = () => {
     positions,
     ethnics,
     statusMemberships,
+    identityNoTypes,
     error,
   };
 };

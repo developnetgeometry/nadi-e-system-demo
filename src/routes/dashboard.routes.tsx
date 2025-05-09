@@ -1,24 +1,25 @@
 import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import DashboardPage from "@/pages/dashboard/Dashboard";
+import { lazy } from "react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import Dashboard from "@/pages/dashboard/Dashboard";
 import UsersPage from "@/pages/dashboard/Users";
 import RolesPage from "@/pages/dashboard/Roles";
 import PermissionsPage from "@/pages/dashboard/Permissions";
 import MenuVisibilityPage from "@/pages/dashboard/MenuVisibility";
 import ActivityLogPage from "@/pages/dashboard/Activity";
 import StateHolidaysPage from "@/pages/dashboard/StateHolidays";
-import NotificationsPage from "@/pages/dashboard/Notifications";
 import OrganizationsPage from "@/pages/dashboard/Organizations";
 import SettingsPage from "@/pages/dashboard/Settings";
 import UserGroupsPage from "@/pages/dashboard/UserGroups";
 import LookupSettingsPage from "@/pages/dashboard/LookupSettings";
-import { lazy } from "react";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import UserProfile from "@/pages/dashboard/profile/UserProfile";
+import NotificationManagement from "@/pages/dashboard/NotificationManagement";
+import NotificationUsage from "@/pages/dashboard/NotificationUsage";
 
 // Lazy load dashboard components
-const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));
+const DashboardPage = lazy(() => Promise.resolve({ default: Dashboard }));
 const Users = lazy(() => import("@/pages/dashboard/Users"));
 const Roles = lazy(() => import("@/pages/dashboard/Roles"));
 const RoleConfig = lazy(() => import("@/pages/dashboard/RoleConfig"));
@@ -46,7 +47,11 @@ const StateHolidays = lazy(() => import("@/pages/dashboard/StateHolidays"));
 export const dashboardRoutes = [
   {
     path: "/admin/dashboard",
-    element: <DashboardPage />,
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <DashboardPage />
+      </Suspense>
+    ),
   },
   {
     path: "/admin/users",
@@ -96,35 +101,11 @@ export const dashboardRoutes = [
       </Suspense>
     ),
   },
-  // {
-  //   path: "/admin/reports",
-  //   element: (
-  //     <Suspense fallback={<LoadingSpinner />}>
-  //       <ReportsPage />
-  //     </Suspense>
-  //   ),
-  // },
-  // {
-  //   path: "/admin/calendar",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Calendar />
-  //     </ProtectedRoute>
-  //   ),
-  // },
   {
     path: "/admin/state-holidays",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         <StateHolidaysPage />
-      </Suspense>
-    ),
-  },
-  {
-    path: "/admin/notifications",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        <NotificationsPage />
       </Suspense>
     ),
   },
@@ -158,7 +139,22 @@ export const dashboardRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         <UserProfile />
       </Suspense>
-
+    ),
+  },
+  {
+    path: "/admin/notification-management",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <NotificationManagement />,
+      </Suspense>
+    ),
+  },
+  {
+    path: "/admin/notification-usage",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <NotificationUsage />,
+      </Suspense>
     ),
   },
 ];

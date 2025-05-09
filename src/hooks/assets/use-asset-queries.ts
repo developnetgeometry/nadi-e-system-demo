@@ -39,6 +39,13 @@ export const useAssetQueries = () => {
         (!isStaffUser || !!site_id),
     });
 
+  const useAssetsByTypeQuery = (typeId: number) => 
+    useQuery({
+      queryKey: ["assets", typeId],
+      queryFn: () => assetClient.fetchAssetsByType(typeId),
+      enabled: !!typeId
+    });
+
   const useAssetQuery = (id: string) =>
     useQuery({
       queryKey: ["assets", id],
@@ -50,5 +57,6 @@ export const useAssetQueries = () => {
     useAssetsQuery,
     useAssetsByNameQuery,
     useAssetQuery,
+    useAssetsByTypeQuery,
   };
 };
