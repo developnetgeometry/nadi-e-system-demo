@@ -18,6 +18,7 @@ const MaintenanceDashboard = () => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isVendor = parsedMetadata?.user_group_name === "Vendor";
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -68,10 +69,12 @@ const MaintenanceDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold">Asset Maintenance</h1>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Request
-          </Button>
+          {!isVendor && (
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Request
+            </Button>
+          )}
         </div>
 
         <Tabs value={typeParam} onValueChange={handleTabChange}>
