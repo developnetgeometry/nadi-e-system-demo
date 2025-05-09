@@ -10638,7 +10638,7 @@ export type Database = {
         | "completed"
         | "incompleted"
         | "rejected"
-        | "deffered";
+        | "deferred";
       notification_channel: "in_app" | "email" | "sms";
       notification_type: "info" | "warning" | "success" | "error";
       organization_type: "dusp" | "tp";
