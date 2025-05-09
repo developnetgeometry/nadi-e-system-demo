@@ -1,6 +1,7 @@
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, X, UserRound, MapPin } from "lucide-react";
+import { Search, Filter, X, UserRound } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface StaffFiltersProps {
+interface TPStaffFiltersProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   statusFilter: string;
@@ -18,16 +19,13 @@ interface StaffFiltersProps {
   userTypeFilter?: string;
   setUserTypeFilter?: (userType: string) => void;
   userTypeOptions?: string[];
-  locationFilter?: string;
-  setLocationFilter?: (location: string) => void;
-  locationOptions?: string[];
+  roleFilter?: string;
+  setRoleFilter?: (role: string) => void;
+  roleOptions?: string[];
   onResetFilters?: () => void;
 }
 
-/**
- * @deprecated - Use SiteStaffFilters or TPStaffFilters instead
- */
-export const StaffFilters = ({
+export const TPStaffFilters = ({
   searchQuery,
   setSearchQuery,
   statusFilter,
@@ -36,26 +34,20 @@ export const StaffFilters = ({
   userTypeFilter = "all",
   setUserTypeFilter,
   userTypeOptions = [],
-  locationFilter = "all",
-  setLocationFilter,
-  locationOptions = [],
+  roleFilter = "all",
+  setRoleFilter,
+  roleOptions = [],
   onResetFilters,
-}: StaffFiltersProps) => {
-  const hasFilters =
-    searchQuery ||
-    statusFilter !== "all" ||
+}: TPStaffFiltersProps) => {
+  const hasFilters = 
+    searchQuery || 
+    statusFilter !== "all" || 
     (userTypeFilter && userTypeFilter !== "all") ||
-    (locationFilter && locationFilter !== "all");
-
-  const hasUserTypeFilter =
-    userTypeFilter !== undefined &&
-    setUserTypeFilter !== undefined &&
-    userTypeOptions.length > 0;
-  const hasLocationFilter =
-    locationFilter !== undefined &&
-    setLocationFilter !== undefined &&
-    locationOptions.length > 0;
-
+    (roleFilter && roleFilter !== "all");
+  
+  const hasUserTypeFilter = userTypeFilter !== undefined && setUserTypeFilter !== undefined && userTypeOptions.length > 0;
+  const hasRoleFilter = roleFilter !== undefined && setRoleFilter !== undefined && roleOptions.length > 0;
+  
   return (
     <div className="mb-6 space-y-4">
       <div className="relative">
@@ -76,7 +68,7 @@ export const StaffFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            {statusOptions.map((status) => (
+            {statusOptions?.map((status) => (
               <SelectItem key={status} value={status}>
                 {status}
               </SelectItem>
@@ -101,24 +93,24 @@ export const StaffFilters = ({
           </Select>
         )}
 
-        {hasLocationFilter && setLocationFilter && (
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
+        {hasRoleFilter && setRoleFilter && (
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
             <SelectTrigger className="w-[200px] h-12 flex items-center">
-              <MapPin className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by Location" />
+              <UserRound className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter by Role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locationOptions.map((location) => (
-                <SelectItem key={location} value={location}>
-                  {location}
+              <SelectItem value="all">All Roles</SelectItem>
+              {roleOptions.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
 
-        {hasFilters && onResetFilters && (
+        {hasFilters && (
           <Button
             variant="outline"
             onClick={onResetFilters}
