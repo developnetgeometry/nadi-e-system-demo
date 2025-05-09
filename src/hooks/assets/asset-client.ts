@@ -18,7 +18,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
-        nd_brand ( id, name ),
+        nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site (
           id,
           standard_code,
@@ -83,7 +83,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
-        nd_brand ( id, name ),
+        nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site (
           id,
           standard_code,
@@ -145,7 +145,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
-        brand:nd_brand ( id, name ),
+        nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site (
           id,
           standard_code
@@ -158,11 +158,14 @@ export const assetClient = {
       console.error("Error fetching asset:", error);
       throw error;
     }
+
+    const profile = await fetchSiteBySiteId(data.site_id);
+
     return {
       ...data,
       type: data.nd_asset_type,
-      brand: data.brand,
-      site: data.site,
+      brand: data.nd_brand,
+      site: profile,
     };
   },
 

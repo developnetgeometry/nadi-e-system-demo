@@ -117,8 +117,7 @@ export const MaintenanceRequestFormDialog = ({
     const request = {
       description: description,
       asset_id: selectedAsset?.id as number,
-      type_id: formData.get("maintenanceType") as string,
-      sla_id: formData.get("sla") as string,
+      type_id: Number(formData.get("maintenanceType")),
       requester_by: user.id,
       attachment: attachmentUrl,
     };
@@ -143,7 +142,13 @@ export const MaintenanceRequestFormDialog = ({
       } else {
         const { error: insertError } = await supabase
           .from("nd_maintenance_request")
-          .insert([{ ...request, created_at: new Date().toISOString() }]);
+          .insert([
+            {
+              ...request,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ]);
 
         if (insertError) throw insertError;
 

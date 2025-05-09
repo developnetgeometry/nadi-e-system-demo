@@ -9,7 +9,7 @@ export interface MaintenanceRequest {
   type?: TypeMaintenance;
   sla_id?: number;
   sla: SLACategories;
-  status: boolean;
+  status: string;
   requester_by: string;
   attachment?: string;
   created_at?: string;
@@ -24,12 +24,32 @@ export enum MaintenanceDocketType {
 }
 
 export enum MaintenanceStatus {
-  Completed = "completed",
-  Rejected = "rejected",
   Issued = "issued",
   InProgress = "in_progress",
+  Completed = "completed",
+  Incompleted = "incompleted",
+  Rejected = "rejected",
   Defferred = "deferred",
 }
+
+export const humanizeMaintenanceStatus = (status: string) => {
+  switch (status) {
+    case "issued":
+      return "Issued";
+    case "in_progress":
+      return "In Progress";
+    case "completed":
+      return "Completed";
+    case "incompleted":
+      return "Incompleted";
+    case "rejected":
+      return "Rejected";
+    case "deferred":
+      return "Deferred";
+    default:
+      return "Unknown status";
+  }
+};
 
 export interface TypeMaintenance {
   id: number;

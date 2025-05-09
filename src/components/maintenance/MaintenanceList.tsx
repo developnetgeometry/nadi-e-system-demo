@@ -3,7 +3,7 @@ import { useMaintenance } from "@/hooks/use-maintenance";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { MaintenanceRequest, MaintenanceStatus } from "@/types/maintenance";
 import { Download, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import { PaginationComponent } from "../ui/PaginationComponent";
 import { Skeleton } from "../ui/skeleton";
@@ -48,6 +48,10 @@ export const MaintenanceList = ({
     null
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isViewDetailsDialogOpen) refetch();
+  }, [isViewDetailsDialogOpen, refetch]);
 
   const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
 
@@ -278,10 +282,10 @@ export const MaintenanceList = ({
             <TableBody>
               {paginatedInventories &&
                 paginatedInventories.map((maintenanceRequest, index) => {
-                  const requestDate = maintenanceRequest.created_at
+                  const requestDate = maintenanceRequest.updated_at
                     ? (() => {
                         const parts =
-                          maintenanceRequest.created_at.split(/[- :T]/);
+                          maintenanceRequest.updated_at.split(/[- :T]/);
                         const year = Number(parts[0]);
                         const month = Number(parts[1]) - 1;
                         const day = Number(parts[2]);
@@ -312,46 +316,45 @@ export const MaintenanceList = ({
                       })()
                     : "";
 
-                  const estimatedDate = maintenanceRequest.created_at
-                    ? (() => {
-                        const plusedDate = new Date(
-                          new Date(maintenanceRequest.created_at).getTime() +
-                            maintenanceRequest.sla.max_day * 24 * 60 * 60 * 1000
-                        );
+                  const estimatedDate =
+                    maintenanceRequest.created_at && maintenanceRequest.sla
+                      ? (() => {
+                          const plusedDate = new Date(
+                            new Date(maintenanceRequest.created_at).getTime() +
+                              maintenanceRequest.sla.max_day *
+                                24 *
+                                60 *
+                                60 *
+                                1000
+                          );
 
-                        const localDay = String(plusedDate.getDate()).padStart(
-                          2,
-                          "0"
-                        );
-                        const localMonth = String(
-                          plusedDate.getMonth() + 1
-                        ).padStart(2, "0");
-                        const localYear = plusedDate.getFullYear();
+                          const localDay = String(
+                            plusedDate.getDate()
+                          ).padStart(2, "0");
+                          const localMonth = String(
+                            plusedDate.getMonth() + 1
+                          ).padStart(2, "0");
+                          const localYear = plusedDate.getFullYear();
 
-                        return `${localDay}/${localMonth}/${localYear}`;
-                      })()
-                    : "";
+                          return `${localDay}/${localMonth}/${localYear}`;
+                        })()
+                      : "Not set";
 
                   return (
                     <TableRow key={maintenanceRequest.id}>
                       <TableCell>
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell>{maintenanceRequest?.status || ""}</TableCell>
+                      <TableCell>{""}</TableCell>
                       <TableCell>
                         {maintenanceRequest?.type?.name || ""}
                       </TableCell>
                       <TableCell>
-                        {maintenanceRequest?.sla?.name || ""}
+                        {maintenanceRequest?.sla?.name || "Not set"}
                       </TableCell>
-                      {isSuperAdmin && (
-                        <TableCell>
-                          {maintenanceRequest?.asset?.name || "N/A"}
-                        </TableCell>
-                      )}
                       <TableCell>{estimatedDate || ""}</TableCell>
                       <TableCell>
-                        {maintenanceRequest?.status ? "Closed" : "Open"}
+                        {maintenanceRequest?.status || "Pending"}
                       </TableCell>
                       <TableCell>{requestDate || ""}</TableCell>
                       <TableCell>

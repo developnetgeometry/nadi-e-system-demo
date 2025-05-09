@@ -1,3 +1,4 @@
+import { fetchSiteBySiteId } from "@/components/site/component/site-utils";
 import { supabase } from "@/lib/supabase";
 import {
   MaintenanceRequest,
@@ -15,7 +16,8 @@ export const maintenanceClient = {
         sla:nd_sla_categories ( id, name, min_day, max_day ),
         asset:nd_asset (
           id,
-          name
+          name,
+          site_id
         )`
       );
 
@@ -25,6 +27,8 @@ export const maintenanceClient = {
     }
     const filteredData = await Promise.all(
       data.map(async (item) => {
+        const profile = await fetchSiteBySiteId(item.asset.site_id);
+        item.asset.site = profile;
         return {
           ...item,
           type: item.nd_type_maintenance,
@@ -46,7 +50,8 @@ export const maintenanceClient = {
         sla:nd_sla_categories ( id, name ),
         asset:nd_asset (
           id,
-          name
+          name,
+          site_id
         )`
       )
       .eq("id", id)
@@ -56,6 +61,9 @@ export const maintenanceClient = {
       console.error("Error fetching maintenance request:", error);
       throw error;
     }
+
+    const profile = await fetchSiteBySiteId(data.asset.site_id);
+    data.asset.site = profile;
     return {
       ...data,
       type: data.nd_type_maintenance,

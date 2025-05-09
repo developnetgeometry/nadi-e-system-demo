@@ -3870,8 +3870,10 @@ export type Database = {
           id: number;
           asset_id: number | null;
           description: string | null;
+          type_id?: number | null;
           requester_by: string | null;
-          status: boolean | null;
+          status: string | null;
+          attachment: string | null;
           created_at: string | null;
           created_by: string | null;
           updated_at: string | null;
@@ -3880,21 +3882,25 @@ export type Database = {
         Insert: {
           asset_id?: number | null;
           description?: string | null;
+          type_id?: number | null;
           requester_by?: string | null;
-          status?: boolean | null;
+          status?: string | null;
+          attachment?: string | null;
           created_at?: string | null;
           created_by?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
         Update: {
+          id?: number;
           asset_id?: number | null;
+          description?: string | null;
+          requester_by?: string | null;
+          status?: string | null;
+          attachment?: string | null;
+          sla_id?: number | null;
           created_at?: string | null;
           created_by?: string | null;
-          description?: string | null;
-          id?: number;
-          requester_by?: string | null;
-          status?: boolean | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
