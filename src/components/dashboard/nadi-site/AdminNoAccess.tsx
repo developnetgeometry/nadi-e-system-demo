@@ -10,7 +10,7 @@ const AdminNoAccess = () => {
     useEffect(() => {
         const timeout = setTimeout(() => {
             navigate("/site-management", { replace: true });
-        }, 5000); // 3 seconds
+        }, 5000); // 5 seconds
 
         return () => clearTimeout(timeout);
     }, [navigate]);
