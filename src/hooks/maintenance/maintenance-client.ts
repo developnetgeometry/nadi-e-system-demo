@@ -1,4 +1,4 @@
-import { fetchSiteBySiteId } from "@/components/site/component/site-utils";
+import { fetchSiteBySiteId } from "@/components/site/hook/site-utils";
 import { supabase } from "@/lib/supabase";
 import {
   MaintenanceRequest,
