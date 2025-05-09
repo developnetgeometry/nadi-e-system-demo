@@ -27,6 +27,7 @@ type ValidationErrors = {
   remark?: string;
   affectArea?: string;
   selectedSiteId?: string; // Add validation error for site selection
+  attachment?: string; // Add validation error for attachment
 };
 
 type SubmissionType = "draft" | "submit" | null;
@@ -245,14 +246,20 @@ export const useSiteClosureForm = (
       errors.affectArea = "At least one affected area must be selected";
     }
     
+    // Check for site selection
     if (!formState.selectedSiteId) {
       errors.selectedSiteId = "Site selection is required";
+    }
+    
+    // Check if attachments are provided - make attachment required
+    if (selectedFiles.length === 0 && existingAttachments.length === 0) {
+      errors.attachment = "At least one attachment is required";
     }
     
     setValidationErrors(errors);
     
     return Object.keys(errors).length === 0;
-  }, [formState, isSuperAdmin, isDateWithinAllowedRange]);
+  }, [formState, isSuperAdmin, isDateWithinAllowedRange, selectedFiles, existingAttachments]);
 
   const resetForm = useCallback(() => {
     setFormState({
