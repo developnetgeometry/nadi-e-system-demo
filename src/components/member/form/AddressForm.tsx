@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
+import { DialogTitle } from "@/components/ui/dialog";
 
 type AddressData = {
   address1: string;
@@ -39,12 +40,7 @@ export function AddressForm({
   }, [state_id, fetchDistrictsByState]);
   return (
     <>
-      <div className="flex flex-col gap-1 mb-6">
-        <h1 className="font-bold text-xl">Address Information</h1>
-        <p className="text-muted-foreground">
-          Fill in member's address information
-        </p>
-      </div>
+      <DialogTitle className="mb-4">Address Information</DialogTitle>
       {/* Address Line 1 */}
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">Address Line 1 <span className="text-red-500 ml-1">*</span></Label>
@@ -71,7 +67,7 @@ export function AddressForm({
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">State <span className="text-red-500 ml-1">*</span></Label>
         <Select
-          value={state_id}
+          value={state_id || ""}
           onValueChange={(value) => {
             updateFields({ state_id: value, district_id: null }); // Set district_id to null when state changes
           }}
@@ -94,7 +90,7 @@ export function AddressForm({
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">District <span className="text-red-500 ml-1">*</span></Label>
         <Select
-          value={district_id}
+          value={district_id || ""}
           onValueChange={(value) => updateFields({ district_id: value })}
           disabled={!state_id} // Disable if state_id is not selected
           required

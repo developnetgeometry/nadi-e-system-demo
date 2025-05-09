@@ -25,6 +25,8 @@ import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
+import POSSales from "@/pages/dashboard/pos/POSSales";
+import PUDO from "@/pages/dashboard/pos/PUDO";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
@@ -52,6 +54,7 @@ import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManage
 import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
 import NadiDashboard from "@/pages/dashboard/NadiDashboard";
 import IotDashboard from "@/pages/dashboard/IotDashboard";
+import Insurance from "@/pages/dashboard/site/Insurance";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -141,6 +144,22 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="view_pos_transactions">
       <POSTransactions />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pos/sales",
+    element: (
+      // <ProtectedRoute requiredPermission="view_pos_transactions">
+      <POSSales />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pos/PUDO",
+    element: (
+      // <ProtectedRoute requiredPermission="view_pos_transactions">
+      <PUDO />
       // </ProtectedRoute>
     ),
   },
@@ -372,14 +391,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/site/insurance",
-  //   element: (
-  //     // <ProtectedRoute requiredPermission="view_site_details">
-  //     <Usage/>
-  //     // </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/site-management/insurance",
+    element: (
+      // <ProtectedRoute requiredPermission="view_site_details">
+      <Insurance/>
+      // </ProtectedRoute>
+    ),
+  },
   {
     path: "/site-management/usage",
     element: (
