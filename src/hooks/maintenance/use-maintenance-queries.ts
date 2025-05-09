@@ -20,10 +20,10 @@ export const useMaintenanceQueries = () => {
   if (isStaffUser) {
     site_id = siteId;
   }
-  const useMaintenanceRequestsQuery = () =>
+  const useMaintenanceRequestsQuery = (requestsType?: string) =>
     useQuery({
-      queryKey: ["maintenance-requests"],
-      queryFn: () => maintenanceClient.fetchMaintenanceRequests(),
+      queryKey: ["maintenance-requests", requestsType],
+      queryFn: () => maintenanceClient.fetchMaintenanceRequests(requestsType),
     });
   const useMaintenanceTypesQuery = () =>
     useQuery({

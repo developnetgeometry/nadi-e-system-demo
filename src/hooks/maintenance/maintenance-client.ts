@@ -7,20 +7,36 @@ import {
 } from "@/types/maintenance";
 
 export const maintenanceClient = {
-  fetchMaintenanceRequests: async (): Promise<MaintenanceRequest[]> => {
-    const { data, error } = await supabase
+  fetchMaintenanceRequests: async (
+    type?: string
+  ): Promise<MaintenanceRequest[]> => {
+    let query = supabase
       .from("nd_maintenance_request")
       .select(
         `*,
-        nd_type_maintenance ( id, name ),
-        sla:nd_sla_categories ( id, name, min_day, max_day ),
-        asset:nd_asset (
-          id,
-          name,
-          site_id
-        )`
+      nd_type_maintenance ( id, name ),
+      sla:nd_sla_categories ( id, name, min_day, max_day ),
+      asset:nd_asset (
+        id,
+        name,
+        site_id
+      )`
       )
       .order("created_at", { ascending: false });
+
+    if (type) {
+      const prefix =
+        type.toLowerCase() === "cm"
+          ? "1%"
+          : type.toLowerCase() === "pm"
+          ? "2%"
+          : null;
+      if (prefix) {
+        query = query.like("no_docket", prefix);
+      }
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching maintenance requests:", error);

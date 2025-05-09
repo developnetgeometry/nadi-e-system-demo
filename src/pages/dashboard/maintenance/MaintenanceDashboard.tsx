@@ -41,7 +41,7 @@ const MaintenanceDashboard = () => {
     isLoading: isLoadingMaintenanceRequests,
     error: errorMaintenanceRequests,
     refetch: refetchMaintenanceRequests,
-  } = useMaintenanceRequestsQuery();
+  } = useMaintenanceRequestsQuery(typeParam);
 
   useEffect(() => {
     if (!isDialogOpen) {
@@ -60,7 +60,7 @@ const MaintenanceDashboard = () => {
     return <div>Error fetching maintenance requests</div>;
   }
 
-  const displayAssets = isStaffUser && !siteId ? [] : maintenanceRequests;
+  const displayRequests = isStaffUser && !siteId ? [] : maintenanceRequests;
 
   return (
     <DashboardLayout>
@@ -84,12 +84,19 @@ const MaintenanceDashboard = () => {
           </TabsList>
           <TabsContent value="cm">
             <MaintenanceList
-              maintenanceRequests={displayAssets}
+              maintenanceRequests={displayRequests}
               isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
               refetch={refetchMaintenanceRequests}
             />
           </TabsContent>
-          <TabsContent value="pm">Preventive Maintenance Content</TabsContent>
+          <TabsContent value="pm">
+            {" "}
+            <MaintenanceList
+              maintenanceRequests={displayRequests}
+              isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
+              refetch={refetchMaintenanceRequests}
+            />
+          </TabsContent>
         </Tabs>
 
         <MaintenanceRequestFormDialog
