@@ -374,24 +374,18 @@ const SiteDashboard = () => {
   const getStatusBadge = (status: string | undefined) => {
     if (!status) return <Badge variant="outline">Unknown</Badge>;
 
-    let variant: "default" | "destructive" | "outline" | "secondary" = "default";
-
     switch (status) {
       case "In Operation":
-        variant = "default";
-        break;
-      case "Permanently Close":
-        variant = "outline";
-        break;
+        return <Badge className="bg-green-500 hover:bg-green-600">{status}</Badge>;
       case "In Progress":
-        variant = "secondary";
-        break;
+        return <Badge className="bg-yellow-500 hover:bg-yellow-600">{status}</Badge>;
       case "Temporarily Close":
-        variant = "destructive";
-        break;
+        return <Badge className="bg-orange-500 hover:bg-orange-600">{status}</Badge>;
+      case "Permanently Close":
+        return <Badge className="bg-red-500 hover:bg-red-600">{status}</Badge>;
+      default:
+        return <Badge variant="outline">{status.replace('_', ' ')}</Badge>;
     }
-
-    return <Badge variant={variant}>{status.replace('_', ' ')}</Badge>;
   };
 
   const hasActiveFilters = phaseFilters.length > 0 || regionFilters.length > 0 || stateFilters.length > 0 || statusFilters.length > 0 || appliedDuspFilter || appliedTpFilter;
@@ -724,7 +718,7 @@ const SiteDashboard = () => {
                               </div>
                               {dusp.name}
                             </CommandItem>
-                        ))}
+                          ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -783,13 +777,63 @@ const SiteDashboard = () => {
                               </div>
                               {tp.name}
                             </CommandItem>
-                        ))}
+                          ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
                 </PopoverContent>
               </Popover>
             )}
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 h-10"
+                >
+                  <Box className="h-4 w-4 text-gray-500" />
+                  Status
+                  <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search statuses..." />
+                  <CommandList>
+                    <CommandEmpty>No statuses found.</CommandEmpty>
+                    <CommandGroup className="max-h-[300px] overflow-y-auto">
+                      {statuses.map((status) => (
+                        <CommandItem
+                          key={status.id}
+                          onSelect={() => {
+                            const value = status.eng;
+                            setSelectedStatusFilters(
+                              selectedStatusFilters.includes(value)
+                                ? selectedStatusFilters.filter((item) => item !== value)
+                                : [...selectedStatusFilters, value]
+                            );
+                          }}
+                        >
+                          <div
+                            className={cn(
+                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                              selectedStatusFilters.includes(status.eng)
+                                ? "bg-primary border-primary"
+                                : "opacity-50"
+                            )}
+                          >
+                            {selectedStatusFilters.includes(status.eng) && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          {status.eng}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
             <Button
               variant="outline"
