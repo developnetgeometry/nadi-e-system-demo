@@ -72,7 +72,8 @@ export const assetClient = {
   fetchAssetsByName: async (
     organizationId: string | null,
     siteId: string | null,
-    name: string | null
+    name: string | null,
+    isActive?: boolean | null
   ): Promise<Asset[]> => {
     if (!name) return [];
 
@@ -98,6 +99,10 @@ export const assetClient = {
 
     if (name) {
       query = query.textSearch("name", name);
+    }
+
+    if (isActive) {
+      query = query.eq("is_active", isActive);
     }
 
     query = query.limit(5).order("id");

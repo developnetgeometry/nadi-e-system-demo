@@ -28,11 +28,11 @@ export const useAssetQueries = () => {
         (isStaffUser && !!site_id),
     });
 
-  const useAssetsByNameQuery = (name: string) =>
+  const useAssetsByNameQuery = (name: string, isActive?: boolean) =>
     useQuery({
       queryKey: ["assets", organizationId, site_id, name],
       queryFn: () =>
-        assetClient.fetchAssetsByName(organizationId, site_id, name),
+        assetClient.fetchAssetsByName(organizationId, site_id, name, isActive),
       enabled:
         !!name &&
         (!!organizationId || parsedMetadata?.user_type === "super_admin") &&

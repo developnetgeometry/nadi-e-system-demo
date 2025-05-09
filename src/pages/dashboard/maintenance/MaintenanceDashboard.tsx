@@ -90,7 +90,6 @@ const MaintenanceDashboard = () => {
             />
           </TabsContent>
           <TabsContent value="pm">
-            {" "}
             <MaintenanceList
               maintenanceRequests={displayRequests}
               isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}

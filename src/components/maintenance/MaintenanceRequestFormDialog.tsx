@@ -23,7 +23,7 @@ import { Asset } from "@/types/asset";
 import { MaintenanceDocketType, MaintenanceRequest } from "@/types/maintenance";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -58,7 +58,7 @@ export const MaintenanceRequestFormDialog = ({
   const [assetsFilter, setAssetsFilter] = useState("");
   const { useAssetsByNameQuery } = useAssets();
   const { data: assets = [], isLoading: isLoadingAssets } =
-    useAssetsByNameQuery(assetsFilter);
+    useAssetsByNameQuery(assetsFilter, true); // get only active assets
 
   const {
     attachmentFile,
@@ -69,13 +69,19 @@ export const MaintenanceRequestFormDialog = ({
     uploadAttachment,
   } = useAttachment();
 
-  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
+  useEffect(() => {
+    if (open) {
+      setMaintenanceDocketType("");
+      setSelectedAsset(null);
+      setAssetsFilter("");
+      setDescription("");
+    }
+  }, [open]);
+
+  const { useMaintenanceTypesQuery } = useMaintenance();
 
   const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
     useMaintenanceTypesQuery();
-
-  const { data: slaCategories = [], isLoading: isLoadingSLACategories } =
-    useSLACategoriesQuery();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -161,6 +167,13 @@ export const MaintenanceRequestFormDialog = ({
 
       if (insertError) throw insertError;
 
+      const { error: updateError } = await supabase
+        .from("nd_asset")
+        .update({ is_active: false })
+        .eq("id", selectedAsset?.id);
+
+      if (updateError) throw updateError;
+
       toast({
         title: "Maintenance Request added successfully",
         description:
@@ -215,7 +228,7 @@ export const MaintenanceRequestFormDialog = ({
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="maintenanceDocketType">Type</Label>
+                <Label htmlFor="maintenanceDocketType">Request Type</Label>
                 <Select
                   name="maintenanceDocketType"
                   required
@@ -272,7 +285,6 @@ export const MaintenanceRequestFormDialog = ({
                         placeholder="Search and add asset"
                         value={assetsFilter}
                         onChange={(e) => {
-                          console.log(e.target.value);
                           setAssetsFilter(e.target.value);
                         }}
                         className="pl-10"
