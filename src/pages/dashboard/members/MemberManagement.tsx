@@ -10,6 +10,8 @@ import {
   Activity,
   UserCheck,
   Search,
+  Edit,
+  Eye,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/auth";
@@ -27,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
+import Registration from "./Registration";
 
 const MemberManagement = () => {
   const navigate = useNavigate();
@@ -37,6 +40,7 @@ const MemberManagement = () => {
     null
   );
   const pageSize = 20;
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
 
   // Fetch members data
   const { data: membersData, isLoading } = useQuery({
@@ -106,9 +110,11 @@ const MemberManagement = () => {
     return date.toLocaleDateString();
   };
 
+
   const handleAddNewMember = () => {
-    navigate("/member-management/registration");
+    setIsDialogOpen(true); // Open the dialog
   };
+
 
   const handleViewDetailsClick = (userId: string) => {
     navigate(`/member-management/profile?id=${userId}`);
@@ -220,14 +226,20 @@ const MemberManagement = () => {
               Export
             </Button>
             <Button
-              className="flex items-center gap-2"
-              onClick={handleAddNewMember}
-            >
-              <UserPlus className="h-4 w-4" />
-              Add New Member
-            </Button>
+            className="flex items-center gap-2"
+            onClick={handleAddNewMember}
+          >
+            <UserPlus className="h-4 w-4" />
+            Add New Member
+          </Button>
           </div>
         </div>
+
+        {/* Registration Dialog */}
+        <Registration
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)} // Close the dialog
+        />
 
         {/* Filter Buttons */}
         <div className="flex flex-wrap justify-between gap-2">
@@ -426,7 +438,7 @@ const MemberManagement = () => {
                           size="icon"
                           onClick={() => handleViewDetailsClick(member.id)} // Add view details button
                         >
-                          <Search className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>

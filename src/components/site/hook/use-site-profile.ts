@@ -98,3 +98,56 @@ export const useSiteProfile = (id: string) => {
 
   return { data, socioeconomics, space, address, loading, error }; // <-- return address
 };
+
+export const useSiteStats = (siteId: string) => {
+  const [totalMembers, setTotalMembers] = useState<number>(0);
+  const [activeMembers, setActiveMembers] = useState<number>(0);
+  const [staffMembers, setStaffMembers] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(45000); // Static value
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch total members
+        const { count: totalMembersCount, error: totalMembersError } = await supabase
+          .from("nd_member_profile")
+          .select("*", { count: "exact", head: true })
+          .eq("ref_id", siteId);
+
+        if (totalMembersError) throw totalMembersError;
+        setTotalMembers(totalMembersCount || 0);
+
+        // Fetch active members
+        const { count: activeMembersCount, error: activeMembersError } = await supabase
+          .from("nd_member_profile")
+          .select("*", { count: "exact", head: true })
+          .eq("ref_id", siteId)
+          .eq("status_membership", 1);
+
+        if (activeMembersError) throw activeMembersError;
+        setActiveMembers(activeMembersCount || 0);
+
+        // Fetch staff members
+        const { count: staffMembersCount, error: staffMembersError } = await supabase
+          .from("nd_site_user")
+          .select("*", { count: "exact", head: true })
+          .eq("site_profile_id", siteId);
+
+        if (staffMembersError) throw staffMembersError;
+        setStaffMembers(staffMembersCount || 0);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [siteId]);
+
+  return { totalMembers, activeMembers, staffMembers, totalRevenue, loading, error };
+};
