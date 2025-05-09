@@ -221,7 +221,7 @@ export function PersonalForm({
 
         {/* Community Status */}
         <div className="space-y-2">
-          <Label className="flex items-center">Community Status</Label>
+          <Label className="flex items-center">MADANI Community Status</Label>
           <RadioGroup
             value={community_status?.toString() ?? "null"}
             onValueChange={(value) =>
@@ -230,9 +230,9 @@ export function PersonalForm({
           >
             <div className="flex items-center space-x-4">
               <RadioGroupItem value="true" id="community_status_yes" />
-              <Label htmlFor="community_status_yes">Active</Label>
+              <Label htmlFor="community_status_yes">Yes</Label>
               <RadioGroupItem value="false" id="community_status_no" />
-              <Label htmlFor="community_status_no">Inactive</Label>
+              <Label htmlFor="community_status_no">No</Label>
             </div>
           </RadioGroup>
         </div>
@@ -248,9 +248,9 @@ export function PersonalForm({
           >
             <div className="flex items-center space-x-4">
               <RadioGroupItem value="true" id="status_entrepreneur_yes" />
-              <Label htmlFor="status_entrepreneur_yes">Active</Label>
+              <Label htmlFor="status_entrepreneur_yes">Yes</Label>
               <RadioGroupItem value="false" id="status_entrepreneur_no" />
-              <Label htmlFor="status_entrepreneur_no">Inactive</Label>
+              <Label htmlFor="status_entrepreneur_no">No</Label>
             </div>
           </RadioGroup>
         </div>

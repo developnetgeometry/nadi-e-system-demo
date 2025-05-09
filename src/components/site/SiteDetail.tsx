@@ -11,6 +11,13 @@ import BillingPage from "./component/BillingPage";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import InsurancePage from "./component/InsurancePage.tsx";
+import Membership from "@/components/dashboard/nadi-site/Membership";
+import Events from "@/components/dashboard/nadi-site/Events";
+import LocationMap from "@/components/dashboard/nadi-site/LocationMap";
+import OperationHours from "@/components/dashboard/nadi-site/OperationHours";
+import ServiceProvider from "@/components/dashboard/nadi-site/ServiceProvider";
+import ContactInfo from "@/components/dashboard/nadi-site/ContactInfo";
+import OtherDetails from "@/components/dashboard/nadi-site/OtherDetails";
 import React from "react";
 
 
@@ -55,17 +62,36 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
     },
   ];
 
-  const handlePrint = () => {
-    const printContent = document.getElementById("printable-content");
-    const originalContent = document.body.innerHTML;
+const handlePrint = async () => {
+  const printContent = document.getElementById("printable-content");
+  const originalContent = document.body.innerHTML;
 
-    if (printContent) {
-      document.body.innerHTML = printContent.innerHTML;
-      window.print();
-      document.body.innerHTML = originalContent;
-      window.location.reload(); // Reload to restore the original content
+  if (printContent) {
+    // Get all TabsTrigger elements
+    const tabsTriggers = document.querySelectorAll('[role="tab"]');
+    const tabsContents = document.querySelectorAll(".tabs-content");
+
+    // Temporarily make all TabsContent visible
+    tabsContents.forEach((tab) => {
+      tab.classList.add("block");
+      tab.classList.remove("hidden");
+    });
+
+    // Simulate clicking all tabs to ensure content is rendered
+    for (const trigger of tabsTriggers) {
+      (trigger as HTMLElement).click();
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for rendering
     }
-  };
+
+    // Replace body content with printable content
+    document.body.innerHTML = printContent.innerHTML;
+    window.print();
+
+    // Restore original content and visibility
+    document.body.innerHTML = originalContent;
+    window.location.reload(); // Reload to restore the original state
+  }
+};
 
   if (loading || codeLoading) {
     return (
@@ -120,6 +146,10 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
           <TabsTrigger value="billing" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Billing</TabsTrigger>
           <TabsTrigger value="insurance" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Insurance</TabsTrigger>
           <TabsTrigger value="staff" className="px-4 py-2 text-sm rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">Staff</TabsTrigger>
+          <TabsTrigger value="membership">Membership</TabsTrigger>
+          <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="location">Location</TabsTrigger>
+          <TabsTrigger value="contact">Contact & Others</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="h-full mt-0">
           <Card className="h-full">
@@ -149,8 +179,46 @@ const SiteDetail: React.FC<SiteDetailProps> = ({ siteId }) => {
             </div>
           </Card>
         </TabsContent>
+        <TabsContent value="membership" className="h-full mt-0">
+          <Card className="h-full">
+            <div className="p-6 h-full">
+              <Membership />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="events" className="h-full mt-0">
+          <Card className="h-full">
+            <div className="p-6 h-full">
+              <Events />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="location" className="h-full mt-0">
+          <Card className="h-full">
+            <div className="p-6 h-full">
+              <div className="mb-6">
+                <LocationMap />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <OperationHours />
+                <ServiceProvider />
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contact" className="h-full mt-0">
+          <Card className="h-full">
+            <div className="p-6 h-full">
+              <ContactInfo />
+              <OtherDetails />
+            </div>
+          </Card>
+        </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 };
 

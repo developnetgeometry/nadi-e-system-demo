@@ -1,8 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { ProfileHeader } from "@/components/profile/components/ProfileHeader";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import SiteDashboard from "./SiteDashboard";
-import Site from "./Site";
 import SiteDetail from "@/components/site/SiteDetail";
 import NoAccess from "@/pages/NoAccess";
 
