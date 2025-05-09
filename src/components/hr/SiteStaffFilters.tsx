@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, X, UserRound, MapPin } from "lucide-react";
@@ -39,8 +38,12 @@ export const SiteStaffFilters = ({
   locationOptions,
   onResetFilters,
 }: SiteStaffFiltersProps) => {
-  const hasFilters = searchQuery || statusFilter !== "all" || userTypeFilter !== "all" || locationFilter !== "all";
-  
+  const hasFilters =
+    searchQuery ||
+    statusFilter !== "all" ||
+    userTypeFilter !== "all" ||
+    locationFilter !== "all";
+
   return (
     <div className="mb-6 space-y-4">
       <div className="relative">
@@ -72,10 +75,10 @@ export const SiteStaffFilters = ({
         <Select value={userTypeFilter} onValueChange={setUserTypeFilter}>
           <SelectTrigger className="w-[200px] h-12 flex items-center">
             <UserRound className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter by User Type" />
+            <SelectValue placeholder="Filter by Role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All User Types</SelectItem>
+            <SelectItem value="all">All Role</SelectItem>
             {userTypeOptions?.map((userType) => (
               <SelectItem key={userType} value={userType}>
                 {userType.replace(/_/g, " ")}
