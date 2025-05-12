@@ -2,13 +2,15 @@ import { fetchSiteBySiteId } from "@/components/site/hook/site-utils";
 import { supabase } from "@/lib/supabase";
 import {
   MaintenanceRequest,
+  MaintenanceStatus,
   SLACategories,
   TypeMaintenance,
 } from "@/types/maintenance";
 
 export const maintenanceClient = {
   fetchMaintenanceRequests: async (
-    type?: string
+    type?: string,
+    statuses?: MaintenanceStatus[]
   ): Promise<MaintenanceRequest[]> => {
     let query = supabase
       .from("nd_maintenance_request")
@@ -34,6 +36,10 @@ export const maintenanceClient = {
       if (prefix) {
         query = query.like("no_docket", prefix);
       }
+    }
+
+    if (statuses && statuses.length > 0) {
+      query = query.in("status", statuses);
     }
 
     const { data, error } = await query;

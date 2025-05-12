@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { MaintenanceStatus } from "@/types/maintenance";
 import { useSiteId } from "../use-site-id";
 import { useUserMetadata } from "../use-user-metadata";
 import { maintenanceClient } from "./maintenance-client";
@@ -15,6 +16,13 @@ export const useMaintenanceQueries = () => {
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isVendor = parsedMetadata?.user_group_name === "Vendor";
+
+  let statuses = [] as MaintenanceStatus[];
+
+  if (isVendor) {
+    statuses = Object.values(MaintenanceStatus); // This wouldn't getting status == null
+  }
 
   let site_id: string | null = null;
   if (isStaffUser) {
@@ -22,8 +30,9 @@ export const useMaintenanceQueries = () => {
   }
   const useMaintenanceRequestsQuery = (requestsType?: string) =>
     useQuery({
-      queryKey: ["maintenance-requests", requestsType],
-      queryFn: () => maintenanceClient.fetchMaintenanceRequests(requestsType),
+      queryKey: ["maintenance-requests", requestsType, statuses],
+      queryFn: () =>
+        maintenanceClient.fetchMaintenanceRequests(requestsType, statuses),
     });
   const useMaintenanceTypesQuery = () =>
     useQuery({
