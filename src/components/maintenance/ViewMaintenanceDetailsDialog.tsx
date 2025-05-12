@@ -77,7 +77,8 @@ export const ViewMaintenanceDetailsDialog = ({
     userMetadata?.user_group_name == "TP" &&
     (maintenanceRequest?.status == MaintenanceStatus.Approved ||
       (maintenanceRequest?.status == null &&
-        maintenanceRequest?.sla?.min_day < 15));
+        maintenanceRequest?.sla?.min_day < 15) ||
+      maintenanceRequest?.status == MaintenanceStatus.Rejected);
 
   const isVendorApproval =
     userMetadata?.user_group_name == "Vendor" &&
