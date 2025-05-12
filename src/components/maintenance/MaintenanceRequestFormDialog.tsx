@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/asset";
-import { MaintenanceDocketType, MaintenanceRequest } from "@/types/maintenance";
+import { MaintenanceDocketType } from "@/types/maintenance";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -33,13 +33,11 @@ import { useAttachment } from "./hooks/use-attachment";
 export interface MaintenanceRequestFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  maintenanceRequest?: MaintenanceRequest;
 }
 
 export const MaintenanceRequestFormDialog = ({
   open,
   onOpenChange,
-  maintenanceRequest,
 }: MaintenanceRequestFormDialogProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -83,7 +81,7 @@ export const MaintenanceRequestFormDialog = ({
   const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
     useMaintenanceTypesQuery();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitCM = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
@@ -103,16 +101,14 @@ export const MaintenanceRequestFormDialog = ({
     let attachmentUrl = null;
 
     if (attachmentFile) {
-      const logoUrl = await uploadAttachment();
+      const url = await uploadAttachment();
 
-      if (logoUrl) {
-        attachmentUrl = logoUrl;
+      if (url) {
+        attachmentUrl = url;
       } else {
         toast({
           title: "Error",
-          description: `Failed to ${
-            maintenanceRequest ? "update" : "add"
-          } the maintenance request. Please try again.`,
+          description: `Failed to add the maintenance request. Please try again.`,
           variant: "destructive",
         });
         setIsSubmitting(false);
@@ -214,143 +210,129 @@ export const MaintenanceRequestFormDialog = ({
           </DialogTitle>
         ) : (
           <>
-            <DialogHeader className="mb-2">
-              <DialogTitle>
-                {maintenanceRequest
-                  ? "Update Maintenance Request"
-                  : "Add New Maintenance Request"}
-              </DialogTitle>
+            <DialogHeader>
+              <DialogTitle>Add New Maintenance Request</DialogTitle>
               <DialogDescription>
-                {maintenanceRequest
-                  ? "Update maintenance request details"
-                  : "Fill in the details to create a new maintenance request"}
+                Fill in the details to create a new maintenance request
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="maintenanceDocketType">Request Type</Label>
-                <Select
-                  name="maintenanceDocketType"
-                  required
-                  onValueChange={(value) =>
-                    setMaintenanceDocketType(value as MaintenanceDocketType)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {maintenanceDocketTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {maintenanceDocketType === MaintenanceDocketType.Corrective && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="maintenanceType">Maintenance Type</Label>
-                    <Select name="maintenanceType" required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select maintenance type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {maintenanceTypes.map((type, index) => (
-                          <SelectItem key={index} value={type.id.toString()}>
-                            {type?.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      placeholder="Enter description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="asset">Asset</Label>
-                    <div className="relative flex space-x-4">
-                      <Input
-                        placeholder="Search and add asset"
-                        value={assetsFilter}
-                        onChange={(e) => {
-                          setAssetsFilter(e.target.value);
-                        }}
-                        className="pl-10"
-                      />
-                      <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    </div>
-
-                    <div className="mt-2">
-                      {isLoadingAssets ? (
-                        <LoadingSpinner />
-                      ) : assetsFilter && assets.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                          No assets found
-                        </p>
-                      ) : (
-                        assets.map((asset) => (
-                          <AssetCard key={asset.id} asset={asset} />
-                        ))
-                      )}
-
-                      {selectedAsset && (
-                        <div className="relative mt-4 p-4 border rounded bg-gray-50">
-                          <button
-                            onClick={() => setSelectedAsset(null)}
-                            className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
-                            aria-label="Clear selection"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-
-                          <div className="mt-2 bg-gray-50">
-                            <p className="font-semibold text-sm">
-                              {selectedAsset.name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {selectedAsset.id}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <AttachmentUploadField
-                    previewUrl={attachmentPreviewUrl}
-                    isUploading={isUploading}
-                    onAttachmentChange={handleAttachmentChange}
-                    onRemoveAttachment={handleRemoveAttachment}
-                  />
-                </>
-              )}
-
-              <Button
-                type="submit"
-                disabled={isSubmitting || !maintenanceDocketType}
-                className="pt-2 w-full"
+            <div className="space-y-2">
+              <Label htmlFor="maintenanceDocketType">Request Type</Label>
+              <Select
+                name="maintenanceDocketType"
+                required
+                onValueChange={(value) =>
+                  setMaintenanceDocketType(value as MaintenanceDocketType)
+                }
               >
-                {isSubmitting
-                  ? maintenanceRequest
-                    ? "Updating..."
-                    : "Adding..."
-                  : maintenanceRequest
-                  ? "Update Maintenance Request"
-                  : "Open Request"}
-              </Button>
-            </form>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {maintenanceDocketTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {maintenanceDocketType === MaintenanceDocketType.Corrective && (
+              <form onSubmit={handleSubmitCM} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="maintenanceType">Maintenance Type</Label>
+                  <Select name="maintenanceType" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select maintenance type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {maintenanceTypes.map((type, index) => (
+                        <SelectItem key={index} value={type.id.toString()}>
+                          {type?.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    placeholder="Enter description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="asset">Asset</Label>
+                  <div className="relative flex space-x-4">
+                    <Input
+                      placeholder="Search and add asset"
+                      value={assetsFilter}
+                      onChange={(e) => {
+                        setAssetsFilter(e.target.value);
+                      }}
+                      className="pl-10"
+                    />
+                    <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+
+                  <div className="mt-2">
+                    {isLoadingAssets ? (
+                      <LoadingSpinner />
+                    ) : assetsFilter && assets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No assets found
+                      </p>
+                    ) : (
+                      assets.map((asset) => (
+                        <AssetCard key={asset.id} asset={asset} />
+                      ))
+                    )}
+
+                    {selectedAsset && (
+                      <div className="relative mt-4 p-4 border rounded bg-gray-50">
+                        <button
+                          onClick={() => setSelectedAsset(null)}
+                          className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+                          aria-label="Clear selection"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="mt-2 bg-gray-50">
+                          <p className="font-semibold text-sm">
+                            {selectedAsset.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedAsset.id}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <AttachmentUploadField
+                  previewUrl={attachmentPreviewUrl}
+                  isUploading={isUploading}
+                  onAttachmentChange={handleAttachmentChange}
+                  onRemoveAttachment={handleRemoveAttachment}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !maintenanceDocketType}
+                  className="pt-2 w-full"
+                >
+                  {isSubmitting ? "Adding..." : "Open Request"}
+                </Button>
+              </form>
+            )}
           </>
         )}
       </DialogContent>
