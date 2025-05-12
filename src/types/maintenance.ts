@@ -31,7 +31,7 @@ export enum MaintenanceStatus {
   Completed = "completed",
   Incompleted = "incompleted",
   Rejected = "rejected",
-  Defferred = "deferred",
+  Deffered = "deffered",
 }
 
 export const humanizeMaintenanceStatus = (status: string) => {
