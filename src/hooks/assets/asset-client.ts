@@ -136,6 +136,20 @@ export const assetClient = {
     }));
   },
 
+  fetchAssetsByType: async (typeId: number): Promise<Asset[]> => {
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select("*")
+      .eq("type_id", typeId);
+
+    if (error) {
+      console.error("Error fetching assets by type:", error);
+      throw error;
+    }
+
+    return data ?? [];
+  },
+
   toggleAssetActiveStatus: async (
     assetId: string,
     currentStatus: boolean

@@ -13,6 +13,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { useAssets } from "@/hooks/use-assets";
+import { UseQueryResult } from "@tanstack/react-query";
+import { Asset } from "@/types/asset";
+import { useBookingMutation } from "@/hooks/booking/use-booking-mutation";
 
 type FilterParams = {
     pcAvailability: string,
@@ -41,8 +45,10 @@ const BookingHeader = () => {
 }
 
 const BookingContent = () => {
-    // Upcoming function to get booking data
-    // const { data, error, isLoading } = useBookingData();
+    const { useAssetsByTypeQuery } = useAssets();
+
+    const assetIdsPc = 1;
+    const { data: pcs = [], isLoading } = useAssetsByTypeQuery(assetIdsPc);
 
     return (
         <Tabs defaultValue="PC Bookings" className="w-full grid place-items-center mt-7">
@@ -53,20 +59,42 @@ const BookingContent = () => {
                     ))
                 }
             </TabsList>
-            <PcBookings value="PC Bookings"/>
-            <PcCalender value="PC Calendar" />
-            <FacilityBooking value="Facility Bookings" />
-            <FacilityCalender value="Facility Calendar" />
+            <PcBookings 
+                value="PC Bookings" 
+                pcStats={{
+                    totalPcs: isLoading ? 0 : pcs.length,
+                    pcInUse: 0,
+                    pcAvailable: 0
+                }}
+            />
+            <PcCalender 
+                value="PC Calendar" 
+            />
+            <FacilityBooking 
+                value="Facility Bookings" 
+            />
+            <FacilityCalender 
+                value="Facility Calendar" 
+            />
         </Tabs>
     )
 }
 
-const PcBookings = ({value}) => {
+interface PcBookingProps {
+    value: string,
+    pcStats: {
+        totalPcs: number,
+        pcInUse: number,
+        pcAvailable: number
+    }
+}
+
+const PcBookings = ({value, pcStats}: PcBookingProps) => {
 
     const statsItems = [
         {
             title: "Total PCs",
-            value: "0",
+            value: String(pcStats.totalPcs),
             icon: Server,
             description: "",
             iconBgColor: "bg-gray-200",
@@ -74,14 +102,14 @@ const PcBookings = ({value}) => {
         },
         {
             title: "In Use",
-            value: "0",
+            value: String(pcStats.pcInUse),
             icon: RotateCcwSquare,
             description: "",
             iconBgColor: "bg-red-100",
             iconTextColor: "text-red-500",
         },{
             title: "Available",
-            value: "0",
+            value: String(pcStats.pcAvailable),
             icon: CircleCheckBig,
             description: "",
             iconBgColor: "bg-green-100",
@@ -104,10 +132,12 @@ const PcBookings = ({value}) => {
 }
 
 const PcCalender = ({value}) => {
+    // Handle post new booking
+    const { useAssetMutation } = useBookingMutation();
+
     return (
         <TabsContent value={value}>
-            {/* just for an example content */}
-            <h1>{`${value} content`}</h1>
+            
         </TabsContent>
     )
 }
