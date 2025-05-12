@@ -79,6 +79,10 @@ export const ViewMaintenanceDetailsDialog = ({
       (maintenanceRequest?.status == null &&
         maintenanceRequest?.sla?.min_day < 15));
 
+  const isVendorApproval =
+    userMetadata?.user_group_name == "Vendor" &&
+    maintenanceRequest?.status == MaintenanceStatus.Issued;
+
   function UpdateDUSP() {
     const updateStatus = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -277,6 +281,56 @@ export const ViewMaintenanceDetailsDialog = ({
     );
   }
 
+  function VendorApproval() {
+    const handleUpdateStatus = async (status: MaintenanceStatus) => {
+      try {
+        const { error: updateError } = await supabase
+          .from("nd_maintenance_request")
+          .update({
+            status: status,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", maintenanceRequest.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Maintenance Request updated successfully",
+          description:
+            "The maintenance request has been updated in the system.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to update the maintenance request. Please try again.`,
+          variant: "destructive",
+        });
+      } finally {
+        onOpenChange(false);
+      }
+    };
+
+    return (
+      <div className="flex justify-center items-center gap-4">
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => handleUpdateStatus(MaintenanceStatus.InProgress)}
+        >
+          Accept
+        </Button>
+        <Button
+          type="button"
+          className="w-full"
+          variant="destructive"
+          onClick={() => handleUpdateStatus(MaintenanceStatus.Rejected)}
+        >
+          Decline
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
@@ -330,6 +384,7 @@ export const ViewMaintenanceDetailsDialog = ({
           {isUpdateSLA && <UpdateSLACategory />}
           {isDUSPApproval && <UpdateDUSP />}
           {isVendorAssigned && <UpdateVendor />}
+          {isVendorApproval && <VendorApproval />}
         </div>
       </DialogContent>
     </Dialog>
