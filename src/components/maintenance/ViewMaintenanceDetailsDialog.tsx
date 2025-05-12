@@ -53,6 +53,26 @@ export const ViewMaintenanceDetailsDialog = ({
     attachmentFileName = attachmenUrl.pathname.split("/").pop();
   }
 
+  /**
+   * CM process flow
+   * 1. staff create maintenance request
+   * 2. TP set SLA
+   * 3. if SLA >= 15 days, DUSP need to approve
+   * 4. TP assign Vendor
+   * 5. Vendor accept / reject
+   * 6. Vendor completing CM
+   * 7. Vendor upload report
+   * 8. TP approve / reject CM completion
+   */
+
+  const isUpdateSLA =
+    userMetadata?.user_group_name == "TP" && maintenanceRequest?.sla_id == null;
+
+  const isDUSPApproval =
+    userMetadata?.user_group_name == "DUSP" &&
+    maintenanceRequest?.status == null &&
+    maintenanceRequest?.sla?.min_day >= 15;
+
   function UpdateDUSP() {
     const updateStatus = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -226,9 +246,8 @@ export const ViewMaintenanceDetailsDialog = ({
               <p>No attachment</p>
             )}
           </div>
-          {maintenanceRequest?.sla_id == null && <UpdateSLACategory />}
-          {maintenanceRequest?.sla?.min_day >= 15 &&
-            userMetadata?.user_group_name == "DUSP" && <UpdateDUSP />}
+          {isUpdateSLA && <UpdateSLACategory />}
+          {isDUSPApproval && <UpdateDUSP />}
         </div>
       </DialogContent>
     </Dialog>
