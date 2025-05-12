@@ -280,7 +280,7 @@ export const MaintenanceList = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedInventories &&
+              {paginatedInventories.length > 0 ? (
                 paginatedInventories.map((maintenanceRequest, index) => {
                   const requestDate = maintenanceRequest.updated_at
                     ? (() => {
@@ -379,7 +379,14 @@ export const MaintenanceList = ({
                       </TableCell>
                     </TableRow>
                   );
-                })}
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    No maintenance requests found.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         )}
