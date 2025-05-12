@@ -36,6 +36,8 @@ export enum MaintenanceStatus {
 
 export const humanizeMaintenanceStatus = (status: string) => {
   switch (status) {
+    case "approved":
+      return "Approved";
     case "issued":
       return "Issued";
     case "in_progress":
