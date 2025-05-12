@@ -73,6 +73,12 @@ export const ViewMaintenanceDetailsDialog = ({
     maintenanceRequest?.status == null &&
     maintenanceRequest?.sla?.min_day >= 15;
 
+  const isVendorAssigned =
+    userMetadata?.user_group_name == "TP" &&
+    (maintenanceRequest?.status == MaintenanceStatus.Approved ||
+      (maintenanceRequest?.status == null &&
+        maintenanceRequest?.sla?.min_day < 15));
+
   function UpdateDUSP() {
     const updateStatus = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -196,6 +202,81 @@ export const ViewMaintenanceDetailsDialog = ({
     );
   }
 
+  function UpdateVendor() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const vendors = [
+      {
+        id: 1,
+        name: "Vendor 1",
+      },
+      {
+        id: 2,
+        name: "Vendor 2",
+      },
+    ];
+
+    const handleUpdateVendor = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+
+      setIsSubmitting(true);
+
+      const formData = new FormData(e.currentTarget);
+      const selectedVendor = formData.get("vendor");
+
+      try {
+        const { error: updateError } = await supabase
+          .from("nd_maintenance_request")
+          .update({
+            // vendor_id: Number(selectedSLA),
+            status: MaintenanceStatus.Issued,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", maintenanceRequest.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Maintenance Request updated successfully",
+          description:
+            "The maintenance request has been updated in the system.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to update the maintenance request. Please try again.`,
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+        onOpenChange(false);
+      }
+    };
+
+    return (
+      <form className="space-y-4" onSubmit={handleUpdateVendor}>
+        <div className="space-y-2">
+          <Label htmlFor="vendor">Vendor</Label>
+          <Select name="vendor" required>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Vendor" />
+            </SelectTrigger>
+            <SelectContent>
+              {vendors.map((type, index) => (
+                <SelectItem key={index} value={type.id.toString()}>
+                  {type?.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="submit" disabled={isSubmitting} className="pt-2 w-full">
+          {isSubmitting ? "Updating..." : "Assign to Vendor"}
+        </Button>
+      </form>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
@@ -248,6 +329,7 @@ export const ViewMaintenanceDetailsDialog = ({
           </div>
           {isUpdateSLA && <UpdateSLACategory />}
           {isDUSPApproval && <UpdateDUSP />}
+          {isVendorAssigned && <UpdateVendor />}
         </div>
       </DialogContent>
     </Dialog>
