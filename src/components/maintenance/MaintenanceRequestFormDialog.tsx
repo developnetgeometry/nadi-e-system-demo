@@ -81,6 +81,34 @@ export const MaintenanceRequestFormDialog = ({
   const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
     useMaintenanceTypesQuery();
 
+  const generateDocketNumber = (now: Date, formData: FormData) => {
+    /**
+     * Docket number generation
+     * Format: XYYYYMMDDHHMMSSTT
+     *
+     * X: 1 -> cm, 2 -> pm
+     * YYYY: year
+     * MM: month
+     * DD: day
+     * HH: hour
+     * MM: minute
+     * SS: second
+     * TT: type_id
+     */
+
+    const docketNumber =
+      (maintenanceDocketType === MaintenanceDocketType.Corrective ? "1" : "2") +
+      now.getFullYear() +
+      ("0" + (now.getMonth() + 1)).slice(-2) +
+      ("0" + now.getDate()).slice(-2) +
+      ("0" + now.getHours()).slice(-2) +
+      ("0" + now.getMinutes()).slice(-2) +
+      ("0" + now.getSeconds()).slice(-2) +
+      ("0" + Number(formData.get("maintenanceType") ?? "")).slice(-2);
+
+    return docketNumber;
+  };
+
   const handleSubmitCM = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -115,31 +143,8 @@ export const MaintenanceRequestFormDialog = ({
         return;
       }
     }
-
-    /**
-     * Docket number generation
-     * Format: XYYYYMMDDHHMMSSTT
-     *
-     * X: 1 -> cm, 2 -> pm
-     * YYYY: year
-     * MM: month
-     * DD: day
-     * HH: hour
-     * MM: minute
-     * SS: second
-     * TT: type_id
-     */
     const now = new Date();
-
-    const docketNumber =
-      (maintenanceDocketType === MaintenanceDocketType.Corrective ? "1" : "2") +
-      now.getFullYear() +
-      ("0" + (now.getMonth() + 1)).slice(-2) +
-      ("0" + now.getDate()).slice(-2) +
-      ("0" + now.getHours()).slice(-2) +
-      ("0" + now.getMinutes()).slice(-2) +
-      ("0" + now.getSeconds()).slice(-2) +
-      ("0" + Number(formData.get("maintenanceType") ?? "")).slice(-2);
+    const docketNumber = generateDocketNumber(now, formData);
 
     const request = {
       no_docket: docketNumber,
