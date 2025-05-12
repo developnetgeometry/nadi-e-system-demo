@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { MaintenanceRequest, MaintenanceStatus } from "@/types/maintenance";
+import {
+  humanizeMaintenanceStatus,
+  MaintenanceRequest,
+  MaintenanceStatus,
+} from "@/types/maintenance";
 import { Download, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "../ui/input";
@@ -53,7 +57,7 @@ export const MaintenanceList = ({
     if (!isViewDetailsDialogOpen) refetch();
   }, [isViewDetailsDialogOpen, refetch]);
 
-  const { useMaintenanceTypesQuery, useSLACategoriesQuery } = useMaintenance();
+  const { useMaintenanceTypesQuery } = useMaintenance();
 
   const { data: maintenanceTypes = [], isLoading: isLoadingMaintenanceTypes } =
     useMaintenanceTypesQuery();
@@ -87,6 +91,9 @@ export const MaintenanceList = ({
       typeFilter
         ? String(maintenanceRequest?.type.id) === String(typeFilter)
         : true
+    )
+    .filter((maintenanceRequest) =>
+      statusFilter ? maintenanceRequest.status === statusFilter : true
     );
 
   const paginatedInventories = filteredMaintenanceRequests.slice(
@@ -201,7 +208,7 @@ export const MaintenanceList = ({
             <option value="">All Statuses</option>
             {statuses.map((status, index) => (
               <option key={index} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}{" "}
+                {humanizeMaintenanceStatus(status)}
               </option>
             ))}
           </select>
@@ -354,7 +361,9 @@ export const MaintenanceList = ({
                       </TableCell>
                       <TableCell>{estimatedDate || ""}</TableCell>
                       <TableCell>
-                        {maintenanceRequest?.status || "Pending"}
+                        {maintenanceRequest?.status
+                          ? humanizeMaintenanceStatus(maintenanceRequest.status)
+                          : "No status"}
                       </TableCell>
                       <TableCell>{requestDate || ""}</TableCell>
                       <TableCell>
