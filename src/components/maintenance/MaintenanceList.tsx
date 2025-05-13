@@ -1,17 +1,8 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useMaintenance } from "@/hooks/use-maintenance";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
-import {
-  humanizeMaintenanceStatus,
-  MaintenanceRequest,
-  MaintenanceStatus,
-} from "@/types/maintenance";
-import { formatDateTimeLocal } from "@/utils/date-utils";
-import { Download, Search } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Input } from "../ui/input";
-import { PaginationComponent } from "../ui/PaginationComponent";
-import { Skeleton } from "../ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -19,7 +10,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from "@/components/ui/table";
+import { useMaintenance } from "@/hooks/use-maintenance";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import {
+  getMaintenanceStatus,
+  humanizeMaintenanceStatus,
+  MaintenanceRequest,
+  MaintenanceStatus,
+} from "@/types/maintenance";
+import { formatDateTimeLocal } from "@/utils/date-utils";
+import { Download, Eye, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  getMaintenanceStatusClass,
+  getMaintenanceStatusIcon,
+  getSLACategoryClass,
+} from "./MaintenanceStatusBadge";
 import { ViewMaintenanceDetailsDialog } from "./ViewMaintenanceDetailsDialog";
 import { ViewMaintenanceDetailsDialogPM } from "./ViewMaintenanceDetailsDialogPM";
 
@@ -230,7 +237,7 @@ export const MaintenanceList = ({
                   </>
                 )}
                 <TableHead>Status</TableHead>
-                <TableHead>Action By/Date</TableHead>
+                <TableHead>Last Action</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -282,7 +289,7 @@ export const MaintenanceList = ({
                   </>
                 )}
                 <TableHead>Status</TableHead>
-                <TableHead>Action By/Date</TableHead>
+                <TableHead>Last Action</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -333,42 +340,51 @@ export const MaintenanceList = ({
                         {type === "cm" && (
                           <>
                             <TableCell>
-                              {maintenanceRequest?.sla?.name || "Not set"}
+                              <Badge
+                                className={getSLACategoryClass(
+                                  maintenanceRequest?.sla
+                                )}
+                              >
+                                {maintenanceRequest?.sla?.name || "Not set"}{" "}
+                              </Badge>
                             </TableCell>
                             <TableCell>{estimatedDate || ""}</TableCell>
                           </>
                         )}
-                        <TableCell>
-                          {maintenanceRequest?.status
-                            ? humanizeMaintenanceStatus(
-                                maintenanceRequest.status
-                              )
-                            : "No status"}
+                        <TableCell className="flex items-center space-x-2">
+                          {getMaintenanceStatusIcon(
+                            getMaintenanceStatus(maintenanceRequest?.status)
+                          )}
+                          <Badge
+                            className={getMaintenanceStatusClass(
+                              getMaintenanceStatus(maintenanceRequest?.status)
+                            )}
+                          >
+                            {maintenanceRequest?.status
+                              ? humanizeMaintenanceStatus(
+                                  maintenanceRequest?.status
+                                )
+                              : "No status"}
+                          </Badge>
                         </TableCell>
                         <TableCell>{requestDate || ""}</TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              onClick={() => {
-                                setSelectedItem(maintenanceRequest);
-                                if (type === "cm") {
-                                  setIsViewDetailsDialogCMOpen(true);
-                                } else {
-                                  setIsViewDetailsDialogPMOpen(true);
-                                }
-                              }}
-                              className="flex items-center"
-                            >
-                              View Details
-                            </Button>
-                            <Button
-                              onClick={() => {}}
-                              className="flex items-center"
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              View Report
-                            </Button>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="View Details"
+                            onClick={() => {
+                              setSelectedItem(maintenanceRequest);
+                              if (type === "cm") {
+                                setIsViewDetailsDialogCMOpen(true);
+                              } else {
+                                setIsViewDetailsDialogPMOpen(true);
+                              }
+                            }}
+                            className="flex items-center"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );

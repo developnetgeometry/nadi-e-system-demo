@@ -63,6 +63,27 @@ export const humanizeMaintenanceStatus = (status: string) => {
   }
 };
 
+export const getMaintenanceStatus = (status: string): MaintenanceStatus => {
+  switch (status) {
+    case "approved":
+      return MaintenanceStatus.Approved;
+    case "issued":
+      return MaintenanceStatus.Issued;
+    case "in_progress":
+      return MaintenanceStatus.InProgress;
+    case "completed":
+      return MaintenanceStatus.Completed;
+    case "incompleted":
+      return MaintenanceStatus.Incompleted;
+    case "rejected":
+      return MaintenanceStatus.Rejected;
+    case "deffered":
+      return MaintenanceStatus.Deffered;
+    default:
+      return null;
+  }
+};
+
 export interface TypeMaintenance {
   id: number;
   name: string;
@@ -75,3 +96,16 @@ export interface SLACategories {
   min_day: number;
   max_day: number;
 }
+
+export const getSLACategoryColor = (category: string): string => {
+  switch (category) {
+    case "Critical":
+      return "bg-red-100 text-red-800 hover:bg-red-200";
+    case "High":
+      return "bg-orange-100 text-orange-800 hover:bg-orange-200";
+    case "Moderate":
+      return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+    case "Low":
+      return "bg-green-100 text-green-800 hover:bg-green-200";
+  }
+};
