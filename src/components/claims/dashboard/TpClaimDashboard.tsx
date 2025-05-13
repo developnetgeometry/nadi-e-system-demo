@@ -6,10 +6,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FileText, Clock, CheckSquare, XSquare, Plus } from "lucide-react";
 import { useState } from "react";
-import { ClaimForm } from "@/components/claims/ClaimForm";
+import ClaimForm from "@/components/claims/ClaimForm"; // Adjusted for default import
 import { ClaimList } from "@/components/claims/ClaimList";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useDuspName } from "../hook/use-claim-data";
 
-export function TpClaimDashboard() {
+const TpClaimDashboard = () => {
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const organizationId = parsedMetadata?.organization_id;
+  const tpName = parsedMetadata?.organization_name;
+    const { duspName } = useDuspName();
+
   const [showNewClaimForm, setShowNewClaimForm] = useState(false);
   const { toast } = useToast();
 
@@ -104,20 +112,19 @@ export function TpClaimDashboard() {
         </Card>
       </div>
 
-      {showNewClaimForm ? (
-        <ClaimForm
-          onSuccess={() => {
-            setShowNewClaimForm(false);
-            toast({
-              title: "Success",
-              description: "Claim submitted successfully",
-            });
-          }}
-          onCancel={() => setShowNewClaimForm(false)}
-        />
-      ) : (
-        <ClaimList />
-      )}
+{showNewClaimForm ? (
+  <ClaimForm
+    isOpen={showNewClaimForm}
+    onClose={() => setShowNewClaimForm(false)}
+    organizationId={organizationId} // Pass organizationId here
+    tpName={tpName} // Pass tpName here
+    duspName={duspName} // Pass duspName here
+  />
+) : (
+  <ClaimList />
+)}
     </div>
   );
-}
+};
+
+export default TpClaimDashboard;

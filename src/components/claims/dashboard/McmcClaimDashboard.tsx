@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { FileText, Clock, CheckSquare, XSquare, Plus } from "lucide-react";
 import { useState } from "react";
-import { ClaimForm } from "@/components/claims/ClaimForm";
+// import { ClaimForm } from "@/components/claims/ClaimForm";
 import { ClaimList } from "@/components/claims/ClaimList";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -162,7 +162,7 @@ export function McmcClaimDashboard() {
           </CardContent>
         </Card>
       </div>
-
+{/* 
       {showNewClaimForm ? (
         <ClaimForm
           onSuccess={() => {
@@ -176,7 +176,7 @@ export function McmcClaimDashboard() {
         />
       ) : (
         <ClaimList />
-      )}
+      )} */}
     </div>
   );
 }

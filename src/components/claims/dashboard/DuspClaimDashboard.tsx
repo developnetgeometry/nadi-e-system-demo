@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { FileText, Clock, CheckSquare, XSquare, Plus } from "lucide-react";
 import { useState } from "react";
-import { ClaimForm } from "@/components/claims/ClaimForm";
+// import { ClaimForm } from "@/components/claims/ClaimForm";
 import { ClaimList } from "@/components/claims/ClaimList";
 
 export function DuspClaimDashboard() {
@@ -103,7 +103,7 @@ export function DuspClaimDashboard() {
           </CardContent>
         </Card>
       </div>
-
+{/* 
       {showNewClaimForm ? (
         <ClaimForm
           onSuccess={() => {
@@ -117,7 +117,7 @@ export function DuspClaimDashboard() {
         />
       ) : (
         <ClaimList />
-      )}
+      )} */}
     </div>
   );
 }
