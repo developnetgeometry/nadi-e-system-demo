@@ -55,6 +55,14 @@ import Takwim from "@/pages/dashboard/takwim/Takwim";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
 import WorkflowDashboard from "@/pages/workflow/Dashboard";
 import { RouteObject } from "react-router-dom";
+import ReportDashboard from "@/pages/dashboard/report/ReportDashboard";
+import ReportNadiESystem from "@/pages/dashboard/report/ReportNadiESystem";
+import ReportInternetAccess from "@/pages/dashboard/report/ReportInternetAccess";
+import ReportSiteManagement from "@/pages/dashboard/report/ReportSiteManagement";
+import ReportHRSalary from "@/pages/dashboard/report/ReportHRSalary";
+import ReportTraining from "@/pages/dashboard/report/ReportTraining";
+import ReportCM from "@/pages/dashboard/report/ReportCM";
+import ReportSmartService from "@/pages/dashboard/report/ReportSmartService";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -536,6 +544,70 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="">
       <IotDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/nadi-e-system",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportNadiESystem />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/internet-access",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportInternetAccess />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/site-management",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportSiteManagement />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/hr-salary",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportHRSalary />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/training",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportTraining />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/cm",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportCM />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/smart-services",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportSmartService/>
       // </ProtectedRoute>
     ),
   },
