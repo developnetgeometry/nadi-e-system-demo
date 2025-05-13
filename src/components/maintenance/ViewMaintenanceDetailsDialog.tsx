@@ -84,6 +84,10 @@ export const ViewMaintenanceDetailsDialog = ({
     userMetadata?.user_group_name == "Vendor" &&
     maintenanceRequest?.status == MaintenanceStatus.InProgress;
 
+  const isDefferedFlow =
+    userMetadata?.user_group_name == "TP" &&
+    maintenanceRequest?.status == MaintenanceStatus.Deffered;
+
   const isTPCloseRequest =
     userMetadata?.user_group_name == "TP" &&
     maintenanceRequest?.status == MaintenanceStatus.InProgress;
@@ -340,6 +344,7 @@ export const ViewMaintenanceDetailsDialog = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { user } = useAuth();
+    const [status, setStatus] = useState(null);
 
     const {
       attachmentFile,
@@ -395,13 +400,22 @@ export const ViewMaintenanceDetailsDialog = ({
       const existingUpdates = maintenanceRequest?.updates || [];
       const updatedUpdates = [...existingUpdates, newUpdate];
 
+      let data: Partial<MaintenanceRequest> = {
+        updates: updatedUpdates,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (status === MaintenanceStatus.Deffered) {
+        data = {
+          ...data,
+          status: MaintenanceStatus.Deffered,
+        };
+      }
+
       try {
         const { error: updateError } = await supabase
           .from("nd_maintenance_request")
-          .update({
-            updates: updatedUpdates,
-            updated_at: new Date().toISOString(),
-          })
+          .update(data)
           .eq("id", maintenanceRequest.id);
 
         if (updateError) throw updateError;
@@ -441,10 +455,78 @@ export const ViewMaintenanceDetailsDialog = ({
             />
           </div>
         </div>
-        <Button type="submit" className="pt-2 w-full" disabled={isSubmitting}>
-          Update Progress
-        </Button>
+        <div className="flex justify-center items-center gap-4">
+          <Button
+            type="submit"
+            className="pt-2 w-full"
+            onClick={() => setStatus(MaintenanceStatus.InProgress)}
+          >
+            Update Progress
+          </Button>
+          <Button
+            type="submit"
+            className="w-full"
+            onClick={() => setStatus(MaintenanceStatus.Deffered)}
+            variant="destructive"
+          >
+            Incomplete
+          </Button>
+        </div>
       </form>
+    );
+  }
+
+  function ProcessDefferedRequest() {
+    const handleUpdateStatus = async (status?: MaintenanceStatus) => {
+      const data: Partial<MaintenanceRequest> = {
+        status: status ?? null,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (!status) {
+        data.updates = null;
+      }
+      try {
+        const { error: updateError } = await supabase
+          .from("nd_maintenance_request")
+          .update(data)
+          .eq("id", maintenanceRequest.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Maintenance Request updated successfully",
+          description:
+            "The maintenance request has been updated in the system.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to update the maintenance request. Please try again.`,
+          variant: "destructive",
+        });
+      } finally {
+        onOpenChange(false);
+      }
+    };
+    return (
+      <div className="flex justify-center items-center gap-4">
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => handleUpdateStatus(MaintenanceStatus.InProgress)}
+        >
+          Accept
+        </Button>
+        <Button
+          type="button"
+          className="w-full"
+          variant="destructive"
+          onClick={() => handleUpdateStatus()}
+        >
+          Decline
+        </Button>
+      </div>
     );
   }
 
@@ -584,6 +666,7 @@ export const ViewMaintenanceDetailsDialog = ({
           {isVendorAssigned && <UpdateVendor />}
           {isVendorApproval && <VendorApproval />}
           {isVendorProgressUpdate && <VendorProgressUpdate />}
+          {isDefferedFlow && <ProcessDefferedRequest />}
           {isTPCloseRequest && <TPCloseRequest />}
         </div>
       </DialogContent>

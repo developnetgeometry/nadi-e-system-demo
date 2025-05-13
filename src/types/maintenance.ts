@@ -56,8 +56,8 @@ export const humanizeMaintenanceStatus = (status: string) => {
       return "Incompleted";
     case "rejected":
       return "Rejected";
-    case "deferred":
-      return "Deferred";
+    case "deffered":
+      return "Defferred";
     default:
       return "Unknown status";
   }
