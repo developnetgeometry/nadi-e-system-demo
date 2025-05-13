@@ -6,6 +6,7 @@ import {
   MaintenanceRequest,
   MaintenanceStatus,
 } from "@/types/maintenance";
+import { formatDateTimeLocal } from "@/utils/date-utils";
 import { Download, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Input } from "../ui/input";
@@ -290,37 +291,8 @@ export const MaintenanceList = ({
               {paginatedInventories.length > 0 ? (
                 paginatedInventories.map((maintenanceRequest, index) => {
                   const requestDate = maintenanceRequest.updated_at
-                    ? (() => {
-                        const parts =
-                          maintenanceRequest.updated_at.split(/[- :T]/);
-                        const year = Number(parts[0]);
-                        const month = Number(parts[1]) - 1;
-                        const day = Number(parts[2]);
-                        const hour = Number(parts[3]);
-                        const minute = Number(parts[4]);
-                        const utcDate = new Date(
-                          Date.UTC(year, month, day, hour, minute)
-                        );
-
-                        const localDate = new Date(utcDate);
-
-                        const localDay = String(localDate.getDate()).padStart(
-                          2,
-                          "0"
-                        );
-                        const localMonth = String(
-                          localDate.getMonth() + 1
-                        ).padStart(2, "0");
-                        const localYear = localDate.getFullYear();
-                        let localHours = localDate.getHours();
-                        const localMinutes = String(
-                          localDate.getMinutes()
-                        ).padStart(2, "0");
-                        const ampm = localHours >= 12 ? "PM" : "AM";
-                        localHours = localHours % 12 || 12; // 0 => 12
-
-                        return `${localDay}/${localMonth}/${localYear} ${localHours}:${localMinutes} ${ampm}`;
-                      })()
+                    ? (() =>
+                        formatDateTimeLocal(maintenanceRequest.updated_at))()
                     : "";
 
                   const estimatedDate =
