@@ -232,7 +232,7 @@ export const InventoryFormDialog = ({
         console.log("Creating new inventory:", inventory);
         const { error: insertError } = await supabase
           .from("nd_inventory")
-          .insert([{ ...inventory, created_at: new Date().toISOString() }]);
+          .insert([{ id: 10, ...inventory, created_at: new Date().toISOString() }]);
 
         if (insertError) throw insertError;
 
