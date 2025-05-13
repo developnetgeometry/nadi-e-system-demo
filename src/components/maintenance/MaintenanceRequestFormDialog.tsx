@@ -322,12 +322,15 @@ export const MaintenanceRequestFormDialog = ({
                   </div>
                 </div>
 
-                <AttachmentUploadField
-                  previewUrl={attachmentPreviewUrl}
-                  isUploading={isUploading}
-                  onAttachmentChange={handleAttachmentChange}
-                  onRemoveAttachment={handleRemoveAttachment}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="attachment">Attachment</Label>
+                  <AttachmentUploadField
+                    previewUrl={attachmentPreviewUrl}
+                    isUploading={isUploading}
+                    onAttachmentChange={handleAttachmentChange}
+                    onRemoveAttachment={handleRemoveAttachment}
+                  />
+                </div>
 
                 <Button
                   type="submit"
