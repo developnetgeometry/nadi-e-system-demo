@@ -36,7 +36,7 @@ const LocationMap: React.FC<LocationMapProps> = ({ site, address }) => {
 
   // Parse latitude and longitude as numbers, fallback to Cyberjaya if missing
   const latitude = site?.latitude ? parseFloat(site.latitude as string) : 2.9231;
-  const longitude = site?.longtitude ? parseFloat(site.longtitude as string) : 101.6567;
+  const longitude = site?.longitude ? parseFloat(site.longitude as string) : 101.6567;
 
   useEffect(() => {
     if (!mapContainer.current) return;
