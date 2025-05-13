@@ -416,7 +416,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site-management/kpi",
+    path: "/site-management/kpi-performance",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <KPI />
