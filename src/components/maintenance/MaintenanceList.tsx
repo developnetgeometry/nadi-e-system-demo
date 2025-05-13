@@ -116,69 +116,55 @@ export const MaintenanceList = ({
     filteredMaintenanceRequests.length
   );
 
-  // const exportAssetsAsCSV = (maintenanceRequests: MaintenanceRequest[]) => {
-  //   if (!maintenanceRequests || maintenanceRequests.length === 0) {
-  //     console.warn("No maintenanceRequests to export.");
-  //     return;
-  //   }
+  const exportRequestsAsCSV = (maintenanceRequests: MaintenanceRequest[]) => {
+    if (!maintenanceRequests || maintenanceRequests.length === 0) {
+      console.warn("No maintenanceRequests to export.");
+      return;
+    }
 
-  //   const headers = [
-  //     "No.",
-  //     "Name",
-  //     "Type",
-  //     "Price",
-  //     "Quantity",
-  //     "Description",
-  //     "NADI Centre",
-  //   ];
+    const headers = ["No.", "Docket No.", "Description", "Type", "Status"];
 
-  //   if (isSuperAdmin) {
-  //     const insertIndex = headers.indexOf("NADI Centre");
-  //     headers.splice(insertIndex, 0, "TP (DUSP)");
-  //   }
+    if (type === "cm") {
+      const insertIndex = headers.indexOf("Status");
+      headers.splice(insertIndex, 0, "SLA");
+    }
 
-  //   // Convert maintenanceRequests to rows
-  //   const rows = maintenanceRequests.map((maintenanceRequest, index) => {
-  //     const row = [
-  //       index + 1,
-  //       maintenanceRequest.name,
-  //       maintenanceRequest.type?.name ?? "",
-  //       maintenanceRequest.price ?? "",
-  //       maintenanceRequest.quantity ?? "",
-  //       maintenanceRequest.description ?? "",
-  //       // we'll insert "TP (DUSP)" before sitename if isSuperAdmin is true
-  //       maintenanceRequest.site?.sitename ?? "",
-  //     ];
+    // Convert maintenanceRequests to rows
+    const rows = maintenanceRequests.map((maintenanceRequest, index) => {
+      const row = [
+        index + 1,
+        String(maintenanceRequest.no_docket),
+        maintenanceRequest.description ?? "",
+        maintenanceRequest.type?.name ?? "",
+        // insert "SLA" before status if type === "cm"
+        maintenanceRequest.status,
+      ];
 
-  //     if (isSuperAdmin) {
-  //       const insertIndex = row.length - 1; // before "NADI Centre"
-  //       row.splice(
-  //         insertIndex,
-  //         0,
-  //         maintenanceRequest.site?.dusp_tp_id_display ?? ""
-  //       );
-  //     }
+      if (type === "cm") {
+        const insertIndex = row.length - 1; // before "Status"
+        row.splice(insertIndex, 0, maintenanceRequest.sla.name ?? "");
+      }
 
-  //     return row;
-  //   });
-  //   const csvContent = [headers, ...rows]
-  //     .map((e) => e.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
-  //     .join("\n");
+      return row;
+    });
+    const csvContent = [headers, ...rows]
+      .map((e) => e.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
 
-  //   return csvContent;
-  // };
+    return csvContent;
+  };
 
   const handleExportMaintenances = () => {
-    // const csvContent = exportAssetsAsCSV(filteredMaintenanceRequests);
-    // const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    // const url = URL.createObjectURL(blob);
-    // const link = document.createElement("a");
-    // link.setAttribute("href", url);
-    // link.setAttribute("download", "maintenanceRequests.csv");
-    // link.style.display = "none";
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
+    const csvContent = exportRequestsAsCSV(filteredMaintenanceRequests);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "maintenance_requests.csv");
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
