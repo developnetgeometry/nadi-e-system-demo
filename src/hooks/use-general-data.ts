@@ -17,6 +17,8 @@ const useGeneralData = () => {
   const [ethnics, setEthnics] = useState<any[]>([]);
   const [statusMemberships, setStatusMemberships] = useState<any[]>([]);
   const [identityNoTypes, setIdentityNoTypes] = useState<any[]>([]);
+  const [typeRelationships, setTypeRelationships] = useState<any[]>([]);
+  const [registrationMethods, setRegistrationMethods] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -215,6 +217,32 @@ const useGeneralData = () => {
       }
     };
 
+    const fetchTypeRelationships = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nd_type_relationship")
+          .select("id, eng, bm");
+        if (error) throw error;
+        setTypeRelationships(data);
+      } catch (error) {
+        console.error("Error fetching Type Relatonship:", error);
+        setError(error.message);
+      }
+    };
+
+    const fetchRegistrationMethods = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nd_registration_method")
+          .select("id, eng, bm");
+        if (error) throw error;
+        setRegistrationMethods(data);
+      } catch (error) {
+        console.error("Error fetching Registration Method:", error);
+        setError(error.message);
+      }
+    };
+
     fetchGenders();
     fetchMaritalStatuses();
     fetchRaces();
@@ -230,6 +258,8 @@ const useGeneralData = () => {
     fetchEthnics();
     fetchStatusMemberships();
     fetchIdentityNoTypes();
+    fetchTypeRelationships();
+    fetchRegistrationMethods();
   }, []);
 
   return {
@@ -248,6 +278,8 @@ const useGeneralData = () => {
     ethnics,
     statusMemberships,
     identityNoTypes,
+    typeRelationships,
+    registrationMethods,
     error,
   };
 };

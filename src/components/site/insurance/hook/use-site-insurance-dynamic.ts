@@ -31,7 +31,7 @@ export const useSiteInsuranceDynamic = (siteIds: string[], refresh: boolean) => 
         let remarksQuery = supabase
           .from("nd_site_remark")
           .select("id, description, type_id, site_id")
-          .in("site_id", siteIds);
+          .in("site_id", siteIds.map(Number));
 
         const { data: siteRemarks, error: siteRemarksError } = await remarksQuery;
 

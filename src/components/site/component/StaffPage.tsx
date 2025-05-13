@@ -10,22 +10,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Eye } from "lucide-react";
-import { useSiteStaff } from "../hook/use-site-staff";
 import StaffPageDetailDialog from "./StaffPageDetailDialog";
 
 interface StaffPageProps {
-  siteId: string;
+  staffData: any[];
+  loading: boolean;
+  error: any;
 }
 
-const StaffPage: React.FC<StaffPageProps> = ({ siteId }) => {
-  const { staffData, loading, error } = useSiteStaff(siteId);
+const StaffPage: React.FC<StaffPageProps> = ({
+  staffData,
+  loading,
+  error,
+}) => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewData, setViewData] = useState<any>(null);
 
   const handleView = (staff: any) => {
-    setViewData(staff); // Set the selected staff data
-    setIsViewDialogOpen(true); // Open the view dialog
+    setViewData(staff);
+    setIsViewDialogOpen(true);
   };
+
 
   if (loading) {
     return (
@@ -42,6 +47,7 @@ const StaffPage: React.FC<StaffPageProps> = ({ siteId }) => {
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Staff Information</h2>
+<pre>{JSON.stringify(staffData, null, 2)}</pre>
 
       <div className="rounded-md border overflow-hidden">
         <Table>

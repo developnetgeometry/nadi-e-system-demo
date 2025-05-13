@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DialogTitle } from "@/components/ui/dialog";
 
 type AddressData = {
@@ -12,12 +12,20 @@ type AddressData = {
   city: string;
   postcode: string;
   distance: string;
+  isUnder12?: boolean;
+  parent_address1?: string;
+  parent_address2?: string;
+  parent_state_id?: string;
+  parent_district_id?: string;
+  parent_city?: string;
+  parent_postcode?: string;
 };
 
 type AddressFormProps = AddressData & {
   updateFields: (fields: Partial<AddressData>) => void;
-  states: { id: string; name: string }[]; // Add states prop
-  districts: { id: string; name: string }[]; // Add districts prop
+  states: { id: string; name: string }[];
+  districts: { id: string; name: string }[];
+  fetchDistrictsByState: (stateId: string) => Promise<void>;
 };
 
 export function AddressForm({
@@ -28,19 +36,57 @@ export function AddressForm({
   city,
   postcode,
   distance,
+  isUnder12,
+  parent_address1,
+  parent_address2,
+  parent_state_id,
+  parent_district_id,
+  parent_city,
+  parent_postcode,
   updateFields,
   states,
   districts,
-  fetchDistrictsByState, // Add fetchDistrictsByState as a prop
-}: AddressFormProps & { fetchDistrictsByState: (stateId: string) => Promise<void> }) {
+  fetchDistrictsByState,
+}: AddressFormProps) {
+  const [useGuardianAddress, setUseGuardianAddress] = useState(false);
+
   useEffect(() => {
     if (state_id) {
-      fetchDistrictsByState(state_id); // Fetch districts when state_id changes
+      fetchDistrictsByState(state_id);
     }
   }, [state_id, fetchDistrictsByState]);
+
+  // When checkbox is checked, copy guardian address to main address fields
+  useEffect(() => {
+    if (useGuardianAddress && isUnder12) {
+      updateFields({
+        address1: parent_address1 || "",
+        address2: parent_address2 || "",
+        state_id: parent_state_id || "",
+        district_id: parent_district_id || "",
+        city: parent_city || "",
+        postcode: parent_postcode || "",
+      });
+    }
+  // eslint-disable-next-line
+  }, [useGuardianAddress, isUnder12, parent_address1, parent_address2, parent_state_id, parent_district_id, parent_city, parent_postcode]);
+
   return (
     <>
       <DialogTitle className="mb-4">Address Information</DialogTitle>
+      {isUnder12 && (
+        <div className="mb-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={useGuardianAddress}
+              onChange={(e) => setUseGuardianAddress(e.target.checked)}
+            />
+            <span>Use guardian's address</span>
+          </label>
+        </div>
+      )}
+
       {/* Address Line 1 */}
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">Address Line 1 <span className="text-red-500 ml-1">*</span></Label>
@@ -50,6 +96,7 @@ export function AddressForm({
           type="text"
           value={address1}
           onChange={(e) => updateFields({ address1: e.target.value })}
+          disabled={useGuardianAddress && isUnder12}
         />
       </div>
 
@@ -60,6 +107,7 @@ export function AddressForm({
           type="text"
           value={address2}
           onChange={(e) => updateFields({ address2: e.target.value })}
+          disabled={useGuardianAddress && isUnder12}
         />
       </div>
 
@@ -69,9 +117,10 @@ export function AddressForm({
         <Select
           value={state_id || ""}
           onValueChange={(value) => {
-            updateFields({ state_id: value, district_id: null }); // Set district_id to null when state changes
+            updateFields({ state_id: value, district_id: null });
           }}
           required
+          disabled={useGuardianAddress && isUnder12}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select state" />
@@ -92,7 +141,7 @@ export function AddressForm({
         <Select
           value={district_id || ""}
           onValueChange={(value) => updateFields({ district_id: value })}
-          disabled={!state_id} // Disable if state_id is not selected
+          disabled={!state_id || (useGuardianAddress && isUnder12)}
           required
         >
           <SelectTrigger>
@@ -116,6 +165,7 @@ export function AddressForm({
           type="text"
           value={city}
           onChange={(e) => updateFields({ city: e.target.value })}
+          disabled={useGuardianAddress && isUnder12}
         />
       </div>
 
@@ -127,6 +177,7 @@ export function AddressForm({
           type="text"
           value={postcode}
           onChange={(e) => updateFields({ postcode: e.target.value })}
+          disabled={useGuardianAddress && isUnder12}
         />
       </div>
 

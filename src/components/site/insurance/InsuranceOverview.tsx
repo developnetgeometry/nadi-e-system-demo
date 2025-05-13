@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowUp, ArrowUpDown, Download, RotateCcw, Eye, Edit, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowUpDown, Download, RotateCcw, Eye, Edit, Trash2, FilePlus } from "lucide-react";
 import { useSiteInsuranceDynamic } from "./hook/use-site-insurance-dynamic";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -52,10 +52,11 @@ const InsuranceOverview = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [viewData, setViewData] = useState<any>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedInsurance, setSelectedInsurance] = useState<any>(null);
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null);
   const { deleteInsuranceData, loading: deleteLoading } = useDeleteInsuranceData();
@@ -75,16 +76,18 @@ const InsuranceOverview = () => {
     setIsViewDialogOpen(true);
   };
 
+
+
   const handleEdit = (insurance: any) => {
     setSelectedInsurance(insurance);
-    setIsEditDialogOpen(true);
+    setIsDialogOpen(true);
   };
 
   useEffect(() => {
-    if (!isEditDialogOpen) {
+    if (!isDialogOpen) {
       setRefreshData((prev) => !prev); // Trigger refresh after closing the edit dialog
     }
-  }, [isEditDialogOpen]);
+  }, [isDialogOpen]);
 
   const handleDelete = async () => {
     if (!deleteRecordId) return;
@@ -247,6 +250,18 @@ const InsuranceOverview = () => {
         </Button>
       </div>
 
+      <div className="flex justify-end mb-4">
+        <Button
+          onClick={() => {
+            setSelectedInsurance(null);
+            setIsDialogOpen(true);
+          }}
+        >
+          <FilePlus className="mr-2 h-4 w-4" />
+          Add New Insurance
+        </Button>
+      </div>
+
       {/* Table */}
       <div className="rounded-md border">
         <Table>
@@ -358,11 +373,10 @@ const InsuranceOverview = () => {
         data={viewData}
       />
 
-      {/* InsuranceFormDialog for Edit */}
+      {/* InsuranceFormDialog for Edit and Create*/}
       <InsuranceFormDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        siteId={siteId}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
         initialData={selectedInsurance}
       />
 
