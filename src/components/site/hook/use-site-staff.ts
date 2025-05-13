@@ -47,6 +47,7 @@ export const useSiteStaff = (siteId: string) => {
             `
             )
             .eq("id", staffId)
+            .eq("is_active", true)
             .single();
 
           if (profileError) throw new Error(profileError.message);

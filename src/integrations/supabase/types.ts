@@ -5757,7 +5757,25 @@ export type Database = {
         };
         Relationships: [];
       };
-      nd_region: {
+      nd_registration_method: {
+        Row: {
+          bm: string | null;
+          eng: string | null;
+          id: number;
+        };
+        Insert: {
+          bm?: string | null;
+          eng?: string | null;
+          id?: number;
+        };
+        Update: {
+          bm?: string | null;
+          eng?: string | null;
+          id?: number;
+        };
+        Relationships: [];
+      };
+            nd_region: {
         Row: {
           bm: string | null;
           eng: string | null;
@@ -10767,6 +10785,9 @@ export type Database = {
           id: number | null;
           sitename: string | null;
           standard_code: string | null;
+          dusp_tp_id: string | null;
+          refid_tp: string | null;
+          refid_mcmc: string | null;
         };
         Relationships: [];
       };
