@@ -213,7 +213,7 @@ export const assetClient = {
     }));
   },
 
-  fetchAssetsByType: async (typeId: number): Promise<Asset[]> => {
+  fetchAssetsByType: async (typeId: number) => {
     const { data, error } = await supabase
       .from("nd_asset")
       .select("*")
@@ -224,7 +224,7 @@ export const assetClient = {
       throw error;
     }
 
-    return data ?? [];
+    return data;
   },
 
   toggleAssetActiveStatus: async (
