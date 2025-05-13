@@ -21,16 +21,19 @@ import {
   TableRow,
 } from "../ui/table";
 import { ViewMaintenanceDetailsDialog } from "./ViewMaintenanceDetailsDialog";
+import { ViewMaintenanceDetailsDialogPM } from "./ViewMaintenanceDetailsDialogPM";
 
 interface MaintenanceListProps {
   maintenanceRequests: MaintenanceRequest[];
   isLoadingMaintenanceRequests: boolean;
   refetch: () => void;
+  type?: string;
 }
 export const MaintenanceList = ({
   maintenanceRequests,
   isLoadingMaintenanceRequests,
   refetch,
+  type,
 }: MaintenanceListProps) => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
@@ -48,15 +51,17 @@ export const MaintenanceList = ({
       ? parsedMetadata.organization_id
       : null;
 
-  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
+  const [isViewDetailsDialogCMOpen, setIsViewDetailsDialogCMOpen] =
+    useState(false);
+  const [isViewDetailsDialogPMOpen, setIsViewDetailsDialogPMOpen] =
+    useState(false);
   const [selectedItem, setSelectedItem] = useState<MaintenanceRequest | null>(
     null
   );
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!isViewDetailsDialogOpen) refetch();
-  }, [isViewDetailsDialogOpen, refetch]);
+    if (!isViewDetailsDialogCMOpen) refetch();
+  }, [isViewDetailsDialogCMOpen, refetch]);
 
   const { useMaintenanceTypesQuery } = useMaintenance();
 
@@ -97,7 +102,7 @@ export const MaintenanceList = ({
       statusFilter ? maintenanceRequest.status === statusFilter : true
     );
 
-  const paginatedInventories = filteredMaintenanceRequests.slice(
+  const paginatedMaintenanceRequests = filteredMaintenanceRequests.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -232,8 +237,12 @@ export const MaintenanceList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>SLA</TableHead>
-                <TableHead>Estimate Date</TableHead>
+                {type === "cm" && (
+                  <>
+                    <TableHead>SLA</TableHead>
+                    <TableHead>Estimate Date</TableHead>
+                  </>
+                )}
                 <TableHead>Status</TableHead>
                 <TableHead>Action By/Date</TableHead>
                 <TableHead>Actions</TableHead>
@@ -280,87 +289,105 @@ export const MaintenanceList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>SLA</TableHead>
-                <TableHead>Estimate Date</TableHead>
+                {type === "cm" && (
+                  <>
+                    <TableHead>SLA</TableHead>
+                    <TableHead>Estimate Date</TableHead>
+                  </>
+                )}
                 <TableHead>Status</TableHead>
                 <TableHead>Action By/Date</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedInventories.length > 0 ? (
-                paginatedInventories.map((maintenanceRequest, index) => {
-                  const requestDate = maintenanceRequest.updated_at
-                    ? (() =>
-                        formatDateTimeLocal(maintenanceRequest.updated_at))()
-                    : "";
+              {paginatedMaintenanceRequests.length > 0 ? (
+                paginatedMaintenanceRequests.map(
+                  (maintenanceRequest, index) => {
+                    const requestDate = maintenanceRequest.updated_at
+                      ? (() =>
+                          formatDateTimeLocal(maintenanceRequest.updated_at))()
+                      : "";
 
-                  const estimatedDate =
-                    maintenanceRequest.created_at && maintenanceRequest.sla
-                      ? (() => {
-                          const plusedDate = new Date(
-                            new Date(maintenanceRequest.created_at).getTime() +
-                              maintenanceRequest.sla.max_day *
-                                24 *
-                                60 *
-                                60 *
-                                1000
-                          );
+                    const estimatedDate =
+                      maintenanceRequest.created_at && maintenanceRequest.sla
+                        ? (() => {
+                            const plusedDate = new Date(
+                              new Date(
+                                maintenanceRequest.created_at
+                              ).getTime() +
+                                maintenanceRequest.sla.max_day *
+                                  24 *
+                                  60 *
+                                  60 *
+                                  1000
+                            );
 
-                          const localDay = String(
-                            plusedDate.getDate()
-                          ).padStart(2, "0");
-                          const localMonth = String(
-                            plusedDate.getMonth() + 1
-                          ).padStart(2, "0");
-                          const localYear = plusedDate.getFullYear();
+                            const localDay = String(
+                              plusedDate.getDate()
+                            ).padStart(2, "0");
+                            const localMonth = String(
+                              plusedDate.getMonth() + 1
+                            ).padStart(2, "0");
+                            const localYear = plusedDate.getFullYear();
 
-                          return `${localDay}/${localMonth}/${localYear}`;
-                        })()
-                      : "Not set";
+                            return `${localDay}/${localMonth}/${localYear}`;
+                          })()
+                        : "Not set";
 
-                  return (
-                    <TableRow key={maintenanceRequest.id}>
-                      <TableCell>
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </TableCell>
-                      <TableCell>{maintenanceRequest?.no_docket}</TableCell>
-                      <TableCell>
-                        {maintenanceRequest?.type?.name || ""}
-                      </TableCell>
-                      <TableCell>
-                        {maintenanceRequest?.sla?.name || "Not set"}
-                      </TableCell>
-                      <TableCell>{estimatedDate || ""}</TableCell>
-                      <TableCell>
-                        {maintenanceRequest?.status
-                          ? humanizeMaintenanceStatus(maintenanceRequest.status)
-                          : "No status"}
-                      </TableCell>
-                      <TableCell>{requestDate || ""}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            onClick={() => {
-                              setSelectedItem(maintenanceRequest);
-                              setIsViewDetailsDialogOpen(true);
-                            }}
-                            className="flex items-center"
-                          >
-                            View Details
-                          </Button>
-                          <Button
-                            onClick={() => {}}
-                            className="flex items-center"
-                          >
-                            <Download className="mr-2 h-4 w-4" />
-                            View Report
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
+                    return (
+                      <TableRow key={maintenanceRequest.id}>
+                        <TableCell>
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </TableCell>
+                        <TableCell>{maintenanceRequest?.no_docket}</TableCell>
+                        <TableCell>
+                          {maintenanceRequest?.type?.name || ""}
+                        </TableCell>
+                        {type === "cm" && (
+                          <>
+                            <TableCell>
+                              {maintenanceRequest?.sla?.name || "Not set"}
+                            </TableCell>
+                            <TableCell>{estimatedDate || ""}</TableCell>
+                          </>
+                        )}
+                        <TableCell>
+                          {maintenanceRequest?.status
+                            ? humanizeMaintenanceStatus(
+                                maintenanceRequest.status
+                              )
+                            : "No status"}
+                        </TableCell>
+                        <TableCell>{requestDate || ""}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              onClick={() => {
+                                setSelectedItem(maintenanceRequest);
+                                if (type === "cm") {
+                                  setIsViewDetailsDialogCMOpen(true);
+                                } else {
+                                  setIsViewDetailsDialogPMOpen(true);
+                                }
+                              }}
+                              className="flex items-center"
+                            >
+                              View Details
+                            </Button>
+                            <Button
+                              onClick={() => {}}
+                              className="flex items-center"
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              View Report
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                )
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
@@ -383,8 +410,14 @@ export const MaintenanceList = ({
         />
       )}
       <ViewMaintenanceDetailsDialog
-        open={isViewDetailsDialogOpen}
-        onOpenChange={setIsViewDetailsDialogOpen}
+        open={isViewDetailsDialogCMOpen}
+        onOpenChange={setIsViewDetailsDialogCMOpen}
+        maintenanceRequest={selectedItem}
+        userMetadata={parsedMetadata}
+      />
+      <ViewMaintenanceDetailsDialogPM
+        open={isViewDetailsDialogPMOpen}
+        onOpenChange={setIsViewDetailsDialogPMOpen}
         maintenanceRequest={selectedItem}
         userMetadata={parsedMetadata}
       />

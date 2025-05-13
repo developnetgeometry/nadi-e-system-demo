@@ -50,16 +50,24 @@ export const maintenanceClient = {
     }
     const filteredData = await Promise.all(
       data.map(async (item) => {
-        const profile = await fetchSiteBySiteId(item.asset.site_id);
-        item.asset.site = profile;
-        return {
-          ...item,
-          type: item.nd_type_maintenance,
-          sla: item.sla,
-          asset: item.asset,
-        };
+        if (type === "cm") {
+          const profile = await fetchSiteBySiteId(item.asset.site_id);
+          item.asset.site = profile;
+          return {
+            ...item,
+            type: item.nd_type_maintenance,
+            sla: item.sla,
+            asset: item.asset,
+          };
+        } else {
+          return {
+            ...item,
+            type: item.nd_type_maintenance,
+          };
+        }
       })
     );
+
     return filteredData;
   },
   fetchMaintenanceRequestById: async (

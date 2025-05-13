@@ -87,6 +87,7 @@ const MaintenanceDashboard = () => {
               maintenanceRequests={displayRequests}
               isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
               refetch={refetchMaintenanceRequests}
+              type="cm"
             />
           </TabsContent>
           <TabsContent value="pm">
@@ -94,6 +95,7 @@ const MaintenanceDashboard = () => {
               maintenanceRequests={displayRequests}
               isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
               refetch={refetchMaintenanceRequests}
+              type="pm"
             />
           </TabsContent>
         </Tabs>

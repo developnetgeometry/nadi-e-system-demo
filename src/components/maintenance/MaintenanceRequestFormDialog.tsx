@@ -21,7 +21,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/asset";
 import { MaintenanceDocketType } from "@/types/maintenance";
-import { useQueryClient } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
@@ -40,7 +39,6 @@ export const MaintenanceRequestFormDialog = ({
   onOpenChange,
 }: MaintenanceRequestFormDialogProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
@@ -57,6 +55,17 @@ export const MaintenanceRequestFormDialog = ({
   const { useAssetsByNameQuery } = useAssets();
   const { data: assets = [], isLoading: isLoadingAssets } =
     useAssetsByNameQuery(assetsFilter, true); // get only active assets
+
+  const vendors = [
+    {
+      id: 1,
+      name: "Vendor 1",
+    },
+    {
+      id: 2,
+      name: "Vendor 2",
+    },
+  ];
 
   const {
     attachmentFile,
@@ -174,6 +183,54 @@ export const MaintenanceRequestFormDialog = ({
         .eq("id", selectedAsset?.id);
 
       if (updateError) throw updateError;
+
+      toast({
+        title: "Maintenance Request added successfully",
+        description:
+          "The new maintenance request has been added to the system.",
+      });
+    } catch (error) {
+      console.error("Error adding maintenance request:", error);
+      toast({
+        title: "Error",
+        description: `Failed to add the maintenance request. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+      onOpenChange(false);
+    }
+  };
+
+  const handleSubmitPM = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+
+    setIsSubmitting(true);
+
+    const now = new Date();
+    const docketNumber = generateDocketNumber(now, formData);
+
+    const request = {
+      no_docket: docketNumber,
+      description: description,
+      type_id: Number(formData.get("maintenanceType")),
+      requester_by: user.id,
+    };
+
+    try {
+      const { error: insertError } = await supabase
+        .from("nd_maintenance_request")
+        .insert([
+          {
+            ...request,
+            created_at: now.toISOString(),
+            updated_at: now.toISOString(),
+          },
+        ]);
+
+      if (insertError) throw insertError;
 
       toast({
         title: "Maintenance Request added successfully",
@@ -330,6 +387,61 @@ export const MaintenanceRequestFormDialog = ({
                     onAttachmentChange={handleAttachmentChange}
                     onRemoveAttachment={handleRemoveAttachment}
                   />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !maintenanceDocketType}
+                  className="pt-2 w-full"
+                >
+                  {isSubmitting ? "Adding..." : "Open Request"}
+                </Button>
+              </form>
+            )}
+
+            {maintenanceDocketType === MaintenanceDocketType.Preventive && (
+              <form onSubmit={handleSubmitPM} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="maintenanceType">Maintenance Type</Label>
+                  <Select name="maintenanceType" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select maintenance type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {maintenanceTypes.map((type, index) => (
+                        <SelectItem key={index} value={type.id.toString()}>
+                          {type?.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    placeholder="Enter description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="vendor">Vendor</Label>
+                  <Select name="vendor" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Vendor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map((type, index) => (
+                        <SelectItem key={index} value={type.id.toString()}>
+                          {type?.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Button
