@@ -74,7 +74,8 @@ export const ViewMaintenanceDetailsDialog = ({
     (maintenanceRequest?.status == MaintenanceStatus.Approved ||
       (maintenanceRequest?.status == null &&
         maintenanceRequest?.sla?.min_day < 15) ||
-      maintenanceRequest?.status == MaintenanceStatus.Rejected);
+      maintenanceRequest?.status == MaintenanceStatus.Rejected ||
+      maintenanceRequest?.status == MaintenanceStatus.Incompleted);
 
   const isVendorApproval =
     userMetadata?.user_group_name == "Vendor" &&
@@ -243,6 +244,7 @@ export const ViewMaintenanceDetailsDialog = ({
           .update({
             // vendor_id: Number(selectedSLA),
             status: MaintenanceStatus.Issued,
+            updates: null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", maintenanceRequest.id);
@@ -567,6 +569,14 @@ export const ViewMaintenanceDetailsDialog = ({
           onClick={() => handleUpdateStatus(MaintenanceStatus.Completed)}
         >
           Close Request
+        </Button>
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => handleUpdateStatus(MaintenanceStatus.Incompleted)}
+          variant="destructive"
+        >
+          Reject Completion
         </Button>
       </div>
     );
