@@ -13,10 +13,18 @@ export interface MaintenanceRequest {
   status: string;
   requester_by: string;
   attachment?: string;
+  updates?: MaintenanceUpdate[];
   created_at?: string;
   updated_at?: string;
   created_by?: string;
   updated_by?: string;
+}
+
+export interface MaintenanceUpdate {
+  description: string;
+  attachment?: string;
+  created_at?: string;
+  created_by?: string;
 }
 
 export enum MaintenanceDocketType {

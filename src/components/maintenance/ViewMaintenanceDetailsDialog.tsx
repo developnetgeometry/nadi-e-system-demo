@@ -13,16 +13,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   humanizeMaintenanceStatus,
   MaintenanceRequest,
   MaintenanceStatus,
+  MaintenanceUpdate,
 } from "@/types/maintenance";
+import { formatDateTimeLocal } from "@/utils/date-utils";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { AttachmentUploadField } from "./AttachmentUploadField";
 import { useAttachment } from "./hooks/use-attachment";
 
 export interface ViewMaintenanceDetailsDialogProps {
@@ -38,15 +43,6 @@ export const ViewMaintenanceDetailsDialog = ({
   maintenanceRequest,
   userMetadata,
 }: ViewMaintenanceDetailsDialogProps) => {
-  const {
-    attachmentFile,
-    attachmentPreviewUrl,
-    isUploading,
-    handleAttachmentChange,
-    handleRemoveAttachment,
-    uploadAttachment,
-  } = useAttachment();
-
   let attachmentFileName = "";
   if (maintenanceRequest?.attachment) {
     const attachmenUrl = new URL(maintenanceRequest?.attachment);
@@ -83,6 +79,10 @@ export const ViewMaintenanceDetailsDialog = ({
   const isVendorApproval =
     userMetadata?.user_group_name == "Vendor" &&
     maintenanceRequest?.status == MaintenanceStatus.Issued;
+
+  const isVendorProgressUpdate =
+    userMetadata?.user_group_name == "Vendor" &&
+    maintenanceRequest?.status == MaintenanceStatus.InProgress;
 
   function UpdateDUSP() {
     const updateStatus = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -332,6 +332,118 @@ export const ViewMaintenanceDetailsDialog = ({
     );
   }
 
+  function VendorProgressUpdate() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const { user } = useAuth();
+
+    const {
+      attachmentFile,
+      attachmentPreviewUrl,
+      isUploading,
+      handleAttachmentChange,
+      handleRemoveAttachment,
+      uploadAttachment,
+    } = useAttachment();
+
+    const handleProgressUpdate = async (
+      e: React.FormEvent<HTMLFormElement>
+    ) => {
+      e.preventDefault();
+
+      setIsSubmitting(true);
+
+      const formData = new FormData(e.currentTarget);
+
+      let attachmentUrl = null;
+
+      if (!attachmentFile) {
+        toast({
+          title: "Error",
+          description: `Please upload an attachment for the maintenance request.`,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      } else {
+        const url = await uploadAttachment();
+
+        if (url) {
+          attachmentUrl = url;
+        } else {
+          toast({
+            title: "Error",
+            description: `Failed to add the maintenance request. Please try again.`,
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const newUpdate: MaintenanceUpdate = {
+        description: String(formData.get("description")),
+        attachment: attachmentUrl,
+        created_at: new Date().toISOString(),
+        created_by: user.id,
+      };
+
+      const existingUpdates = maintenanceRequest?.updates || [];
+      const updatedUpdates = [...existingUpdates, newUpdate];
+
+      try {
+        const { error: updateError } = await supabase
+          .from("nd_maintenance_request")
+          .update({
+            updates: updatedUpdates,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", maintenanceRequest.id);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Maintenance Request updated successfully",
+          description:
+            "The maintenance request has been updated in the system.",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to update the maintenance request. Please try again.`,
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+        onOpenChange(false);
+      }
+    };
+    return (
+      <form className="space-y-4" onSubmit={handleProgressUpdate}>
+        <h3 className="font-semibold mb-2">Provide Update</h3>
+        <div className="border-2 p-2">
+          <Textarea
+            id="description"
+            name="description"
+            placeholder="Description"
+            required
+          />
+          <div className="mt-2">
+            <AttachmentUploadField
+              previewUrl={attachmentPreviewUrl}
+              isUploading={isUploading}
+              onAttachmentChange={handleAttachmentChange}
+              onRemoveAttachment={handleRemoveAttachment}
+            />
+          </div>
+        </div>
+        <Button type="submit" className="pt-2 w-full" disabled={isSubmitting}>
+          Update Progress
+        </Button>
+      </form>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
@@ -373,7 +485,7 @@ export const ViewMaintenanceDetailsDialog = ({
                 <Link
                   to={maintenanceRequest?.attachment}
                   target="_blank"
-                  className="hover:underline"
+                  className="text-blue-500 hover:underline"
                 >
                   {attachmentFileName}
                 </Link>
@@ -382,10 +494,50 @@ export const ViewMaintenanceDetailsDialog = ({
               <p>No attachment</p>
             )}
           </div>
+          {maintenanceRequest?.updates && (
+            <div>
+              <h3 className="font-semibold mb-2">Updates History</h3>
+              {maintenanceRequest.updates.map((update, index) => {
+                let attachmentFileName: string | null = null;
+
+                if (update.attachment) {
+                  try {
+                    const attachmentUrl = new URL(update.attachment);
+                    attachmentFileName =
+                      attachmentUrl.pathname.split("/").pop() || null;
+                  } catch (e) {
+                    console.error("Invalid attachment URL", e);
+                  }
+                }
+
+                return (
+                  <div
+                    className="bg-gray-100 border-2 border-gray-300 p-2 mb-2"
+                    key={index}
+                  >
+                    <p className="mb-2">{update.description}</p>
+                    <p className="text-xs">
+                      {formatDateTimeLocal(update.created_at)}
+                    </p>
+                    {attachmentFileName && (
+                      <Link
+                        to={update.attachment}
+                        target="_blank"
+                        className="text-blue-500 hover:underline text-xs"
+                      >
+                        {attachmentFileName}
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {isUpdateSLA && <UpdateSLACategory />}
           {isDUSPApproval && <UpdateDUSP />}
           {isVendorAssigned && <UpdateVendor />}
           {isVendorApproval && <VendorApproval />}
+          {isVendorProgressUpdate && <VendorProgressUpdate />}
         </div>
       </DialogContent>
     </Dialog>
