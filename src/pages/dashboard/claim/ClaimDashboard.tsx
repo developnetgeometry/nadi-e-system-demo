@@ -4,6 +4,7 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { DuspClaimDashboard as DuspPage } from "@/components/claims/dashboard/DuspClaimDashboard";
 import { McmcClaimDashboard as McmcPage } from "@/components/claims/dashboard/McmcClaimDashboard";
 import { TpClaimDashboard as TpPage } from "@/components/claims/dashboard/TpClaimDashboard";
+import NoAccess from "@/pages/NoAccess";
 
 export default function ClaimDashboard() {
   const userMetadata = useUserMetadata(); // e.g. '{"user_type":"super_admin",…}' or just 'tp_admin'
@@ -45,11 +46,7 @@ export default function ClaimDashboard() {
       case "tp_site":
         return <TpPage />;
       default:
-        return (
-          <div>
-            No Access found for <strong>{role || "unknown"}</strong>
-          </div>
-        );
+        return <NoAccess />;
     }
   };
 

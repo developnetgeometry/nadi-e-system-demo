@@ -1,15 +1,78 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { FileText, Clock, CheckSquare, XSquare, Plus } from "lucide-react";
 import { useState } from "react";
 import { ClaimForm } from "@/components/claims/ClaimForm";
 import { ClaimList } from "@/components/claims/ClaimList";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { exportSitesToCSV } from "@/utils/export-utils";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/site/TableSkeleton";
+import {
+  Box,
+  Package,
+  Settings,
+  DollarSign,
+  CheckCircle,
+  PauseCircle,
+  Building2,
+  Bell,
+  Search,
+  Download,
+  Filter,
+  RotateCcw,
+  Users,
+  Eye,
+  EyeOff,
+  Edit,
+  Trash2,
+  MapPin,
+  Calendar,
+  ChevronsUpDown,
+  X,
+  Check,
+  Building,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
 
 export function McmcClaimDashboard() {
+  const userMetadata = useUserMetadata();
   const [showNewClaimForm, setShowNewClaimForm] = useState(false);
   const { toast } = useToast();
 
@@ -48,10 +111,6 @@ export function McmcClaimDashboard() {
             View claim submissions status.
           </p>
         </div>
-        <Button onClick={() => setShowNewClaimForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Claim
-        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
