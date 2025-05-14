@@ -35,20 +35,30 @@ export const useAssetQueries = () => {
   const useAssetsByTypeQuery = (typeId: number) => 
     useQuery({
       queryKey: ["assets", typeId],
-      queryFn: () => assetClient.fetchAssetsByType(typeId),
-      enabled: !!typeId
+      queryFn: () => assetClient.fetchAssetsByType(typeId, Number(siteId)),
+      enabled: 
+        !!typeId || (!!organizationId && !isStaffUser) ||
+        parsedMetadata?.user_type === "super_admin" ||
+        (isStaffUser && !!siteId),
     });
 
-  const useAssetQuery = (id: string) =>
+  const useAssetQuery = (id: number) =>
     useQuery({
       queryKey: ["assets", id],
       queryFn: () => assetClient.fetchAssetById(id),
       enabled: !!id,
     });
 
+  const useAssetsInTpsSites = (tps_sites_ids: number[], assetType: number) => 
+    useQuery({
+      queryKey: ["tpsAssets"],
+      queryFn: () => assetClient.getAllPcInTpsSite(tps_sites_ids, assetType)
+    });
+
   return {
     useAssetsQuery,
     useAssetQuery,
     useAssetsByTypeQuery,
+    useAssetsInTpsSites
   };
 };
