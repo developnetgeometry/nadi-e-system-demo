@@ -16,13 +16,15 @@ export const useBookingMutation = () => {
         : null;
     const isBookingAllowed = parsedUserMetaData?.user_group_name === "Centre Staff";
 
-    const useAssetMutation = (newBooking: Booking) => 
+    const useBookingPcMutation = () => 
         useMutation({
             mutationKey: ["assets", siteId, organizationId],
-            mutationFn: () => bookingClient.postNewBooking(newBooking, isBookingAllowed)
+            mutationFn: (
+              newBooking: Booking
+            ) => bookingClient.postNewBooking(newBooking)
         });
 
     return {
-      useAssetMutation
+      useBookingPcMutation
     }
 }
