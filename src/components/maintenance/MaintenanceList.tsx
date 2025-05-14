@@ -19,7 +19,7 @@ import {
   MaintenanceRequest,
   MaintenanceStatus,
 } from "@/types/maintenance";
-import { formatDateTimeLocal } from "@/utils/date-utils";
+import { format } from "date-fns";
 import { Download, Eye, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -297,37 +297,6 @@ export const MaintenanceList = ({
               {paginatedMaintenanceRequests.length > 0 ? (
                 paginatedMaintenanceRequests.map(
                   (maintenanceRequest, index) => {
-                    const requestDate = maintenanceRequest.updated_at
-                      ? (() =>
-                          formatDateTimeLocal(maintenanceRequest.updated_at))()
-                      : "";
-
-                    const estimatedDate =
-                      maintenanceRequest.created_at && maintenanceRequest.sla
-                        ? (() => {
-                            const plusedDate = new Date(
-                              new Date(
-                                maintenanceRequest.created_at
-                              ).getTime() +
-                                maintenanceRequest.sla.max_day *
-                                  24 *
-                                  60 *
-                                  60 *
-                                  1000
-                            );
-
-                            const localDay = String(
-                              plusedDate.getDate()
-                            ).padStart(2, "0");
-                            const localMonth = String(
-                              plusedDate.getMonth() + 1
-                            ).padStart(2, "0");
-                            const localYear = plusedDate.getFullYear();
-
-                            return `${localDay}/${localMonth}/${localYear}`;
-                          })()
-                        : "Not set";
-
                     return (
                       <TableRow key={maintenanceRequest.id}>
                         <TableCell>
@@ -348,7 +317,14 @@ export const MaintenanceList = ({
                                 {maintenanceRequest?.sla?.name || "Not set"}{" "}
                               </Badge>
                             </TableCell>
-                            <TableCell>{estimatedDate || ""}</TableCell>
+                            <TableCell>
+                              {(maintenanceRequest?.maintenance_date &&
+                                format(
+                                  maintenanceRequest?.maintenance_date,
+                                  "dd/MM/yyyy"
+                                )) ||
+                                "Not set"}
+                            </TableCell>
                           </>
                         )}
                         <TableCell>
@@ -371,7 +347,14 @@ export const MaintenanceList = ({
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell>{requestDate || ""}</TableCell>
+                        <TableCell>
+                          {(maintenanceRequest?.updated_at &&
+                            format(
+                              maintenanceRequest.updated_at,
+                              "dd/MM/yyyy h:mm a"
+                            )) ||
+                            ""}
+                        </TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
