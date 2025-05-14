@@ -14,6 +14,7 @@ export interface MaintenanceRequest {
   requester_by: string;
   attachment?: string;
   updates?: MaintenanceUpdate[];
+  maintenance_date?: string;
   created_at?: string;
   updated_at?: string;
   created_by?: string;
@@ -33,6 +34,7 @@ export enum MaintenanceDocketType {
 }
 
 export enum MaintenanceStatus {
+  Submitted = "submitted",
   Approved = "approved",
   Issued = "issued",
   InProgress = "in_progress",
@@ -44,6 +46,8 @@ export enum MaintenanceStatus {
 
 export const humanizeMaintenanceStatus = (status: string) => {
   switch (status) {
+    case "submitted":
+      return "Submitted";
     case "approved":
       return "Approved";
     case "issued":
@@ -65,6 +69,8 @@ export const humanizeMaintenanceStatus = (status: string) => {
 
 export const getMaintenanceStatus = (status: string): MaintenanceStatus => {
   switch (status) {
+    case "submitted":
+      return MaintenanceStatus.Submitted;
     case "approved":
       return MaintenanceStatus.Approved;
     case "issued":
