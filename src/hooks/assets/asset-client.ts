@@ -70,7 +70,7 @@ export const assetClient = {
     return filteredData;
   },
 
-  fetchAssetById: async (id: string): Promise<Asset> => {
+  fetchAssetById: async (id: number): Promise<Asset> => {
     const { data, error } = await supabase
       .from("nd_asset")
       .select(
@@ -95,6 +95,21 @@ export const assetClient = {
       brand: data.brand,
       site: data.site,
     };
+  },
+
+  fetchAssetByName: async (assetName: string) => {
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select("id")
+      .eq("name", assetName)
+      .single()
+
+    if (error) {
+      console.error("Error fetching asset by name", error);
+      throw error;
+    }
+
+    return data;
   },
 
   fetchAssetCategories: async (): Promise<AssetCategory[]> => {
@@ -136,16 +151,76 @@ export const assetClient = {
     }));
   },
 
-  fetchAssetsByType: async (typeId: number) => {
+  fetchAssetsByType: async (typeId: number, siteId: number) => {
+    if (!!siteId) {
+      const { data, error } = await supabase
+        .from("nd_asset")
+        .select(`
+          *,
+          nd_brand (
+            id,
+            name,
+            brand_type
+          ),
+          nd_booking (
+            id,
+            booking_start,
+            booking_end,
+            is_using
+          )
+        `)
+        .eq("type_id", typeId)
+        .eq("site_id", siteId);
+
+      if (error) throw error;
+
+      return data;
+    }
+    
     const { data, error } = await supabase
       .from("nd_asset")
-      .select("*")
+      .select(`
+        *,
+        nd_brand (
+          id,
+          name,
+          brand_type
+        ),
+        nd_booking (
+          id,
+          booking_start,
+          booking_end,
+          is_using
+        )
+        `)
       .eq("type_id", typeId);
 
     if (error) {
       console.error("Error fetching assets by type:", error);
       throw error;
     }
+
+    return data;
+  },
+
+  fetchAssetsBySiteId: async (siteId: number, assetTypeId: number): Promise<Asset> => {
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select(`
+        *, 
+        nd_site!inner (
+          id
+        ), 
+        nd_booking (
+          is_using,
+          booking_start,
+          booking_end
+        )
+      `)
+      .eq("nd_site.id", siteId)
+      .eq("type_id", assetTypeId)
+
+    if (error) throw error;
 
     return data;
   },
@@ -167,4 +242,20 @@ export const assetClient = {
       throw error;
     }
   },
+
+  getAllPcInTpsSite: async(tps_site_ids: number[], assetType: number) => {
+    try {
+      const results = await Promise.all(
+        tps_site_ids.map(async (id) => {
+          const asset = await assetClient.fetchAssetsBySiteId(id, assetType);
+          return asset;
+        })
+      );
+  
+      return results.flat();
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      return [];
+    }
+  }
 };
