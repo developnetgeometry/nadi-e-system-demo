@@ -3,6 +3,8 @@ import { CheckCircle, Clock, FileText, XCircle } from "lucide-react";
 
 export const getMaintenanceStatusIcon = (status: MaintenanceStatus) => {
   switch (status) {
+    case MaintenanceStatus.Submitted:
+      return <FileText className="h-5 w-5 text-gray-500" />;
     case MaintenanceStatus.Approved:
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     case MaintenanceStatus.Issued:
@@ -26,6 +28,8 @@ export const getMaintenanceStatusClass = (
   status: MaintenanceStatus
 ): string => {
   switch (status) {
+    case MaintenanceStatus.Submitted:
+      return "bg-gray-200 text-gray-900 hover:bg-gray-300";
     case MaintenanceStatus.Approved:
       return "bg-green-100 text-green-800 hover:bg-green-200";
     case MaintenanceStatus.Issued:

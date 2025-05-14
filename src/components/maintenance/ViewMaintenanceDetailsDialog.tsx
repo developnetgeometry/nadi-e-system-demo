@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -18,13 +19,20 @@ import { useMaintenance } from "@/hooks/use-maintenance";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import {
   humanizeMaintenanceStatus,
   MaintenanceRequest,
   MaintenanceStatus,
   MaintenanceUpdate,
 } from "@/types/maintenance";
-import { formatDateTimeLocal } from "@/utils/date-utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AttachmentUploadField } from "./AttachmentUploadField";
@@ -66,13 +74,13 @@ export const ViewMaintenanceDetailsDialog = ({
 
   const isDUSPApproval =
     userMetadata?.user_group_name == "DUSP" &&
-    maintenanceRequest?.status == null &&
+    maintenanceRequest?.status == MaintenanceStatus.Submitted &&
     maintenanceRequest?.sla?.min_day >= 15;
 
   const isVendorAssigned =
     userMetadata?.user_group_name == "TP" &&
     (maintenanceRequest?.status == MaintenanceStatus.Approved ||
-      (maintenanceRequest?.status == null &&
+      (maintenanceRequest?.status == MaintenanceStatus.Submitted &&
         maintenanceRequest?.sla?.min_day < 15) ||
       maintenanceRequest?.status == MaintenanceStatus.Rejected ||
       maintenanceRequest?.status == MaintenanceStatus.Incompleted);
@@ -138,6 +146,8 @@ export const ViewMaintenanceDetailsDialog = ({
   function UpdateSLACategory() {
     const { useSLACategoriesQuery } = useMaintenance();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [estimatedCompletionDate, setEstimatedCompletionDate] =
+      useState<Date | null>(null);
 
     const { data: slaCategories = [], isLoading: isLoadingSLACategories } =
       useSLACategoriesQuery();
@@ -165,6 +175,7 @@ export const ViewMaintenanceDetailsDialog = ({
           .from("nd_maintenance_request")
           .update({
             sla_id: Number(selectedSLA),
+            maintenance_date: estimatedCompletionDate,
             updated_at: new Date().toISOString(),
           })
           .eq("id", maintenanceRequest.id);
@@ -204,6 +215,42 @@ export const ViewMaintenanceDetailsDialog = ({
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="estimatedDate">Estimated Completion Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !estimatedCompletionDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {estimatedCompletionDate ? (
+                  format(estimatedCompletionDate, "PPP")
+                ) : (
+                  <span>Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-auto p-0 bg-white shadow-md border"
+              align="start"
+            >
+              <Calendar
+                mode="single"
+                selected={estimatedCompletionDate}
+                onSelect={setEstimatedCompletionDate}
+                initialFocus
+                className="pointer-events-auto"
+                disabled={(date) =>
+                  date <= new Date(new Date().setHours(0, 0, 0, 0))
+                } // disable dates before today
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <Button
           type="submit"
@@ -545,6 +592,15 @@ export const ViewMaintenanceDetailsDialog = ({
 
         if (updateError) throw updateError;
 
+        if (status === MaintenanceStatus.Completed) {
+          const { error: updateAssetError } = await supabase
+            .from("nd_asset")
+            .update({ is_active: true })
+            .eq("id", maintenanceRequest?.asset_id);
+
+          if (updateAssetError) throw updateAssetError;
+        }
+
         toast({
           title: "Maintenance Request updated successfully",
           description:
@@ -655,7 +711,7 @@ export const ViewMaintenanceDetailsDialog = ({
                   >
                     <p className="mb-2">{update.description}</p>
                     <p className="text-xs">
-                      {formatDateTimeLocal(update.created_at)}
+                      {format(update.created_at, "dd/MM/yyyy h:mm a")}
                     </p>
                     {attachmentFileName && (
                       <Link
