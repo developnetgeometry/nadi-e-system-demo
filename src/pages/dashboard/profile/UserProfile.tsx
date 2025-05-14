@@ -10,6 +10,7 @@ import TpProfileSettings from "@/components/profile/TpProfileSettings";
 import VendorProfileSettings from "@/components/profile/VendorProfileSettings";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import NoAccess from "@/pages/NoAccess";
+import SiteProfileSettings from "@/components/profile/SiteProfileSettings";
 
 const UserProfile = () => {
   const userMetadata = useUserMetadata();
@@ -111,6 +112,18 @@ const UserProfile = () => {
       </DashboardLayout>
     );
   }
+
+    if (userGroup === 9) {
+    return (
+      <DashboardLayout>
+        <ProfileHeader />
+        <div className="space-y-8">
+          <SiteProfileSettings />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
 
   return (
     <NoAccess />

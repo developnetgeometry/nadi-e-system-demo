@@ -314,7 +314,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const staffSiteId = useSiteId();
+  // const staffSiteId = useSiteId();
 
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
@@ -326,8 +326,12 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     parsedMetadata?.user_group_name === "DUSP" &&
     !!parsedMetadata?.organization_id;
   const isMCMCUser = parsedMetadata?.user_group_name === "MCMC"; // MCMC users don't require organization_id
+  // const isStaffUser =
+  //   parsedMetadata?.user_group_name === "Centre Staff" ||
+  //   parsedMetadata?.user_type === "staff_manager" ||
+  //   parsedMetadata?.user_type === "staff_assistant_manager";
   const isStaffUser =
-    parsedMetadata?.user_group_name === "Centre Staff" ||
+    parsedMetadata?.user_group_name === "Site" ||
     parsedMetadata?.user_type === "staff_manager" ||
     parsedMetadata?.user_type === "staff_assistant_manager";
 
@@ -337,7 +341,7 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
-
+  const staffSiteId = parsedMetadata?.group_profile?.site_profile_id || null;
   const effectiveSiteId = siteId || (isStaffUser ? staffSiteId : null);
 
   if (!effectiveSiteId && isStaffUser) {

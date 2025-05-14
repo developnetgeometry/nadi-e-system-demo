@@ -1,8 +1,6 @@
-import { RouteObject } from "react-router-dom";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
-import Employees from "@/pages/dashboard/hr/Employees";
-import SiteStaff from "@/pages/dashboard/hr/SiteStaff";
+import Announcements from "@/pages/dashboard/announcements/Announcements";
+import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
+import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
 import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
 import AssetDetails from "@/pages/dashboard/asset/AssetDetails";
 import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
@@ -12,49 +10,59 @@ import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
 import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
+import DashboardPage from "@/pages/dashboard/Dashboard";
+import DocketStatus from "@/pages/dashboard/dashboard/DocketStatus";
+import Graph from "@/pages/dashboard/dashboard/Graph";
+import Technician from "@/pages/dashboard/dashboard/Technician";
 import FinanceDashboard from "@/pages/dashboard/finance/FinanceDashboard";
 import FinanceSettings from "@/pages/dashboard/finance/FinanceSettings";
 import FinancialTransactions from "@/pages/dashboard/financial/Transactions";
 import Wallet from "@/pages/dashboard/financial/Wallet";
 import Attendance from "@/pages/dashboard/hr/Attendance";
+import Employees from "@/pages/dashboard/hr/Employees";
+import HRDashboard from "@/pages/dashboard/hr/HRDashboard";
+import HRSettings from "@/pages/dashboard/hr/HRSettings";
 import Leave from "@/pages/dashboard/hr/Leave";
 import Payroll from "@/pages/dashboard/hr/Payroll";
+import SiteStaff from "@/pages/dashboard/hr/SiteStaff";
 import StaffTraining from "@/pages/dashboard/hr/StaffTraining";
-import HRSettings from "@/pages/dashboard/hr/HRSettings";
 import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
+import IotDashboard from "@/pages/dashboard/IotDashboard";
+import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
+import MaintenanceDashboard from "@/pages/dashboard/maintenance/MaintenanceDashboard";
+import NadiDashboard from "@/pages/dashboard/NadiDashboard";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
-import Products from "@/pages/dashboard/pos/Products";
 import POSSales from "@/pages/dashboard/pos/POSSales";
-import PUDO from "@/pages/dashboard/pos/PUDO";
+import Products from "@/pages/dashboard/pos/Products";
+import PUDO from "@/pages/dashboard/pos/Pudo";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
-import Site from "@/pages/dashboard/site/Site";
-import SiteDetails from "@/pages/dashboard/site/SiteDetail";
-import SiteManagement from "@/pages/dashboard/site/SiteManagement";
-import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import WorkflowDashboard from "@/pages/workflow/Dashboard";
-import DocketStatus from "@/pages/dashboard/dashboard/DocketStatus";
-import Technician from "@/pages/dashboard/dashboard/Technician";
-import Graph from "@/pages/dashboard/dashboard/Graph";
-import Announcements from "@/pages/dashboard/announcements/Announcements";
-import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
-import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
-import Takwim from "@/pages/dashboard/takwim/Takwim";
-import DashboardPage from "@/pages/dashboard/Dashboard";
 import BookingManagement from "@/pages/dashboard/site/BookingManagement";
-import NADIClosure from "@/pages/dashboard/site/SiteClosure";
-import Usage from "@/pages/dashboard/site/Usage";
+import Insurance from "@/pages/dashboard/site/Insurance";
 import KPI from "@/pages/dashboard/site/KPIPerformance";
 import NMS from "@/pages/dashboard/site/NMS";
-import SiteManagementDashboard from "@/pages/dashboard/main-dashboard/SiteManagementDashboard";
+import Site from "@/pages/dashboard/site/Site";
+import NADIClosure from "@/pages/dashboard/site/SiteClosure";
+import SiteDetails from "@/pages/dashboard/site/SiteDetail";
+import SiteManagement from "@/pages/dashboard/site/SiteManagement";
+import Usage from "@/pages/dashboard/site/Usage";
 import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
-import NadiDashboard from "@/pages/dashboard/NadiDashboard";
-import IotDashboard from "@/pages/dashboard/IotDashboard";
-import Insurance from "@/pages/dashboard/site/Insurance";
+import Takwim from "@/pages/dashboard/takwim/Takwim";
+import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
+import WorkflowDashboard from "@/pages/workflow/Dashboard";
+import { RouteObject } from "react-router-dom";
+import ReportDashboard from "@/pages/dashboard/report/ReportDashboard";
+import ReportNadiESystem from "@/pages/dashboard/report/ReportNadiESystem";
+import ReportInternetAccess from "@/pages/dashboard/report/ReportInternetAccess";
+import ReportSiteManagement from "@/pages/dashboard/report/ReportSiteManagement";
+import ReportHRSalary from "@/pages/dashboard/report/ReportHRSalary";
+import ReportTraining from "@/pages/dashboard/report/ReportTraining";
+import ReportCM from "@/pages/dashboard/report/ReportCM";
+import ReportSmartService from "@/pages/dashboard/report/ReportSmartService";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -202,6 +210,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_asset_settings">
       <AssetSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/asset/maintenance",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_asset_settings">
+      <MaintenanceDashboard />
       // </ProtectedRoute>
     ),
   },
@@ -395,7 +411,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/site-management/insurance",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
-      <Insurance/>
+      <Insurance />
       // </ProtectedRoute>
     ),
   },
@@ -408,7 +424,7 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/site-management/kpi",
+    path: "/site-management/kpi-performance",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
       <KPI />
@@ -528,6 +544,70 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="">
       <IotDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportDashboard />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/nadi-e-system",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportNadiESystem />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/internet-access",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportInternetAccess />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/site-management",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportSiteManagement />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/hr-salary",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportHRSalary />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/training",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportTraining />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/cm",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportCM />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/reports/smart-services",
+    element: (
+      // <ProtectedRoute requiredPermission="">
+      <ReportSmartService/>
       // </ProtectedRoute>
     ),
   },

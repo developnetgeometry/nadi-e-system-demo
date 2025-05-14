@@ -18,8 +18,13 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/utils/export-utils";
 import BillingPageView from "../component/BillingPageView";
+import { useDeleteBillingData } from "../hook/use-utilities-data";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Edit, Trash2, FilePlus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
+import BillingFormDialog from "../BillingFormDialog";
 
 
 const BillingOverview = () => {
@@ -30,8 +35,16 @@ const BillingOverview = () => {
   const organizationId = parsedMetadata?.organization_id;
   const siteId = parsedMetadata?.group_profile?.site_profile_id;
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedBilling, setSelectedBilling] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { deleteBillingData } = useDeleteBillingData();
+
   const [siteIds, setSiteIds] = useState<string[]>([]);
-  const { data, loading, error } = useSiteBillingDynamic(siteIds);
+  const [refreshData, setRefreshData] = useState(false); // State to trigger refresh
+  const { data, loading, error } = useSiteBillingDynamic(siteIds, refreshData);
 
   const [search, setSearch] = useState("");
   const [filterYear, setFilterYear] = useState<string | null>(null);
@@ -56,6 +69,29 @@ const BillingOverview = () => {
   const handleView = (billing: any) => {
     setViewData(billing);
     setIsViewDialogOpen(true);
+  };
+
+  const handleCreate = () => {
+    setSelectedBilling(null);
+    setIsDialogOpen(true);
+  };
+  const handleEdit = (billing: any) => {
+    setSelectedBilling(billing);
+    setIsDialogOpen(true);
+  };
+
+  useEffect(() => {
+    if (!isDialogOpen) {
+      setRefreshData((prev) => !prev); // Trigger refresh after closing the edit dialog
+    }
+  }, [isDialogOpen]);
+
+  const handleDelete = async () => {
+    if (!deleteRecordId) return;
+    await deleteBillingData(deleteRecordId, toast);
+    setRefreshData((prev) => !prev); // Refresh data after delete
+    setIsDeleteDialogOpen(false);
+    setDeleteRecordId(null);
   };
 
   const handleSort = (field: keyof typeof data[0]) => {
@@ -156,10 +192,18 @@ const BillingOverview = () => {
         ) : (
           <div></div>
         )}
-        <Button variant="outline" onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+          {Number(userGroup) === 9 && (
+            <Button onClick={handleCreate}>
+              <FilePlus className="mr-2 h-4 w-4" />
+              Add New Billing
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -353,18 +397,48 @@ const BillingOverview = () => {
                 <TableCell>{item.month}</TableCell>
                 <TableCell>{item.amount_bill}</TableCell>
                 <TableCell>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleView(item)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>View</TooltipContent>
-                  </Tooltip>
+                  <div className="flex gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleView(item)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>View</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Edit</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="text-destructive"
+                          onClick={() => {
+                            setDeleteRecordId(item.id);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete</TooltipContent>
+                    </Tooltip>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -378,6 +452,34 @@ const BillingOverview = () => {
         onOpenChange={setIsViewDialogOpen}
         data={viewData}
       />
+
+      {/* Billing Form Dialog */}
+      <BillingFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        initialData={selectedBilling}
+      />
+
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this record? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Pagination */}
       {totalPages > 1 && (

@@ -13,7 +13,7 @@ export interface Asset {
   nd_booking?: Booking[];
   remark?: string;
   asset_group?: string;
-  type_id: number;
+  type_id?: number;
   type?: AssetType;
   retail_type?: number;
   subtype_id?: number;

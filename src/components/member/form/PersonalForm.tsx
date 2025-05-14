@@ -10,14 +10,12 @@ import { DialogTitle } from "@/components/ui/dialog";
 
 type PersonalData = {
   fullname: string;
-  identity_no: string;
   ref_id: string;
   community_status: boolean | string | null;
   dob: string;
   mobile_no: string;
   email: string;
   gender: string;
-  supervision: string;
   status_membership: string;
   status_entrepreneur: boolean | string | null;
   join_date: string;
@@ -28,21 +26,17 @@ type PersonalFormProps = PersonalData & {
   updateFields: (fields: Partial<PersonalData>) => void;
   genders: { id: string; eng: string }[];
   statusMemberships: { id: string; name: string }[];
-  validateIdentityNo: (identity_no: string) => Promise<void>;
-  error: string;
-  isValidating: boolean;
+  registrationMethods: { id: string; eng: string }[];
 };
 
 export function PersonalForm({
   fullname,
-  identity_no,
   ref_id,
   community_status,
   dob,
   mobile_no,
   email,
   gender,
-  supervision,
   status_membership,
   status_entrepreneur,
   join_date,
@@ -50,33 +44,10 @@ export function PersonalForm({
   updateFields,
   genders,
   statusMemberships,
-  validateIdentityNo,
+  registrationMethods,
 }: PersonalFormProps) {
-  const [error, setError] = useState(""); // State to store validation error
-  const [isValidating, setIsValidating] = useState(false); // State to track validation in progress
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    updateFields({ [name]: value });
 
-    if (name === "identity_no") {
-      setError(""); // Clear any previous error
-      setIsValidating(true); // Set validation in progress
-      debouncedValidateIdentityNo(value); // Call the debounced validation function
-    }
-  };
-
-  // Debounced validation function
-  const debouncedValidateIdentityNo = debounce(async (value: string) => {
-    try {
-      await validateIdentityNo(value); // Validate the IC number
-      setError(""); // Clear error if validation passes
-    } catch (err: any) {
-      setError(err.message); // Set the error message if validation fails
-    } finally {
-      setIsValidating(false); // Validation complete
-    }
-  }, 500); // 500ms debounce delay
 
   const { profiles = [], loading, error: siteProfilesError } = useSiteProfiles();
 
@@ -96,25 +67,8 @@ export function PersonalForm({
             type="text"
             name="fullname"
             value={fullname}
-            onChange={handleChange}
+            onChange={(e) => updateFields({ fullname: e.target.value })}
           />
-        </div>
-
-        {/* IC Number */}
-        <div className="space-y-2">
-          <Label className="flex items-center">
-            IC Number <span className="text-red-500 ml-1">*</span>
-          </Label>
-          <Input
-            required
-            type="text"
-            name="identity_no"
-            value={identity_no}
-            onChange={handleChange}
-            placeholder="e.g. 950101123456"
-          />
-          {isValidating && <p className="text-gray-500 text-sm">Validating...</p>} {/* Show validation in progress */}
-          {error && <p className="text-red-500 text-sm">{error}</p>} {/* Display error */}
         </div>
 
         {/* Date of Birth */}
@@ -190,15 +144,6 @@ export function PersonalForm({
           </Select>
         </div>
 
-        {/* Supervisor IC Number */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Parent IC Number</Label>
-          <Input
-            value={supervision}
-            onChange={(e) => updateFields({ supervision: e.target.value })}
-          />
-        </div>
-
         {/* Membership Status */}
         <div className="space-y-2">
           <Label className="flex items-center">Membership Status<span className="text-red-500 ml-1">*</span></Label>
@@ -228,7 +173,7 @@ export function PersonalForm({
               updateFields({ community_status: value === "true" ? true : value === "false" ? false : null })
             }
           >
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 mt-3">
               <RadioGroupItem value="true" id="community_status_yes" />
               <Label htmlFor="community_status_yes">Yes</Label>
               <RadioGroupItem value="false" id="community_status_no" />
@@ -246,7 +191,7 @@ export function PersonalForm({
               updateFields({ status_entrepreneur: value === "true" ? true : value === "false" ? false : null })
             }
           >
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 mt-3">
               <RadioGroupItem value="true" id="status_entrepreneur_yes" />
               <Label htmlFor="status_entrepreneur_yes">Yes</Label>
               <RadioGroupItem value="false" id="status_entrepreneur_no" />
@@ -269,11 +214,21 @@ export function PersonalForm({
         {/* Registration Method */}
         <div className="space-y-2">
           <Label className="flex items-center">Registration Method</Label>
-          <Input
-            value={register_method}
-            onChange={(e) => updateFields({ register_method: e.target.value })}
-            placeholder="e.g. Web, Mobile, On Premise."
-          />
+          <Select
+            value={register_method || ""}
+            onValueChange={(value) => updateFields({ register_method: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select registration method" />
+            </SelectTrigger>
+            <SelectContent>
+              {registrationMethods.map((registrationMethod) => (
+                <SelectItem key={registrationMethod.id} value={registrationMethod.id.toString()}>
+                  {registrationMethod.eng}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
