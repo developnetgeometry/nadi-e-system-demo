@@ -42,11 +42,11 @@ export const useAssetQueries = () => {
   const useAssetsByTypeQuery = (typeId: number) => 
     useQuery({
       queryKey: ["assets", typeId],
-      queryFn: () => assetClient.fetchAssetsByType(typeId, Number(siteId)),
+      queryFn: () => assetClient.fetchAssetsByType(typeId, Number(site_id)),
       enabled: 
         !!typeId || (!!organizationId && !isStaffUser) ||
         parsedMetadata?.user_type === "super_admin" ||
-        (isStaffUser && !!siteId),
+        (isStaffUser && !!site_id),
     });
 
   const useAssetQuery = (id: number) =>

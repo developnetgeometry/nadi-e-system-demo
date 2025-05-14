@@ -10,18 +10,18 @@ export const useBookingMutation = () => {
     const siteId = useSiteId();
     const organizationId =
       parsedUserMetaData?.user_type !== "super_admin" &&
-      parsedUserMetaData?.user_group_name === "TP" &&
+      parsedUserMetaData?.user_group_name === "TP" || parsedUserMetaData?.user_group_name === "MSD" &&
       parsedUserMetaData?.organization_id
         ? parsedUserMetaData.organization_id
         : null;
-    const isBookingAllowed = parsedUserMetaData?.user_group_name === "Centre Staff";
+    const isBookingAllowed = !!organizationId;
 
     const useBookingPcMutation = () => 
         useMutation({
             mutationKey: ["assets", siteId, organizationId],
             mutationFn: (
               newBooking: Booking
-            ) => bookingClient.postNewBooking(newBooking)
+            ) => bookingClient.postNewBooking(newBooking, isBookingAllowed)
         });
 
     return {

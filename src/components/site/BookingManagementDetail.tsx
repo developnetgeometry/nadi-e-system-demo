@@ -14,7 +14,6 @@ import { toTwentyFourFormat } from "./utils/dateTimeConverter";
 import { getDuration } from "./utils/duration";
 import { Asset } from "@/types/asset";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { useSiteId } from "@/hooks/use-site-id";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { EmptyCard } from "./component/EmptyCard";
 
@@ -50,7 +49,8 @@ const BookingContent = () => {
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
     const organizationId =
         parsedMetadata?.user_type !== "super_admin" &&
-            parsedMetadata?.user_group_name === "TP" || parsedMetadata?.user_group_name === "Site" &&
+            !!parsedMetadata?.user_group_name &&
+            !!parsedMetadata?.organization_name &&
             parsedMetadata?.organization_id
             ? parsedMetadata.organization_id
             : null;

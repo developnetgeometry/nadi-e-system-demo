@@ -3,20 +3,18 @@ import type { Booking } from "@/types/booking";
 import { Brand } from "@/types/brand";
 
 export const bookingClient = {
-    postNewBooking: async (bookingData: Booking) => {
+    postNewBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<void> => {
+        if (!isBookingAllowed) {
+            throw Error("Error dannied: you don't have permission to create a book!")
+        }
 
-        const { error, statusText, status } = await supabase
+        const { error } = await supabase
             .from("nd_booking")
-            .insert(bookingData);
+            .insert(bookingData)
 
         if (error) {
             console.error("Failed add new booking", error);
             throw error;
-        }
-
-        return {
-            statusText,
-            status
         }
     },
 

@@ -13,7 +13,7 @@ import { useState } from "react";
 import { Booking } from "@/types/booking";
 import { assetClient } from "@/hooks/assets/asset-client";
 import { useUserId } from "@/hooks/use-user-id";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { stringToDateWithTime } from "../utils/stringToDateWithTime";
 
 interface BookingPcFormInput {
@@ -49,6 +49,7 @@ const BookingForm = ({
         try {
             const { id: assetId } = await assetClient.fetchAssetByName(formData.pc);
             const { id: userId } = await fetchUserByName(formData.userName);
+            console.log("submiited requester id", userId)
             const startTime = stringToDateWithTime(formData.startTime);
             const endTime = stringToDateWithTime(formData.endTime);
             const bookingId = crypto.randomUUID();
@@ -67,11 +68,17 @@ const BookingForm = ({
             await bookingPcMutation.mutateAsync(submitedFormData);
 
             setOpen(false);
-            toast(`Success request new PC: ${formData.pc}`);
+            toast({
+                title: "Add new booking success",
+                description: `Success request new PC: ${formData.pc}`
+            });
         } catch (error) {
             console.log(error);
             setOpen(false);
-            toast(`Error request new PC Booking: ${error.message}`);
+            toast({
+                title: "Add new booking failed",
+                description: `${error.message}`
+            });
         } finally {
             setIsSubmitting(false);
         }
