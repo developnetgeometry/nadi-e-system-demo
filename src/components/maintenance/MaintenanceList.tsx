@@ -351,21 +351,25 @@ export const MaintenanceList = ({
                             <TableCell>{estimatedDate || ""}</TableCell>
                           </>
                         )}
-                        <TableCell className="flex items-center space-x-2">
-                          {getMaintenanceStatusIcon(
-                            getMaintenanceStatus(maintenanceRequest?.status)
-                          )}
-                          <Badge
-                            className={getMaintenanceStatusClass(
-                              getMaintenanceStatus(maintenanceRequest?.status)
-                            )}
-                          >
-                            {maintenanceRequest?.status
-                              ? humanizeMaintenanceStatus(
-                                  maintenanceRequest?.status
-                                )
-                              : "No status"}
-                          </Badge>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div>
+                              {getMaintenanceStatusIcon(
+                                getMaintenanceStatus(maintenanceRequest?.status)
+                              )}
+                            </div>
+                            <Badge
+                              className={getMaintenanceStatusClass(
+                                getMaintenanceStatus(maintenanceRequest?.status)
+                              )}
+                            >
+                              {maintenanceRequest?.status
+                                ? humanizeMaintenanceStatus(
+                                    maintenanceRequest?.status
+                                  )
+                                : "No status"}
+                            </Badge>
+                          </div>
                         </TableCell>
                         <TableCell>{requestDate || ""}</TableCell>
                         <TableCell>
