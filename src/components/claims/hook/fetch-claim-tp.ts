@@ -18,7 +18,7 @@ export const useFetchClaimTP = () => {
         .select(`
           id,
           phase_id (id, name),
-          claim_status,
+          claim_status (id, name),
           year,
           quarter,
           month,
@@ -27,7 +27,9 @@ export const useFetchClaimTP = () => {
           payment_status,
           tp_dusp_id (id, name)
         `)
-        .eq("tp_dusp_id", organizationId);
+        .eq("tp_dusp_id", organizationId)
+        .order("year", { ascending: false }) // Order by year in descending order
+        .order("month", { ascending: false }); // Then order by month in descending order
 
       if (claimAppError) throw claimAppError;
 

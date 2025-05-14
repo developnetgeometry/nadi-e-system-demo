@@ -11,7 +11,7 @@ type ClaimData = {
     tp_name: string;
     phase_id?: string;
     refid_mcmc: string;
-    claim_status: boolean | string | null;
+    claim_status: string;
     year: string;
     quarter: string;
     month: string;

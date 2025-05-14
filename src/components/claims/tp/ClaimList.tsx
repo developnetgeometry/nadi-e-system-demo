@@ -10,23 +10,24 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, XSquare } from "lucide-react";
+import { CheckSquare, Send, Settings, Trash2, XSquare } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-
-import { useFetchClaimTP } from "./hook/fetch-claim-tp"; // Import the hook
-
+import { useFetchClaimTP } from "../hook/fetch-claim-tp"; // Import the hook
 import { Eye } from "lucide-react"; // Import the Eye icon
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Import Tooltip components
-
 import React, { useState } from "react";
-import ClaimViewDialog from "./component/ClaimViewDialog"; // Import the dialog
+import ClaimViewDialog from "../component/ClaimViewDialog"; // Import the dialog
+import TpSubmitDialog from "../component/TpSubmitDialog"; // Import the dialog
+import TPDeleteDialog from "../component/TPDeleteDialog";
 
 export function ClaimList() {
   const { toast } = useToast();
   const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
 
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false); // State for TPSubmitDialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // State for TPDeleteDialog
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
   const handleView = (claim: any) => {
@@ -34,8 +35,22 @@ export function ClaimList() {
     setIsViewDialogOpen(true);
   };
 
+  const handleSubmitTP = (claim: any) => {
+    setSelectedClaim(claim);
+    setIsSubmitDialogOpen(true); // Open the TPSubmitDialog
+  };
+
+  const handleDelete = (claim: any) => {
+    setSelectedClaim(claim);
+    setIsDeleteDialogOpen(true); // Open the TPDeleteDialog
+  };
+
   if (isClaimTPLoading) {
-    return <div>Loading claims...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   const getStatusBadgeVariant = (status: string) => {
@@ -55,6 +70,7 @@ export function ClaimList() {
 
   return (
     <div className="rounded-md border">
+      {/* <pre>{JSON.stringify(claimTPData, null, 2)}</pre> */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -76,8 +92,8 @@ export function ClaimList() {
               <TableCell>{claim.year}</TableCell>
               <TableCell>{claim.month}</TableCell>
               <TableCell>
-                <Badge variant={getStatusBadgeVariant(claim.logs[0]?.status_id.name)}>
-                  {claim.logs[0]?.status_id.name}
+                <Badge variant={getStatusBadgeVariant(claim.claim_status.name)}>
+                  {claim.claim_status.name}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -90,6 +106,27 @@ export function ClaimList() {
                     </TooltipTrigger>
                     <TooltipContent>View</TooltipContent>
                   </Tooltip>
+
+                  {claim.claim_status.name=== "DRAFTED" && (
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDelete(claim)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="outline" onClick={() => handleSubmitTP(claim)}>
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Submit to DUSP</TooltipContent>
+                      </Tooltip>
+                    </>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
@@ -103,6 +140,24 @@ export function ClaimList() {
           isOpen={isViewDialogOpen}
           onClose={() => setIsViewDialogOpen(false)}
           claim={selectedClaim}
+        />
+      )}
+
+      {/* TP Submit Dialog */}
+      {selectedClaim && (
+        <TpSubmitDialog
+          isOpen={isSubmitDialogOpen}
+          onClose={() => setIsSubmitDialogOpen(false)}
+          claim={selectedClaim}
+        />
+      )}
+
+      {/* TP Delete Dialog */}
+      {selectedClaim && (
+        <TPDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          claimId={selectedClaim.id}
         />
       )}
     </div>

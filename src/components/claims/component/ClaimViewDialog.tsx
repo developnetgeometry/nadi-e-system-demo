@@ -19,6 +19,20 @@ interface ClaimViewDialogProps {
 const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, claim }) => {
   if (!claim) return null;
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "DRAFTED":
+        return "default";
+      case "SUBMITTED":
+        return "info";
+      case "PROCESSING":
+        return "warning";
+      case "COMPLETED":
+        return "success";
+      default:
+        return "secondary";
+    }
+  };
   const renderAttachments = (attachments: any[]) => {
     if (!attachments.length) {
       return <p className="text-muted-foreground">No attachments available</p>;
@@ -109,11 +123,9 @@ const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, clai
                 <TableRow>
                   <TableCell className="font-medium">Claim Status</TableCell>
                   <TableCell>
-                    {claim.claim_status ? (
-                      <Badge variant="success">Active</Badge>
-                    ) : (
-                      <Badge variant="destructive">Inactive</Badge>
-                    )}
+                    <Badge variant={getStatusBadgeVariant(claim.claim_status.name)}>
+                      {claim.claim_status.name}
+                    </Badge>
                   </TableCell>
                 </TableRow>
                 <TableRow>

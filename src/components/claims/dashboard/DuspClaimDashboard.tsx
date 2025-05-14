@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FileText, Clock, CheckSquare, XSquare, Plus } from "lucide-react";
 import { useState } from "react";
 // import { ClaimForm } from "@/components/claims/ClaimForm";
-import { ClaimList } from "@/components/claims/ClaimList";
+import { ClaimList } from "@/components/claims/tp/ClaimList";
 
 export function DuspClaimDashboard() {
   const [showNewClaimForm, setShowNewClaimForm] = useState(false);

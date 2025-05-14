@@ -6,7 +6,7 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { FileText, Clock, CheckSquare, XSquare, Plus } from "lucide-react";
 import { useState } from "react";
 // import { ClaimForm } from "@/components/claims/ClaimForm";
-import { ClaimList } from "@/components/claims/ClaimList";
+import { ClaimList } from "@/components/claims/tp/ClaimList";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";

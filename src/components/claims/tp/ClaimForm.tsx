@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useState, FormEvent } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { ClaimApplicationForm } from "./form/ClaimApplicationForm";
-import { useMultistepFormClaim } from "./hook/useMultipleFormClaim";
+import { ClaimApplicationForm } from "../form/ClaimApplicationForm";
+import { useMultistepFormClaim } from "../hook/useMultipleFormClaim";
 import useGeoData from "@/hooks/use-geo-data";
-import { ClaimRequestForm } from "./form/ClaimRequestForm";
-import useClaimCategorySimple from "./hook/use-claim-categoy-simple";
-import { insertClaimData } from "./hook/insert-claim";
+import { ClaimRequestForm } from "../form/ClaimRequestForm";
+import useClaimCategorySimple from "../hook/use-claim-categoy-simple";
+import { insertClaimData } from "../hook/insert-claim";
 
 type FileData = {
   name: string; // File name
@@ -21,7 +21,7 @@ type FormData = {
   tp_name: string;
   phase_id: string;
   refid_mcmc: string;
-  claim_status: boolean | string | null;
+  claim_status: string
   year: string;
   quarter: string;
   month: string;

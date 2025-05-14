@@ -1356,7 +1356,7 @@ export type Database = {
       };
       nd_claim_application: {
         Row: {
-          claim_status: boolean | null;
+          claim_status: number | null;
           created_at: string | null;
           created_by: string | null;
           date_paid: string | null;
