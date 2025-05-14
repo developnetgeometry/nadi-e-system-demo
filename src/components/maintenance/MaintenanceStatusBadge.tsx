@@ -46,7 +46,7 @@ export const getMaintenanceStatusClass = (
 };
 
 export const getSLACategoryClass = (sla: SLACategories): string => {
-  switch (sla.name) {
+  switch (sla?.name) {
     case "Critical":
       return "bg-red-100 text-red-800 hover:bg-red-200";
     case "High":
