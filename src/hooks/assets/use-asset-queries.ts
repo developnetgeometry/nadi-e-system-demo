@@ -59,7 +59,8 @@ export const useAssetQueries = () => {
   const useAssetsInTpsSites = (tps_sites_ids: number[], assetType: number) => 
     useQuery({
       queryKey: ["tpsAssets"],
-      queryFn: () => assetClient.getAllPcInTpsSite(tps_sites_ids, assetType)
+      queryFn: () => assetClient.getAllPcInTpsSite(tps_sites_ids, assetType),
+      enabled: tps_sites_ids.length > 0
     });
 
   return {

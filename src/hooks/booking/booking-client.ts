@@ -3,19 +3,23 @@ import type { Booking } from "@/types/booking";
 import { Brand } from "@/types/brand";
 
 export const bookingClient = {
-    postNewBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<void> => {
+    postNewBooking: async (bookingData: Booking, isBookingAllowed: boolean) => {
         if (!isBookingAllowed) {
             throw Error("Error dannied: you don't have permission to create a book!")
         }
 
-        const { error } = await supabase
+        const { error, data } = await supabase
             .from("nd_booking")
             .insert(bookingData)
+            .select("*")
+            .maybeSingle()
 
         if (error) {
             console.error("Failed add new booking", error);
             throw error;
         }
+
+        return data;
     },
 
     getBooking: async (bookingAssetTypeId: number): Promise<Booking[]> => {
@@ -94,7 +98,7 @@ export const bookingClient = {
             .select(`
                 id,
                 nd_site_profile!inner (
-                    dusp_tp_id
+                    *
                 )
             `)
             .eq("nd_site_profile.dusp_tp_id", dusp_tp_id);
