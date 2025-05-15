@@ -169,6 +169,7 @@ export function FilterBar({
               <TabsList className='bg-white' defaultValue={'all'}>
                 <TabsTrigger value='all'>All</TabsTrigger>
                 <TabsTrigger value='Gaming'>Gaming</TabsTrigger>
+                <TabsTrigger value='Printer'>Printer</TabsTrigger>
               </TabsList>
             </Tabs>            
         </section>

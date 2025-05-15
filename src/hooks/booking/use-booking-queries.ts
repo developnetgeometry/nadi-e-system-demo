@@ -41,7 +41,7 @@ export const useBookingQueries = () => {
         useQuery({
             queryKey: ["bookingInTpsSites", tps_site_ids, bookingAssetType],
             queryFn: () => bookingClient.getAllPcBoookingInTpsSites(tps_site_ids, bookingAssetType),
-            enabled: !!tps_site_ids
+            enabled: tps_site_ids.length > 0
         })
 
     return {

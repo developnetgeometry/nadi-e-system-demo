@@ -1,4 +1,5 @@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Booking } from "@/types/booking";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 const BookingForm =  lazy(() => import('./BookingForm'));
@@ -7,12 +8,16 @@ interface BookingFormDialogProps {
     pcsName: string[],
     isLoading: boolean,
     open: boolean,
+    setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
+    setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const BookingFormDialog = ({
     pcsName,
     isLoading,
+    setBookingCalendarData,
+    setBookingsData,
     setOpen,
     open
 }: BookingFormDialogProps) => {
@@ -42,7 +47,12 @@ export const BookingFormDialog = ({
                 // <FormLoadingSkeleton />:
                 (
                     <Suspense fallback={<div>Loading form...</div>}>
-                        <BookingForm setOpen={setOpen} pcsName={pcsName}/>
+                        <BookingForm 
+                            setOpen={setOpen} 
+                            pcsName={pcsName}
+                            setBookingsData={setBookingsData}
+                            setBookingCalendarData={setBookingCalendarData}
+                        />
                     </Suspense>
                 )
             }
