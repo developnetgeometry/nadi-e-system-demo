@@ -192,7 +192,7 @@ const ClaimFormDialog = ({
           </div>
         )}
         <DialogHeader>
-          <DialogTitle className="text-2xl mb-2">Add New Member</DialogTitle>
+          <DialogTitle className="text-2xl mb-2">Add New Claim</DialogTitle>
           <div className="flex bg-muted rounded-lg overflow-hidden">
             {steps.map((step, index) => {
               const isActive = currentStepIndex === index;
