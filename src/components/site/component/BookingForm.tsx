@@ -27,11 +27,14 @@ interface BookingPcFormInput {
 
 interface BookingFormProps {
     pcsName: string[],
+    setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
+    setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const BookingForm = ({
     pcsName,
+    setBookingCalendarData,
     setOpen
 }: BookingFormProps) => {
     const form = useForm<BookingPcFormInput>({});
@@ -65,7 +68,13 @@ const BookingForm = ({
                 is_using: true
             }
 
-            await bookingPcMutation.mutateAsync(submitedFormData);
+            const newBookingData = await bookingPcMutation.mutateAsync(submitedFormData);
+            console.log(newBookingData)
+
+            setBookingCalendarData((prevBook) => [
+                ...prevBook,
+                newBookingData
+            ])
 
             setOpen(false);
             toast({
