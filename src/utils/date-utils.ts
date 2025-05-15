@@ -56,27 +56,3 @@ export const formatDateTime = (date: Date | string): string => {
     minute: "2-digit",
   }).format(dateObj);
 };
-
-/**
- * Formats a date to include time
- * @param date The date to format
- * @returns Formatted date string with time to locale timezone
- */
-
-export const formatDateTimeLocal = (date: Date | string): string => {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-
-  // Ensure date is valid
-  if (isNaN(dateObj.getTime())) return "Invalid date";
-
-  const localDay = String(dateObj.getDate()).padStart(2, "0");
-  const localMonth = String(dateObj.getMonth() + 1).padStart(2, "0");
-  const localYear = dateObj.getFullYear();
-
-  let localHours = dateObj.getHours();
-  const localMinutes = String(dateObj.getMinutes()).padStart(2, "0");
-  const ampm = localHours >= 12 ? "PM" : "AM";
-  localHours = localHours % 12 || 12; // Convert 0 to 12
-
-  return `${localDay}/${localMonth}/${localYear} ${localHours}:${localMinutes} ${ampm}`;
-};
