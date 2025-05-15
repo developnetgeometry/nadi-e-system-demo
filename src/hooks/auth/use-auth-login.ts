@@ -72,9 +72,7 @@ export const useLogin = () => {
           .select("site_profile_id")
           .eq("user_id", authData.user.id)
           .single();
-
-        console.log("Site ID:", siteId);
-        userMetadata.group_profile.site_id =
+        userMetadata.group_profile.site_profile_id =
           siteId.data?.site_profile_id || null;
       }
 
