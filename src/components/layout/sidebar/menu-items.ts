@@ -39,9 +39,9 @@ export const posMenuItems = [
 export const claimItems = [
   { title: "Claims Dashboard", path: "/claim" },
   { title: "Claims Settings", path: "/claim/settings" },
-  { title: "Registration", path: "/claim/registration" },
-  { title: "List Record", path: "/claim/list-record" },
-  { title: "Reports", path: "/claim/report" },
+  // { title: "Registration", path: "/claim/registration" },
+  // { title: "List Record", path: "/claim/list-record" },
+  // { title: "Reports", path: "/claim/report" },
 ];
 
 export const assetItems = [
