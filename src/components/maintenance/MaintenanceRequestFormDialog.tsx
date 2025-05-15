@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/asset";
-import { MaintenanceDocketType } from "@/types/maintenance";
+import { MaintenanceDocketType, MaintenanceStatus } from "@/types/maintenance";
 import { Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
@@ -162,6 +162,7 @@ export const MaintenanceRequestFormDialog = ({
       type_id: Number(formData.get("maintenanceType")),
       requester_by: user.id,
       attachment: attachmentUrl,
+      status: MaintenanceStatus.Submitted,
     };
 
     try {
