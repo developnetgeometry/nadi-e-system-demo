@@ -35,41 +35,57 @@ const Transactions = () => {
     queryFn: async () => {
       if (!memberProfileId) return [];
 
-      // First get all transactions for this member
+      // Fetch all transactions for this member
       const { data: transactionData, error: transactionError } = await supabase
         .from('nd_pos_transaction')
         .select('*')
         .eq('member_id', memberProfileId)
         .order('created_at', { ascending: false });
       
-      if (transactionError) throw transactionError;
-      if (!transactionData || transactionData.length === 0) return [];
+      if (transactionError) 
+        throw transactionError;
+
+      if (!transactionData || transactionData.length === 0) 
+        return [];
 
       // For each transaction, get its items
       const transactionsWithItems = await Promise.all(
         transactionData.map(async (transaction) => {
           const { data: items, error: itemsError } = await supabase
             .from('nd_pos_transaction_item')
-            .select(`
-              id, 
-              quantity, 
-              price_per_unit, 
-              total_price,
-              item_id, 
-              nd_inventory(name)
-            `)
+            .select('id, quantity, price_per_unit, total_price, item_id')
             .eq('transaction_id', transaction.id);
           
-          if (itemsError) console.error('Error fetching items:', itemsError);
+          if (itemsError) 
+            console.error('Error fetching items:', itemsError);
+
+          if (!items || items.length === 0) 
+            return { ...transaction, items: [], totalPrice: 0 };
+
+          // Fetch inventory details for each item
+          const itemsWithDetails = await Promise.all(
+            items.map(async (item) => {
+              const { data: inventoryData, error: inventoryError } = await supabase
+                .from('nd_inventory')
+                .select('name')
+                .eq('id', item.item_id)
+                .single();
+                
+              if (inventoryError) console.error('Error fetching inventory:', inventoryError);
+              
+              return {
+                ...item,
+                nd_inventory: inventoryData || { name: 'Unknown item' }
+              };
+            })
+          );
           
-          // Calculate total price for this transaction
-          const totalPrice = items
-            ? items.reduce((sum, item) => sum + (item.total_price || 0), 0)
-            : 0;
-          
+          // Calculate total price
+          const totalPrice = itemsWithDetails.reduce((sum, item) => sum + (item.total_price || 0), 0);
+
           return {
             ...transaction,
-            items: items || [],
+            items: itemsWithDetails || [],
             totalPrice: totalPrice
           };
         })
