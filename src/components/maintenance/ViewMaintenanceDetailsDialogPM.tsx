@@ -1,7 +1,9 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -13,21 +15,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  getMaintenanceStatus,
   humanizeMaintenanceStatus,
   MaintenanceRequest,
   MaintenanceStatus,
   MaintenanceUpdate,
 } from "@/types/maintenance";
-import { formatDateTimeLocal } from "@/utils/date-utils";
+import { format } from "date-fns";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AttachmentUploadField } from "./AttachmentUploadField";
 import { useAttachment } from "./hooks/use-attachment";
+import {
+  getMaintenanceStatusClass,
+  getMaintenanceStatusIcon,
+} from "./MaintenanceStatusBadge";
 
 export interface ViewMaintenanceDetailsDialogPMProps {
   open: boolean;
@@ -66,47 +74,7 @@ export const ViewMaintenanceDetailsDialogPM = ({
     userMetadata?.user_group_name == "TP" &&
     maintenanceRequest?.status == MaintenanceStatus.InProgress;
 
-  function UpdateDUSP() {
-    const updateStatus = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-
-      setIsSubmitting(true);
-
-      try {
-        const { error: updateError } = await supabase
-          .from("nd_maintenance_request")
-          .update({
-            status: MaintenanceStatus.Approved,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", maintenanceRequest.id);
-
-        if (updateError) throw updateError;
-
-        toast({
-          title: "Success",
-          description: `The maintenance request has been successfully approved.`,
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: `Failed to update the maintenance request. Please try again.`,
-          variant: "destructive",
-        });
-      } finally {
-        setIsSubmitting(false);
-        onOpenChange(false);
-      }
-    };
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    return (
-      <form onSubmit={updateStatus} className="space-y-4">
-        <Button type="submit" disabled={isSubmitting} className="pt-2 w-full">
-          {isSubmitting ? "Updating..." : "Approve"}
-        </Button>
-      </form>
-    );
-  }
+  const [activeTab, setActiveTab] = useState("details");
 
   function UpdateVendor() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,7 +131,7 @@ export const ViewMaintenanceDetailsDialogPM = ({
     return (
       <form className="space-y-4" onSubmit={handleUpdateVendor}>
         <div className="space-y-2">
-          <Label htmlFor="vendor">Vendor</Label>
+          <Label className="text-sm font-medium text-gray-500">Vendor</Label>
           <Select name="vendor" required>
             <SelectTrigger>
               <SelectValue placeholder="Select Vendor" />
@@ -332,7 +300,9 @@ export const ViewMaintenanceDetailsDialogPM = ({
     };
     return (
       <form className="space-y-4" onSubmit={handleProgressUpdate}>
-        <h3 className="font-semibold mb-2">Provide Update</h3>
+        <Label className="text-sm font-medium text-gray-500">
+          Provide Update
+        </Label>
         <div className="border-2 p-2">
           <Textarea
             id="description"
@@ -422,29 +392,69 @@ export const ViewMaintenanceDetailsDialogPM = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="mb-2">
-          <DialogTitle>Maintenance Request Details</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl flex items-center gap-2">
+            {getMaintenanceStatusIcon(
+              getMaintenanceStatus(maintenanceRequest?.status)
+            )}
+            <span>Docket No: {maintenanceRequest?.no_docket}</span>
+          </DialogTitle>
+          <DialogDescription>
+            View and update maintenance docket details
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <div>
-            <h3 className="font-semibold mb-2">Description</h3>
-            <p>{maintenanceRequest?.description}</p>
-          </div>
-          {maintenanceRequest?.status && (
-            <div>
-              <h3 className="font-semibold mb-2">Status</h3>
-              <p>{humanizeMaintenanceStatus(maintenanceRequest?.status)}</p>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Status
+                </Label>
+                <div className="mt-1">
+                  <Badge
+                    className={getMaintenanceStatusClass(
+                      getMaintenanceStatus(maintenanceRequest?.status)
+                    )}
+                  >
+                    {maintenanceRequest?.status
+                      ? humanizeMaintenanceStatus(maintenanceRequest?.status)
+                      : "No status"}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Maintenance Type
+                </Label>
+                <div className="mt-1">{maintenanceRequest?.type?.name}</div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Description
+                </Label>
+                <p className="mt-1 text-sm text-gray-700">
+                  {maintenanceRequest?.description}
+                </p>
+              </div>
             </div>
-          )}
-          <div>
-            <h3 className="font-semibold mb-2">Maintenance Type</h3>
-            <p>{maintenanceRequest?.type?.name}</p>
-          </div>
-          {maintenanceRequest?.updates && (
-            <div>
-              <h3 className="font-semibold mb-2">Updates History</h3>
-              {maintenanceRequest.updates.map((update, index) => {
+
+            {isVendorAssigned && <UpdateVendor />}
+            {isVendorApproval && <VendorApproval />}
+          </TabsContent>
+          <TabsContent value="history" className="space-y-4">
+            <Label className="text-sm font-medium text-gray-500">
+              Updates History
+            </Label>
+            {maintenanceRequest?.updates &&
+              maintenanceRequest.updates.map((update, index) => {
                 let attachmentFileName: string | null = null;
 
                 if (update.attachment) {
@@ -464,7 +474,7 @@ export const ViewMaintenanceDetailsDialogPM = ({
                   >
                     <p className="mb-2">{update.description}</p>
                     <p className="text-xs">
-                      {formatDateTimeLocal(update.created_at)}
+                      {format(update.created_at, "dd-MM-yyyy")}
                     </p>
                     {attachmentFileName && (
                       <Link
@@ -478,13 +488,12 @@ export const ViewMaintenanceDetailsDialogPM = ({
                   </div>
                 );
               })}
-            </div>
-          )}
-          {isVendorAssigned && <UpdateVendor />}
-          {isVendorApproval && <VendorApproval />}
-          {isVendorProgressUpdate && <VendorProgressUpdate />}
-          {isTPCloseRequest && <TPCloseRequest />}
-        </div>
+
+            {isVendorProgressUpdate && <VendorProgressUpdate />}
+          </TabsContent>
+        </Tabs>
+
+        {isTPCloseRequest && <TPCloseRequest />}
       </DialogContent>
     </Dialog>
   );
