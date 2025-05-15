@@ -45,6 +45,7 @@ import { useAttachment } from "./hooks/use-attachment";
 import {
   getMaintenanceStatusClass,
   getMaintenanceStatusIcon,
+  getSLACategoryClass,
 } from "./MaintenanceStatusBadge";
 
 export interface ViewMaintenanceDetailsDialogProps {
@@ -732,7 +733,13 @@ export const ViewMaintenanceDetailsDialog = ({
 
               <div>
                 <Label className="text-sm font-medium text-gray-500">SLA</Label>
-                <div className="mt-1">{maintenanceRequest?.sla?.name}</div>
+                <div className="mt-1">
+                  <Badge
+                    className={getSLACategoryClass(maintenanceRequest?.sla)}
+                  >
+                    {maintenanceRequest?.sla?.name || "Not set"}{" "}
+                  </Badge>
+                </div>
               </div>
 
               <div>
