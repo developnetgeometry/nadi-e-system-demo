@@ -35,7 +35,7 @@ import NadiDashboard from "@/pages/dashboard/NadiDashboard";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import POSSales from "@/pages/dashboard/pos/POSSales";
 import Products from "@/pages/dashboard/pos/Products";
-import PUDO from "@/pages/dashboard/pos/Pudo";
+import PUDO from "@/pages/dashboard/pos/Products";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
@@ -607,7 +607,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/reports/smart-services",
     element: (
       // <ProtectedRoute requiredPermission="">
-      <ReportSmartService/>
+      <ReportSmartService />
       // </ProtectedRoute>
     ),
   },

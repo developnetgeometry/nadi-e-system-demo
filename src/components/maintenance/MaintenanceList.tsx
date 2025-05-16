@@ -1,17 +1,8 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useMaintenance } from "@/hooks/use-maintenance";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
-import {
-  humanizeMaintenanceStatus,
-  MaintenanceRequest,
-  MaintenanceStatus,
-} from "@/types/maintenance";
-import { formatDateTimeLocal } from "@/utils/date-utils";
-import { Download, Search } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Input } from "../ui/input";
-import { PaginationComponent } from "../ui/PaginationComponent";
-import { Skeleton } from "../ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -19,7 +10,23 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from "@/components/ui/table";
+import { useMaintenance } from "@/hooks/use-maintenance";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
+import {
+  getMaintenanceStatus,
+  humanizeMaintenanceStatus,
+  MaintenanceRequest,
+  MaintenanceStatus,
+} from "@/types/maintenance";
+import { format } from "date-fns";
+import { Download, Eye, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  getMaintenanceStatusClass,
+  getMaintenanceStatusIcon,
+  getSLACategoryClass,
+} from "./MaintenanceStatusBadge";
 import { ViewMaintenanceDetailsDialog } from "./ViewMaintenanceDetailsDialog";
 import { ViewMaintenanceDetailsDialogPM } from "./ViewMaintenanceDetailsDialogPM";
 
@@ -230,7 +237,7 @@ export const MaintenanceList = ({
                   </>
                 )}
                 <TableHead>Status</TableHead>
-                <TableHead>Action By/Date</TableHead>
+                <TableHead>Last Action</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -282,7 +289,7 @@ export const MaintenanceList = ({
                   </>
                 )}
                 <TableHead>Status</TableHead>
-                <TableHead>Action By/Date</TableHead>
+                <TableHead>Last Action</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -290,37 +297,6 @@ export const MaintenanceList = ({
               {paginatedMaintenanceRequests.length > 0 ? (
                 paginatedMaintenanceRequests.map(
                   (maintenanceRequest, index) => {
-                    const requestDate = maintenanceRequest.updated_at
-                      ? (() =>
-                          formatDateTimeLocal(maintenanceRequest.updated_at))()
-                      : "";
-
-                    const estimatedDate =
-                      maintenanceRequest.created_at && maintenanceRequest.sla
-                        ? (() => {
-                            const plusedDate = new Date(
-                              new Date(
-                                maintenanceRequest.created_at
-                              ).getTime() +
-                                maintenanceRequest.sla.max_day *
-                                  24 *
-                                  60 *
-                                  60 *
-                                  1000
-                            );
-
-                            const localDay = String(
-                              plusedDate.getDate()
-                            ).padStart(2, "0");
-                            const localMonth = String(
-                              plusedDate.getMonth() + 1
-                            ).padStart(2, "0");
-                            const localYear = plusedDate.getFullYear();
-
-                            return `${localDay}/${localMonth}/${localYear}`;
-                          })()
-                        : "Not set";
-
                     return (
                       <TableRow key={maintenanceRequest.id}>
                         <TableCell>
@@ -333,42 +309,69 @@ export const MaintenanceList = ({
                         {type === "cm" && (
                           <>
                             <TableCell>
-                              {maintenanceRequest?.sla?.name || "Not set"}
+                              <Badge
+                                className={getSLACategoryClass(
+                                  maintenanceRequest?.sla
+                                )}
+                              >
+                                {maintenanceRequest?.sla?.name || "Not set"}{" "}
+                              </Badge>
                             </TableCell>
-                            <TableCell>{estimatedDate || ""}</TableCell>
+                            <TableCell>
+                              {(maintenanceRequest?.maintenance_date &&
+                                format(
+                                  maintenanceRequest?.maintenance_date,
+                                  "dd/MM/yyyy"
+                                )) ||
+                                "Not set"}
+                            </TableCell>
                           </>
                         )}
                         <TableCell>
-                          {maintenanceRequest?.status
-                            ? humanizeMaintenanceStatus(
-                                maintenanceRequest.status
-                              )
-                            : "No status"}
-                        </TableCell>
-                        <TableCell>{requestDate || ""}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              onClick={() => {
-                                setSelectedItem(maintenanceRequest);
-                                if (type === "cm") {
-                                  setIsViewDetailsDialogCMOpen(true);
-                                } else {
-                                  setIsViewDetailsDialogPMOpen(true);
-                                }
-                              }}
-                              className="flex items-center"
+                          <div className="flex items-center space-x-2">
+                            <div>
+                              {getMaintenanceStatusIcon(
+                                getMaintenanceStatus(maintenanceRequest?.status)
+                              )}
+                            </div>
+                            <Badge
+                              className={getMaintenanceStatusClass(
+                                getMaintenanceStatus(maintenanceRequest?.status)
+                              )}
                             >
-                              View Details
-                            </Button>
-                            <Button
-                              onClick={() => {}}
-                              className="flex items-center"
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              View Report
-                            </Button>
+                              {maintenanceRequest?.status
+                                ? humanizeMaintenanceStatus(
+                                    maintenanceRequest?.status
+                                  )
+                                : "No status"}
+                            </Badge>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {(maintenanceRequest?.updated_at &&
+                            format(
+                              maintenanceRequest.updated_at,
+                              "dd/MM/yyyy h:mm a"
+                            )) ||
+                            ""}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="View Details"
+                            onClick={() => {
+                              setSelectedItem(maintenanceRequest);
+                              if (type === "cm") {
+                                setIsViewDetailsDialogCMOpen(true);
+                              } else {
+                                setIsViewDetailsDialogPMOpen(true);
+                              }
+                            }}
+                            className="flex items-center"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
