@@ -1,11 +1,5 @@
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
@@ -59,21 +53,21 @@ const ReportSiteManagement = () => {
   const { phases, dusps, nadiSites, loading: filtersLoading } = useReportFilters();
 
   // Fetch site management data based on filters
-  const { 
-    sites, 
-    utilities, 
-    insurance, 
-    audits, 
-    agreements, 
-    loading: dataLoading 
-  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);  
-  
+  const {
+    sites,
+    utilities,
+    insurance,
+    audits,
+    agreements,
+    loading: dataLoading
+  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);
+
   // Calculate utilities summary from the utilities data we already have
   const utilitiesSummary = useMemo(() => {
     // Calculate totals
     const totalCount = utilities.length;
     const totalAmount = utilities.reduce((sum, u) => sum + (u.amount_bill || 0), 0);
-    
+
     // Group utilities by type
     const typeGroups = utilities.reduce((groups, utility) => {
       const type = utility.type_name;
@@ -88,62 +82,26 @@ const ReportSiteManagement = () => {
       groups[type].amount += utility.amount_bill || 0;
       return groups;
     }, {});
-    
+
     return {
       totalCount,
       totalAmount,
       byType: Object.values(typeGroups)
     };
   }, [utilities]);
-  
-  const hasActiveFilters = 
-    duspFilter !== null || 
-    phaseFilter.length > 0 || 
-    nadiFilter.length > 0 ||
-    monthFilter !== null || 
-    yearFilter !== null;  
-    
-  const resetFilters = () => {
-    setDuspFilter(null);
-    setPhaseFilter([]);
-    setNadiFilter([]);
-    setMonthFilter(null);
-    setYearFilter(null);
-  };
-  
-  // Log filtering stats to help debug
-  try {
-    console.log('Site filtering stats:', {
-      total: sites.length,
-      withDusp: sites.filter(s => s.hasDusp !== undefined ? s.hasDusp : Boolean(s.dusp_id)).length,
-      withoutDusp: sites.filter(s => s.hasDusp !== undefined ? !s.hasDusp : !Boolean(s.dusp_id)).length,
-      uniqueDusps: new Set(sites.filter(s => s.dusp_id).map(s => s.dusp_id)).size,
-      hasHasDuspProperty: sites.length > 0 ? 'hasDusp' in sites[0] : false,
-      firstSiteData: sites.length > 0 ? { 
-        id: sites[0].id,
-        sitename: sites[0].sitename,
-        hasDusp: sites[0].hasDusp !== undefined ? sites[0].hasDusp : 'property missing',
-        dusp_id: sites[0].dusp_id,
-        dusp_name: sites[0].dusp_name
-      } : 'No sites',
-      allPropertyNames: sites.length > 0 ? Object.keys(sites[0]) : []
-    });
-  } catch (err) {
-    console.error('Error in site filtering stats:', err);
-  }
-  
+
   // Calculate stats for cards
   const activeInsurance = insurance.filter(i => i.status === 'Active').length;
   const expiringInsurance = insurance.filter(i => i.status === 'Expiring Soon').length;
   const expiredInsurance = insurance.filter(i => i.status === 'Expired').length;
-  
+
   const pendingAudits = audits.filter(a => a.status === 'Pending').length;
   const inProgressAudits = audits.filter(a => a.status === 'In Progress').length;
   const completedAudits = audits.filter(a => a.status === 'Completed').length;
-  
+
   const activeAgreements = agreements.filter(a => a.status === 'Active').length;
-  const expiringAgreements = agreements.filter(a => a.status === 'Expiring Soon').length;    
-  
+  const expiringAgreements = agreements.filter(a => a.status === 'Expiring Soon').length;
+
   // Use individual stable loading states for each component
   const filtersStableLoading = useStableLoading(filtersLoading);
   const dataStableLoading = useStableLoading(dataLoading);
@@ -181,21 +139,21 @@ const ReportSiteManagement = () => {
           setMonthFilter={setMonthFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
-          
+
           // Filter data
           dusps={dusps}
           phases={phases}
           nadiSites={nadiSites}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
-          
+
           // Loading state
           isLoading={filtersLoading}
         />
 
-        {/* Statistics Cards Grid */}        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">          
-          
+        {/* Statistics Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
           <SiteOverviewCard
             loading={filtersStableLoading || dataStableLoading}
             siteCount={sites.length}
@@ -214,8 +172,8 @@ const ReportSiteManagement = () => {
             activeCount={activeInsurance}
             expiringCount={expiringInsurance}
             expiredCount={expiredInsurance}
-          />          
-          
+          />
+
           <AuditCard
             loading={dataStableLoading}
             siteCount={sites.length}
@@ -231,8 +189,8 @@ const ReportSiteManagement = () => {
             agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
             activeCount={activeAgreements}
             expiringCount={expiringAgreements}
-          />          
-          
+          />
+
           <UtilitiesCard
             loading={dataStableLoading}
             siteCount={sites.length}
@@ -241,7 +199,7 @@ const ReportSiteManagement = () => {
             totalAmount={utilitiesSummary.totalAmount}
             utilityTypes={(utilitiesSummary.byType as any[]).map(t => t.type)}
           />
-          
+
           <LocalAuthorityCard
             loading={dataStableLoading}
             siteCount={sites.length}
