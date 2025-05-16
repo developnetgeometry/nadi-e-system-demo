@@ -33,36 +33,42 @@ export const BookingManagementDetail = () => {
     // Set UI content based on role access modifier
     const userMetadata = useUserMetadata();
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-    const organizationId =
+
+    const tpAdminOrganizationId =
         parsedMetadata?.user_type !== "super_admin" &&
             parsedMetadata?.user_group_name === "TP" &&
+            parsedMetadata?.user_type === "tp_admin" &&
             !!parsedMetadata?.organization_name &&
             parsedMetadata?.organization_id
             ? parsedMetadata.organization_id
             : null;
 
-    const tpSiteOrganizationId =
-        parsedMetadata?.user_type !== "super_admin" &&
-            parsedMetadata?.user_group_name === "Site" &&
-            !!parsedMetadata?.organization_name &&
-            parsedMetadata?.user_group_name === "Site" &&
-            parsedMetadata?.organization_id
-            ? parsedMetadata.organization_id
-            : null;
+    const isTpAdmin = !!tpAdminOrganizationId;
+    const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
 
-    const isTpAdminAndTpOrganization = !!organizationId;
-    const isTpSite = !!tpSiteOrganizationId;
+    const selectedVisibility = isSuperAdmin ? "Super Admin" : isTpAdmin ? "TP Admin" : "TP Site or Member"
 
-    console.log(`Setting visibility UI for ${isTpSite ? "TP site" : "TP admin"}`);
+    console.log(`Setting visibility UI for ${selectedVisibility}`);
 
-    const { useAssetsByTypeQuery, useAssetsInTpsSites } = useAssets();
-    const { useBookingQuery, useTpsSites, useBookingAssetInTpsSites } = useBookingQueries();
+    const {
+        useAssetsByTypeQuery,
+        useAssetBySite,
+        useAllAssets
+    } = useAssets();
+    const {
+        useBookingQuery,
+        useTpsSites,
+        useBookingAssetInTpsSites,
+        useAllBookings
+    } = useBookingQueries();
 
-    const { data: tpsSites, isLoading: isTpsSitesLoading } = useTpsSites(tpSiteOrganizationId ?? organizationId);
+    const { data: tpsSites, isLoading: isTpsSitesLoading } = useTpsSites(tpAdminOrganizationId);
+
     const tpsSiteIds = tpsSites?.map(tp => tp.id) ?? [];
     console.log("tps sites", tpsSites)
 
-    const pcIdAsset = 1;
+    const PC_ASSET_ID = 1;
+    const FACILITY_ASSET_ID = 2;
 
     const { data: memberSitePcs, isLoading: isMemberSitePcsLoading } = useAssetsByTypeQuery(pcIdAsset);
 
