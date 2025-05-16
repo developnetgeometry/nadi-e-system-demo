@@ -31,7 +31,6 @@ export interface UtilityData {
   amount_bill: number;
   remark?: string;
   file_path?: string;
-  status?: string;
   payment_date?: string;
 }
 
@@ -313,16 +312,13 @@ export const useSiteManagementData = (
           .in("id", typeIds);
           
         if (typesError) throw typesError;
-        
-        // Map type names and site names to utilities
+          // Map type names and site names to utilities
         const utilitiesWithDetails = utilities.map(utility => {
           const site = sites.find(site => site.id === utility.site_id);
           return {
             ...utility,
             sitename: site?.sitename || "Unknown",
-            type_name: types.find(type => type.id === utility.type_id)?.name || "Unknown",
-            // Mock status for demo purposes
-            status: Math.random() > 0.3 ? "Paid" : "Pending"
+            type_name: types.find(type => type.id === utility.type_id)?.name || "Unknown"
           };
         });
         

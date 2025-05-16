@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, CheckCircle, Clock, Zap } from "lucide-react";
+import { Clock, Zap } from "lucide-react";
 import { CardStat } from "./ui/CardStat";
 import { CardSkeleton } from "./ui/CardSkeleton";
 import { StatItem } from "./ui/StatItem";
@@ -15,8 +15,6 @@ type UtilitiesCardProps = {
   siteCount: number;
   utilitySiteCount: number;
   totalBills: number;
-  paidCount: number;
-  pendingCount: number;
   totalAmount: number;
   utilityTypes: string[];
 };
@@ -26,8 +24,6 @@ export const UtilitiesCard = ({
   siteCount,
   utilitySiteCount,
   totalBills,
-  paidCount,
-  pendingCount,
   totalAmount,
   utilityTypes,
 }: UtilitiesCardProps) => {
@@ -63,20 +59,7 @@ export const UtilitiesCard = ({
                 />
               </div>
             </div>
-            
-            <div className="mt-3 flex justify-between text-xs text-gray-500">
-              <StatItem 
-                icon={CheckCircle} 
-                iconColor="text-green-500" 
-                label="Paid" 
-                value={paidCount} 
-              />
-              <StatItem 
-                icon={AlertCircle} 
-                iconColor="text-amber-500" 
-                label="Pending" 
-                value={pendingCount} 
-              />
+              <div className="mt-3 flex justify-end text-xs text-gray-500">
               <StatItem 
                 icon={Clock} 
                 iconColor="text-blue-500" 

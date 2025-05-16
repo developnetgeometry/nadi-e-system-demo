@@ -72,14 +72,10 @@ const ReportSiteManagement = () => {
     audits, 
     agreements, 
     loading: dataLoading 
-  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);
-  // Calculate utilities summary from the utilities data we already have
+  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);  // Calculate utilities summary from the utilities data we already have
   const utilitiesSummary = useMemo(() => {
     // Calculate totals
     const totalCount = utilities.length;
-    const paidCount = utilities.filter(u => u.status === "Paid").length;
-    const pendingCount = utilities.filter(u => u.status === "Pending").length;
-    
     const totalAmount = utilities.reduce((sum, u) => sum + (u.amount_bill || 0), 0);
     
     // Group utilities by type
@@ -99,8 +95,6 @@ const ReportSiteManagement = () => {
     
     return {
       totalCount,
-      paidCount,
-      pendingCount,
       totalAmount,
       byType: Object.values(typeGroups)
     };
@@ -573,14 +567,11 @@ const ReportSiteManagement = () => {
             activeCount={0}
             expiringCount={0}
           />          
-          
-          <UtilitiesCard
+            <UtilitiesCard
             loading={dataStableLoading}
             siteCount={sites.length}
             utilitySiteCount={new Set(utilities.map(u => u.site_id)).size}
             totalBills={utilitiesSummary.totalCount}
-            paidCount={utilitiesSummary.paidCount}
-            pendingCount={utilitiesSummary.pendingCount}
             totalAmount={utilitiesSummary.totalAmount}
             utilityTypes={(utilitiesSummary.byType as any[]).map(t => t.type)}
           />
