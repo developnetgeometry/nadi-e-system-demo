@@ -70,20 +70,33 @@ export const BookingManagementDetail = () => {
     const PC_ASSET_ID = 1;
     const FACILITY_ASSET_ID = 2;
 
-    const { data: memberSitePcs, isLoading: isMemberSitePcsLoading } = useAssetsByTypeQuery(pcIdAsset);
-
-    const { data: tpsSitesPcs, isLoading: isAssetTpsSitesLoading } = useAssetsInTpsSites(
-        tpsSiteIds,
-        pcIdAsset
-    );
-
-    const { data: pcsBooking, isLoading: isBookingLoading } = useBookingQuery(pcIdAsset);
-
+    // All pcs booking data
+    const { data: allPcs, isLoading: isAllPcsLoading } = useAllAssets(isSuperAdmin, PC_ASSET_ID);
+    const { data: sitesPcs, isLoading: isSitesPcsLoading } = useAssetsByTypeQuery(PC_ASSET_ID);
+    const { data: allBookingPcs, isLoading: isAllBookingPcsLoading } = useAllBookings(isSuperAdmin, PC_ASSET_ID);
+    const { data: pcsBooking, isLoading: isBookingLoading } = useBookingQuery(PC_ASSET_ID);
     const { data: tpsSitesPcsBookings, isLoading: isTpsSitesPcsBookingsLoading } = useBookingAssetInTpsSites(
         tpsSiteIds,
-        pcIdAsset
+        PC_ASSET_ID
     );
 
+    // State to share to the TP admin dashboard (choosing a site)
+    const [selectedSite, setSelectedSite] = useState<Site | null>();
+    console.log("selected site", selectedSite)
+
+    const { data: tpsSitePcs, isLoading: isAssetTpsSiteLoading } = useAssetBySite(
+        selectedSite?.id,
+        PC_ASSET_ID
+    );
+
+    console.log("tps site pc", tpsSitePcs)
+
+    function handleResetselectedSite() {
+        setSelectedSite(null);
+    }
+
+    // State to share to the pc calendar component (UI update when submitted a form)
+    const filterededPcsBookingInTpSite = tpsSitesPcsBookings?.filter((pcBooking) => pcBooking?.nd_asset?.site_id === selectedSite?.id)
     const [bookingsData, setBookingsData] = useState([]);
 
     useEffect(() => {
