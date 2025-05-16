@@ -9,6 +9,13 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useEffect, useState } from "react";
 
 const MaintenanceDashboard = () => {
@@ -64,47 +71,51 @@ const MaintenanceDashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Asset Maintenance</h1>
-          </div>
-          {!isVendor && (
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Request
-            </Button>
-          )}
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            <div>Asset Maintenance</div>
+            {!isVendor && (
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Request
+              </Button>
+            )}
+          </CardTitle>
+          <CardDescription>
+            View and manage all asset maintenance in the system
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={typeParam} onValueChange={handleTabChange}>
+            <TabsList>
+              <TabsTrigger value="cm">Corrective Maintenance</TabsTrigger>
+              <TabsTrigger value="pm">Preventive Maintenance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="cm">
+              <MaintenanceList
+                maintenanceRequests={displayRequests}
+                isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
+                refetch={refetchMaintenanceRequests}
+                type="cm"
+              />
+            </TabsContent>
+            <TabsContent value="pm">
+              <MaintenanceList
+                maintenanceRequests={displayRequests}
+                isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
+                refetch={refetchMaintenanceRequests}
+                type="pm"
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
 
-        <Tabs value={typeParam} onValueChange={handleTabChange}>
-          <TabsList>
-            <TabsTrigger value="cm">Corrective Maintenance</TabsTrigger>
-            <TabsTrigger value="pm">Preventive Maintenance</TabsTrigger>
-          </TabsList>
-          <TabsContent value="cm">
-            <MaintenanceList
-              maintenanceRequests={displayRequests}
-              isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
-              refetch={refetchMaintenanceRequests}
-              type="cm"
-            />
-          </TabsContent>
-          <TabsContent value="pm">
-            <MaintenanceList
-              maintenanceRequests={displayRequests}
-              isLoadingMaintenanceRequests={isLoadingMaintenanceRequests}
-              refetch={refetchMaintenanceRequests}
-              type="pm"
-            />
-          </TabsContent>
-        </Tabs>
-
-        <MaintenanceRequestFormDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-        />
-      </div>
+      <MaintenanceRequestFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
     </DashboardLayout>
   );
 };
