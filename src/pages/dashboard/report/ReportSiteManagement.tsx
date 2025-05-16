@@ -23,7 +23,9 @@ import {
   InsuranceCard,
   AuditCard,
   AgreementCard,
-  UtilitiesCard
+  UtilitiesCard,
+  LocalAuthorityCard,
+  AwarenessProgrammeCard
 } from "@/components/reports";
 
 // Define month options
@@ -532,7 +534,10 @@ const ReportSiteManagement = () => {
               </Badge>
             )}
           </div>
-        )}        {/* Statistics Cards Grid */}        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">          <SiteOverviewCard
+        )}        {/* Statistics Cards Grid */}        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">          
+          
+          <SiteOverviewCard
             loading={filtersStableLoading || dataStableLoading}
             siteCount={sites.length}
             activeSiteCount={sites.filter(s => s.is_active).length}
@@ -550,24 +555,26 @@ const ReportSiteManagement = () => {
             activeCount={activeInsurance}
             expiringCount={expiringInsurance}
             expiredCount={expiredInsurance}
-          />
-
+          />          
+          
           <AuditCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            auditedSiteCount={new Set(audits.map(a => a.site_id)).size}
-            completedCount={completedAudits}
-            inProgressCount={inProgressAudits}
-            pendingCount={pendingAudits}
+            auditedSiteCount={0} // Data not available yet
+            completedCount={0}
+            inProgressCount={0}
+            pendingCount={0}
           />
 
           <AgreementCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
-            activeCount={activeAgreements}
-            expiringCount={expiringAgreements}
-          />          <UtilitiesCard
+            agreementSiteCount={0} // Data not available yet
+            activeCount={0}
+            expiringCount={0}
+          />          
+          
+          <UtilitiesCard
             loading={dataStableLoading}
             siteCount={sites.length}
             utilitySiteCount={new Set(utilities.map(u => u.site_id)).size}
@@ -578,8 +585,23 @@ const ReportSiteManagement = () => {
             utilityTypes={(utilitiesSummary.byType as any[]).map(t => t.type)}
           />
           
-          {/* Local Authority and Awareness & Promotion cards removed as requested */}
-          {/* They will be implemented later when data is available */}
+          <LocalAuthorityCard
+            loading={dataStableLoading}
+            siteCount={sites.length}
+            laRecordSiteCount={0} // No data available yet
+            compliantCount={0}
+            pendingCount={0}
+            inProgressCount={0}
+          />
+
+          <AwarenessProgrammeCard
+            loading={dataStableLoading}
+            siteCount={sites.length}
+            programmesSiteCount={0} // No data available yet
+            totalProgrammes={0}
+            completedCount={0}
+            upcomingCount={0}
+          />
         </div>
       </div>
     </DashboardLayout>

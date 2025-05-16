@@ -5,46 +5,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, CheckCircle, ClipboardCheck, Clock } from "lucide-react";
+import { CheckCircle, Clock, Zap } from "lucide-react";
 import { CardStat } from "./ui/CardStat";
 import { CardSkeleton } from "./ui/CardSkeleton";
 import { StatItem } from "./ui/StatItem";
 
-type AuditCardProps = {
+type AwarenessProgrammeCardProps = {
   loading: boolean;
   siteCount: number;
-  auditedSiteCount: number;
+  programmesSiteCount: number;
+  totalProgrammes: number;
   completedCount: number;
-  inProgressCount: number;
-  pendingCount: number;
+  upcomingCount: number;
 };
 
-export const AuditCard = ({
+export const AwarenessProgrammeCard = ({
   loading,
   siteCount,
-  auditedSiteCount,
+  programmesSiteCount,
+  totalProgrammes,
   completedCount,
-  inProgressCount,
-  pendingCount,
-}: AuditCardProps) => {
+  upcomingCount,
+}: AwarenessProgrammeCardProps) => {
   return (
     <Card className="overflow-hidden shadow-sm border border-gray-200">
       <CardHeader className="p-4 bg-white border-b">
-        <CardTitle className="text-lg font-medium text-gray-800">Audit</CardTitle>
+        <CardTitle className="text-lg font-medium text-gray-800">Awareness & Promotion</CardTitle>
       </CardHeader>
       <CardContent className="p-6 bg-white">
         {loading ? (
           <CardSkeleton />
         ) : (
           <CardStat
-            icon={ClipboardCheck}
-            iconColor="text-green-500"
-            iconBgColor="bg-green-50"
-            title="Sites with Audits"
-            value={auditedSiteCount}
-            progressValue={auditedSiteCount}
+            icon={Zap}
+            iconColor="text-amber-500"
+            iconBgColor="bg-amber-50"
+            title="Total Programmes"
+            value={totalProgrammes}
+            progressValue={programmesSiteCount}
             progressMax={siteCount}
-            progressColor="bg-green-500"
+            progressColor="bg-amber-500"
             stats={
               <>
                 <StatItem 
@@ -56,21 +56,15 @@ export const AuditCard = ({
                 <StatItem 
                   icon={Clock} 
                   iconColor="text-blue-500" 
-                  label="In Progress" 
-                  value={inProgressCount} 
-                />
-                <StatItem 
-                  icon={AlertCircle} 
-                  iconColor="text-amber-500" 
-                  label="Pending" 
-                  value={pendingCount} 
+                  label="Upcoming" 
+                  value={upcomingCount} 
                 />
               </>
             }
             footer={
               siteCount ? 
-                `${Math.round((auditedSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 
-                '0% Coverage'
+                `${programmesSiteCount} Sites with Programmes` : 
+                '0 Sites with Programmes'
             }
           />
         )}

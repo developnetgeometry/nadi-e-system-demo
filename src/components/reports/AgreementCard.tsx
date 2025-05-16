@@ -6,9 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CheckCircle, Clock, FileText } from "lucide-react";
-import { CardStat } from "./CardStat";
-import { CardSkeleton } from "./CardSkeleton";
-import { StatItem } from "./StatItem";
+import { CardStat } from "./ui/CardStat";
+import { CardSkeleton } from "./ui/CardSkeleton";
+import { StatItem } from "./ui/StatItem";
 
 type AgreementCardProps = {
   loading: boolean;

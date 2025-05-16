@@ -6,8 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Filter } from "lucide-react";
-import { CardStat } from "./CardStat";
-import { CardSkeleton } from "./CardSkeleton";
+import { CardStat } from "./ui/CardStat";
+import { CardSkeleton } from "./ui/CardSkeleton";
 
 type FilterStatusCardProps = {
   loading: boolean;
