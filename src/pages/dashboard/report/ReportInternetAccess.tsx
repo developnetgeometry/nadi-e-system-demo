@@ -35,6 +35,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ChartImageRenderer } from "@/components/reports/graphs/InternetAccessReport/ChartImageRenderer";
 import { InternetAccessReportPDF } from "@/components/pdf-templates/InternetAccessReport";
 
 import { cn } from "@/lib/utils";
@@ -75,6 +76,13 @@ const yearOptions = [
   { id: "2022", label: "2022" },
 ];
 
+// Sample chart data
+const sampleChartData = [
+  { state: "Johor", count: 10 },
+  { state: "Pahang", count: 5 },
+  { state: "Selangor", count: 12 },
+];
+
 const ReportInternetAccess = () => {
   // Filter states
   const [duspFilter, setDuspFilter] = useState<string | number | null>(null);
@@ -82,12 +90,17 @@ const ReportInternetAccess = () => {
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>("2025"); // Default to current year
 
+  // Graph image state
+  const [graphImage, setGraphImage] = useState<string | null>(null);
+
   // Labels for filters
   const duspLabel = duspOptions.find((d) => d.id === duspFilter)?.label;
   const monthLabel = monthOptions.find((m) => m.id === monthFilter)?.label;
   const phaseLabels = phaseOptions
     .filter((p) => phaseFilter.includes(p.id))
     .map((p) => p.label);
+  const duspLogo = duspOptions.find((d) => d.id === duspFilter)?.logo_url;
+  const mcmcLogo = "/MCMC_Logo.png"; // Replace with actual logo URL for MCMC
 
   const hasActiveFilters =
     duspFilter !== null ||
@@ -117,31 +130,54 @@ const ReportInternetAccess = () => {
               <Upload className="h-4 w-4" />
               Upload Excel
             </Button> */}
-            <PDFDownloadLink
-              document={
-                <InternetAccessReportPDF
-                  duspLabel={duspLabel}
-                  phaseLabel={phaseLabels.join(", ")}
-                  monthLabel={monthLabel}
-                  year={yearFilter?.toString()}
-                  totalConnected={76}
-                  showMonth={true}
-                  mcmcLogo="/MCMC_Logo.png"
-                  duspLogo="/dusp-logo.png"
-                />
-              }
-              fileName={`internet-access-report-${Date.now()}.pdf`}
-            >
-              {({ loading }) => (
-                <Button
-                  variant="secondary"
-                  className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  {loading ? "Preparing..." : "Download"}
-                </Button>
-              )}
-            </PDFDownloadLink>
+
+            {/* Generate chart image */}
+            <ChartImageRenderer
+              data={sampleChartData}
+              onReady={setGraphImage}
+            />
+            {graphImage && (
+              <PDFDownloadLink
+                document={
+                  <InternetAccessReportPDF
+                    duspLabel={duspLabel}
+                    phaseLabel={phaseLabels.join(", ")}
+                    monthLabel={monthLabel}
+                    year={yearFilter?.toString()}
+                    totalConnected={76}
+                    showMonth={true}
+                    mcmcLogo={mcmcLogo} // Replace with actual logo URL for MCMC
+                    duspLogo="/dusp-logo.png" // Replace with actual logo URL for DUSP
+                    nadiSites={[
+                      {
+                        state: "Johor",
+                        technology: "ADSL",
+                        bandwidth: "100Mbps",
+                        name: "BATU 1 SUNGAI PINGGAN",
+                      },
+                      {
+                        state: "Pahang",
+                        technology: "UNIFI",
+                        bandwidth: "100Mbps",
+                        name: "XXXXXX",
+                      },
+                    ]}
+                    graphImage={graphImage}
+                  />
+                }
+                fileName={`internet-access-report-${Date.now()}.pdf`}
+              >
+                {({ loading }) => (
+                  <Button
+                    variant="secondary"
+                    className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    {loading ? "Preparing..." : "Download"}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            )}
           </div>
         </div>
         {/* Filters Row */}
