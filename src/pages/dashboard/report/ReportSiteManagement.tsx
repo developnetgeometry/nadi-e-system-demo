@@ -154,7 +154,7 @@ const ReportSiteManagement = () => {
         {/* Statistics Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          <SiteOverviewCard
+          {/* <SiteOverviewCard
             loading={filtersStableLoading || dataStableLoading}
             siteCount={sites.length}
             activeSiteCount={sites.filter(s => s.is_active).length}
@@ -163,7 +163,7 @@ const ReportSiteManagement = () => {
               .filter(s => s.dusp_id !== null && s.dusp_id !== undefined && s.dusp_id !== "")
               .map(s => s.dusp_id)).size}
             totalSiteCount={nadiSites?.length || 0}
-          />
+          /> */}
 
           <InsuranceCard
             loading={dataStableLoading}
