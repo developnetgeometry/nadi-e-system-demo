@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CircleCheckBig, RotateCcwSquare, Server } from "lucide-react";
+import { ChevronLeft, CircleCheckBig, FolderXIcon, RotateCcwSquare, Server } from "lucide-react";
 import { StatsCard } from "../dashboard/StatsCard";
 import FilterBar from "./component/FilterBar";
 import { Badge } from "../ui/badge";
@@ -14,12 +14,15 @@ import { getDuration } from "./utils/duration";
 import { Asset } from "@/types/asset";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { EmptyCard } from "./component/EmptyCard";
 import BookingAssetCard from "./component/BookingAssetCard";
 import { CircleDot } from "lucide-react";
 import { Site } from "@/types/site";
 import { TpAdminDashBoard } from "./component/TpAdminDashboard";
 import { Button } from "../ui/button";
+import { NoBookingFound } from "./component/NoBookingFound";
+import { useUserName } from "@/hooks/use-user";
+import { useQuery } from "@tanstack/react-query";
+import { BulkActionButtons } from "./component/BulkActionButtons";
 
 type FilterParams = {
     pcAvailability: string,
@@ -101,62 +104,83 @@ export const BookingManagementDetail = () => {
 
     useEffect(() => {
         const sourcePcBooking =
-            (isTpAdminAndTpOrganization || isTpSite)
-                ? tpsSitesPcsBookings
-                : pcsBooking;
+            isSuperAdmin
+                ? allBookingPcs
+                : isTpAdmin
+                    ? filterededPcsBookingInTpSite
+                    : pcsBooking;
 
         if (sourcePcBooking) {
             setBookingsData(sourcePcBooking);
         }
-    }, [pcsBooking, tpsSitesPcsBookings, isTpAdminAndTpOrganization, isTpSite]);
+    }, [
+        pcsBooking,
+        tpsSitesPcsBookings,
+        isTpAdmin, isSuperAdmin,
+        tpsSitesPcsBookings,
+        selectedSite
+    ]);
 
-    const [selectedSite, setSelectedSite] = useState<Site | null>();
-    console.log("selected site", selectedSite)
 
     if (
-        isMemberSitePcsLoading ||
-        isAssetTpsSitesLoading ||
+        isSitesPcsLoading ||
+        isAssetTpsSiteLoading ||
         isBookingLoading ||
         isTpsSitesLoading ||
         isTpsSitesPcsBookingsLoading ||
+        isAllPcsLoading ||
+        isAllBookingPcsLoading ||
         !parsedMetadata
-        // (!organizationId && !tpSiteOrganizationId)
     ) {
         return <LoadingSpinner />;
     }
 
-    function handleResetselectedSite () {
-        setSelectedSite(null);
+    const selectedPcsData =
+        isSuperAdmin
+            ? allPcs
+            : isTpAdmin
+                ? tpsSitePcs
+                : sitesPcs;
+    const selectedPcsBookingData =
+        isSuperAdmin
+            ? allBookingPcs
+            : isTpAdmin
+                ? bookingsData
+                : pcsBooking;
+
+    if (
+        isTpAdmin &&
+        !selectedSite
+    ) {
+        return (
+            <TpAdminDashBoard
+                selectedSite={selectedSite}
+                setSelecTedSite={setSelectedSite}
+                tpsSites={tpsSites}
+            />
+        );
     }
 
     return (
-        <>
-            {(isTpAdminAndTpOrganization && selectedSite === null) ? (
-                <TpAdminDashBoard
-                    selectedSite={selectedSite}
-                    setSelecTedSite={setSelectedSite}
-                    tpsSites={tpsSites}
+        <div className="relative">
+
+            <>
+                {isTpAdmin && (
+                    <Button className="absolute top-0 left-0 items-center gap-2 font-medium text-base" onClick={handleResetselectedSite}>
+                        <ChevronLeft className="h-32" />
+                        Choose Other Site
+                    </Button>
+                )}
+                <BookingHeader />
+                <BookingContent
+                    pcsBooking={selectedPcsBookingData}
+                    pcsData={selectedPcsData}
+                    setBookingsData={setBookingsData}
+                    isBookingLoading={isBookingLoading}
+                    isTpAdmin={isTpAdmin}
                 />
-            ) : (
-                <>
-                    { isTpAdminAndTpOrganization && (
-                        <Button onClick={handleResetselectedSite}>Choose other Site</Button>
-                    )}
-                    <BookingHeader />
-                    <BookingContent
-                        bookingsData={bookingsData}
-                        isTpAdminAndTpOrganization={isTpAdminAndTpOrganization}
-                        isTpSite={isTpSite}
-                        memberSitePcs={memberSitePcs}
-                        pcsBooking={pcsBooking}
-                        setBookingsData={setBookingsData}
-                        tpsSitesPcs={tpsSitesPcs}
-                        tpsSitesPcsBookings={tpsSitesPcsBookings}
-                        isBookingLoading={isBookingLoading}
-                    />
-                </>
-            )}
-        </>
+            </>
+        </div>
     )
 }
 
@@ -170,31 +194,23 @@ const BookingHeader = () => {
 }
 
 interface BookingContentProps {
-    isTpAdminAndTpOrganization: boolean
-    isTpSite: boolean
-    tpsSitesPcs: Asset[]
-    memberSitePcs: Asset[]
-    tpsSitesPcsBookings: Booking[]
+    pcsData: Asset[]
     pcsBooking: Booking[]
-    bookingsData: Booking[]
+    isTpAdmin?: boolean
     isBookingLoading: boolean
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
 }
 
 const BookingContent = ({
-    isTpAdminAndTpOrganization,
-    isTpSite,
-    memberSitePcs,
+    pcsData,
     pcsBooking,
-    bookingsData,
+    isTpAdmin,
     setBookingsData,
-    tpsSitesPcs,
-    tpsSitesPcsBookings,
     isBookingLoading
 }: BookingContentProps) => {
 
 
-    const tpsSitespcsAvailibility = tpsSitesPcs?.map((pc) => {
+    const tpsSitespcsAvailibility = pcsData?.map((pc) => {
         const currentBooking = pc.nd_booking?.find((b) => {
             const now = new Date();
             return new Date(b.booking_start) <= now && new Date(b.booking_end) >= now;
@@ -221,19 +237,20 @@ const BookingContent = ({
             <PcBookings
                 value="PC Bookings"
                 pcStats={{
-                    totalPcs: isTpAdminAndTpOrganization || isTpSite ? tpsSitesPcs.length : memberSitePcs.length,
-                    pcInUse: isTpAdminAndTpOrganization || isTpSite ? tpsSitespcsAvailibility.filter(pc => pc.is_using).length : memberSitePcs.filter(pc => pc.is_active).length,
-                    pcAvailable: isTpAdminAndTpOrganization || isTpSite ? tpsSitespcsAvailibility.filter(pc => !pc.is_using).length : memberSitePcs.filter(pc => !pc.is_active).length
+                    totalPcs: pcsData.length,
+                    pcInUse: tpsSitespcsAvailibility.filter(pc => pc.is_using).length,
+                    pcAvailable: tpsSitespcsAvailibility.filter(pc => !pc.is_using).length
                 }}
-                pcsData={isTpAdminAndTpOrganization || isTpSite ? tpsSitesPcs : memberSitePcs}
-                bookingsData={bookingsData}
+                pcsData={pcsData}
+                isTpAdmin={isTpAdmin}
+                bookingsData={pcsBooking}
                 setBookingsData={setBookingsData}
                 isLoading={isBookingLoading}
             />
             <PcCalender
                 value="PC Calendar"
-                pcsData={isTpAdminAndTpOrganization || isTpSite ? tpsSitesPcs.map((pc) => pc.name) : memberSitePcs.map((pc) => pc.name)}
-                bookingsData={isTpAdminAndTpOrganization || isTpSite && !!tpsSitesPcsBookings ? tpsSitesPcsBookings : pcsBooking}
+                pcsData={pcsData.map((pc) => pc.name)}
+                bookingsData={pcsBooking}
                 setBookingsData={setBookingsData}
                 isLoading={isBookingLoading}
             />
@@ -255,6 +272,7 @@ interface PcBookingProps {
         pcAvailable: number | string
     }
     pcsData: Asset[],
+    isTpAdmin: boolean
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     bookingsData: Booking[],
     isLoading: boolean
@@ -264,6 +282,7 @@ const PcBookings = ({
     value,
     pcStats,
     pcsData,
+    isTpAdmin,
     setBookingsData,
     bookingsData,
     isLoading
@@ -283,8 +302,8 @@ const PcBookings = ({
             value: String(pcStats.pcInUse),
             icon: RotateCcwSquare,
             description: "",
-            iconBgColor: "bg-red-100",
-            iconTextColor: "text-red-500",
+            iconBgColor: "bg-blue-100",
+            iconTextColor: "text-blue-500",
         }, {
             title: "Available",
             value: String(pcStats.pcAvailable),
@@ -309,6 +328,7 @@ const PcBookings = ({
                 bookingsData={bookingsData}
                 setBookingsData={setBookingsData}
                 isLoading={isLoading}
+                isTpAdmin={isTpAdmin}
             />
         </TabsContent>
     )
@@ -318,6 +338,7 @@ interface PcMainContentProps {
     bookingsData: Booking[]
     pcsData: Asset[]
     isLoading: boolean
+    isTpAdmin: boolean
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
 }
 
@@ -325,6 +346,7 @@ export const PcMainContent = ({
     bookingsData,
     setBookingsData,
     pcsData,
+    isTpAdmin,
     isLoading
 }: PcMainContentProps) => {
     const headTable = ["User", "PC", "Start Time", "End Time", "Duration"];
@@ -342,6 +364,7 @@ export const PcMainContent = ({
 
     return (
         <section className="mt-6 flex flex-col" id="pc status">
+            { isTpAdmin && <BulkActionButtons />}
             <PcStatus
                 pcsData={pcsData}
                 isLoading={isLoading}
@@ -443,47 +466,70 @@ const PcStatus = ({
         }
     ];
 
-    const pcsAvailibility = pcsData?.map((pc) => {
-        const currentBooking = pc.nd_booking?.find((b) => {
-            const now = new Date();
-            return new Date(b.booking_start) <= now && new Date(b.booking_end) >= now;
-        });
-
-        const fallbackBooking = pc.nd_booking?.at(-1);
-
-        const booking = currentBooking || fallbackBooking || null;
-
-        const isBooking = !!booking;
-        const startDate = (start: string) => {
-            if (isBooking && start) {
-                return new Date(booking.booking_start).toLocaleTimeString();
-            } else {
-                return "-"
-            }
-        }
-
-        return {
-            status: booking?.is_using ? "in-use" : "Available",
-            type: pc.nd_brand?.brand_type,
-            name: pc.name,
-            spec: pc.nd_brand?.name,
-            staffName: isBooking ? booking.created_by : "-",
-            startDate: startDate(booking?.booking_start),
-            duration: isBooking && getDuration(booking?.booking_start, booking?.booking_end),
-            icon: <Server />,
-            bgCustomClass: !isBooking
-                ? "bg-green-100 hover:bg-muted border-gray-300"
-                : "bg-blue-100 hover:bg-muted border-gray-300",
-            customClass: !isBooking
-                ? "bg-green-200 text-green-600 hover:bg-green-300 font-semibold"
-                : "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold",
-        };
-    });
-
+    const {fetchUserById} = useUserName();
+    const [rawPcsData, setRawPcsData] = useState([]);
     const [pcs, setPcs] = useState([]);
 
+    useEffect(() => {
+        let isActive = true;
+
+        async function preparePcData(currentFilteredPcsData: Asset[]) {
+            if (!currentFilteredPcsData || currentFilteredPcsData.length === 0) {
+                setRawPcsData([]);
+                setPcs([]);
+                return;
+            };
+        
+            const processed = await Promise.all(
+                currentFilteredPcsData.map(async (pc) => {
+                const now = new Date();
+                const currentBooking = pc.nd_booking?.find(
+                  (b) => new Date(b.booking_start) <= now && new Date(b.booking_end) >= now
+                );
+                const fallbackBooking = pc.nd_booking?.at(-1);
+                const booking = currentBooking || fallbackBooking || null;
+        
+                let full_name = "-";
+                if (booking?.created_by) {
+                  const user = await fetchUserById(booking.created_by);
+                  full_name = user.full_name;
+                }
+        
+                const isBooking = !!booking;
+        
+                return {
+                  status: booking?.is_using ? "in-use" : "Available",
+                  type: pc.nd_brand?.brand_type,
+                  name: pc.name,
+                  spec: pc?.nd_brand.name,
+                  staffName: isBooking ? full_name : "-",
+                  startDate: isBooking ? new Date(booking.booking_start).toLocaleTimeString() : "-",
+                  duration: isBooking ? getDuration(booking.booking_start, booking.booking_end) : "-",
+                  icon: <Server />,
+                  bgCustomClass: !isBooking
+                    ? "bg-green-100 hover:bg-muted border-gray-300"
+                    : "bg-blue-100 hover:bg-muted border-gray-300",
+                  customClass: !isBooking
+                    ? "bg-green-200 text-green-600 hover:bg-green-300 font-semibold"
+                    : "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold",
+                };
+              })
+            );
+        
+            if (isActive) {
+                setRawPcsData(processed)
+                setPcs(processed)
+            }
+        }
+        preparePcData(pcsData);
+
+        return () => {
+            isActive = false;
+        };
+    }, [pcsData])
+
     function onFilterChange({ pcAvailability, pcTypeTabs, searchQuery }: FilterParams) {
-        let filtered = pcsAvailibility;
+        let filtered = rawPcsData;
 
         if (pcAvailability !== "all") {
             filtered = filtered.filter((pc) => pc.status === pcAvailability);
@@ -500,10 +546,6 @@ const PcStatus = ({
         setPcs(filtered);
     }
 
-    useEffect(() => {
-        onFilterChange({ pcAvailability: "all", pcTypeTabs: "all" })
-    }, [])
-
 
     return (
         <>
@@ -519,12 +561,18 @@ const PcStatus = ({
                 <FilterBar className="flex mt-6 justify-between" onFilterChange={onFilterChange} showDateRange={false} showRegion={false} showCenterType={false} showPcBookingFilter={true} />
                 {
                     pcs.length === 0 ? (
-                        <EmptyCard message="There are no PC in your sites" className="mt-6 py-40" />
+                        <NoBookingFound
+                            description="There are no PC in this site"
+                            icon={<FolderXIcon className="mx-auto mb-2 h-10 w-10 text-gray-500" />}
+                            title="No PC"
+                            className="w-full bg-white rounded-md py-6 border border-gray-300"
+                        />
                     ) : (
                         <div className="grid grid-cols-4 gap-5 mt-4">
                             {
                                 pcs.map((pc, i) => (
                                     <BookingAssetCard
+                                        key={pc.name}
                                         assetSpec={pc.spec}
                                         assetType={pc.type}
                                         requesterName={pc.staffName}
