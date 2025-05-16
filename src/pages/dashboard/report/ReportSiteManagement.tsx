@@ -7,17 +7,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  X, Filter, RotateCcw, Users, Building, Building2, Calendar, Download, Upload, ChevronsUpDown, Check,
-  Shield, ClipboardCheck, FileText, Zap, AlertCircle, CheckCircle, Clock
-} from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+import { Download } from "lucide-react";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
+import { ReportFilters } from "@/components/reports/filters";
 import {
   SiteOverviewCard,
   InsuranceCard,
@@ -72,7 +66,9 @@ const ReportSiteManagement = () => {
     audits, 
     agreements, 
     loading: dataLoading 
-  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);  // Calculate utilities summary from the utilities data we already have
+  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);  
+  
+  // Calculate utilities summary from the utilities data we already have
   const utilitiesSummary = useMemo(() => {
     // Calculate totals
     const totalCount = utilities.length;
@@ -99,18 +95,22 @@ const ReportSiteManagement = () => {
       byType: Object.values(typeGroups)
     };
   }, [utilities]);
+  
   const hasActiveFilters = 
     duspFilter !== null || 
     phaseFilter.length > 0 || 
     nadiFilter.length > 0 ||
     monthFilter !== null || 
-    yearFilter !== null;  const resetFilters = () => {
+    yearFilter !== null;  
+    
+  const resetFilters = () => {
     setDuspFilter(null);
     setPhaseFilter([]);
     setNadiFilter([]);
     setMonthFilter(null);
     setYearFilter(null);
   };
+  
   // Log filtering stats to help debug
   try {
     console.log('Site filtering stats:', {
@@ -140,8 +140,11 @@ const ReportSiteManagement = () => {
   const pendingAudits = audits.filter(a => a.status === 'Pending').length;
   const inProgressAudits = audits.filter(a => a.status === 'In Progress').length;
   const completedAudits = audits.filter(a => a.status === 'Completed').length;
-    const activeAgreements = agreements.filter(a => a.status === 'Active').length;
-  const expiringAgreements = agreements.filter(a => a.status === 'Expiring Soon').length;    // Use individual stable loading states for each component
+  
+  const activeAgreements = agreements.filter(a => a.status === 'Active').length;
+  const expiringAgreements = agreements.filter(a => a.status === 'Expiring Soon').length;    
+  
+  // Use individual stable loading states for each component
   const filtersStableLoading = useStableLoading(filtersLoading);
   const dataStableLoading = useStableLoading(dataLoading);
 
@@ -165,370 +168,32 @@ const ReportSiteManagement = () => {
           </div>
         </div>
 
-        {/* Filters Row */}
-        <div className="flex flex-wrap gap-2">          {/* DUSP Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={duspFilter !== null ? "default" : "outline"}
-                className={cn(
-                  "flex items-center gap-2 h-10",
-                  duspFilter !== null && "bg-purple-100 border-purple-200 text-purple-800 hover:bg-purple-200"
-                )}
-              >
-                <Building className={cn("h-4 w-4", duspFilter !== null ? "text-purple-600" : "text-gray-500")} />
-                {duspFilter !== null 
-                  ? (duspFilter === 'unassigned' ? 'Not Assigned' : 'DUSP Filtered') 
-                  : 'DUSP'}
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0">
-              <Command>
-                <CommandInput placeholder="Search DUSP..." />
-                <CommandList>
-                  <CommandEmpty>No DUSP found.</CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-y-auto">
-                    {filtersLoading ? (
-                      <CommandItem disabled>Loading DUSP options...</CommandItem>
-                    ) : (
-                      <>
-                        <CommandItem
-                          key="unassigned"
-                          onSelect={() => {
-                            const newFilter = duspFilter === "unassigned" ? null : "unassigned";
-                            console.log('DUSP filter changed for unassigned:', { 
-                              old: duspFilter, 
-                              new: newFilter
-                            });
-                            setDuspFilter(newFilter);
-                          }}
-                        >
-                          <div
-                            className={cn(
-                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                              duspFilter === "unassigned" ? "bg-primary border-primary" : "opacity-50"
-                            )}
-                          >
-                            {duspFilter === "unassigned" && (
-                              <Check className="h-3 w-3 text-white" />
-                            )}
-                          </div>
-                          <span className="text-gray-600">Not Assigned</span>
-                        </CommandItem>
-                        {dusps.map((dusp) => (
-                          <CommandItem
-                            key={dusp.id}
-                            onSelect={() => {
-                              // Compare as strings to handle different types
-                              const newFilter = String(duspFilter) === String(dusp.id) ? null : dusp.id;
-                              console.log('DUSP filter changed:', { 
-                                old: duspFilter, 
-                                new: newFilter,
-                                duspName: dusp.name
-                              });
-                              setDuspFilter(newFilter);
-                            }}
-                          >
-                            <div
-                              className={cn(
-                                "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                                String(duspFilter) === String(dusp.id) ? "bg-primary border-primary" : "opacity-50"
-                              )}
-                            >
-                              {String(duspFilter) === String(dusp.id) && (
-                                <Check className="h-3 w-3 text-white" />
-                              )}
-                            </div>
-                            {dusp.name}
-                          </CommandItem>
-                        ))}
-                      </>
-                    )}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {/* Phase Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 h-10"
-              >                <Users className="h-4 w-4 text-gray-500" />
-                Phase {phaseFilter.length > 0 && `(${phaseFilter.length})`}
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0">
-              <Command>
-                <CommandInput placeholder="Search phases..." />
-                <CommandList>
-                  <CommandEmpty>No phases found.</CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-y-auto">
-                    {filtersLoading ? (
-                      <CommandItem disabled>Loading phase options...</CommandItem>
-                    ) : (
-                      phases.map((phase) => (
-                        <CommandItem
-                          key={phase.id}
-                          onSelect={() => {
-                            setPhaseFilter(
-                              phaseFilter.includes(phase.id)
-                                ? phaseFilter.filter(id => id !== phase.id)
-                                : [...phaseFilter, phase.id]
-                            );
-                          }}
-                        >
-                          <div
-                            className={cn(
-                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                              phaseFilter.includes(phase.id) ? "bg-primary border-primary" : "opacity-50"
-                            )}
-                          >
-                            {phaseFilter.includes(phase.id) && (
-                              <Check className="h-3 w-3 text-white" />
-                            )}
-                          </div>
-                          {phase.name}
-                        </CommandItem>
-                      ))
-                    )}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {/* NADI Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 h-10"
-              >                <Building2 className="h-4 w-4 text-gray-500" />
-                NADI {nadiFilter.length > 0 && `(${nadiFilter.length})`}
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0">
-              <Command>
-                <CommandInput placeholder="Search NADI sites..." />
-                <CommandList>
-                  <CommandEmpty>No NADI sites found.</CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-y-auto">
-                    {filtersLoading ? (
-                      <CommandItem disabled>Loading NADI site options...</CommandItem>
-                    ) : (
-                      nadiSites.map((site) => (
-                        <CommandItem
-                          key={site.id}
-                          onSelect={() => {
-                            setNadiFilter(
-                              nadiFilter.includes(site.id)
-                                ? nadiFilter.filter(id => id !== site.id)
-                                : [...nadiFilter, site.id]
-                            );
-                          }}
-                        >
-                          <div
-                            className={cn(
-                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                              nadiFilter.includes(site.id) ? "bg-primary border-primary" : "opacity-50"
-                            )}
-                          >
-                            {nadiFilter.includes(site.id) && (
-                              <Check className="h-3 w-3 text-white" />
-                            )}
-                          </div>
-                          {site.sitename} {site.standard_code ? `(${site.standard_code})` : ''}
-                        </CommandItem>
-                      ))
-                    )}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {/* Month Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 h-10"
-              >
-                <Calendar className="h-4 w-4 text-gray-500" />
-                Month
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0">
-              <Command>
-                <CommandInput placeholder="Search months..." />
-                <CommandList>
-                  <CommandEmpty>No month found.</CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-y-auto">
-                    {monthOptions.map((month) => (
-                      <CommandItem
-                        key={month.id}
-                        onSelect={() => setMonthFilter(monthFilter === month.id ? null : month.id)}
-                      >
-                        <div
-                          className={cn(
-                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            monthFilter === month.id ? "bg-primary border-primary" : "opacity-50"
-                          )}
-                        >
-                          {monthFilter === month.id && (
-                            <Check className="h-3 w-3 text-white" />
-                          )}
-                        </div>
-                        {month.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-
-          {/* Year Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 h-10"
-              >
-                <Calendar className="h-4 w-4 text-gray-500" />
-                Year
-                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[220px] p-0">
-              <Command>
-                <CommandInput placeholder="Search years..." />
-                <CommandList>
-                  <CommandEmpty>No year found.</CommandEmpty>
-                  <CommandGroup className="max-h-[300px] overflow-y-auto">
-                    {yearOptions.map((year) => (
-                      <CommandItem
-                        key={year.id}
-                        onSelect={() => setYearFilter(yearFilter === year.id ? null : year.id)}
-                      >
-                        <div
-                          className={cn(
-                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            yearFilter === year.id ? "bg-primary border-primary" : "opacity-50"
-                          )}
-                        >
-                          {yearFilter === year.id && (
-                            <Check className="h-3 w-3 text-white" />
-                          )}
-                        </div>
-                        {year.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+        {/* Filters */}
+        <ReportFilters
+          // Filter state
+          duspFilter={duspFilter}
+          setDuspFilter={setDuspFilter}
+          phaseFilter={phaseFilter}
+          setPhaseFilter={setPhaseFilter}
+          nadiFilter={nadiFilter}
+          setNadiFilter={setNadiFilter}
+          monthFilter={monthFilter}
+          setMonthFilter={setMonthFilter}
+          yearFilter={yearFilter}
+          setYearFilter={setYearFilter}
           
-          {/* Spacer */}
-          <div className="flex-1"></div>
+          // Filter data
+          dusps={dusps}
+          phases={phases}
+          nadiSites={nadiSites}
+          monthOptions={monthOptions}
+          yearOptions={yearOptions}
           
-          {/* Reset Button */}
-          <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
-            <RotateCcw className="h-4 w-4" />
-            Reset Filters
-          </Button>
-        </div>
+          // Loading state
+          isLoading={filtersLoading}
+        />
 
-        {/* Active Filters */}
-        {hasActiveFilters && (
-          <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
-            <div className="mr-1 flex items-center">
-              <Filter className="h-4 w-4 text-slate-500 mr-1" />
-              <span className="text-xs font-medium text-slate-500">Active Filters:</span>
-            </div>            {duspFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">
-                  DUSP: {duspFilter === "unassigned" 
-                    ? "Not Assigned" 
-                    : dusps.find(d => d.id === duspFilter)?.name || duspFilter}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 ml-1 rounded-full hover:bg-slate-200"
-                  onClick={() => setDuspFilter(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-            {phaseFilter.length > 0 && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">
-                  Phase: {phaseFilter.length > 1 
-                    ? `${phaseFilter.length} selected` 
-                    : phases.find(p => p.id === phaseFilter[0])?.name || phaseFilter[0]}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 ml-1 rounded-full hover:bg-slate-200"
-                  onClick={() => setPhaseFilter([])}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-            {nadiFilter.length > 0 && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">
-                  NADI: {nadiFilter.length > 1 
-                    ? `${nadiFilter.length} sites selected` 
-                    : nadiSites.find(s => s.id === nadiFilter[0])?.sitename || nadiFilter[0]}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 ml-1 rounded-full hover:bg-slate-200"
-                  onClick={() => setNadiFilter([])}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}            {monthFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">Month: {monthOptions.find(opt => opt.id === monthFilter)?.label}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 w-5 p-0 ml-1 rounded-full hover:bg-slate-200"
-                  onClick={() => setMonthFilter(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}            {yearFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">Year: {yearFilter}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"                  className="h-5 w-5 p-0 ml-1 rounded-full hover:bg-slate-200"
-                  onClick={() => setYearFilter(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            )}
-          </div>
-        )}        {/* Statistics Cards Grid */}        
+        {/* Statistics Cards Grid */}        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">          
           
           <SiteOverviewCard
@@ -554,20 +219,21 @@ const ReportSiteManagement = () => {
           <AuditCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            auditedSiteCount={0} // Data not available yet
-            completedCount={0}
-            inProgressCount={0}
-            pendingCount={0}
+            auditedSiteCount={new Set(audits.map(a => a.site_id)).size}
+            completedCount={completedAudits}
+            inProgressCount={inProgressAudits}
+            pendingCount={pendingAudits}
           />
 
           <AgreementCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            agreementSiteCount={0} // Data not available yet
-            activeCount={0}
-            expiringCount={0}
+            agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
+            activeCount={activeAgreements}
+            expiringCount={expiringAgreements}
           />          
-            <UtilitiesCard
+          
+          <UtilitiesCard
             loading={dataStableLoading}
             siteCount={sites.length}
             utilitySiteCount={new Set(utilities.map(u => u.site_id)).size}
