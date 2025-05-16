@@ -165,6 +165,15 @@ const ReportSiteManagement = () => {
             totalSiteCount={nadiSites?.length || 0}
           /> */}
 
+          <LocalAuthorityCard
+            loading={dataStableLoading}
+            siteCount={sites.length}
+            laRecordSiteCount={0} // No data available yet
+            compliantCount={0}
+            pendingCount={0}
+            inProgressCount={0}
+          />
+          
           <InsuranceCard
             loading={dataStableLoading}
             siteCount={sites.length}
@@ -198,15 +207,6 @@ const ReportSiteManagement = () => {
             totalBills={utilitiesSummary.totalCount}
             totalAmount={utilitiesSummary.totalAmount}
             utilityTypes={(utilitiesSummary.byType as any[]).map(t => t.type)}
-          />
-
-          <LocalAuthorityCard
-            loading={dataStableLoading}
-            siteCount={sites.length}
-            laRecordSiteCount={0} // No data available yet
-            compliantCount={0}
-            pendingCount={0}
-            inProgressCount={0}
           />
 
           <AwarenessProgrammeCard
