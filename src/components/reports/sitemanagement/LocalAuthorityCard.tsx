@@ -5,10 +5,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, CheckCircle, Clock, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import { CardStat } from "../ui/CardStat";
 import { CardSkeleton } from "../ui/CardSkeleton";
-import { StatItem } from "../ui/StatItem";
 
 type LocalAuthorityCardProps = {
   loading: boolean;
@@ -26,10 +25,10 @@ export const LocalAuthorityCard = ({
       <CardHeader className="p-4 bg-white border-b">
         <CardTitle className="text-lg font-medium text-gray-800">Local Authority</CardTitle>
       </CardHeader>
-      <CardContent className="p-6 bg-white">
-        {loading ? (
+      <CardContent className="p-6 bg-white">        {loading ? (
           <CardSkeleton />
-        ) : (          <CardStat
+        ) : (
+          <CardStat
             icon={Shield}
             iconColor="text-purple-500"
             iconBgColor="bg-purple-50"
