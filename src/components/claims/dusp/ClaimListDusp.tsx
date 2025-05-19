@@ -10,17 +10,18 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Send } from "lucide-react";
+import { Check, Plus, Send } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { useFetchClaimTP } from "../tp/hooks/fetch-claim-tp"; // Import the hook
 import { Eye } from "lucide-react"; // Import the Eye icon
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Import Tooltip components
 import React, { useState } from "react";
 import ClaimViewDialog from "../component/ClaimViewDialog"; // Import the dialog
-import { useFetchClaimDUSP } from "../hook/fetch-claim-dusp";
+import { useFetchClaimDUSP } from "./hooks/fetch-claim-dusp";
 import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
 import DuspAddAttachmentDialog from "./DuspAddAttachmentDialog";
+import DuspSubmitDialog from "./DuspSubmitDialog";
+import DuspUpdatePaymentDialog from "./DuspUpdatePaymentDialog";
 
 export function ClaimListDusp() {
   const { data: claimDUSPData, isLoading: isclaimDUSPCLoading } = useFetchClaimDUSP();
@@ -28,6 +29,10 @@ export function ClaimListDusp() {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false); // State for TPSubmitDialog
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+
   const [isAddAttachmentDialogOpen, setIsAddAttachmentDialogOpen] = useState(false); // State for DuspAddAttachmentDialog
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
@@ -41,8 +46,18 @@ export function ClaimListDusp() {
     setIsViewDialogOpen(true);
   };
 
-  const handleAddAttachment = (claim: any) => {
+  const handleSubmitDUSP = (claim: any) => {
     setSelectedClaim(claim);
+    setIsSubmitDialogOpen(true); // Open the TPSubmitDialog
+  };
+
+  const handleUpdatePayment = (claim: any) => {
+    setSelectedClaim(claim);
+    setIsPaymentDialogOpen(true); // Open the TPSubmitDialog
+  };
+
+  const handleAddAttachment = (claimId: number) => {
+    setSelectedClaim(claimId); // Pass only the claim ID
     setIsAddAttachmentDialogOpen(true); // Open the DuspAddAttachmentDialog
   };
 
@@ -71,6 +86,8 @@ export function ClaimListDusp() {
 
   return (
     <div className="rounded-md border">
+      {/* <pre>{JSON.stringify(claimDUSPData, null, 2)}</pre> */}
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -120,7 +137,7 @@ export function ClaimListDusp() {
                       <>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button size="sm" variant="outline" onClick={() => handleAddAttachment(claim)}>
+                            <Button size="sm" variant="outline" onClick={() => handleAddAttachment(claim.id)}>
                               <Plus className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
@@ -128,11 +145,23 @@ export function ClaimListDusp() {
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" onClick={() => handleSubmitDUSP(claim)}>
                               <Send className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>Submit to MCMC</TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
+                    {claim.claim_status.name === "PROCESSING" && (
+                      <>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => handleUpdatePayment(claim)}>
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Update Payment Status</TooltipContent>
                         </Tooltip>
                       </>
                     )}
@@ -150,12 +179,22 @@ export function ClaimListDusp() {
         </TableBody>
       </Table>
 
+
       {/* Claim Status Description Dialog */}
       <ClaimStatusDescriptionDialog
         isOpen={isDescriptionDialogOpen}
         onClose={() => setIsDescriptionDialogOpen(false)}
         status={selectedStatus}
       />
+
+      {/* Dusp Submit Dialog */}
+      {selectedClaim && (
+        <DuspSubmitDialog
+          isOpen={isSubmitDialogOpen}
+          onClose={() => setIsSubmitDialogOpen(false)}
+          claim={selectedClaim}
+        />
+      )}
 
       {/* Claim View Dialog */}
       {selectedClaim && (
@@ -171,6 +210,15 @@ export function ClaimListDusp() {
         <DuspAddAttachmentDialog
           isOpen={isAddAttachmentDialogOpen}
           onClose={() => setIsAddAttachmentDialogOpen(false)}
+          claimId={selectedClaim} // Pass only the claim ID
+        />
+      )}
+
+      {/* Dusp Update Payment Dialog */}
+      {selectedClaim && (
+        <DuspUpdatePaymentDialog
+          isOpen={isPaymentDialogOpen}
+          onClose={() => setIsPaymentDialogOpen(false)}
           claim={selectedClaim}
         />
       )}

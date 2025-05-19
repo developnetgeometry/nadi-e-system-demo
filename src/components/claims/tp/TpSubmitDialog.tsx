@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { updateClaimTP } from "./hooks/update-claim-tp"; // Import the update function
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { updateClaim } from "../hook/update-claim"; // Import the update function
 import { useToast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -18,7 +18,7 @@ const TpSubmitDialog: React.FC<TpSubmitDialogProps> = ({ isOpen, onClose, claim 
 
   const handleSubmit = async () => {
     try {
-      await updateClaimTP({
+      await updateClaim({
         claim_id: claim.id,
         claim_status: 2,
         request_remark: remark,
@@ -26,6 +26,7 @@ const TpSubmitDialog: React.FC<TpSubmitDialogProps> = ({ isOpen, onClose, claim 
       toast({ title: "Success", description: "Claim submitted successfully." });
 
       // Invalidate the query to refresh the ClaimList
+      queryClient.invalidateQueries({ queryKey: ["claimStats"] });
       queryClient.invalidateQueries({ queryKey: ["fetchClaimTP"] });
 
       onClose();
@@ -39,6 +40,9 @@ const TpSubmitDialog: React.FC<TpSubmitDialogProps> = ({ isOpen, onClose, claim 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Submit Claim</DialogTitle>
+          <DialogDescription className="text-muted-foreground mb-4">
+            Provide a remark for your submission.
+          </DialogDescription>
         </DialogHeader>
         <textarea
           className="w-full border rounded-md p-2"

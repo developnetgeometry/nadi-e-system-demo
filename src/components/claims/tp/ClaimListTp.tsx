@@ -24,7 +24,6 @@ import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
 
 export function ClaimListTp() {
   const { toast } = useToast();
-  // const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
   const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");

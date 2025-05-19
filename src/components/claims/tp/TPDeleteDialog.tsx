@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { deleteClaimData } from "./hooks/delete-claim";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,6 +39,9 @@ const TPDeleteDialog: React.FC<TPDeleteDialogProps> = ({ isOpen, onClose, claimI
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Claim</DialogTitle>
+                    <DialogDescription className="text-muted-foreground mb-4">
+                      
+                    </DialogDescription>
         </DialogHeader>
         <p>Are you sure you want to delete this claim? This action cannot be undone.</p>
         <DialogFooter>

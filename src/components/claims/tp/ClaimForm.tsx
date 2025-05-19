@@ -152,7 +152,6 @@ const ClaimFormDialog = ({
       try {
         setLoading(true); // Start loading
         await insertClaimData(data); // Call the insertClaimData function
-        console.log("Final Data:", data);
         toast({
           title: "Success",
           description: "The new claim has been drafted.",

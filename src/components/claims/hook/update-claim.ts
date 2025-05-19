@@ -1,12 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 
-type UpdateClaimTPData = {
+type UpdateClaimData = {
   claim_id: number;
   claim_status: number;
   request_remark: string;
 };
 
-export const updateClaimTP = async (data: UpdateClaimTPData) => {
+export const updateClaim = async (data: UpdateClaimData) => {
   try {
     // // Update the claim status
     const { error: updateError } = await supabase
@@ -35,7 +35,7 @@ export const updateClaimTP = async (data: UpdateClaimTPData) => {
 
     return { success: true };
   } catch (error) {
-    console.error("Error in updateClaimTP function:", error);
+    console.error("Error in updateClaim function:", error);
     throw error;
   }
 };

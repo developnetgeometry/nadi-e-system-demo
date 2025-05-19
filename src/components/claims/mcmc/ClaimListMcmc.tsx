@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
   TableBody,
@@ -10,23 +8,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, Send, Settings, Trash2, XSquare } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { useFetchClaimTP } from "../tp/hooks/fetch-claim-tp"; // Import the hook
 import { Eye } from "lucide-react"; // Import the Eye icon
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Import Tooltip components
 import React, { useState } from "react";
+import { useFetchClaimMCMC } from "./hooks/fetch-claim-mcmc";
 import ClaimViewDialog from "../component/ClaimViewDialog"; // Import the dialog
-import { useFetchClaimMCMC } from "../hook/fetch-claim-mcmc";
 import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
 
 export function ClaimListMcmc() {
-  const { toast } = useToast();
   const { data: claimMCMCData, isLoading: isclaimMCMCLoading } = useFetchClaimMCMC();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
 
@@ -34,6 +26,7 @@ export function ClaimListMcmc() {
     setSelectedStatus(status);
     setIsDescriptionDialogOpen(true);
   };
+
   const handleView = (claim: any) => {
     setSelectedClaim(claim);
     setIsViewDialogOpen(true);
@@ -64,7 +57,6 @@ export function ClaimListMcmc() {
 
   return (
     <div className="rounded-md border">
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -82,10 +74,8 @@ export function ClaimListMcmc() {
           {claimMCMCData?.length > 0 ? (
             claimMCMCData.map((claim, index) => (
               <TableRow key={claim.id}>
-                <TableRowNumber index={index} />
-                <TableCell>
-                  {claim.tp_dusp_organization?.name || "N/A"}
-                </TableCell>
+                <TableCell className="text-center">{index + 1}</TableCell>
+                <TableCell>{claim.tp_dusp_id?.parent_id.name || "N/A"}</TableCell>
                 <TableCell>{claim.tp_dusp_id.name}</TableCell>
                 <TableCell>{claim.ref_no}</TableCell>
                 <TableCell>{claim.year}</TableCell>
@@ -119,7 +109,7 @@ export function ClaimListMcmc() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
+              <TableCell colSpan={8} className="text-center">
                 No data available
               </TableCell>
             </TableRow>
@@ -142,8 +132,6 @@ export function ClaimListMcmc() {
           claim={selectedClaim}
         />
       )}
-
-
     </div>
   );
 }

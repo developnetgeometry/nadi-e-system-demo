@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, clai
                 <TableCell className="w-1/4">
                   <div className="font-medium">
                     {log?.created_at
-                      ? new Date(log.created_at).toLocaleString()
+                      ? new Date(log.created_at).toLocaleString("en-GB")
                       : "N/A"}
                   </div>
                 </TableCell>
@@ -94,6 +95,9 @@ const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, clai
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Claim Details</DialogTitle>
+          <DialogDescription className="text-muted-foreground mb-4">
+            View details of the selected claim application.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
           {/* General Section */}
@@ -143,13 +147,21 @@ const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, clai
                     )}
                   </TableCell>
                 </TableRow>
+                                <TableRow>
+                  <TableCell className="font-medium">Payment Status</TableCell>
+                  <TableCell>                    
+                    {claim?.date_paid
+                      ? new Date(claim.date_paid).toLocaleDateString("en-GB")
+                      : "N/A"}
+                      </TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </div>
 
           {/* Supporting Documents Section */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Summary Report</h3>
+            <h3 className="text-lg font-semibold mb-2">Claim Attachment</h3>
 
             {claim?.requests?.length ? (
               claim.requests.map((request: any, index: number) => {
@@ -173,7 +185,7 @@ const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, clai
                 return (
                   <div key={request?.id ?? index} className="mb-4">
                     <h4 className="font-medium mb-2">
-                      Request {index + 1}: {request?.category_id?.name ?? "Unnamed Category"}
+                      Category {index + 1}: {request?.category_id?.name ?? "Unnamed Category"}
                     </h4>
                     <Table className="w-full">
                       <TableHeader>
