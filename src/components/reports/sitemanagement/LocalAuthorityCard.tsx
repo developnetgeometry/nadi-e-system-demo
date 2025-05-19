@@ -6,9 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AlertCircle, CheckCircle, Clock, Shield } from "lucide-react";
-import { CardStat } from "./ui/CardStat";
-import { CardSkeleton } from "./ui/CardSkeleton";
-import { StatItem } from "./ui/StatItem";
+import { CardStat } from "../ui/CardStat";
+import { CardSkeleton } from "../ui/CardSkeleton";
+import { StatItem } from "../ui/StatItem";
 
 type LocalAuthorityCardProps = {
   loading: boolean;

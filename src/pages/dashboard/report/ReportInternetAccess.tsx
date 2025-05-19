@@ -35,8 +35,8 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ChartImageRenderer } from "@/components/reports/pdftemplate/component/internetaccess/graphs/InternetAccessReport/ChartImageRenderer";
-import { InternetAccessReportPDF } from "@/components/reports/pdftemplate/component/internetaccess/InternetAccessReport";
+import { ChartImageRenderer } from "@/components/reports/pdftemplate/pages/internetaccess/graphs/ChartImageRenderer";
+import { InternetAccessReportPDF } from "@/components/reports/pdftemplate/pages/internetaccess/InternetAccessReport";
 
 import { cn } from "@/lib/utils";
 
