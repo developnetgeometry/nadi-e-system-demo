@@ -124,20 +124,20 @@ const ReportSiteManagement = () => {  // Filter states
           <div>
             <h1 className="text-xl font-bold">Site Management Report</h1>
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
-          </div>
-
-          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton              duspLabel={duspFilter.length === 1 
+          </div>          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton              duspLabel={duspFilter.length === 1 
                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
                 : duspFilter.length > 1 
                   ? `${duspFilter.length} DUSPs selected` 
-                  : ""}
-              phaseLabel={phaseFilter !== null 
-                ? phases.find(p => p.id === phaseFilter)?.name || ""
-                : ""}
-              periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}
-              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}`: ""}
+                  : ""}              phaseLabel={phaseFilter !== null 
+                ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+                : "All Phases"}
+              periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}`: "All Records"}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
+              duspFilter={duspFilter}
+              phaseFilter={phaseFilter}
+              nadiFilter={nadiFilter}
               totalSites={sites.length}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}

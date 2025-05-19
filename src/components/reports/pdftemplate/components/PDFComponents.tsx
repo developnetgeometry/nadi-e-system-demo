@@ -423,7 +423,7 @@ export const PDFTable = <T extends Record<string, any>>({
  */
 export const PDFPhaseQuarterInfo = ({
   phaseLabel,
-  periodType = "QUARTER",
+  periodType = "MONTH / YEAR",
   periodValue,
 }: {
   phaseLabel?: string;

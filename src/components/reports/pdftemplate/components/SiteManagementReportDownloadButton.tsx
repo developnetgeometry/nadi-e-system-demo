@@ -78,6 +78,9 @@ type SiteManagementReportDownloadButtonProps = {
     fileName?: string;
     monthFilter?: string | number | null;
     yearFilter?: string | number | null;
+    duspFilter?: (string | number)[];
+    phaseFilter?: string | number | null;
+    nadiFilter?: (string | number)[];
     onGenerationStart?: () => void;
     onGenerationComplete?: (success: boolean) => void;
 };
@@ -102,13 +105,26 @@ export const SiteManagementReportDownloadButton = ({
     fileName = "site-management-report.pdf",
     monthFilter = null,
     yearFilter = null,
+    duspFilter = [],
+    phaseFilter = null,
+    nadiFilter = [],
     onGenerationStart,
     onGenerationComplete
-}: SiteManagementReportDownloadButtonProps) => {
-    // Track loading state internally    
+}: SiteManagementReportDownloadButtonProps) => {    // Track loading state internally    
     const [isGenerating, setIsGenerating] = React.useState(false);
     // Track if user has clicked to generate PDF
     const [userClickedGenerate, setUserClickedGenerate] = React.useState(false);
+    
+    // Effect to reset button state when filters change
+    React.useEffect(() => {
+        // Reset the button state when any filter changes
+        if (userClickedGenerate) {
+            setUserClickedGenerate(false);
+            setIsGenerating(false);
+        }
+    }, [duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter]);
+    
+    // Note: Filters are no longer required - PDF can be generated with any filter configuration
     
     // Handle the initial button click to start generating PDF
     const handleGeneratePDF = () => {
@@ -116,25 +132,15 @@ export const SiteManagementReportDownloadButton = ({
         setIsGenerating(true);
         onGenerationStart?.();
     };
-    
-    // If user hasn't clicked to generate, just show the initial button
+      // If user hasn't clicked to generate, just show the initial button
     if (!userClickedGenerate) {
-        // Button will be disabled if:
-        // 1. No phase is selected (phaseLabel is empty/undefined or just whitespace)
-        // 2. OR neither month nor year filters are provided
-        const hasPhase = phaseLabel && phaseLabel.trim() !== '';
-        const hasMonthYearFilter = (monthFilter !== null && monthFilter !== '') || 
-                                 (yearFilter !== null && yearFilter !== '');
-        
-        const isButtonDisabled = !hasPhase || !hasMonthYearFilter;
+        // No restrictions - allow generating PDF with any filter configuration
         
         return (
             <Button
                 variant="secondary"
                 className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
                 onClick={handleGeneratePDF}
-                disabled={isButtonDisabled}
-                title={isButtonDisabled ? "Please select a Phase and Month/Year filter before generating PDF" : ""}
             >
                 <Download className="h-4 w-4 mr-2" />
                 {buttonText}
