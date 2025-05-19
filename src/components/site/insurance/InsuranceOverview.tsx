@@ -251,7 +251,7 @@ const InsuranceOverview = () => {
       </div>
 
       <div className="flex justify-end mb-4">
-        {Number(userGroup) === 9 && (
+        {(Number(userGroup) === 9 || userType === "tp_operation") && (
           <Button
             onClick={() => {
               setSelectedInsurance(null);
@@ -322,38 +322,41 @@ const InsuranceOverview = () => {
                         </TooltipTrigger>
                         <TooltipContent>View</TooltipContent>
                       </Tooltip>
+                      {(Number(userGroup) === 9 || userType === "tp_operation") && (
+                        <>
+                          {/* Edit Button */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleEdit(item)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit</TooltipContent>
+                          </Tooltip>
 
-                      {/* Edit Button */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit</TooltipContent>
-                      </Tooltip>
-
-                      {/* Delete Button */}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="text-destructive"
-                            onClick={() => {
-                              setDeleteRecordId(item.id.toString());
-                              setIsDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Delete</TooltipContent>
-                      </Tooltip>
+                          {/* Delete Button */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="text-destructive"
+                                onClick={() => {
+                                  setDeleteRecordId(item.id.toString());
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete</TooltipContent>
+                          </Tooltip>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

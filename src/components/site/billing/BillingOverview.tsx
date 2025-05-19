@@ -197,7 +197,7 @@ const BillingOverview = () => {
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
-          {Number(userGroup) === 9 && (
+          {(Number(userGroup) === 9 || userType === "tp_operation") && (
             <Button onClick={handleCreate}>
               <FilePlus className="mr-2 h-4 w-4" />
               Add New Billing
@@ -410,34 +410,39 @@ const BillingOverview = () => {
                       </TooltipTrigger>
                       <TooltipContent>View</TooltipContent>
                     </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Edit</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="text-destructive"
-                          onClick={() => {
-                            setDeleteRecordId(item.id);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Delete</TooltipContent>
-                    </Tooltip>
+                    {(Number(userGroup) === 9 || userType === "tp_operation") && (
+
+                      <>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleEdit(item)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="text-destructive"
+                              onClick={() => {
+                                setDeleteRecordId(item.id);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete</TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
