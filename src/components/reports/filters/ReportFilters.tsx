@@ -3,6 +3,7 @@ import { RotateCcw, Filter, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DuspFilter } from "./DuspFilter";
 import { MultiSelectFilter } from "./MultiSelectFilter";
+import { SingleSelectFilter } from "./SingleSelectFilter";
 import { FilterBadge } from "./FilterBadge";
 import { NadiFilter } from "./NadiFilter";
 import { DateFilter } from "./DateFilter";
@@ -12,8 +13,8 @@ type ReportFiltersProps = {
   // Filter state
   duspFilter: string | number | null;
   setDuspFilter: (value: string | number | null) => void;
-  phaseFilter: (string | number)[];
-  setPhaseFilter: (value: (string | number)[]) => void;
+  phaseFilter: string | number | null;
+  setPhaseFilter: (value: string | number | null) => void;
   nadiFilter: (string | number)[];
   setNadiFilter: (value: (string | number)[]) => void;
   monthFilter: string | number | null;
@@ -54,17 +55,16 @@ export const ReportFilters = ({
   
   // Loading state
   isLoading
-}: ReportFiltersProps) => {
-  const hasActiveFilters = 
+}: ReportFiltersProps) => {  const hasActiveFilters = 
     duspFilter !== null || 
-    phaseFilter.length > 0 || 
+    phaseFilter !== null || 
     nadiFilter.length > 0 ||
     monthFilter !== null || 
     yearFilter !== null;
     
   const resetFilters = () => {
     setDuspFilter(null);
-    setPhaseFilter([]);
+    setPhaseFilter(null);
     setNadiFilter([]);
     setMonthFilter(null);
     setYearFilter(null);
@@ -80,12 +80,11 @@ export const ReportFilters = ({
           dusps={dusps}
           isLoading={isLoading}
         />        {/* Phase Filter */}
-        <MultiSelectFilter
-          selectedItems={phaseFilter}
-          setSelectedItems={setPhaseFilter}
+        <SingleSelectFilter
+          selectedItem={phaseFilter}
+          setSelectedItem={setPhaseFilter}
           items={phases.map(phase => ({
             id: phase.id,
-            name: phase.name,
             label: phase.name
           }))}
           icon={Users}
@@ -146,14 +145,11 @@ export const ReportFilters = ({
               onClear={() => setDuspFilter(null)}
             />
           )}
-          
-          {phaseFilter.length > 0 && (
+            {phaseFilter !== null && (
             <FilterBadge
               label="Phase"
-              value={phaseFilter.length > 1 
-                ? `${phaseFilter.length} selected` 
-                : phases.find(p => p.id === phaseFilter[0])?.name || String(phaseFilter[0])}
-              onClear={() => setPhaseFilter([])}
+              value={phases.find(p => p.id === phaseFilter)?.name || String(phaseFilter)}
+              onClear={() => setPhaseFilter(null)}
             />
           )}
           

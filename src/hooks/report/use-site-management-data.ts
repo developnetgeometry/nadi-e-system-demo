@@ -65,7 +65,7 @@ export interface LocalAuthorityData {
 
 export const useSiteManagementData = (
   duspFilter: string | number | null,
-  phaseFilter: (string | number)[],
+  phaseFilter: string | number | null,
   nadiFilter: (string | number)[],
   monthFilter: string | number | null,
   yearFilter: string | number | null
@@ -103,10 +103,9 @@ export const useSiteManagementData = (
           // Log the filter for debugging
           console.log('Applying DUSP filter via post-query filtering:', duspFilter);
         }
-        
-        // Apply phase filter if present
-        if (phaseFilter && phaseFilter.length > 0) {
-          query = query.in("phase_id", phaseFilter);
+          // Apply phase filter if present
+        if (phaseFilter !== null) {
+          query = query.eq("phase_id", phaseFilter);
         }
         
         // Apply NADI filter (site filter) if present

@@ -40,10 +40,9 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
-const ReportSiteManagement = () => {
-  // Filter states
+const ReportSiteManagement = () => {  // Filter states
   const [duspFilter, setDuspFilter] = useState<string | number | null>(null);
-  const [phaseFilter, setPhaseFilter] = useState<(string | number)[]>([]);
+  const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [nadiFilter, setNadiFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null); // Default to null instead of current year
@@ -127,12 +126,11 @@ const ReportSiteManagement = () => {
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
           </div>
 
-          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton
-              duspLabel={dusps.find(d => d.id === duspFilter)?.name}
-              phaseLabel={phaseFilter.length > 0
-                ? phases.find(p => p.id === phaseFilter[0])?.name || ""
+          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton              duspLabel={dusps.find(d => d.id === duspFilter)?.name}
+              phaseLabel={phaseFilter !== null 
+                ? phases.find(p => p.id === phaseFilter)?.name || ""
                 : ""}
-              periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}              
+              periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}
               periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}`: ""}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
@@ -178,7 +176,7 @@ const ReportSiteManagement = () => {
                 state: '',
               }))}
               programmes={[]}
-              
+
               buttonText={isGeneratingPdf ? "Generating PDF..." : "Generate PDF Report"}
               fileName={`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`}
               onGenerationStart={handleGenerationStart}
