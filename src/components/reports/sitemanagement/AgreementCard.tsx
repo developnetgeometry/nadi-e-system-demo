@@ -14,16 +14,12 @@ type AgreementCardProps = {
   loading: boolean;
   siteCount: number;
   agreementSiteCount: number;
-  activeCount: number;
-  expiringCount: number;
 };
 
 export const AgreementCard = ({
   loading,
   siteCount,
   agreementSiteCount,
-  activeCount,
-  expiringCount,
 }: AgreementCardProps) => {
   return (
     <Card className="overflow-hidden shadow-sm border border-gray-200">
@@ -42,24 +38,7 @@ export const AgreementCard = ({
             value={agreementSiteCount}
             progressValue={agreementSiteCount}
             progressMax={siteCount}
-            progressColor="bg-purple-500"
-            stats={
-              <>
-                <StatItem 
-                  icon={CheckCircle} 
-                  iconColor="text-green-500" 
-                  label="Active" 
-                  value={activeCount} 
-                />
-                <StatItem 
-                  icon={Clock} 
-                  iconColor="text-amber-500" 
-                  label="Expiring" 
-                  value={expiringCount} 
-                />
-                {/* <div className="h-3 w-3"></div> */}
-              </>
-            }
+            progressColor="bg-purple-500"            stats={<></>}
             footer={
               siteCount ? 
                 `${Math.round((agreementSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 

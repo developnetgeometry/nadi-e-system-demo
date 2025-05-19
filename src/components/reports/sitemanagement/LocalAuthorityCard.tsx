@@ -14,18 +14,12 @@ type LocalAuthorityCardProps = {
   loading: boolean;
   siteCount: number;
   laRecordSiteCount: number;
-  compliantCount: number;
-  pendingCount: number;
-  inProgressCount: number;
 };
 
 export const LocalAuthorityCard = ({
   loading,
   siteCount,
   laRecordSiteCount,
-  compliantCount,
-  pendingCount,
-  inProgressCount,
 }: LocalAuthorityCardProps) => {
   return (
     <Card className="overflow-hidden shadow-sm border border-gray-200">
@@ -35,8 +29,7 @@ export const LocalAuthorityCard = ({
       <CardContent className="p-6 bg-white">
         {loading ? (
           <CardSkeleton />
-        ) : (
-          <CardStat
+        ) : (          <CardStat
             icon={Shield}
             iconColor="text-purple-500"
             iconBgColor="bg-purple-50"
@@ -45,32 +38,11 @@ export const LocalAuthorityCard = ({
             progressValue={laRecordSiteCount}
             progressMax={siteCount}
             progressColor="bg-purple-500"
-            stats={
-              <>
-                <StatItem 
-                  icon={CheckCircle} 
-                  iconColor="text-green-500" 
-                  label="Compliant" 
-                  value={compliantCount} 
-                />
-                <StatItem 
-                  icon={AlertCircle} 
-                  iconColor="text-orange-500" 
-                  label="Pending" 
-                  value={pendingCount} 
-                />
-                <StatItem 
-                  icon={Clock} 
-                  iconColor="text-blue-500" 
-                  label="In Progress" 
-                  value={inProgressCount} 
-                />
-              </>
-            }
+            stats={<></>}
             footer={
               siteCount ? 
-                `${Math.round((compliantCount / Math.max(1, laRecordSiteCount)) * 100)}% Compliance` : 
-                '0% Compliance'
+                `${Math.round((laRecordSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 
+                '0% Coverage'
             }
           />
         )}

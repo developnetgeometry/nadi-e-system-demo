@@ -94,13 +94,8 @@ const ReportSiteManagement = () => {
   const activeInsurance = insurance.filter(i => i.status === 'Active').length;
   const expiringInsurance = insurance.filter(i => i.status === 'Expiring Soon').length;
   const expiredInsurance = insurance.filter(i => i.status === 'Expired').length;
-
-  const pendingAudits = audits.filter(a => a.status === 'Pending').length;
-  const inProgressAudits = audits.filter(a => a.status === 'In Progress').length;
-  const completedAudits = audits.filter(a => a.status === 'Completed').length;
-
-  const activeAgreements = agreements.filter(a => a.status === 'Active').length;
-  const expiringAgreements = agreements.filter(a => a.status === 'Expiring Soon').length;
+  // No status calculation for audits
+  // No status calculation for agreements
 
   // Use individual stable loading states for each component
   const filtersStableLoading = useStableLoading(filtersLoading);
@@ -163,15 +158,13 @@ const ReportSiteManagement = () => {
               .filter(s => s.dusp_id !== null && s.dusp_id !== undefined && s.dusp_id !== "")
               .map(s => s.dusp_id)).size}
             totalSiteCount={nadiSites?.length || 0}
-          /> */}
-
+          /> */}          
+          
+          
           <LocalAuthorityCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            laRecordSiteCount={0} // No data available yet
-            compliantCount={0}
-            pendingCount={0}
-            inProgressCount={0}
+            laRecordSiteCount={0} // No data available yet for LA records
           />
           
           <InsuranceCard
@@ -181,23 +174,18 @@ const ReportSiteManagement = () => {
             activeCount={activeInsurance}
             expiringCount={expiringInsurance}
             expiredCount={expiredInsurance}
-          />
-
+          />          
+          
           <AuditCard
             loading={dataStableLoading}
             siteCount={sites.length}
             auditedSiteCount={new Set(audits.map(a => a.site_id)).size}
-            completedCount={completedAudits}
-            inProgressCount={inProgressAudits}
-            pendingCount={pendingAudits}
-          />
-
+          />          
+          
           <AgreementCard
             loading={dataStableLoading}
             siteCount={sites.length}
             agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
-            activeCount={activeAgreements}
-            expiringCount={expiringAgreements}
           />
 
           <UtilitiesCard

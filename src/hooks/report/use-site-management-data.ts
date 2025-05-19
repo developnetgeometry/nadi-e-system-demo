@@ -43,29 +43,18 @@ export interface SiteInsuranceData {
   start_date: string | null;
   end_date: string | null;
   status: string;
-  amount?: number;
-  provider?: string;
 }
 
 export interface SiteAuditData {
   id: string;
   site_id: string;
   sitename?: string;
-  audit_date: string;
-  findings: string;
-  status: string;
-  auditor?: string;
 }
 
 export interface SiteAgreementData {
   id: string;
   site_id: string;
   sitename?: string;
-  start_date: string;
-  end_date: string;
-  agreement_type: string;
-  status: string;
-  renewal_date?: string;
 }
 
 export const useSiteManagementData = (
@@ -246,17 +235,19 @@ export const useSiteManagementData = (
           };
         });
         
-        setSites(transformedSites);
-        
-        // Fetch additional data for the filtered sites
+        setSites(transformedSites);        // Fetch additional data for the filtered sites
         if (transformedSites.length > 0) {
           const siteIds = transformedSites.map(site => site.id);
+          
+          // Only fetch from tables that actually exist
           await Promise.all([
             fetchUtilitiesData(siteIds),
-            fetchInsuranceData(siteIds),
-            fetchAuditsData(siteIds),
-            fetchAgreementsData(siteIds)
+            fetchInsuranceData(siteIds)
           ]);
+          
+          // Initialize empty arrays for tables that don't exist yet
+          setAudits([]);
+          setAgreements([]);
         } else {
           // Reset all datasets if no sites match
           setUtilities([]);
@@ -382,8 +373,7 @@ export const useSiteManagementData = (
               status = endDate <= threeMonthsFromNow ? "Expiring Soon" : "Active";
             }
           }
-          
-          return {
+            return {
             id: report.site_remark_id,
             site_id: remark?.site_id || "",
             sitename: site?.sitename || "Unknown",
@@ -391,10 +381,7 @@ export const useSiteManagementData = (
             insurance_type_name: insuranceType?.name || "Unknown",
             start_date: report.start_date,
             end_date: report.end_date,
-            status,
-            // Mock data for demo
-            amount: Math.floor(Math.random() * 10000) + 1000,
-            provider: ["Insurance Co A", "Insurance Co B", "Insurance Co C"][Math.floor(Math.random() * 3)]
+            status
           };
         });
         
@@ -402,74 +389,19 @@ export const useSiteManagementData = (
       } catch (error) {
         console.error("Error fetching insurance data:", error);
       }
+    };    // These functions are placeholders for future implementation
+    // when the corresponding database tables are created
+    
+    // Placeholder function - no audit table exists yet
+    const fetchAuditsData = async () => {
+      console.log('Audit data table not implemented yet');
+      setAudits([]);
     };
     
-    const fetchAuditsData = async (siteIds: string[]) => {
-      // Mock audit data for demo
-      const mockAuditData: SiteAuditData[] = [];
-      const statuses = ["Completed", "In Progress", "Pending"];
-      
-      // Generate mock data for each site
-      siteIds.forEach(siteId => {
-        const site = sites.find(site => site.id === siteId);
-        
-        // Add 1-3 random audits per site
-        const auditCount = Math.floor(Math.random() * 3) + 1;
-        for (let i = 0; i < auditCount; i++) {
-          const auditDate = new Date();
-          // Set audit date to random past date in last 12 months
-          auditDate.setMonth(auditDate.getMonth() - Math.floor(Math.random() * 12));
-          
-          mockAuditData.push({
-            id: `audit-${siteId}-${i}`,
-            site_id: siteId,
-            sitename: site?.sitename || "Unknown",
-            audit_date: auditDate.toISOString().split('T')[0],
-            findings: ["No issues found", "Minor issues to address", "Critical issues requiring attention"][Math.floor(Math.random() * 3)],
-            status: statuses[Math.floor(Math.random() * statuses.length)],
-            auditor: ["Auditor A", "Auditor B", "Auditor C"][Math.floor(Math.random() * 3)]
-          });
-        }
-      });
-      
-      setAudits(mockAuditData);
-    };
-    
-    const fetchAgreementsData = async (siteIds: string[]) => {
-      // Mock agreement data for demo
-      const mockAgreementData: SiteAgreementData[] = [];
-      const agreementTypes = ["Service", "Lease", "Maintenance"];
-      const statuses = ["Active", "Expiring Soon", "Expired", "Pending Renewal"];
-      
-      // Generate mock data for each site
-      siteIds.forEach(siteId => {
-        const site = sites.find(site => site.id === siteId);
-        
-        // Generate start date (1-3 years ago)
-        const startDate = new Date();
-        startDate.setFullYear(startDate.getFullYear() - (Math.floor(Math.random() * 3) + 1));
-        
-        // Generate end date (0-2 years from now)
-        const endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + Math.floor(Math.random() * 3));
-        
-        // Generate renewal date (3 months before end date)
-        const renewalDate = new Date(endDate);
-        renewalDate.setMonth(renewalDate.getMonth() - 3);
-        
-        mockAgreementData.push({
-          id: `agreement-${siteId}`,
-          site_id: siteId,
-          sitename: site?.sitename || "Unknown",
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          agreement_type: agreementTypes[Math.floor(Math.random() * agreementTypes.length)],
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          renewal_date: renewalDate.toISOString().split('T')[0]
-        });
-      });
-      
-      setAgreements(mockAgreementData);
+    // Placeholder function - no agreement table exists yet
+    const fetchAgreementsData = async () => {
+      console.log('Agreement data table not implemented yet');
+      setAgreements([]);
     };
 
     fetchSites();
