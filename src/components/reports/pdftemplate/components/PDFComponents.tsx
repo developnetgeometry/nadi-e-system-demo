@@ -57,6 +57,42 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#000",
     width: "25%",
+  },  
+  appendixTitlePage: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
+    position: "relative",
+  },  appendixContent: {
+    position: "absolute",
+    top: "40%",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+  },  appendixPhaseInfo: {
+    position: "absolute",
+    top: 60, /* Positioned lower on the page */
+    right: 0,
+    zIndex: 100,
+  },
+  appendixNumber: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+    textTransform: "uppercase",
+  },  appendixTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    textTransform: "uppercase",
+  },  phaseQuarterInfo: {
+    textAlign: "right",
+    fontSize: 8,
+    marginLeft: "auto", /* Push to the right side */
+    marginTop: 15, /* Position below other elements instead of at the top */
+    zIndex: 100,
   },
 });
 
@@ -93,7 +129,8 @@ export const PDFMetaSection = ({
   phaseLabel?: string;
   periodType?: string;
   periodValue?: string;
-}) => {  // Create styles for the meta section table
+}) => {  
+  // Create styles for the meta section table
   const metaStyles = StyleSheet.create({
     container: {
       width: "100%",
@@ -146,6 +183,7 @@ export const PDFMetaSection = ({
       borderRightWidth: 0, // Remove right border on the last cell
     }
   });
+  
   // Create a style for the last row that doesn't have a bottom border
   const lastRowStyle = {
     ...metaStyles.row,
@@ -213,7 +251,7 @@ export const PDFTable = <T extends Record<string, any>>({
   const fixedWidthColumns = columns.filter(col => col.width);
   const dynamicColumns = columns.filter(col => !col.width);
   
-  // Calculate total fixed width percentage
+  // Calculate total fixed width percentage  
   const totalFixedWidth = fixedWidthColumns.reduce((total, col) => {
     const width = typeof col.width === 'string' 
       ? parseFloat(col.width.replace('%', '')) 
@@ -225,7 +263,8 @@ export const PDFTable = <T extends Record<string, any>>({
   const remainingWidth = Math.max(0, 100 - totalFixedWidth);
   const dynamicColumnWidth = dynamicColumns.length > 0 
     ? remainingWidth / dynamicColumns.length 
-    : 0;  const tableStyles = StyleSheet.create({
+    : 0;  
+  const tableStyles = StyleSheet.create({
     table: { 
       width: "100%", 
       borderWidth: 1,
@@ -237,18 +276,21 @@ export const PDFTable = <T extends Record<string, any>>({
       backgroundColor: "#000",
       color: "#fff",
       fontWeight: "bold",
-    },    tableRow: { 
+    },    
+    tableRow: { 
       flexDirection: "row", 
       borderBottomWidth: 1,
       borderBottomColor: "#000"
-    },th: { 
+    },
+    th: { 
       padding: 8, 
       fontSize: 10,
       fontWeight: "bold",
       textTransform: "uppercase",
       textAlign: "center",
       color: "#fff",
-    },    td: { 
+    },    
+    td: { 
       padding: 8,
       fontSize: 10,
     },
@@ -261,7 +303,9 @@ export const PDFTable = <T extends Record<string, any>>({
       paddingLeft: 4,
       paddingRight: 4,
     }
-  });  // Verify that the total of all widths adds up to 100%
+  });  
+  
+  // Verify that the total of all widths adds up to 100%
   // If explicit widths are provided for all columns, we'll use them directly
   let totalSpecifiedWidth = 0;
   let allColumnsHaveWidth = true;
@@ -278,7 +322,8 @@ export const PDFTable = <T extends Record<string, any>>({
       allColumnsHaveWidth = false;
     }
   });
-    // Create styles for each column once - this ensures header and data cells use exactly the same width
+  
+  // Create styles for each column once - this ensures header and data cells use exactly the same width
   const columnStyles = columns.map((column, index) => {
     // Base style with border
     const style: any = { 
@@ -302,7 +347,8 @@ export const PDFTable = <T extends Record<string, any>>({
       // Equal distribution for remaining columns
       style.width = `${dynamicColumnWidth}%`;
     }
-      // Special handling for number column
+    
+    // Special handling for number column
     if (index === 0) {
       style.textAlign = "center";
       style.paddingLeft = 4;
@@ -315,7 +361,9 @@ export const PDFTable = <T extends Record<string, any>>({
     }
     
     return style;
-  });  return (
+  });  
+  
+  return (
     <View style={tableStyles.table}>
       <View style={tableStyles.tableHeader}>
         {columns.map((column, i) => (          
@@ -366,6 +414,50 @@ export const PDFTable = <T extends Record<string, any>>({
           })}
         </View>
       ))}
+    </View>
+  );
+};
+
+/**
+ * Component for displaying Phase and Quarter information aligned with the totalBox component
+ */
+export const PDFPhaseQuarterInfo = ({
+  phaseLabel,
+  periodType = "QUARTER",
+  periodValue,
+}: {
+  phaseLabel?: string;
+  periodType?: string;
+  periodValue?: string;
+}) => (  <View style={{
+    ...styles.phaseQuarterInfo, 
+    width: 170, 
+  }}>
+    <Text style={{ fontWeight: "bold", fontSize: 8, textTransform: "uppercase" }}>PHASE: {phaseLabel || 'PILOT'}</Text>
+    <Text style={{ fontWeight: "bold", fontSize: 8, textTransform: "uppercase" }}>{periodType}: {periodValue || '4/2024'}</Text>
+  </View>
+);
+
+/**
+ * The PDF Appendix Title Page component
+ */
+export const PDFAppendixTitlePage = ({ 
+  appendixNumber,
+  title,
+}: { 
+  appendixNumber: string;
+  title: string;
+  phaseLabel?: string;
+  periodType?: string;
+  periodValue?: string;
+  showPhaseInfo?: boolean;
+}) => {
+  return (
+    <View style={{flex: 1, position: "relative"}}>
+      <View style={styles.appendixContent}>
+        <Text style={styles.appendixNumber}>{appendixNumber}</Text>
+        <Text style={styles.appendixTitle}>{title}</Text>
+      </View>
     </View>
   );
 };

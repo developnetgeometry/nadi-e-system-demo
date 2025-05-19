@@ -12,7 +12,9 @@ import {
     PDFFooter,
     PDFMetaSection,
     PDFTable,
-    PDFSectionTitle
+    PDFSectionTitle,
+    PDFAppendixTitlePage,
+    PDFPhaseQuarterInfo
 } from "../../components/PDFComponents";
 
 // PDF styles for Site Management report
@@ -22,35 +24,29 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontFamily: "Helvetica",
         position: "relative",
-    },
-    totalBox: {
+    }, totalBox: {
         padding: 20,
         backgroundColor: "#fff",
-        border: "1pt solid #000",
-        marginBottom: 10,
-        marginTop: 5,
-        maxWidth: 170,
+        borderWidth: 1,
+        borderColor: "#000",
+        borderStyle: "solid",
         textAlign: "center",
         fontSize: 12,
-    },
-    phaseInfoBox: {
-        position: "absolute",
-        right: 40,
-        top: 210,
-        padding: 4,
-        fontSize: 8,
-        textAlign: "right",
-    },
-    utilityCheckbox: {
+        width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
+    },/* Removed phaseInfoBox style in favor of using PDFPhaseQuarterInfo component */    utilityCheckbox: {
         width: 12,
         height: 12,
-        border: "1pt solid #000",
+        borderWidth: 1,
+        borderColor: "#000",
+        borderStyle: "solid",
         margin: "auto",
     },
     utilityChecked: {
         width: 12,
         height: 12,
-        border: "1pt solid #000",
+        borderWidth: 1,
+        borderColor: "#000",
+        borderStyle: "solid",
         backgroundColor: "#000",
         margin: "auto",
     },
@@ -180,11 +176,10 @@ export const SiteManagementReportPDF = ({
                     periodValue={periodValue}
                 />
 
-                {/* Section 2.1 Local Authority */}
-                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
+                {/* Section 2.1 Local Authority */}                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
 
                 <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{0}</Text> // total NADI sites have authority
+                    <Text>Total NADI{"\n"}{localAuthoritySites}</Text> // total NADI sites have authority
                 </View>
 
                 {localAuthority.length > 0 ?
@@ -222,18 +217,22 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 2: Insurance */}
-            <Page size="A4" style={styles.page}>
+            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.2 INSURANCE" />
 
-                <PDFSectionTitle title="2.2 INSURANCE" />
-
-                <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{insuranceSites}</Text> // total NADI sites with insurance
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+                    <View style={styles.totalBox}>
+                        <Text>Total NADI{"\n"}{insuranceSites}</Text> // total NADI sites with insurance
+                    </View>
+                    <View style={{ alignSelf: "flex-end" }}>
+                        <PDFPhaseQuarterInfo
+                            phaseLabel={phaseLabel}
+                            periodType="QUARTER"
+                            periodValue={periodValue || '4/2024'}
+                        />
+                    </View>
                 </View>
 
-                <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
-                    <Text>PHASE: {phaseLabel || 'PILOT'}</Text>
-                    <Text>QUARTER: {periodValue || '4/2024'}</Text>
-                </View><PDFTable data={insurance}
+                <PDFTable data={insurance}
                     columns={[
                         {
                             key: (_, i) => `${i + 1}.`,
@@ -248,7 +247,7 @@ export const SiteManagementReportPDF = ({
                         {
                             key: "site_name",
                             header: "NADI",
-                            width: "25%"
+                            width: "40%"
                         },
                         {
                             key: "state",
@@ -260,31 +259,35 @@ export const SiteManagementReportPDF = ({
                             header: "DURATION",
                             width: "25%"
                         },
-                        {
-                            key: "status",
-                            header: "STATUS",
-                            width: "15%"
-                        },
                     ]}
                 />
 
                 <PDFFooter />
             </Page>
+
             {/* Page 3: APPENDIX 1 SITE INSURANCE */}
-            {/* not implement page yet */}
+            <Page size="A4" style={styles.page}>
+                <PDFAppendixTitlePage
+                    appendixNumber="APPENDIX 1"
+                    title="SITE INSURANCE"
+                />
+                <PDFFooter />
+            </Page>
 
             {/* Page 4: Audits */}
-            <Page size="A4" style={styles.page}>
+            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.3 AUDITS" />
 
-                <PDFSectionTitle title="2.3 AUDITS" />
-
-                <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{auditSites}</Text> // total NADI sites with audits
-                </View>
-
-                <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
-                    <Text>PHASE: {phaseLabel || 'PILOT'}</Text>
-                    <Text>QUARTER: {periodValue || '4/2024'}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+                    <View style={styles.totalBox}>
+                        <Text>Total NADI{"\n"}{auditSites}</Text> // total NADI sites with audits
+                    </View>
+                    <View style={{ alignSelf: "flex-end" }}>
+                        <PDFPhaseQuarterInfo
+                            phaseLabel={phaseLabel}
+                            periodType="QUARTER"
+                            periodValue={periodValue || '4/2024'}
+                        />
+                    </View>
                 </View>
 
                 {audits.length > 0 ? (<PDFTable
@@ -324,25 +327,32 @@ export const SiteManagementReportPDF = ({
                 />
                 ) : (
                     <Text>No audit data available.</Text>
-                )}
-
+                )}                <PDFFooter />
+            </Page>            {/* Page 5: APPENDIX 2 AUDIT */}
+            <Page size="A4" style={styles.page}>
+                <PDFAppendixTitlePage
+                    appendixNumber="APPENDIX 2"
+                    title="SITE AUDIT"
+                />
                 <PDFFooter />
             </Page>
-            {/* Page 5: APPENDIX 2 AUDIT */}
-            {/* not implement page yet */}
 
             {/* Page 6: Agreements */}
             <Page size="A4" style={styles.page}>
- 
+
                 <PDFSectionTitle title="2.5 AGREEMENTS" />
 
-                <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{agreementSites}</Text> // total NADI sites with agreements
-                </View>
-
-                <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
-                    <Text>PHASE: {phaseLabel || 'PILOT'}</Text>
-                    <Text>QUARTER: {periodValue || '4/2024'}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+                    <View style={styles.totalBox}>
+                        <Text>Total NADI{"\n"}{agreementSites}</Text> // total NADI sites with agreements
+                    </View>
+                    <View style={{ alignSelf: "flex-end" }}>
+                        <PDFPhaseQuarterInfo
+                            phaseLabel={phaseLabel}
+                            periodType="QUARTER"
+                            periodValue={periodValue || '4/2024'}
+                        />
+                    </View>
                 </View>
 
                 {agreements.length > 0 ? (<PDFTable
@@ -387,26 +397,32 @@ export const SiteManagementReportPDF = ({
                 />
                 ) : (
                     <Text>No agreement data available.</Text>
-                )}
-
+                )}                <PDFFooter />
+            </Page>            {/* Page 7: APPENDIX 3 AGREEMENT */}
+            <Page size="A4" style={styles.page}>
+                <PDFAppendixTitlePage
+                    appendixNumber="APPENDIX 3"
+                    title="SITE AGREEMENT"
+                />
                 <PDFFooter />
             </Page>
-            {/* Page 7: APPENDIX 3 AGREEMENT */}
-            {/* not implement page yet */}
 
             {/* Page 8: Utilities */}
-            <Page size="A4" style={styles.page}>
+            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
-                <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
-
-                <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{utilitySites}</Text> // total NADI sites with utilities
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+                    <View style={styles.totalBox}>
+                        <Text>Total NADI{"\n"}{utilitySites}</Text> // total NADI sites with utilities
+                    </View>
+                    <View style={{ alignSelf: "flex-end" }}>
+                        <PDFPhaseQuarterInfo
+                            phaseLabel={phaseLabel}
+                            periodType="QUARTER"
+                            periodValue={periodValue || '4/2024'}
+                        />
+                    </View>
                 </View>
 
-                <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
-                    <Text>PHASE: {phaseLabel || 'PILOT'}</Text>
-                    <Text>QUARTER: {periodValue || '4/2024'}</Text>
-                </View>
 
                 <PDFTable
                     data={utilities}
@@ -448,16 +464,19 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 9: Awareness Programmes */}
-            <Page size="A4" style={styles.page}>
-                <PDFSectionTitle title="2.6 AWARENESS PROGRAMMES" />
+            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.6 AWARENESS PROGRAMMES" />
 
-                <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{programmeSites}</Text>
-                </View>
-
-                <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
-                    <Text>PHASE: {phaseLabel || 'PILOT'}</Text>
-                    <Text>QUARTER: {periodValue || '4/2024'}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+                    <View style={styles.totalBox}>
+                        <Text>Total NADI{"\n"}{programmeSites}</Text> // total NADI sites with awareness programmes
+                    </View>
+                    <View style={{ alignSelf: "flex-end" }}>
+                        <PDFPhaseQuarterInfo
+                            phaseLabel={phaseLabel}
+                            periodType="QUARTER"
+                            periodValue={periodValue || '4/2024'}
+                        />
+                    </View>
                 </View>
 
                 {programmes.length > 0 ? (<PDFTable
@@ -497,7 +516,15 @@ export const SiteManagementReportPDF = ({
                 />
                 ) : (
                     <Text>No awareness programme data available.</Text>
-                )}                <PDFFooter />
+                )}
+                <PDFFooter />
+            </Page>            {/* Page 10: APPENDIX 4 AWARENESS PROGRAMMES */}
+            <Page size="A4" style={styles.page}>
+                <PDFAppendixTitlePage
+                    appendixNumber="APPENDIX 4"
+                    title={"AWARENESS & PROMOTION\nPROGRAMME REPORT"}
+                />
+                <PDFFooter />
             </Page>
         </Document>
     );
