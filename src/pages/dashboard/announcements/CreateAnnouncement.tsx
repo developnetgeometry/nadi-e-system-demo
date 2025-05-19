@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { SelectMany } from "@/components/ui/SelectMany";
 import { useUserTypes } from "@/components/user-groups/hooks/useUserTypes";
 import { DateInput } from "@/components/ui/date-input";
@@ -119,7 +119,7 @@ export default function CreateAnnouncement() {
         description: "Announcement created successfully",
       });
 
-      navigate("/announcements");
+      navigate("/demo/announcements");
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -239,7 +239,7 @@ export default function CreateAnnouncement() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate("/announcements")}
+                  onClick={() => navigate("/demo/announcements")}
                 >
                   Cancel
                 </Button>

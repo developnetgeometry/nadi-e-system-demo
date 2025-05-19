@@ -1,6 +1,7 @@
 import Announcements from "@/pages/dashboard/announcements/Announcements";
 import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
 import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
+import AnnouncementsList from "@/pages/dashboard/announcements/AnnouncementList";
 import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
 import AssetDetails from "@/pages/dashboard/asset/AssetDetails";
 import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
@@ -39,6 +40,9 @@ import Products from "@/pages/dashboard/pos/Products";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
 import ProgrammeSettings from "@/pages/dashboard/programmes/ProgrammeSettings";
+import SmartServicesNadi2UPage from "@/pages/dashboard/programmes/SmartServicesNadi2U";
+import SmartServicesNadi4UPage from "@/pages/dashboard/programmes/SmartServicesNadi4U";
+import OthersProgrammesPage from "@/pages/dashboard/programmes/OthersProgrammes";
 import ServiceInfo from "@/pages/dashboard/services/ServiceInfo";
 import ServiceTransactions from "@/pages/dashboard/services/Transactions";
 import BookingManagement from "@/pages/dashboard/site/BookingManagement";
@@ -63,6 +67,8 @@ import ReportHRSalary from "@/pages/dashboard/report/ReportHRSalary";
 import ReportTraining from "@/pages/dashboard/report/ReportTraining";
 import ReportCM from "@/pages/dashboard/report/ReportCM";
 import ReportSmartService from "@/pages/dashboard/report/ReportSmartService";
+
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -269,6 +275,39 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
       <ProgrammeSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/programmes/registration",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <ProgrammeSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/programmes/nadi4u",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <SmartServicesNadi4UPage />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/programmes/nadi2u",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <SmartServicesNadi2UPage />
+      // </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: "/programmes/others",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <OthersProgrammesPage />
       // </ProtectedRoute>
     ),
   },
@@ -481,6 +520,14 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
+    path: "/announcements/list",
+    element: (
+      // <ProtectedRoute>
+      <AnnouncementsList />
+      // </ProtectedRoute>
+    ),
+  },
+  {
     path: "/announcements/create-announcement",
     element: (
       // <ProtectedRoute requiredPermission="view_site_details">
@@ -607,7 +654,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/reports/smart-services",
     element: (
       // <ProtectedRoute requiredPermission="">
-      <ReportSmartService/>
+      <ReportSmartService />
       // </ProtectedRoute>
     ),
   },

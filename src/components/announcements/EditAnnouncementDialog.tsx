@@ -27,6 +27,9 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
+import { FileUpload } from "@/components/ui/file-upload";
+import { AttachmentFile } from "./AnnouncementAttachment";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 interface EditAnnouncementDialogProps {
   announcement: {
@@ -37,6 +40,7 @@ interface EditAnnouncementDialogProps {
     start_date: string;
     end_date: string;
     status: "active" | "inactive";
+    attachments: AttachmentFile[] | null;
   };
   onUpdate: () => void;
 }
@@ -48,6 +52,10 @@ export function EditAnnouncementDialog({
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const { userTypes } = useUserTypes();
+  const [uploading, setUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const { uploadFile } = useFileUpload();
+
   const form = useForm({
     defaultValues: {
       title: announcement.title,
@@ -68,6 +76,7 @@ export function EditAnnouncementDialog({
         start_date: formatDate(new Date(announcement.start_date)),
         end_date: formatDate(new Date(announcement.end_date)),
       });
+      setSelectedFiles([]);
     }
   }, [open, announcement, form]);
 
@@ -79,8 +88,40 @@ export function EditAnnouncementDialog({
       .join(" "),
   }));
 
+  // Handle file selection
+  const handleFileSelection = (files: File[]) => {
+    setSelectedFiles(files);
+  };
+
+  // Upload files function
+  const uploadFiles = async (files: File[]): Promise<AttachmentFile[]> => {
+    const uploadedFiles: AttachmentFile[] = [];
+
+    for (const file of files) {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 15)}.${fileExt}`;
+
+      const publicUrl = await uploadFile(file, "announcement-attachments", "");
+
+      if (publicUrl) {
+        uploadedFiles.push({
+          name: file.name,
+          path: filePath,
+          size: file.size,
+          type: file.type,
+          url: publicUrl,
+        });
+      }
+    }
+
+    return uploadedFiles;
+  };
+
   const onSubmit = async (data: any) => {
     try {
+      setUploading(true);
       const startDate = new Date(data.start_date);
       const endDate = new Date(data.end_date);
 
@@ -94,6 +135,14 @@ export function EditAnnouncementDialog({
         return;
       }
 
+      // Upload new files if any
+      let updatedAttachments = announcement.attachments || [];
+      if (selectedFiles.length > 0) {
+        const newAttachments = await uploadFiles(selectedFiles);
+        updatedAttachments = [...updatedAttachments, ...newAttachments];
+      }
+
+      // Update announcement with all data including attachments
       const { error } = await supabase
         .from("announcements")
         .update({
@@ -102,6 +151,8 @@ export function EditAnnouncementDialog({
           user_types: data.user_types,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
+          attachments:
+            updatedAttachments.length > 0 ? updatedAttachments : null,
         })
         .eq("id", announcement.id);
 
@@ -129,6 +180,8 @@ export function EditAnnouncementDialog({
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -235,15 +288,55 @@ export function EditAnnouncementDialog({
               )}
             />
 
+            <div className="space-y-2">
+              <FormLabel>Add More Attachments</FormLabel>
+              <FileUpload
+                acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt"
+                maxSizeInMB={10}
+                maxFiles={5}
+                onFilesSelected={handleFileSelection}
+                multiple={true}
+                buttonText="Add Files"
+              >
+                Add New Attachments
+              </FileUpload>
+
+              {selectedFiles.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-sm font-medium">Selected files:</p>
+                  <ul className="text-sm text-muted-foreground">
+                    {selectedFiles.map((file, index) => (
+                      <li key={index}>{file.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {announcement.attachments &&
+                announcement.attachments.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Current attachments:</p>
+                    <ul className="text-sm text-muted-foreground">
+                      {announcement.attachments.map((file, index) => (
+                        <li key={index}>{file.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+            </div>
+
             <div className="flex gap-4 justify-end">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
+                disabled={uploading}
               >
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={uploading}>
+                {uploading ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </form>
         </Form>
