@@ -1,6 +1,6 @@
 import { DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
-import { ClaimReportGenerator } from "../component/ClaimReportGenerator";
+import { ClaimReportGenerator } from "../tp/ClaimReportGenerator";
 
 type ItemData = {
   id: number;

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { CheckSquare, Send, Settings, Trash2, XSquare } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { useFetchClaimTP } from "../hook/fetch-claim-tp"; // Import the hook
+import { useFetchClaimTP } from "../tp/hooks/fetch-claim-tp"; // Import the hook
 import { Eye } from "lucide-react"; // Import the Eye icon
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Import Tooltip components
 import React, { useState } from "react";

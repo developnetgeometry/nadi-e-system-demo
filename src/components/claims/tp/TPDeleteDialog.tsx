@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { deleteClaimData } from "../hook/delete-claim";
+import { deleteClaimData } from "./hooks/delete-claim";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react"; // Import a spinner icon
 
@@ -24,7 +24,7 @@ const TPDeleteDialog: React.FC<TPDeleteDialogProps> = ({ isOpen, onClose, claimI
       toast({ title: "Success", description: "Claim deleted successfully." });
 
       // Invalidate the query to refresh the ClaimList
-      queryClient.invalidateQueries(["fetchClaimTP"]);
+      queryClient.invalidateQueries({ queryKey: ["fetchClaimTP"] });
 
       onClose();
     } catch (error) {

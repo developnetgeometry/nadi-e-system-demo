@@ -40,43 +40,46 @@ export type Database = {
       }
       announcements: {
         Row: {
-          created_at: string | null;
-          created_by: string | null;
-          end_date: string | null;
-          id: string;
-          message: string;
-          start_date: string | null;
-          status: Database["public"]["Enums"]["announcement_status"] | null;
-          title: string;
-          updated_at: string | null;
-          user_types: Database["public"]["Enums"]["user_type"][] | null;
-        };
+          attachments: Json | null
+          created_at: string | null
+          created_by: string | null
+          end_date: string | null
+          id: string
+          message: string
+          start_date: string | null
+          status: Database["public"]["Enums"]["announcement_status"] | null
+          title: string
+          updated_at: string | null
+          user_types: Database["public"]["Enums"]["user_type"][] | null
+        }
         Insert: {
-          created_at?: string | null;
-          created_by?: string | null;
-          end_date?: string | null;
-          id?: string;
-          message: string;
-          start_date?: string | null;
-          status?: Database["public"]["Enums"]["announcement_status"] | null;
-          title: string;
-          updated_at?: string | null;
-          user_types?: Database["public"]["Enums"]["user_type"][] | null;
-        };
+          attachments?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          message: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["announcement_status"] | null
+          title: string
+          updated_at?: string | null
+          user_types?: Database["public"]["Enums"]["user_type"][] | null
+        }
         Update: {
-          created_at?: string | null;
-          created_by?: string | null;
-          end_date?: string | null;
-          id?: string;
-          message?: string;
-          start_date?: string | null;
-          status?: Database["public"]["Enums"]["announcement_status"] | null;
-          title?: string;
-          updated_at?: string | null;
-          user_types?: Database["public"]["Enums"]["user_type"][] | null;
-        };
-        Relationships: [];
-      };
+          attachments?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          message?: string
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["announcement_status"] | null
+          title?: string
+          updated_at?: string | null
+          user_types?: Database["public"]["Enums"]["user_type"][] | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           created_at: string
@@ -213,17 +216,56 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          action?: string;
-          changes?: Json | null;
-          created_at?: string;
-          entity_id?: string | null;
-          entity_type?: string;
-          id?: string;
-          ip_address?: string | null;
-          user_id?: string | null;
-        };
-        Relationships: [];
-      };
+          action?: string
+          changes?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      backup_requests: {
+        Row: {
+          completed_at: string | null
+          download_url: string | null
+          error_message: string | null
+          file_path: string | null
+          id: string
+          include_schema: boolean
+          requested_at: string
+          requested_by: string
+          status: string
+          tables: string[] | null
+        }
+        Insert: {
+          completed_at?: string | null
+          download_url?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          id?: string
+          include_schema?: boolean
+          requested_at?: string
+          requested_by: string
+          status?: string
+          tables?: string[] | null
+        }
+        Update: {
+          completed_at?: string | null
+          download_url?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          id?: string
+          include_schema?: boolean
+          requested_at?: string
+          requested_by?: string
+          status?: string
+          tables?: string[] | null
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           amount: number
@@ -2461,7 +2503,7 @@ export type Database = {
           description: string | null
           duration: number | null
           end_datetime: string | null
-          id: number
+          id: string
           location_event: string | null
           module_id: number | null
           program_id: number | null
@@ -2474,6 +2516,7 @@ export type Database = {
           status_id: number | null
           subcategory_id: number | null
           target_participant: number | null
+          total_new_member: number | null
           total_participant: number | null
           trainer_organization: string | null
           updated_at: string | null
@@ -2486,7 +2529,7 @@ export type Database = {
           description?: string | null
           duration?: number | null
           end_datetime?: string | null
-          id?: number
+          id?: string
           location_event?: string | null
           module_id?: number | null
           program_id?: number | null
@@ -2499,6 +2542,7 @@ export type Database = {
           status_id?: number | null
           subcategory_id?: number | null
           target_participant?: number | null
+          total_new_member?: number | null
           total_participant?: number | null
           trainer_organization?: string | null
           updated_at?: string | null
@@ -2511,7 +2555,7 @@ export type Database = {
           description?: string | null
           duration?: number | null
           end_datetime?: string | null
-          id?: number
+          id?: string
           location_event?: string | null
           module_id?: number | null
           program_id?: number | null
@@ -2524,12 +2568,70 @@ export type Database = {
           status_id?: number | null
           subcategory_id?: number | null
           target_participant?: number | null
+          total_new_member?: number | null
           total_participant?: number | null
           trainer_organization?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_nd_event_category_fk"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event_category"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_event_module_fk"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event_module"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_event_program_fk"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event_program"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_event_status_fk"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_event_subcategory_fk"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event_subcategory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_program_method_fk"
+            columns: ["program_method"]
+            isOneToOne: false
+            referencedRelation: "nd_program_method"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_program_mode_fk"
+            columns: ["program_mode"]
+            isOneToOne: false
+            referencedRelation: "nd_program_mode"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_nd_site_fk"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_event_attachment: {
         Row: {
@@ -2538,6 +2640,7 @@ export type Database = {
           event_id: number | null
           file_path: string | null
           id: number
+          remarks: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -2547,6 +2650,7 @@ export type Database = {
           event_id?: number | null
           file_path?: string | null
           id: number
+          remarks?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2556,6 +2660,7 @@ export type Database = {
           event_id?: number | null
           file_path?: string | null
           id?: number
+          remarks?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -2713,7 +2818,7 @@ export type Database = {
           attendance: boolean | null
           created_at: string | null
           created_by: string | null
-          event_id: number | null
+          event_id: string | null
           id: number
           member_id: number | null
           updated_at: string | null
@@ -2725,7 +2830,7 @@ export type Database = {
           attendance?: boolean | null
           created_at?: string | null
           created_by?: string | null
-          event_id?: number | null
+          event_id?: string | null
           id: number
           member_id?: number | null
           updated_at?: string | null
@@ -2737,14 +2842,29 @@ export type Database = {
           attendance?: boolean | null
           created_at?: string | null
           created_by?: string | null
-          event_id?: number | null
+          event_id?: string | null
           id?: number
           member_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
           verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_participant_nd_event_fk"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_event_participant_nd_member_profile_fk"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "nd_member_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_event_program: {
         Row: {
@@ -2805,7 +2925,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           name?: string | null
           updated_at?: string | null
@@ -6199,6 +6319,44 @@ export type Database = {
             columns: ["state_id"]
             isOneToOne: false
             referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_site_agreement_attachment: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_path: string[] | null
+          id: number
+          site_contract_id: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string[] | null
+          id?: number
+          site_contract_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string[] | null
+          id?: number
+          site_contract_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_agreement_attachment_nd_site_contracts_fk"
+            columns: ["site_contract_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_contracts"
             referencedColumns: ["id"]
           },
         ]

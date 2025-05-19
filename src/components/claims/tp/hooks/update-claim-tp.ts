@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 type UpdateClaimTPData = {
-  claim_id: string;
-  claim_status: string;
+  claim_id: number;
+  claim_status: number;
   request_remark: string;
 };
 

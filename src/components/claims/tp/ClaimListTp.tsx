@@ -13,20 +13,19 @@ import { Button } from "@/components/ui/button";
 import { CheckSquare, Send, Settings, Trash2, XSquare } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { useFetchClaimTP } from "../hook/fetch-claim-tp"; // Import the hook
+import { useFetchClaimTP } from "./hooks/fetch-claim-tp"; // Import the hook
 import { Eye } from "lucide-react"; // Import the Eye icon
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Import Tooltip components
 import React, { useState } from "react";
 import ClaimViewDialog from "../component/ClaimViewDialog"; // Import the dialog
-import TpSubmitDialog from "../component/TpSubmitDialog"; // Import the dialog
-import TPDeleteDialog from "../component/TPDeleteDialog";
+import TpSubmitDialog from "./TpSubmitDialog"; // Import the dialog
+import TPDeleteDialog from "./TPDeleteDialog";
 import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
-import { useFetchClaimTPNew } from "../hook/fetch-claim-tp-new";
 
 export function ClaimListTp() {
   const { toast } = useToast();
   // const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
-  const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTPNew();
+  const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
 
@@ -81,13 +80,12 @@ export function ClaimListTp() {
 
   return (
     <div className="rounded-md border">
-                <pre>{JSON.stringify(claimTPData, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(claimTPData, null, 2)}</pre> */}
 
-      {/* <Table>
+      <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[60px] text-center">No.</TableHead>
-            <TableHead>TP Name</TableHead>
             <TableHead>Reference Number</TableHead>
             <TableHead>Year</TableHead>
             <TableHead>Month</TableHead>
@@ -100,7 +98,6 @@ export function ClaimListTp() {
             claimTPData.map((claim, index) => (
               <TableRow key={claim.id}>
                 <TableRowNumber index={index} />
-                <TableCell>{claim.tp_dusp_id.name}</TableCell>
                 <TableCell>{claim.ref_no}</TableCell>
                 <TableCell>{claim.year}</TableCell>
                 <TableCell>{claim.month}</TableCell>
@@ -165,7 +162,7 @@ export function ClaimListTp() {
             </TableRow>
           )}
         </TableBody>
-      </Table> */}
+      </Table>
 
       {/* Claim Status Description Dialog */}
       <ClaimStatusDescriptionDialog

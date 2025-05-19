@@ -10,26 +10,26 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, Send, Settings, Trash2, XSquare } from "lucide-react";
+import { Plus, Send } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { TableRowNumber } from "@/components/ui/TableRowNumber";
-import { useFetchClaimTP } from "../hook/fetch-claim-tp"; // Import the hook
+import { useFetchClaimTP } from "../tp/hooks/fetch-claim-tp"; // Import the hook
 import { Eye } from "lucide-react"; // Import the Eye icon
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"; // Import Tooltip components
 import React, { useState } from "react";
 import ClaimViewDialog from "../component/ClaimViewDialog"; // Import the dialog
 import { useFetchClaimDUSP } from "../hook/fetch-claim-dusp";
 import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
+import DuspAddAttachmentDialog from "./DuspAddAttachmentDialog";
 
 export function ClaimListDusp() {
-  const { toast } = useToast();
   const { data: claimDUSPData, isLoading: isclaimDUSPCLoading } = useFetchClaimDUSP();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isAddAttachmentDialogOpen, setIsAddAttachmentDialogOpen] = useState(false); // State for DuspAddAttachmentDialog
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
-
 
   const handleOpenDescriptionDialog = (status: string) => {
     setSelectedStatus(status);
@@ -39,6 +39,11 @@ export function ClaimListDusp() {
   const handleView = (claim: any) => {
     setSelectedClaim(claim);
     setIsViewDialogOpen(true);
+  };
+
+  const handleAddAttachment = (claim: any) => {
+    setSelectedClaim(claim);
+    setIsAddAttachmentDialogOpen(true); // Open the DuspAddAttachmentDialog
   };
 
   if (isclaimDUSPCLoading) {
@@ -110,6 +115,27 @@ export function ClaimListDusp() {
                       </TooltipTrigger>
                       <TooltipContent>View</TooltipContent>
                     </Tooltip>
+
+                    {claim.claim_status.name === "SUBMITTED" && (
+                      <>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => handleAddAttachment(claim)}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Add Attachment</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="outline">
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Submit to MCMC</TooltipContent>
+                        </Tooltip>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -140,7 +166,14 @@ export function ClaimListDusp() {
         />
       )}
 
-
+      {/* Dusp Add Attachment Dialog */}
+      {selectedClaim && (
+        <DuspAddAttachmentDialog
+          isOpen={isAddAttachmentDialogOpen}
+          onClose={() => setIsAddAttachmentDialogOpen(false)}
+          claim={selectedClaim}
+        />
+      )}
     </div>
   );
 }

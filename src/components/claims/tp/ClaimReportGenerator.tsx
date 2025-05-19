@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import jsPDF from "jspdf";
 import { autoTable } from "jspdf-autotable";
-import { useSiteProfilesByIds } from "../hook/use-generate-claim-report";
+import { useSiteProfilesByIds } from "./hooks/use-generate-claim-report";
 
 type ItemData = {
   id: number;

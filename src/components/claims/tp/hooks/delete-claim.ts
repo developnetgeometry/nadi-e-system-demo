@@ -39,21 +39,15 @@ export const deleteClaimData = async (claimId: string) => {
       }
 
       for (const attachment of attachments) {
-        const fullFilePath = attachment.file_path[0]; // Assuming file_path is an array
-        const relativeFilePath = fullFilePath.split(`${BUCKET_NAME_SITE_CLAIM}/`)[1]; // Extract relative path
-
-        if (!relativeFilePath) {
-          console.error(`Invalid file path: ${fullFilePath}`);
-          throw new Error(`Failed to extract relative file path from ${fullFilePath}`);
-        }
+        const filePath = attachment.file_path; // Directly use file_path as it is already in the correct format
 
         const { error: storageError } = await supabase.storage
           .from(BUCKET_NAME_SITE_CLAIM) // Use the bucket name
-          .remove([relativeFilePath]);
+          .remove([filePath]);
 
         if (storageError) {
-          console.error(`Error deleting file ${relativeFilePath} from storage:`, storageError);
-          throw new Error(`Failed to delete file ${relativeFilePath} from storage`);
+          console.error(`Error deleting file ${filePath} from storage:`, storageError);
+          throw new Error(`Failed to delete file ${filePath} from storage`);
         }
       }
     }

@@ -9,6 +9,7 @@ import { ClaimDateForm } from "../form/ClaimDateForm";
 import { ClaimApplicationForm } from "../form/ClaimApplicationForm";
 import { ClaimRequestForm } from "../form/ClaimRequestForm";
 import { ClaimReportGenerateForm } from "../form/ClaimReportGenerateForm";
+import { insertClaimData } from "./hooks/insert-claim";
 
 
 type ItemData = {
@@ -35,7 +36,6 @@ type FormData = {
   year: number;
   quarter: number;
   month: number;
-  claim_status: number;
   ref_no: string;
   tp_dusp_id: string;
   site_profile_ids: number[];
@@ -54,7 +54,6 @@ const INITIAL_DATA: FormData = {
   year: new Date().getFullYear(),
   quarter: null,
   month: null,
-  claim_status: 1,
   ref_no: "",
   tp_dusp_id: null,
   site_profile_ids: [],
@@ -145,8 +144,6 @@ const ClaimFormDialog = ({
 
     if (currentStepIndex === 3) {
       if (data.reports.length === 0) { showValidationError("Report file is required"); return; }
-      console.log("Final Data:", data);
-      console.log("Final Report Data:", data.reports);
     }
 
     if (!isLastStep) {
@@ -154,7 +151,8 @@ const ClaimFormDialog = ({
     } else {
       try {
         setLoading(true); // Start loading
-        // await insertClaimData(data); // Call the insertClaimData function
+        await insertClaimData(data); // Call the insertClaimData function
+        console.log("Final Data:", data);
         toast({
           title: "Success",
           description: "The new claim has been drafted.",
