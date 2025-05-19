@@ -282,6 +282,7 @@ export const MaintenanceList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>TP Site</TableHead>
                 {type === "cm" && (
                   <>
                     <TableHead>SLA</TableHead>
@@ -305,6 +306,9 @@ export const MaintenanceList = ({
                         <TableCell>{maintenanceRequest?.no_docket}</TableCell>
                         <TableCell>
                           {maintenanceRequest?.type?.name || ""}
+                        </TableCell>
+                        <TableCell>
+                          {maintenanceRequest?.asset?.site?.sitename || ""}
                         </TableCell>
                         {type === "cm" && (
                           <>
