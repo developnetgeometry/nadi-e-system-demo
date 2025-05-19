@@ -12,39 +12,103 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { FileUpload } from "@/components/ui/file-upload";
 
 interface AnnouncementFormData {
   title: string;
   message: string;
+  files?: FileList;
+}
+
+interface AttachmentFile {
+  name: string;
+  path: string;
+  size?: number;
+  type?: string;
 }
 
 export const CreateAnnouncementDialog = () => {
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
-  const { register, handleSubmit, reset } = useForm<AnnouncementFormData>();
+  const { register, handleSubmit, reset, setValue } =
+    useForm<AnnouncementFormData>();
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  const onSubmit = async (data: AnnouncementFormData) => {
-    const { error } = await supabase.from("announcements").insert({
-      title: data.title,
-      message: data.message,
-    });
+  const handleFileSelection = (files: File[]) => {
+    setSelectedFiles(files);
+  };
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create announcement",
-        variant: "destructive",
+  const uploadFiles = async (files: File[]): Promise<AttachmentFile[]> => {
+    const uploadedFiles: AttachmentFile[] = [];
+
+    for (const file of files) {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 15)}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("announcement-attachments")
+        .upload(filePath, file);
+
+      if (error) {
+        console.error("Error uploading file:", error);
+        continue;
+      }
+
+      uploadedFiles.push({
+        name: file.name,
+        path: filePath,
+        size: file.size,
+        type: file.type,
       });
-      return;
     }
 
-    toast({
-      title: "Success",
-      description: "Announcement created successfully",
-    });
+    return uploadedFiles;
+  };
 
-    reset();
-    setOpen(false);
+  const onSubmit = async (data: AnnouncementFormData) => {
+    try {
+      setUploading(true);
+
+      // First upload files if any
+      const attachments =
+        selectedFiles.length > 0 ? await uploadFiles(selectedFiles) : null;
+
+      const { error } = await supabase.from("announcements").insert({
+        title: data.title,
+        message: data.message,
+        attachments: attachments,
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to create announcement",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Announcement created successfully",
+      });
+
+      reset();
+      setSelectedFiles([]);
+      setOpen(false);
+    } catch (error) {
+      console.error("Error creating announcement:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -52,7 +116,7 @@ export const CreateAnnouncementDialog = () => {
       <DialogTrigger asChild>
         <Button>Create Announcement</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Create New Announcement</DialogTitle>
         </DialogHeader>
@@ -70,8 +134,20 @@ export const CreateAnnouncementDialog = () => {
               rows={4}
             />
           </div>
-          <Button type="submit" className="w-full">
-            Create Announcement
+          <div>
+            <FileUpload
+              acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt"
+              maxSizeInMB={10}
+              maxFiles={5}
+              onFilesSelected={handleFileSelection}
+              multiple={true}
+              buttonText="Upload Files"
+            >
+              Add Attachments
+            </FileUpload>
+          </div>
+          <Button type="submit" className="w-full" disabled={uploading}>
+            {uploading ? "Creating..." : "Create Announcement"}
           </Button>
         </form>
       </DialogContent>

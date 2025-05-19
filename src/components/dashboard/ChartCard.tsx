@@ -9,9 +9,10 @@ interface ChartCardProps {
   title: string;
   children: React.ReactNode;
   detailsPath?: string; // Path to redirect to for more details
+  badge?: React.ReactNode
 }
 
-const ChartCard: React.FC<ChartCardProps> = ({ title, children, detailsPath }) => {
+const ChartCard: React.FC<ChartCardProps> = ({ title, children, detailsPath, badge }) => {
   return (
     <Card className="h-full dark:bg-gray-800 dark:border-gray-700">
       <CardHeader className="pb-2 flex flex-row justify-between items-center">
@@ -22,6 +23,9 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, children, detailsPath }) =
               More <ArrowRight size={16} />
             </Button>
           </Link>
+        )}
+        {badge && (
+          badge
         )}
       </CardHeader>
       <CardContent className="pt-0 pb-4">
