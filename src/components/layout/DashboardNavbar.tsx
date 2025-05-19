@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./navbar/ThemeToggle";
 import { NotificationToggle } from "./navbar/NotificationToggle";
 import { HeaderProfile } from "./navbar/HeaderProfile";
+import { AnnouncementButton } from "./navbar/AnnouncementButton";
+import { Link } from "react-router-dom";
 
 export const DashboardNavbar = () => {
   const { settings } = useAppSettings();
@@ -54,6 +56,7 @@ export const DashboardNavbar = () => {
             !isMobile && "flex-1 justify-end"
           )}
         >
+          <AnnouncementButton unreadCount={0} />
           <ThemeToggle />
           <NotificationToggle />
           <HeaderProfile />
