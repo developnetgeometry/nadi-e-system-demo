@@ -166,7 +166,7 @@ export const InternetAccessReportPDF = ({
           <Text style={styles.th}>NADI Name</Text>
         </View>
         {nadiSites.map((site, i) => (
-          <View key={i} style={styles.tableRow}>
+          <View key={site.name} style={styles.tableRow}>
             <Text style={styles.td}>{i + 1}</Text>
             <Text style={styles.td}>{site.state}</Text>
             <Text style={styles.td}>{site.technology}</Text>
