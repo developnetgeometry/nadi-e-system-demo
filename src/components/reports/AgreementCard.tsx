@@ -57,7 +57,7 @@ export const AgreementCard = ({
                   label="Expiring" 
                   value={expiringCount} 
                 />
-                {/* <div className="h-3 w-3"></div> */}
+                
               </>
             }
             footer={
