@@ -5,44 +5,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle, Clock, FileText } from "lucide-react";
-import { CardStat } from "./ui/CardStat";
-import { CardSkeleton } from "./ui/CardSkeleton";
-import { StatItem } from "./ui/StatItem";
+import { AlertCircle, CheckCircle, Clock, Shield } from "lucide-react";
+import { CardStat } from "../ui/CardStat";
+import { CardSkeleton } from "../ui/CardSkeleton";
+import { StatItem } from "../ui/StatItem";
 
-type AgreementCardProps = {
+type InsuranceCardProps = {
   loading: boolean;
   siteCount: number;
-  agreementSiteCount: number;
+  insuredSiteCount: number;
   activeCount: number;
   expiringCount: number;
+  expiredCount: number;
 };
 
-export const AgreementCard = ({
+export const InsuranceCard = ({
   loading,
   siteCount,
-  agreementSiteCount,
+  insuredSiteCount,
   activeCount,
   expiringCount,
-}: AgreementCardProps) => {
+  expiredCount,
+}: InsuranceCardProps) => {
   return (
     <Card className="overflow-hidden shadow-sm border border-gray-200">
       <CardHeader className="p-4 bg-white border-b">
-        <CardTitle className="text-lg font-medium text-gray-800">Site Agreement</CardTitle>
+        <CardTitle className="text-lg font-medium text-gray-800">Site Insurance</CardTitle>
       </CardHeader>
       <CardContent className="p-6 bg-white">
         {loading ? (
           <CardSkeleton />
         ) : (
           <CardStat
-            icon={FileText}
-            iconColor="text-purple-500"
-            iconBgColor="bg-purple-50"
-            title="Sites with Agreements"
-            value={agreementSiteCount}
-            progressValue={agreementSiteCount}
+            icon={Shield}
+            iconColor="text-blue-500"
+            iconBgColor="bg-blue-50"
+            title="Sites with Insurance"
+            value={insuredSiteCount}
+            progressValue={insuredSiteCount}
             progressMax={siteCount}
-            progressColor="bg-purple-500"
+            progressColor="bg-blue-500"
             stats={
               <>
                 <StatItem 
@@ -57,12 +59,17 @@ export const AgreementCard = ({
                   label="Expiring" 
                   value={expiringCount} 
                 />
-                
+                <StatItem 
+                  icon={AlertCircle} 
+                  iconColor="text-red-500" 
+                  label="Expired" 
+                  value={expiredCount} 
+                />
               </>
             }
             footer={
               siteCount ? 
-                `${Math.round((agreementSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 
+                `${Math.round((insuredSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 
                 '0% Coverage'
             }
           />

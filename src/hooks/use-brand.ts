@@ -30,3 +30,16 @@ export function useBrand() {
 
   return { data, isLoading, error };
 }
+
+// MCMC Logo fetcher hook
+export function useMcmcLogo() {
+  // Using a static path for MCMC logo
+  return "/MCMC_Logo.png";
+}
+
+// DUSP Logo fetcher hook
+export function useDuspLogo() {
+  // Using a placeholder or default DUSP logo path
+  // This should be updated with the actual path to the DUSP logo
+  return "/placeholder.svg";
+}
