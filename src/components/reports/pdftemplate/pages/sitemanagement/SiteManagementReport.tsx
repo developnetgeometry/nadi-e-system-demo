@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 12,
         width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
-    },/* Removed phaseInfoBox style in favor of using PDFPhaseQuarterInfo component */    utilityCheckbox: {
+    },/* Removed phaseInfoBox style in favor of using PDFPhaseQuarterInfo component */    
+    utilityCheckbox: {
         width: 12,
         height: 12,
         borderWidth: 1,
@@ -132,7 +133,7 @@ type SiteManagementReportProps = {
 export const SiteManagementReportPDF = ({
     duspLabel,
     phaseLabel,
-    periodType = "QUARTER / YEAR",
+    periodType,
     periodValue,
     totalSites,
     mcmcLogo,
@@ -218,8 +219,8 @@ export const SiteManagementReportPDF = ({
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
                             phaseLabel={phaseLabel}
-                            periodType="QUARTER"
-                            periodValue={periodValue || '4/2024'}
+                            periodType={periodType}
+                            periodValue={periodValue}
                         />
                     </View>
                 </View>
@@ -281,8 +282,8 @@ export const SiteManagementReportPDF = ({
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
                             phaseLabel={phaseLabel}
-                            periodType="QUARTER"
-                            periodValue={periodValue || '4/2024'}
+                            periodType={periodType}
+                            periodValue={periodValue}
                         />
                     </View>
                 </View>
@@ -336,8 +337,8 @@ export const SiteManagementReportPDF = ({
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
                             phaseLabel={phaseLabel}
-                            periodType="QUARTER"
-                            periodValue={periodValue || '4/2024'}
+                            periodType={periodType}
+                            periodValue={periodValue}
                         />
                     </View>
                 </View>
@@ -390,8 +391,8 @@ export const SiteManagementReportPDF = ({
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
                             phaseLabel={phaseLabel}
-                            periodType="QUARTER"
-                            periodValue={periodValue || '4/2024'}
+                            periodType={periodType}
+                            periodValue={periodValue}
                         />
                     </View>
                 </View>
@@ -449,8 +450,8 @@ export const SiteManagementReportPDF = ({
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
                             phaseLabel={phaseLabel}
-                            periodType="QUARTER"
-                            periodValue={periodValue || '4/2024'}
+                            periodType={periodType}
+                            periodValue={periodValue}
                         />
                     </View>
                 </View>
