@@ -11,8 +11,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { useEffect, useState } from "react"
-import { Eye } from "lucide-react";
+import { useEffect, useRef, useState } from "react"
+import { Download, Eye } from "lucide-react";
+import { PaginationTable } from "./PaginationTable";
+import { exportToCSV } from "@/utils/export-utils";
 
 interface TpAdminDashboardProps {
     selectedSite: Site
@@ -37,7 +39,7 @@ export const TpAdminDashBoard = ({
 
     function handleSearch(searchInput: string) {
 
-        let sitesTofiltered = tpsSites; 
+        let sitesTofiltered = tpsSites;
 
         sitesTofiltered = sitesTofiltered.filter((site) => site.nd_site_profile.sitename.includes(searchInput));
 
@@ -50,12 +52,13 @@ export const TpAdminDashBoard = ({
 
     // PCS in this site (total pc, in use, available)
 
+    const initialTotalSites = useRef(tpsSites.length);
 
     // Overview data 
     const siteOverView = [
         {
             title: "Total Sites",
-            value: String(sites?.length),
+            value: String(initialTotalSites.current),
             description: "",
             // iconTextColor: "text-green-500",
         },
@@ -83,13 +86,13 @@ export const TpAdminDashBoard = ({
 
     // Table data
     const headTable = [
-        "Site Name",
-        "Location",
-        "Total PCs",
-        "In Use",
-        "available",
-        "Status",
-        "Action"
+        { key: "siteName", label: "Site Name"},
+        { key: "location", label: "Location"},
+        { key: "totalPcs", label: "Total PCs"},
+        { key: "inUse", label: "In Use"},
+        { key: "available", label: "Available"},
+        { key: "status", label: "Status"},
+        { key: "action", label: "Action"}
     ];
 
     const bodyTableData = sites.map((site) => {
@@ -128,52 +131,24 @@ export const TpAdminDashBoard = ({
                 </div>
             </div>
             <div className="flex justify-between items-center mt-6">
-                <Input 
-                    className="w-[30%]" 
-                    type="search" 
+                <Input
+                    className="w-[30%]"
+                    type="search"
                     placeholder="Search Site..."
                     value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)} 
+                    onChange={(e) => setSearchInput(e.target.value)}
                 />
+                <Button onClick={() => exportToCSV(bodyTableData, "sites")} className="flex gap-2">
+                    <Download />
+                    Export
+                </Button>
             </div>
             <div className="rounded-md">
-                <Table className="w-full table-auto border-collapse text-sm mt-6 bg-white rounded-md">
-                    <TableHeader>
-                        <TableRow>
-                            {
-                                headTable.map((head) => (
-                                    <TableHead key={head}>{head}</TableHead>
-                                ))
-                            }
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {
-                            bodyTableData.map((bookingItem, index) => (
-                                <TableRow className="hover:bg-gray-200">
-                                    <TableCell className="font-semibold">{bookingItem.siteName}</TableCell>
-                                    <TableCell>{bookingItem.location}</TableCell>
-                                    <TableCell>{bookingItem.totalPcs}</TableCell>
-                                    <TableCell>
-                                        <Badge className="bg-blue-100 border hover:bg-blue-200 border-blue-600 text-blue-500">{bookingItem.inUse}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className="bg-green-100 border hover:bg-green-200 border-green-600 text-green-500">{bookingItem.available}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className="bg-amber-100 hover:bg-amber-200 border border-amber-600 text-amber-500">{bookingItem.status}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button onClick={() => handleSelectedSite(bookingItem.id)} className="flex items-center gap-1">
-                                            <Eye />
-                                            {bookingItem.action}
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        }
-                    </TableBody>
-                </Table>
+                <PaginationTable 
+                    bodyTableData={bodyTableData}
+                    handleSelectedSite={handleSelectedSite}
+                    headTable={headTable}
+                />
             </div>
         </>
     )
