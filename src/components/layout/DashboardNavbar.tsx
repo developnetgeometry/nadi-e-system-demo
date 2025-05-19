@@ -1,4 +1,4 @@
-import { Menu, CheckSquare } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useSidebar } from "@/hooks/use-sidebar";
