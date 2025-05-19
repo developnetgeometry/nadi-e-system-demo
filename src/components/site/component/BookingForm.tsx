@@ -15,9 +15,14 @@ import { assetClient } from "@/hooks/assets/asset-client";
 import { useUserId } from "@/hooks/use-user";
 import { toast } from "@/hooks/use-toast";
 import { stringToDateWithTime } from "../utils/stringToDateWithTime";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 
 interface BookingPcFormInput {
-    pc: string,
+    pc?: string,
+    facility?: string,
     userName: string,
     date: Date,
     startTime: string,
@@ -26,14 +31,16 @@ interface BookingPcFormInput {
 }
 
 interface BookingFormProps {
-    pcsName: string[],
+    assetsName: string[],
+    isFacility?: boolean,
     setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const BookingForm = ({
-    pcsName,
+    assetsName,
+    isFacility,
     setBookingCalendarData,
     setBookingsData,
     setOpen
@@ -106,20 +113,20 @@ const BookingForm = ({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
-                    name="pc"
+                    name={isFacility ? "facility" : "pc"}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>PC</FormLabel>
+                            <FormLabel>{isFacility ? "Facility" : "PC"}</FormLabel>
                             <FormControl>
                                 <Select onValueChange={field.onChange} value={field.value} >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a PC" />
+                                        <SelectValue placeholder={`Select a ${isFacility ? "Facility" : "PC"}`} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
                                             {
-                                                pcsName.map((pc) => (
-                                                    <SelectItem key={pc} value={pc}>{pc}</SelectItem>
+                                                assetsName.map((asset) => (
+                                                    <SelectItem key={asset} value={asset}>{asset}</SelectItem>
                                                 ))
                                             }
                                         </SelectGroup>
@@ -129,31 +136,49 @@ const BookingForm = ({
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="userName"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>User Name</FormLabel>
-                            <FormControl>
-                                <Input {...field} placeholder="Enter user name" />
-                            </FormControl>
-                        </FormItem>
-                    )}
-                />
+                {!isFacility && (
+                    <FormField
+                        control={form.control}
+                        name="userName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>User Name</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="Enter user name" />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                )}
                 <FormField
                     control={form.control}
                     name="date"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                             <FormLabel>Date</FormLabel>
                             <FormControl>
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    className="w-full rounded-md border shadow"
-                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-[240px] border border-gray-200 justify-start text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon />
+                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             </FormControl>
                         </FormItem>
                     )}
