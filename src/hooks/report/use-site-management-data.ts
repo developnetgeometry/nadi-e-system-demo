@@ -57,6 +57,12 @@ export interface SiteAgreementData {
   sitename?: string;
 }
 
+export interface LocalAuthorityData {
+  id: string;
+  site_id: string;
+  sitename?: string;
+}
+
 export const useSiteManagementData = (
   duspFilter: string | number | null,
   phaseFilter: (string | number)[],
@@ -64,11 +70,11 @@ export const useSiteManagementData = (
   monthFilter: string | number | null,
   yearFilter: string | number | null
 ) => {
-  const [sites, setSites] = useState<SiteData[]>([]);
-  const [utilities, setUtilities] = useState<UtilityData[]>([]);
+  const [sites, setSites] = useState<SiteData[]>([]);  const [utilities, setUtilities] = useState<UtilityData[]>([]);
   const [insurance, setInsurance] = useState<SiteInsuranceData[]>([]);
   const [audits, setAudits] = useState<SiteAuditData[]>([]);
   const [agreements, setAgreements] = useState<SiteAgreementData[]>([]);
+  const [localAuthority, setLocalAuthority] = useState<LocalAuthorityData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -238,11 +244,11 @@ export const useSiteManagementData = (
         setSites(transformedSites);        // Fetch additional data for the filtered sites
         if (transformedSites.length > 0) {
           const siteIds = transformedSites.map(site => site.id);
-          
-          // Only fetch from tables that actually exist
+            // Only fetch from tables that actually exist
           await Promise.all([
             fetchUtilitiesData(siteIds),
-            fetchInsuranceData(siteIds)
+            fetchInsuranceData(siteIds),
+            fetchLocalAuthorityData(siteIds)
           ]);
           
           // Initialize empty arrays for tables that don't exist yet
@@ -252,6 +258,7 @@ export const useSiteManagementData = (
           // Reset all datasets if no sites match
           setUtilities([]);
           setInsurance([]);
+          setLocalAuthority([]);
           setAudits([]);
           setAgreements([]);
         }
@@ -389,7 +396,13 @@ export const useSiteManagementData = (
       } catch (error) {
         console.error("Error fetching insurance data:", error);
       }
-    };    // These functions are placeholders for future implementation
+    };    // Placeholder function - no local authority table exists yet
+    const fetchLocalAuthorityData = async (siteIds: string[]) => {
+      console.log('Local authority data table not implemented yet');
+      setLocalAuthority([]);
+    };
+    
+    // These functions are placeholders for future implementation
     // when the corresponding database tables are created
     
     // Placeholder function - no audit table exists yet
@@ -406,11 +419,11 @@ export const useSiteManagementData = (
 
     fetchSites();
   }, [duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter]);
-
   return {
     sites,
     utilities,
     insurance,
+    localAuthority,
     audits,
     agreements,
     loading,
