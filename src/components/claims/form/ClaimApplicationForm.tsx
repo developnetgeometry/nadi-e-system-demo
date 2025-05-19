@@ -3,105 +3,74 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import { useSiteByPhase } from "../hook/use-claim-data";
 
 type ClaimData = {
-  tp_dusp_id: string;
-  dusp_name: string;
-  tp_name: string;
-  phase_id?: string;
-  refid_mcmc: string;
-  year: string;
-  quarter: string;
-  month: string | number;
-  ref_no: string;
+  phase_id: number;
+  site_profile_ids: number[];
+
 };
 
 type ClaimApplicationFormProps = ClaimData & {
   updateFields: (fields: Partial<ClaimData>) => void;
-  phases: { id: string; name: string }[];
+
 };
 
-function getQuarterFromMonth(month: number): number {
-  if ([1, 2, 3].includes(month)) return 1;
-  if ([4, 5, 6].includes(month)) return 2;
-  if ([7, 8, 9].includes(month)) return 3;
-  if ([10, 11, 12].includes(month)) return 4;
-  return 0; // Return 0 if the month is invalid
-}
 
 export function ClaimApplicationForm({
-  tp_dusp_id,
-  dusp_name,
-  tp_name,
   phase_id,
-  refid_mcmc,
-  year,
-  quarter,
-  month,
-  ref_no,
+  site_profile_ids,
   updateFields,
-  phases,
-
 }: ClaimApplicationFormProps) {
-  const generatedRefNo = `${dusp_name?.toUpperCase() || ""}-${tp_name?.toUpperCase() || ""}-${year || ""}-${quarter ? `Q${quarter}` : ""}-${month ? new Date(0, month - 1).toLocaleString("en-US", { month: "short" }).toUpperCase() : ""}`;
-  if (ref_no !== generatedRefNo) {
-    updateFields({ ref_no: generatedRefNo });
-  }
+  const { phases, isPhasesLoading, phasesError, fetchSitesByPhase } = useSiteByPhase();
+  const [sites, setSites] = useState<{ id: number; name: string }[]>([]);
+
+  const handleFetchSites = async (phaseId: number) => {
+    const fetchedSites = await fetchSitesByPhase(phaseId);
+    setSites(
+      fetchedSites.map((site: { id: number; fullname: string }) => ({
+        id: site.id,
+        name: site.fullname,
+      }))
+    );
+  };
+
+  const handleCheckboxChange = (siteId: number, isChecked: boolean) => {
+    const updatedSiteProfileIds = isChecked
+      ? [...site_profile_ids, siteId]
+      : site_profile_ids.filter((id) => id !== siteId);
+
+    updateFields({ site_profile_ids: updatedSiteProfileIds });
+  };
+
+  useEffect(() => {
+    if (phase_id) {
+      handleFetchSites(phase_id);
+    }
+  }, [phase_id]);
+
   return (
     <>
-      <DialogTitle className="mb-4">Claim Application</DialogTitle>
+      <DialogTitle className="mb-4">Phase and Sites</DialogTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Organization */}
-        <div className="space-y-2">
 
-          <Label className="flex items-center">
-            Organization <span className="text-red-500 ml-1">*</span>
-          </Label>
-          <Input
-            required
-            type="text"
-            name="tp_dusp_id"
-            value={tp_dusp_id || ""}
-            onChange={(e) => updateFields({ tp_dusp_id: e.target.value })}
-            disabled
-          />
-        </div>
-        {/* DUSP ID */}
+        {/* Phase */}
         <div className="space-y-2">
-          <Label className="flex items-center">DUSP</Label>
-          <Input
-            type="text"
-            name="dusp_name"
-            value={dusp_name || ""}
-            onChange={(e) => updateFields({ dusp_name: e.target.value })}
-            disabled
-          />
-        </div>
-        {/* TP ID */}
-        <div className="space-y-2">
-          <Label className="flex items-center">TP</Label>
-          <Input
-            type="text"
-            name="tp_name"
-            value={tp_name || ""}
-            onChange={(e) => updateFields({ tp_name: e.target.value })}
-            disabled
-          />
-        </div>
-
-        {/* phases */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Phases<span className="text-red-500 ml-1">*</span></Label>
+          <Label className="flex items-center">Phase</Label>
           <Select
-            value={phase_id || ""}
-            onValueChange={(value) => updateFields({ phase_id: value })}
+            value={phase_id?.toString() ?? ""}
+            onValueChange={(value) => {
+              updateFields({ phase_id: Number(value), site_profile_ids: [] }); // Reset site_profile_ids
+              handleFetchSites(Number(value));
+            }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select phase" />
+              <SelectValue placeholder="Select Phase" />
             </SelectTrigger>
             <SelectContent>
-              {phases.map((phase) => (
-                <SelectItem key={phase.id} value={phase.id.toString()}>
+              {phases?.filter((phase) => phase !== null && phase !== undefined).map((phase) => (
+                <SelectItem key={phase.id} value={String(phase.id)}>
                   {phase.name}
                 </SelectItem>
               ))}
@@ -109,87 +78,51 @@ export function ClaimApplicationForm({
           </Select>
         </div>
 
-        {/* Ref ID MCMC */}
-        {/* <div className="space-y-2">
-          <Label className="flex items-center">
-            Ref ID MCMC
-          </Label>
-          <Input
-            type="text"
-            name="refid_mcmc"
-            value={refid_mcmc}
-            onChange={(e) => updateFields({ refid_mcmc: e.target.value })}
-          />
-        </div> */}
 
-
-        {/* Year */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Year</Label>
-          <Input
-            type="text"
-            name="year"
-            value={year}
-            onChange={(e) => updateFields({ year: e.target.value })}
-            maxLength={4}
-          />
-        </div>
-
-
-        {/* Month */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Month</Label>
-          <Select
-            value={month?.toString() ?? ""}
-            onValueChange={(value) => {
-              const numericMonth = parseInt(value, 10);
-              updateFields({
-                month: numericMonth, // Store numeric month value
-                quarter: getQuarterFromMonth(numericMonth).toString(), // Automatically update quarter
-              });
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select month" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">January</SelectItem>
-              <SelectItem value="2">February</SelectItem>
-              <SelectItem value="3">March</SelectItem>
-              <SelectItem value="4">April</SelectItem>
-              <SelectItem value="5">May</SelectItem>
-              <SelectItem value="6">June</SelectItem>
-              <SelectItem value="7">July</SelectItem>
-              <SelectItem value="8">August</SelectItem>
-              <SelectItem value="9">September</SelectItem>
-              <SelectItem value="10">October</SelectItem>
-              <SelectItem value="11">November</SelectItem>
-              <SelectItem value="12">December</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Quarter */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Quarter</Label>
-          <Input
-            type="text"
-            name="quarter"
-            value={quarter ? `Q${quarter}` : ""} // Display as Q1, Q2, etc.
-            disabled // Make Quarter field non-editable
-          />
-        </div>
-
-
-        {/* Reference No */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Reference No</Label>
-          <Input
-            type="text"
-            name="ref_no"
-            value={generatedRefNo} // Dynamically generated ref_no
-            disabled // Make Reference No field non-editable
-          />
+        {/* Site Profile */}
+        <div className="space-y-2 col-span-2">
+          <Label className="flex items-center">Site Profiles</Label>
+          {/* Select All Checkbox */}
+          { phase_id  && (
+          <div className="p-2 flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={site_profile_ids.length === sites.length && sites.length > 0} // Check if all sites are selected
+              onChange={(e) => {
+                if (e.target.checked) {
+                  // Select all site IDs
+                  const allSiteIds = sites.map((site) => site.id);
+                  updateFields({ site_profile_ids: allSiteIds });
+                } else {
+                  // Reset site_profile_ids
+                  updateFields({ site_profile_ids: [] });
+                }
+              }}
+            />
+            Select All
+            <h1 className="ml-auto text-sm font-medium">
+              NADI sites selected: {site_profile_ids.length}
+            </h1>
+          </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {sites.length > 0 ? (
+              sites.map((site) => (
+                <div key={site.id} className="p-2 border rounded flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={site_profile_ids.includes(site.id)}
+                    onChange={(e) => handleCheckboxChange(site.id, e.target.checked)}
+                  />
+                  {site.name}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No sites available. Please select a phase.</p>
+            )}
+          </div>
         </div>
 
       </div>
