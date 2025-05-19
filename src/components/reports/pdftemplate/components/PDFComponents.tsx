@@ -37,11 +37,13 @@ const styles = StyleSheet.create({
   footerText: { 
     fontSize: 9, 
     color: "#666" 
-  },  row: {
+  },  
+  row: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderColor: "#000",
-  },cellLabel: {
+  },
+  cellLabel: {
     backgroundColor: "#000",
     color: "#fff",
     fontWeight: "bold",
@@ -144,13 +146,19 @@ export const PDFMetaSection = ({
       borderRightWidth: 0, // Remove right border on the last cell
     }
   });
-    return (
+  // Create a style for the last row that doesn't have a bottom border
+  const lastRowStyle = {
+    ...metaStyles.row,
+    borderBottomWidth: 0, // Remove bottom border from last row to avoid double borders
+  };
+  
+  return (
     <View style={metaStyles.container}>
       <View style={metaStyles.firstRow}>
         <Text style={metaStyles.labelCell}>REPORT</Text>
         <Text style={metaStyles.valueCell}>{reportTitle}</Text>
       </View>
-      <View style={metaStyles.row}>
+      <View style={lastRowStyle}>
         <Text style={metaStyles.labelCell}>PHASE</Text>
         <Text style={metaStyles.phaseCell}>{phaseLabel || "-"}</Text>
         <Text style={metaStyles.periodLabelCell}>{periodType}</Text>
@@ -307,8 +315,7 @@ export const PDFTable = <T extends Record<string, any>>({
     }
     
     return style;
-  });
-  return (
+  });  return (
     <View style={tableStyles.table}>
       <View style={tableStyles.tableHeader}>
         {columns.map((column, i) => (          
@@ -329,8 +336,11 @@ export const PDFTable = <T extends Record<string, any>>({
           key={rowIndex} 
           style={[
             tableStyles.tableRow,
-            // Add white background to even rows (makes alternating rows)
-            rowIndex % 2 === 1 ? { backgroundColor: "#f9f9f9" } : {}
+            // Add white background to even rows and remove bottom border from last row
+            {
+              ...(rowIndex % 2 === 1 && { backgroundColor: "#f9f9f9" }),
+              ...(rowIndex === data.length - 1 && { borderBottomWidth: 0 })
+            }
           ]}
         >
           {columns.map((column, colIndex) => {
