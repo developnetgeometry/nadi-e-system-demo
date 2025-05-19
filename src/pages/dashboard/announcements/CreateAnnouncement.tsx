@@ -12,6 +12,7 @@ import { DateInput } from "@/components/ui/date-input";
 import { useEffect, useState } from "react";
 import { formatDate } from "@/utils/date-utils";
 import { useAppSettings } from "@/hooks/use-app-settings";
+import { FileUpload } from "@/components/ui/file-upload";
 import {
   Form,
   FormControl,
@@ -30,6 +31,13 @@ interface AnnouncementFormData {
   end_date: string;
 }
 
+interface AttachmentFile {
+  name: string;
+  path: string;
+  size?: number;
+  type?: string;
+}
+
 export default function CreateAnnouncement() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -37,6 +45,13 @@ export default function CreateAnnouncement() {
   const { userTypes } = useUserTypes();
   const { getSetting } = useAppSettings();
   const [defaultDuration, setDefaultDuration] = useState(7);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+
+  // Handle file selection
+  const handleFileSelection = (files: File[]) => {
+    setSelectedFiles(files);
+  };
 
   // Get default duration from app settings
   useEffect(() => {
@@ -72,8 +87,39 @@ export default function CreateAnnouncement() {
     form.setValue("end_date", formatDate(endDate));
   };
 
+  // Upload files function
+  const uploadFiles = async (files: File[]): Promise<AttachmentFile[]> => {
+    const uploadedFiles: AttachmentFile[] = [];
+
+    for (const file of files) {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 15)}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("announcement-attachments")
+        .upload(filePath, file);
+
+      if (error) {
+        console.error("Error uploading file:", error);
+        continue;
+      }
+
+      uploadedFiles.push({
+        name: file.name,
+        path: filePath,
+        size: file.size,
+        type: file.type,
+      });
+    }
+
+    return uploadedFiles;
+  };
+
   const onSubmit = async (data: AnnouncementFormData) => {
     try {
+      setUploading(true);
       const startDate = new Date(data.start_date);
       const endDate = new Date(data.end_date);
 
@@ -87,6 +133,10 @@ export default function CreateAnnouncement() {
         return;
       }
 
+      // Upload files if any
+      const attachments =
+        selectedFiles.length > 0 ? await uploadFiles(selectedFiles) : null;
+
       const { error } = await supabase.from("announcements").insert({
         title: data.title,
         message: data.message,
@@ -94,6 +144,7 @@ export default function CreateAnnouncement() {
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
         status: "active",
+        attachments: attachments,
       });
 
       if (error) {
@@ -127,6 +178,8 @@ export default function CreateAnnouncement() {
         description: "An unexpected error occurred",
         variant: "destructive",
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -234,8 +287,24 @@ export default function CreateAnnouncement() {
                 )}
               />
 
+              <div className="space-y-2">
+                <FormLabel>Attachments</FormLabel>
+                <FileUpload
+                  acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt"
+                  maxSizeInMB={10}
+                  maxFiles={5}
+                  onFilesSelected={handleFileSelection}
+                  multiple={true}
+                  buttonText="Upload Files"
+                >
+                  Add Attachments
+                </FileUpload>
+              </div>
+
               <div className="flex gap-4">
-                <Button type="submit">Create Announcement</Button>
+                <Button type="submit" disabled={uploading}>
+                  {uploading ? "Creating..." : "Create Announcement"}
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
