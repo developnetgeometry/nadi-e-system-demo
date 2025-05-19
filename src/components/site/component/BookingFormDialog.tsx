@@ -6,17 +6,19 @@ import { LoadingFormSkeleton } from "./LoadingFormSkeleton";
 const BookingForm = lazy(() => import('./BookingForm'));
 
 interface BookingFormDialogProps {
-    pcsName: string[],
+    assetsName: string[],
     isLoading: boolean,
     open: boolean,
+    isFacility?: boolean
     setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const BookingFormDialog = ({
-    pcsName,
+    assetsName,
     isLoading,
+    isFacility,
     setBookingCalendarData,
     setBookingsData,
     setOpen,
@@ -38,18 +40,23 @@ export const BookingFormDialog = ({
     }, [open]);
 
     return (
-        <DialogContent className="h-screen overflow-auto [&::-webkit-scrollbar]:hidden scrollbar-hide">
+        <DialogContent className="h-fit max-h-screen overflow-auto [&::-webkit-scrollbar]:hidden scrollbar-hide">
             {
                 !showForm ?
-                    <LoadingFormSkeleton /> :
+                    <LoadingFormSkeleton 
+                        inputSum={isFacility ? 4 : 5}
+                    /> :
                     (
-                        <Suspense fallback={<LoadingFormSkeleton />}>
+                        <Suspense fallback={<LoadingFormSkeleton 
+                            inputSum={isFacility ? 4 : 5}
+                        />}>
                             <DialogHeader>
                                 <DialogTitle>Create New PC Booking</DialogTitle>
                             </DialogHeader>
                             <BookingForm
+                                isFacility={isFacility}
                                 setOpen={setOpen}
-                                pcsName={pcsName}
+                                assetsName={assetsName}
                                 setBookingsData={setBookingsData}
                                 setBookingCalendarData={setBookingCalendarData}
                             />
