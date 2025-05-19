@@ -1,19 +1,43 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  X, Filter, RotateCcw, Users, Building, Calendar, Download, Upload, ChevronsUpDown, Check,
-  Wifi, Signal, Globe, Network, Router, BarChart4
+import {
+  X,
+  Filter,
+  RotateCcw,
+  Users,
+  Building,
+  Calendar,
+  Download,
+  Upload,
+  ChevronsUpDown,
+  Check,
+  Wifi,
+  Signal,
+  Globe,
+  Network,
+  Router,
+  BarChart4,
 } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ChartImageRenderer } from "@/components/reports/graphs/InternetAccessReport/ChartImageRenderer";
+import { InternetAccessReportPDF } from "@/components/pdf-templates/InternetAccessReport";
+
 import { cn } from "@/lib/utils";
 
 const duspOptions = [
@@ -52,6 +76,13 @@ const yearOptions = [
   { id: "2022", label: "2022" },
 ];
 
+// Sample chart data
+const sampleChartData = [
+  { state: "Johor", count: 10 },
+  { state: "Pahang", count: 5 },
+  { state: "Selangor", count: 12 },
+];
+
 const ReportInternetAccess = () => {
   // Filter states
   const [duspFilter, setDuspFilter] = useState<string | number | null>(null);
@@ -59,10 +90,22 @@ const ReportInternetAccess = () => {
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>("2025"); // Default to current year
 
-  const hasActiveFilters = 
-    duspFilter !== null || 
-    phaseFilter.length > 0 || 
-    monthFilter !== null || 
+  // Graph image state
+  const [graphImage, setGraphImage] = useState<string | null>(null);
+
+  // Labels for filters
+  const duspLabel = duspOptions.find((d) => d.id === duspFilter)?.label;
+  const monthLabel = monthOptions.find((m) => m.id === monthFilter)?.label;
+  const phaseLabels = phaseOptions
+    .filter((p) => phaseFilter.includes(p.id))
+    .map((p) => p.label);
+  const duspLogo = duspOptions.find((d) => d.id === duspFilter)?.logo_url;
+  const mcmcLogo = "/MCMC_Logo.png"; // Replace with actual logo URL for MCMC
+
+  const hasActiveFilters =
+    duspFilter !== null ||
+    phaseFilter.length > 0 ||
+    monthFilter !== null ||
     (yearFilter !== null && yearFilter !== "2025");
 
   const resetFilters = () => {
@@ -78,20 +121,65 @@ const ReportInternetAccess = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Internet Access</h1>
-            <p className="text-gray-500 mt-1">View and analyze internet connectivity data across all NADI sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze internet connectivity data across all NADI sites
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload Excel
             </Button> */}
-            <Button variant="secondary" className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+
+            {/* Generate chart image */}
+            <ChartImageRenderer
+              data={sampleChartData}
+              onReady={setGraphImage}
+            />
+            {graphImage && (
+              <PDFDownloadLink
+                document={
+                  <InternetAccessReportPDF
+                    duspLabel={duspLabel}
+                    phaseLabel={phaseLabels.join(", ")}
+                    monthLabel={monthLabel}
+                    year={yearFilter?.toString()}
+                    totalConnected={76}
+                    showMonth={true}
+                    mcmcLogo={mcmcLogo} // Replace with actual logo URL for MCMC
+                    duspLogo="/dusp-logo.png" // Replace with actual logo URL for DUSP
+                    nadiSites={[
+                      {
+                        state: "Johor",
+                        technology: "ADSL",
+                        bandwidth: "100Mbps",
+                        name: "BATU 1 SUNGAI PINGGAN",
+                      },
+                      {
+                        state: "Pahang",
+                        technology: "UNIFI",
+                        bandwidth: "100Mbps",
+                        name: "XXXXXX",
+                      },
+                    ]}
+                    graphImage={graphImage}
+                  />
+                }
+                fileName={`internet-access-report-${Date.now()}.pdf`}
+              >
+                {({ loading }) => (
+                  <Button
+                    variant="secondary"
+                    className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    {loading ? "Preparing..." : "Download"}
+                  </Button>
+                )}
+              </PDFDownloadLink>
+            )}
           </div>
         </div>
-
         {/* Filters Row */}
         <div className="flex flex-wrap gap-2">
           {/* DUSP Filter */}
@@ -115,12 +203,16 @@ const ReportInternetAccess = () => {
                     {duspOptions.map((dusp) => (
                       <CommandItem
                         key={dusp.id}
-                        onSelect={() => setDuspFilter(duspFilter === dusp.id ? null : dusp.id)}
+                        onSelect={() =>
+                          setDuspFilter(duspFilter === dusp.id ? null : dusp.id)
+                        }
                       >
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            duspFilter === dusp.id ? "bg-primary border-primary" : "opacity-50"
+                            duspFilter === dusp.id
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {duspFilter === dusp.id && (
@@ -160,7 +252,7 @@ const ReportInternetAccess = () => {
                         onSelect={() => {
                           setPhaseFilter(
                             phaseFilter.includes(phase.id)
-                              ? phaseFilter.filter(id => id !== phase.id)
+                              ? phaseFilter.filter((id) => id !== phase.id)
                               : [...phaseFilter, phase.id]
                           );
                         }}
@@ -168,7 +260,9 @@ const ReportInternetAccess = () => {
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            phaseFilter.includes(phase.id) ? "bg-primary border-primary" : "opacity-50"
+                            phaseFilter.includes(phase.id)
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {phaseFilter.includes(phase.id) && (
@@ -205,12 +299,18 @@ const ReportInternetAccess = () => {
                     {monthOptions.map((month) => (
                       <CommandItem
                         key={month.id}
-                        onSelect={() => setMonthFilter(monthFilter === month.id ? null : month.id)}
+                        onSelect={() =>
+                          setMonthFilter(
+                            monthFilter === month.id ? null : month.id
+                          )
+                        }
                       >
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            monthFilter === month.id ? "bg-primary border-primary" : "opacity-50"
+                            monthFilter === month.id
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {monthFilter === month.id && (
@@ -247,12 +347,16 @@ const ReportInternetAccess = () => {
                     {yearOptions.map((year) => (
                       <CommandItem
                         key={year.id}
-                        onSelect={() => setYearFilter(yearFilter === year.id ? null : year.id)}
+                        onSelect={() =>
+                          setYearFilter(yearFilter === year.id ? null : year.id)
+                        }
                       >
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            yearFilter === year.id ? "bg-primary border-primary" : "opacity-50"
+                            yearFilter === year.id
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {yearFilter === year.id && (
@@ -270,24 +374,35 @@ const ReportInternetAccess = () => {
 
           {/* Spacer */}
           <div className="flex-1"></div>
-          
+
           {/* Reset Button */}
-          <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+          <Button
+            variant="outline"
+            onClick={resetFilters}
+            className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+          >
             <RotateCcw className="h-4 w-4" />
             Reset Filters
           </Button>
         </div>
-
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
             <div className="mr-1 flex items-center">
               <Filter className="h-4 w-4 text-slate-500 mr-1" />
-              <span className="text-xs font-medium text-slate-500">Active Filters:</span>
+              <span className="text-xs font-medium text-slate-500">
+                Active Filters:
+              </span>
             </div>
             {duspFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">DUSP: {duspOptions.find(opt => opt.id === duspFilter)?.label}</span>
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
+                <span className="font-medium">
+                  DUSP:{" "}
+                  {duspOptions.find((opt) => opt.id === duspFilter)?.label}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -299,7 +414,10 @@ const ReportInternetAccess = () => {
               </Badge>
             )}
             {phaseFilter.length > 0 && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
                 <span className="font-medium">Phase: {phaseFilter.length}</span>
                 <Button
                   variant="ghost"
@@ -312,8 +430,14 @@ const ReportInternetAccess = () => {
               </Badge>
             )}
             {monthFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">Month: {monthOptions.find(opt => opt.id === monthFilter)?.label}</span>
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
+                <span className="font-medium">
+                  Month:{" "}
+                  {monthOptions.find((opt) => opt.id === monthFilter)?.label}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -325,7 +449,10 @@ const ReportInternetAccess = () => {
               </Badge>
             )}
             {yearFilter !== null && yearFilter !== "2025" && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
                 <span className="font-medium">Year: {yearFilter}</span>
                 <Button
                   variant="ghost"
@@ -338,22 +465,25 @@ const ReportInternetAccess = () => {
               </Badge>
             )}
           </div>
-        )}          {/* Internet Access Card */}
+        )}{" "}
+        {/* Internet Access Card */}
         <div className="w-full md:max-w-md">
           <Card className="overflow-hidden shadow-sm border border-gray-200">
             <CardHeader className="p-4 bg-white border-b">
-              <CardTitle className="text-lg font-medium text-gray-800">Total NADI</CardTitle>
+              <CardTitle className="text-lg font-medium text-gray-800">
+                Total NADI
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6 bg-white flex flex-col items-center">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 rounded-full bg-blue-50">
                   <Wifi className="h-6 w-6 text-blue-500" />
                 </div>
-                <span className="text-gray-600 font-medium">Internet Access Status</span>
+                <span className="text-gray-600 font-medium">
+                  Internet Access Status
+                </span>
               </div>
-              <div className="text-5xl font-bold text-gray-800 mt-2">
-                76
-              </div>
+              <div className="text-5xl font-bold text-gray-800 mt-2">76</div>
               <div className="mt-4 text-sm text-gray-500 font-medium">
                 NADI sites with internet access
               </div>

@@ -1,5 +1,7 @@
+import { SiteProfile } from "@/components/member/hook/useSiteProfile";
+
 export interface Site {
-  id: string;
+  id: number;
   sitename: string;
   standard_code?: string;
   phase_id: string;
@@ -165,4 +167,18 @@ export interface Socioeconomic {
 export interface Space {
   id: string;
   eng: string;
+  created_by?: string;
+  created_at?: string | Date;
+  updated_by?: string;
+  updated_at?: string | Date;
+}
+
+export interface SiteSpace {
+  id: number
+  nd_space?: Space
+  nd_site_profile?: SiteProfile
+  created_at?: string | Date,
+  updated_at?: string | Date,
+  created_by?: string,
+  updated_by?: string
 }

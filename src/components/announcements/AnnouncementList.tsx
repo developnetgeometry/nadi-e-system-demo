@@ -129,7 +129,6 @@ export function AnnouncementList() {
       });
     }
   };
-
   const isAnnouncementExpired = (endDate: string) => {
     return new Date(endDate) < new Date();
   };
@@ -142,7 +141,6 @@ export function AnnouncementList() {
           Create Announcement
         </Button>
       </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { StaffFormDialog } from "@/components/hr/StaffFormDialog";
+import { TPStaffFormDialog } from "@/components/hr/TPStaffFormDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserAccess } from "@/hooks/use-user-access";
 import { createStaffMember, deleteStaffMember } from "@/lib/staff";
@@ -419,7 +419,7 @@ const Employees = () => {
       </div>
 
       {organizationInfo.organization_id && (
-        <StaffFormDialog
+        <TPStaffFormDialog
           open={isAddStaffOpen}
           onOpenChange={setIsAddStaffOpen}
           organizationId={organizationInfo.organization_id}

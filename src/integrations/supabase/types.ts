@@ -40,46 +40,43 @@ export type Database = {
       }
       announcements: {
         Row: {
-          attachments: Json | null
-          created_at: string | null
-          created_by: string | null
-          end_date: string | null
-          id: string
-          message: string
-          start_date: string | null
-          status: Database["public"]["Enums"]["announcement_status"] | null
-          title: string
-          updated_at: string | null
-          user_types: Database["public"]["Enums"]["user_type"][] | null
-        }
+          created_at: string | null;
+          created_by: string | null;
+          end_date: string | null;
+          id: string;
+          message: string;
+          start_date: string | null;
+          status: Database["public"]["Enums"]["announcement_status"] | null;
+          title: string;
+          updated_at: string | null;
+          user_types: Database["public"]["Enums"]["user_type"][] | null;
+        };
         Insert: {
-          attachments?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          end_date?: string | null
-          id?: string
-          message: string
-          start_date?: string | null
-          status?: Database["public"]["Enums"]["announcement_status"] | null
-          title: string
-          updated_at?: string | null
-          user_types?: Database["public"]["Enums"]["user_type"][] | null
-        }
+          created_at?: string | null;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          message: string;
+          start_date?: string | null;
+          status?: Database["public"]["Enums"]["announcement_status"] | null;
+          title: string;
+          updated_at?: string | null;
+          user_types?: Database["public"]["Enums"]["user_type"][] | null;
+        };
         Update: {
-          attachments?: Json | null
-          created_at?: string | null
-          created_by?: string | null
-          end_date?: string | null
-          id?: string
-          message?: string
-          start_date?: string | null
-          status?: Database["public"]["Enums"]["announcement_status"] | null
-          title?: string
-          updated_at?: string | null
-          user_types?: Database["public"]["Enums"]["user_type"][] | null
-        }
-        Relationships: []
-      }
+          created_at?: string | null;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          message?: string;
+          start_date?: string | null;
+          status?: Database["public"]["Enums"]["announcement_status"] | null;
+          title?: string;
+          updated_at?: string | null;
+          user_types?: Database["public"]["Enums"]["user_type"][] | null;
+        };
+        Relationships: [];
+      };
       app_settings: {
         Row: {
           created_at: string
@@ -216,56 +213,17 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          action?: string
-          changes?: Json | null
-          created_at?: string
-          entity_id?: string | null
-          entity_type?: string
-          id?: string
-          ip_address?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      backup_requests: {
-        Row: {
-          completed_at: string | null
-          download_url: string | null
-          error_message: string | null
-          file_path: string | null
-          id: string
-          include_schema: boolean
-          requested_at: string
-          requested_by: string
-          status: string
-          tables: string[] | null
-        }
-        Insert: {
-          completed_at?: string | null
-          download_url?: string | null
-          error_message?: string | null
-          file_path?: string | null
-          id?: string
-          include_schema?: boolean
-          requested_at?: string
-          requested_by: string
-          status?: string
-          tables?: string[] | null
-        }
-        Update: {
-          completed_at?: string | null
-          download_url?: string | null
-          error_message?: string | null
-          file_path?: string | null
-          id?: string
-          include_schema?: boolean
-          requested_at?: string
-          requested_by?: string
-          status?: string
-          tables?: string[] | null
-        }
-        Relationships: []
-      }
+          action?: string;
+          changes?: Json | null;
+          created_at?: string;
+          entity_id?: string | null;
+          entity_type?: string;
+          id?: string;
+          ip_address?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       budgets: {
         Row: {
           amount: number
