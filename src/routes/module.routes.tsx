@@ -69,6 +69,7 @@ import ReportCM from "@/pages/dashboard/report/ReportCM";
 import ReportSmartService from "@/pages/dashboard/report/ReportSmartService";
 
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -282,7 +283,7 @@ export const moduleRoutes: RouteObject[] = [
     path: "/programmes/registration",
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeSettings />
+      <ProgrammeRegistration />
       // </ProtectedRoute>
     ),
   },

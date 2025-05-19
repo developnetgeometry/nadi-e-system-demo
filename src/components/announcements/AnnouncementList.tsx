@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { UserTypeChips } from "@/components/user-groups/UserTypeChips";
 import { formatDate } from "@/utils/date-utils";
 import { EditAnnouncementDialog } from "./EditAnnouncementDialog";
 
@@ -170,6 +171,9 @@ export function AnnouncementList() {
                   </TableCell>
                   <TableCell className="max-w-xs truncate">
                     {announcement.message}
+                  </TableCell>
+                  <TableCell>
+                    <UserTypeChips userTypes={announcement.user_types} />
                   </TableCell>
                   <TableCell>
                     {formatDate(announcement.start_date)} -{" "}

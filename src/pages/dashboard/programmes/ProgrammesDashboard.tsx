@@ -1,542 +1,232 @@
 import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
-import {
-  Calendar,
-  Users,
-  FolderKanban,
-  BookOpen,
-  CheckCircle,
-  Clock,
-  Award,
-  ChevronRight,
-  ArrowUpRight,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/dashboard/PageHeader";
+import { PageContainer } from "@/components/ui/dashboard/PageContainer";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
+
+// Sample programme data for demonstration
+const programmeStatusData = [
+  { status: "Draft", count: 1, color: "bg-gray-200 text-gray-700" },
+  {
+    status: "Request Approval",
+    count: 1,
+    color: "bg-yellow-100 text-yellow-700",
+  },
+  { status: "Registered", count: 1, color: "bg-purple-100 text-purple-700" },
+  { status: "Completed", count: 1, color: "bg-blue-100 text-blue-700" },
+  { status: "Verified", count: 1, color: "bg-green-100 text-green-700" },
+  { status: "Cancelled", count: 1, color: "bg-red-100 text-red-700" },
+];
+
+const recentProgrammes = [
+  {
+    id: 1,
+    title: "Digital Literacy Workshop",
+    location: "NADI 4U · Kuala Lumpur Training Center",
+    category: "NADI 4U",
+    status: "Draft",
+  },
+  {
+    id: 2,
+    title: "Cybersecurity Essentials",
+    location: "NADI 2U · Penang Community Center",
+    category: "NADI 2U",
+    status: "Request Approval",
+  },
+  {
+    id: 3,
+    title: "Digital Marketing for SMEs",
+    location: "Others · Johor Bahru Business Hub",
+    category: "Others",
+    status: "Registered",
+  },
+  {
+    id: 4,
+    title: "Financial Technology Workshop",
+    location: "Others · Melaka Financial Center",
+    category: "Others",
+    status: "Cancelled",
+  },
+  {
+    id: 5,
+    title: "Entrepreneurship Workshop",
+    location: "NADI 4U · Kuching Innovation Hub",
+    category: "NADI 4U",
+    status: "Completed",
+  },
+];
+
+const programmeCategories = [
+  { id: 1, name: "NADI 4U Programs", count: 2 },
+  { id: 2, name: "NADI 2U Programs", count: 2 },
+  { id: 3, name: "Other Programs", count: 2 },
+];
+
 const ProgrammesDashboard = () => {
-  // Sample programmes data
-  const programmes = [
-    {
-      id: 1,
-      name: "Digital Skills for Youth",
-      type: "Training",
-      participants: 85,
-      startDate: "2023-06-01",
-      endDate: "2023-07-15",
-      completion: 40,
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Community Coding Bootcamp",
-      type: "Workshop",
-      participants: 32,
-      startDate: "2023-06-15",
-      endDate: "2023-06-30",
-      completion: 20,
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Senior Digital Literacy",
-      type: "Course",
-      participants: 45,
-      startDate: "2023-05-10",
-      endDate: "2023-06-10",
-      completion: 90,
-      status: "Closing",
-    },
-    {
-      id: 4,
-      name: "Entrepreneurship Accelerator",
-      type: "Mentorship",
-      participants: 25,
-      startDate: "2023-07-05",
-      endDate: "2023-09-15",
-      completion: 0,
-      status: "Upcoming",
-    },
-  ];
+  const { user } = useAuth();
+  const userName = user?.user_metadata?.full_name || user?.email || "user";
 
-  // Upcoming events
-  const events = [
-    {
-      id: 1,
-      title: "Workshop: Web Development Basics",
-      date: "2023-06-20",
-      time: "10:00 AM - 1:00 PM",
-      location: "Kuala Lumpur Hub",
-      attendees: 25,
-    },
-    {
-      id: 2,
-      title: "Seminar: Digital Marketing Skills",
-      date: "2023-06-22",
-      time: "2:00 PM - 5:00 PM",
-      location: "Virtual Session",
-      attendees: 50,
-    },
-    {
-      id: 3,
-      title: "Bootcamp: Mobile App Development",
-      date: "2023-06-25",
-      time: "9:00 AM - 4:00 PM",
-      location: "Penang Centre",
-      attendees: 20,
-    },
-  ];
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Draft":
+        return (
+          <Badge className="bg-gray-200 text-gray-700 hover:bg-gray-300">
+            Draft
+          </Badge>
+        );
+      case "Request Approval":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">
+            Request Approval
+          </Badge>
+        );
+      case "Registered":
+        return (
+          <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200">
+            Registered
+          </Badge>
+        );
+      case "Completed":
+        return (
+          <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">
+            Completed
+          </Badge>
+        );
+      case "Verified":
+        return (
+          <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+            Verified
+          </Badge>
+        );
+      case "Cancelled":
+        return (
+          <Badge className="bg-red-100 text-red-700 hover:bg-red-200">
+            Cancelled
+          </Badge>
+        );
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
 
-  // Recent achievements
-  const achievements = [
-    {
-      id: 1,
-      title: "Certified 500 Youth in Digital Skills",
-      date: "June 5, 2023",
-      description: "Milestone achievement in our youth empowerment programme",
-    },
-    {
-      id: 2,
-      title: "Launched New Online Learning Platform",
-      date: "May 28, 2023",
-      description: "Digital learning portal with 50+ courses now available",
-    },
-    {
-      id: 3,
-      title: "Community Tech Initiative Award",
-      date: "May 15, 2023",
-      description:
-        "Recognized for excellence in community technology education",
-    },
-  ];
   return (
     <DashboardLayout>
-      <div className="p-6 mx-auto space-y-6 w-full max-w-none overflow-x-auto">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-bold text-xl">Programmes Dashboard</h1>
-          <p className="text-muted-foreground">
-            Monitor and manage educational and community programmes
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Active Programmes
-                  </p>
-                  <h3 className="text-2xl font-bold mt-1">12</h3>
-                  <p className="text-xs text-green-600 mt-1">
-                    +2 from last month
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <FolderKanban className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Participants
-                  </p>
-                  <h3 className="text-2xl font-bold mt-1">1,254</h3>
-                  <p className="text-xs text-green-600 mt-1">
-                    +85 from last month
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Users className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Upcoming Events
-                  </p>
-                  <h3 className="text-2xl font-bold mt-1">8</h3>
-                  <p className="text-xs text-blue-600 mt-1">Next: Today</p>
-                </div>
-                <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Completion Rate
-                  </p>
-                  <h3 className="text-2xl font-bold mt-1">78%</h3>
-                  <p className="text-xs text-amber-600 mt-1">
-                    +5% from last month
-                  </p>
-                </div>
-                <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-amber-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Active Programmes</CardTitle>
-                <CardDescription>
-                  Currently running educational programmes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Programme Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Participants</TableHead>
-                        <TableHead>Timeline</TableHead>
-                        <TableHead>Progress</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {programmes.map((programme) => (
-                        <TableRow key={programme.id}>
-                          <TableCell className="font-medium">
-                            {programme.name}
-                          </TableCell>
-                          <TableCell>{programme.type}</TableCell>
-                          <TableCell>{programme.participants}</TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <div>{programme.startDate}</div>
-                              <div className="text-muted-foreground">
-                                to {programme.endDate}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div
-                                className={`h-2.5 rounded-full ${
-                                  programme.status === "Active"
-                                    ? "bg-blue-600"
-                                    : programme.status === "Closing"
-                                    ? "bg-amber-600"
-                                    : "bg-green-600"
-                                }`}
-                                style={{
-                                  width: `${programme.completion}%`,
-                                }}
-                              ></div>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {programme.completion}% Complete
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {programme.status === "Active" ? (
-                              <Badge className="bg-blue-100 text-blue-800">
-                                Active
-                              </Badge>
-                            ) : programme.status === "Closing" ? (
-                              <Badge className="bg-amber-100 text-amber-800">
-                                Closing
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-green-100 text-green-800">
-                                Upcoming
-                              </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  View All Programmes
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-
+      <PageContainer>
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Upcoming Events</CardTitle>
-                <CardDescription>
-                  Scheduled activities and sessions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {events.map((event) => (
-                    <div key={event.id} className="border rounded-lg p-4">
-                      <h3 className="font-medium">{event.title}</h3>
-                      <div className="mt-2 space-y-2">
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          <span>{event.date}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4 mr-2" />
-                          <span>{event.time}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <BookOpen className="h-4 w-4 mr-2" />
-                          <span>{event.location}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Users className="h-4 w-4 mr-2" />
-                          <span>{event.attendees} registered attendees</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  View Calendar
-                </Button>
-              </CardFooter>
-            </Card>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              Program Dashboard
+            </h1>
+            <p className="text-muted-foreground">Welcome back, {userName}</p>
           </div>
+          <Button asChild>
+            <Link to="/programmes/registration">Register New Program</Link>
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Programme Types</CardTitle>
-              <CardDescription>Distribution by category</CardDescription>
-            </CardHeader>
-            <CardContent>
+        {/* Program Categories */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {programmeCategories.map((category) => (
+            <Card key={category.id} className="shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex flex-col h-full">
+                  <h3 className="text-lg font-medium mb-2">{category.name}</h3>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-3xl font-bold">{category.count}</span>
+                    <Button variant="link" className="text-sm" asChild>
+                      <Link to={`/programmes/${category.id}`}>View All</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Program Status Overview */}
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium mb-4">
+                Program Status Overview
+              </h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="font-medium">Training Courses</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-blue-600 h-2.5 rounded-full"
-                        style={{
-                          width: "45%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <span className="font-medium">45%</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="font-medium">Workshops</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-green-600 h-2.5 rounded-full"
-                        style={{
-                          width: "25%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <span className="font-medium">25%</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="font-medium">Mentorship</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-purple-600 h-2.5 rounded-full"
-                        style={{
-                          width: "15%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <span className="font-medium">15%</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="font-medium">Seminars</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-amber-600 h-2.5 rounded-full"
-                        style={{
-                          width: "10%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <span className="font-medium">10%</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <div className="space-y-1">
-                    <p className="font-medium">Other</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-red-600 h-2.5 rounded-full"
-                        style={{
-                          width: "5%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <span className="font-medium">5%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Participant Demographics</CardTitle>
-              <CardDescription>
-                Profile of programme participants
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border-b pb-2">
-                  <p className="font-medium mb-2">Age Distribution</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-blue-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">Under 18</p>
-                      <p className="font-semibold">25%</p>
-                    </div>
-                    <div className="bg-green-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">18-30</p>
-                      <p className="font-semibold">45%</p>
-                    </div>
-                    <div className="bg-amber-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">31-50</p>
-                      <p className="font-semibold">20%</p>
-                    </div>
-                    <div className="bg-purple-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">Over 50</p>
-                      <p className="font-semibold">10%</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-b pb-2">
-                  <p className="font-medium mb-2">Gender Ratio</p>
-                  <div className="flex items-center">
-                    <div className="w-full bg-gray-200 rounded-full h-4">
-                      <div
-                        className="bg-blue-600 h-4 rounded-l-full"
-                        style={{
-                          width: "55%",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>Male: 55%</span>
-                    <span>Female: 45%</span>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="font-medium mb-2">Background</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-blue-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">Students</p>
-                      <p className="font-semibold">40%</p>
-                    </div>
-                    <div className="bg-green-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">Employed</p>
-                      <p className="font-semibold">30%</p>
-                    </div>
-                    <div className="bg-amber-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">
-                        Entrepreneurs
-                      </p>
-                      <p className="font-semibold">15%</p>
-                    </div>
-                    <div className="bg-red-50 p-2 rounded">
-                      <p className="text-xs text-muted-foreground">
-                        Unemployed
-                      </p>
-                      <p className="font-semibold">15%</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Achievements</CardTitle>
-              <CardDescription>Milestones and accomplishments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {achievements.map((achievement) => (
+                {programmeStatusData.map((item, index) => (
                   <div
-                    key={achievement.id}
-                    className="border-l-4 border-green-500 pl-4 py-1"
+                    key={index}
+                    className="flex items-center justify-between"
                   >
-                    <p className="font-medium">{achievement.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {achievement.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {achievement.date}
+                    <div className="flex items-center">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm ${item.color}`}
+                      >
+                        {item.status}
+                      </span>
+                    </div>
+                    <span className="font-medium">{item.count}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Programs */}
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium mb-4">Recent Programs</h3>
+              <div className="space-y-4">
+                {recentProgrammes.map((program) => (
+                  <div
+                    key={program.id}
+                    className="border-b pb-3 last:border-b-0 last:pb-0"
+                  >
+                    <div className="flex justify-between">
+                      <h4 className="font-medium">{program.title}</h4>
+                      {getStatusBadge(program.status)}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {program.location}
                     </p>
                   </div>
                 ))}
               </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="outline" className="gap-2 w-full">
-                View All Achievements
-                <ArrowUpRight size={16} />
-              </Button>
-            </CardFooter>
           </Card>
         </div>
-      </div>
+
+        {/* Program Management */}
+        <Card className="shadow-sm mb-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-medium mb-4">Program Management</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border rounded-lg p-4 text-center">
+                <h4 className="font-medium text-xl mb-2">NADI 4U</h4>
+                <Button variant="outline" className="w-full">
+                  <Link to="/programmes/nadi4u">View and manage programs</Link>
+                </Button>
+              </div>
+              <div className="border rounded-lg p-4 text-center">
+                <h4 className="font-medium text-xl mb-2">NADI 2U</h4>
+                <Button variant="outline" className="w-full">
+                  <Link to="/programmes/nadi2u">View and manage programs</Link>
+                </Button>
+              </div>
+              <div className="border rounded-lg p-4 text-center">
+                <h4 className="font-medium text-xl mb-2">Other Programs</h4>
+                <Button variant="outline" className="w-full">
+                  <Link to="/programmes/others">View and manage programs</Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </PageContainer>
     </DashboardLayout>
   );
 };
+
 export default ProgrammesDashboard;
