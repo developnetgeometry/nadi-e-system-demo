@@ -108,12 +108,13 @@ export const useSiteManagementData = (
         
         // Apply phase filter if present
         if (phaseFilter !== null) {
-          query = query.eq("phase_id", phaseFilter);
+          query = query.eq("phase_id", Number(phaseFilter));
         }
         
         // Apply NADI filter (site filter) if present
         if (nadiFilter && nadiFilter.length > 0) {
-          query = query.in("id", nadiFilter);
+          const numericIds = nadiFilter.map(id => Number(id));
+          query = query.in("id", numericIds);
         }
         
         console.log('Query with filters:', { duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter });
@@ -213,10 +214,10 @@ export const useSiteManagementData = (
           const parentData = duspData?.parent ? (Array.isArray(duspData.parent) ? duspData.parent[0] : duspData.parent) : null;
           
           // Check for dusp_tp_id directly from the site record if relationship data is missing
-          const dusp_tp_id = hasDuspAssigned ? (site.dusp_tp_id || duspData?.id || "") : null;
+          const dusp_tp_id = hasDuspAssigned ? (site.dusp_tp_id || (duspData?.id ? String(duspData.id) : "")) : null;
           
           // Construct the complete parent-child hierarchy info
-          const dusp_id = hasDuspAssigned ? (parentData?.id || dusp_tp_id) : null;
+          const dusp_id = hasDuspAssigned ? (parentData?.id ? String(parentData.id) : dusp_tp_id) : null;
           const dusp_name = duspData?.name || "";
           const parent_dusp_name = parentData?.name || "";
           
@@ -231,21 +232,21 @@ export const useSiteManagementData = (
           }
           
           return {
-            id: site.id,
+            id: String(site.id),
             sitename: site.sitename,
             fullname: site.fullname || "",
             standard_code: site.nd_site?.[0]?.standard_code || "",
             is_active: site.is_active,
-            phase_id: site.phase_id || phaseData?.id || "",
+            phase_id: site.phase_id ? String(site.phase_id) : (phaseData?.id ? String(phaseData.id) : ""),
             phase_name: phaseData?.name || "",
             dusp_id: dusp_id,
             dusp_name: formattedDuspName,
-            hasDusp: hasDuspAssigned, // Flag to track if site has DUSP assigned
+            hasDusp: hasDuspAssigned,
             // Store original IDs for debugging
             _debug: {
               hasDusp: hasDuspAssigned,
               dusp_tp_id: dusp_tp_id,
-              parent_id: parentData?.id || ""
+              parent_id: parentData?.id ? String(parentData.id) : ""
             }
           };
         });
@@ -275,7 +276,7 @@ export const useSiteManagementData = (
           setAgreements([]);
         }
         
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching site management data:", error);
         setError(error.message);
       } finally {
@@ -285,6 +286,9 @@ export const useSiteManagementData = (
     
     const fetchUtilitiesData = async (siteIds: string[]) => {
       try {
+        // Convert string IDs to numbers for the query
+        const numericSiteIds = siteIds.map(id => Number(id));
+        
         // Build query for utilities
         let query = supabase
           .from("nd_utilities")
@@ -298,16 +302,16 @@ export const useSiteManagementData = (
             amount_bill, 
             remark
           `)
-          .in("site_id", siteIds);
+          .in("site_id", numericSiteIds);
           
         // Apply year filter if present
         if (yearFilter) {
-          query = query.eq("year", yearFilter);
+          query = query.eq("year", Number(yearFilter));
         }
         
         // Apply month filter if present
         if (monthFilter) {
-          query = query.eq("month", monthFilter);
+          query = query.eq("month", Number(monthFilter));
         }
         
         const { data: utilities, error: utilitiesError } = await query;
@@ -325,28 +329,38 @@ export const useSiteManagementData = (
         
         // Map type names and site names to utilities
         const utilitiesWithDetails = utilities.map(utility => {
-          const site = sites.find(site => site.id === utility.site_id);
+          const site = sites.find(site => String(site.id) === String(utility.site_id));
           return {
-            ...utility,
+            id: String(utility.id),
+            site_id: String(utility.site_id),
             sitename: site?.sitename || "Unknown",
-            type_name: types.find(type => type.id === utility.type_id)?.name || "Unknown"
+            year: utility.year,
+            month: utility.month,
+            type_id: utility.type_id,
+            type_name: types.find(type => type.id === utility.type_id)?.name || "Unknown",
+            reference_no: utility.reference_no,
+            amount_bill: utility.amount_bill,
+            remark: utility.remark
           };
         });
         
         setUtilities(utilitiesWithDetails);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching utilities data:", error);
       }
     };
     
     const fetchInsuranceData = async (siteIds: string[]) => {
       try {
+        // Convert string IDs to numbers for the query
+        const numericSiteIds = siteIds.map(id => Number(id));
+        
         // For simplicity, using the site remarks and insurance report tables
         // Query to get site remarks first
         const { data: siteRemarks, error: remarksError } = await supabase
           .from("nd_site_remark")
           .select("id, site_id, type_id")
-          .in("site_id", siteIds);
+          .in("site_id", numericSiteIds);
           
         if (remarksError) throw remarksError;
         
@@ -376,7 +390,7 @@ export const useSiteManagementData = (
         // Map insurance data
         const mappedInsurance = insuranceReports.map(report => {
           const remark = siteRemarks.find(r => r.id === report.site_remark_id);
-          const site = sites.find(site => site.id === remark?.site_id);
+          const site = sites.find(site => String(site.id) === String(remark?.site_id));
           const insuranceType = insuranceTypes.find(type => type.id === report.insurance_type_id);
           
           // Calculate status based on end_date
@@ -396,7 +410,7 @@ export const useSiteManagementData = (
           
           return {
             id: report.site_remark_id,
-            site_id: remark?.site_id || "",
+            site_id: remark?.site_id ? String(remark.site_id) : "",
             sitename: site?.sitename || "Unknown",
             insurance_type_id: report.insurance_type_id,
             insurance_type_name: insuranceType?.name || "Unknown",
@@ -407,7 +421,7 @@ export const useSiteManagementData = (
         });
         
         setInsurance(mappedInsurance);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching insurance data:", error);
       }
     };

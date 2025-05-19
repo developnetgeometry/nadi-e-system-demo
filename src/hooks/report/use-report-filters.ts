@@ -57,13 +57,23 @@ export const useReportFilters = () => {
           .order("sitename");
           
         if (sitesError) throw sitesError;
+          // Set the filter data - convert numeric IDs to strings to match interface definitions
+        setPhases(phasesData.map(phase => ({
+          id: String(phase.id),
+          name: phase.name
+        })));
         
-        // Set the filter data
-        setPhases(phasesData);
-        setDusps(orgsData);
-        setNadiSites(sitesData);
+        setDusps(orgsData.map(org => ({
+          id: String(org.id),
+          name: org.name
+        })));
         
-      } catch (error) {
+        setNadiSites(sitesData.map(site => ({
+          id: String(site.id),
+          sitename: site.sitename,
+          standard_code: site.standard_code
+        })));
+          } catch (error: any) {
         console.error("Error fetching filter data:", error);
         setError(error.message);
       } finally {
