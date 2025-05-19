@@ -4,7 +4,7 @@ import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
 import { ReportFilters } from "@/components/reports/filters";
-import { SiteManagementReportDownloadButton } from "@/components/reports/pdftemplate/pages/sitemanagement";
+import { SiteManagementReportDownloadButton } from "@/components/reports/pdftemplate/components";
 import { useMcmcLogo, useDuspLogo } from "@/hooks/use-brand";
 import {
   InsuranceCard,

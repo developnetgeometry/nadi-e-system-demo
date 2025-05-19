@@ -1,1 +1,1 @@
-export { SiteManagementReportDownloadButton } from './SiteManagementReport';
+export { SiteManagementReportPDF } from './SiteManagementReport';

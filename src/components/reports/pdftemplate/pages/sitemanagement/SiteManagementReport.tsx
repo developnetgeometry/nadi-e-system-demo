@@ -1,6 +1,5 @@
 import React from "react";
 import {
-    PDFDownloadLink,
     Document,
     Page,
     Text,
@@ -15,8 +14,6 @@ import {
     PDFTable,
     PDFSectionTitle
 } from "../../components/PDFComponents";
-import { Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 // PDF styles for Site Management report
 const styles = StyleSheet.create({
@@ -111,6 +108,7 @@ type AwarenessProgram = {
     standard_code: string; // Standard code instead of refid
     site_name: string;
     state: string;
+    program_name: string;
     program_date: string;
     status: string;
 };
@@ -186,7 +184,7 @@ export const SiteManagementReportPDF = ({
                 <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
 
                 <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{totalSites}</Text>
+                    <Text>Total NADI{"\n"}{0}</Text> // total NADI sites have authority
                 </View>
 
                 {localAuthority.length > 0 ?
@@ -200,7 +198,7 @@ export const SiteManagementReportPDF = ({
                             },
                             {
                                 key: "standard_code",
-                                header: "STANDARD CODE",
+                                header: "SITE CODE",
                                 width: "15%"
                             },
                             {
@@ -229,7 +227,7 @@ export const SiteManagementReportPDF = ({
                 <PDFSectionTitle title="2.2 INSURANCE" />
 
                 <View style={styles.totalBox}>
-                    <Text>Sites with Insurance{"\n"}{insuranceSites} out of {totalSites}</Text>
+                    <Text>Total NADI{"\n"}{insuranceSites}</Text> // total NADI sites with insurance
                 </View>
 
                 <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
@@ -244,7 +242,7 @@ export const SiteManagementReportPDF = ({
                         },
                         {
                             key: "standard_code",
-                            header: "STANDARD CODE",
+                            header: "SITE CODE",
                             width: "15%"
                         },
                         {
@@ -281,7 +279,7 @@ export const SiteManagementReportPDF = ({
                 <PDFSectionTitle title="2.3 AUDITS" />
 
                 <View style={styles.totalBox}>
-                    <Text>Sites with Audits{"\n"}{auditSites} out of {totalSites}</Text>
+                    <Text>Total NADI{"\n"}{auditSites}</Text> // total NADI sites with audits
                 </View>
 
                 <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
@@ -299,7 +297,7 @@ export const SiteManagementReportPDF = ({
                         },
                         {
                             key: "standard_code",
-                            header: "STANDARD CODE",
+                            header: "SITE CODE",
                             width: "15%"
                         },
                         {
@@ -339,7 +337,7 @@ export const SiteManagementReportPDF = ({
                 <PDFSectionTitle title="2.5 AGREEMENTS" />
 
                 <View style={styles.totalBox}>
-                    <Text>Sites with Agreements{"\n"}{agreementSites} out of {totalSites}</Text>
+                    <Text>Total NADI{"\n"}{agreementSites}</Text> // total NADI sites with agreements
                 </View>
 
                 <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
@@ -357,7 +355,7 @@ export const SiteManagementReportPDF = ({
                         },
                         {
                             key: "standard_code",
-                            header: "STANDARD CODE",
+                            header: "SITE CODE",
                             width: "15%"
                         },
                         {
@@ -402,7 +400,7 @@ export const SiteManagementReportPDF = ({
                 <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
                 <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{totalSites}</Text>
+                    <Text>Total NADI{"\n"}{utilitySites}</Text> // total NADI sites with utilities
                 </View>
 
                 <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
@@ -421,7 +419,7 @@ export const SiteManagementReportPDF = ({
                         {
                             key: "site_name",
                             header: "NADI",
-                            width: "45%"
+                            width: "50%"
                         },
                         {
                             key: "state",
@@ -429,17 +427,17 @@ export const SiteManagementReportPDF = ({
                             width: "15%"
                         },
                         {
-                            key: (row) => row.has_water ? "✓" : "",
+                            key: (row) => row.has_water ? "OK" : "",
                             header: "WATER",
                             width: "10%"
                         },
                         {
-                            key: (row) => row.has_electricity ? "✓" : "",
+                            key: (row) => row.has_electricity ? "OK" : "",
                             header: "ELECTRICITY",
-                            width: "15%"
+                            width: "10%"
                         },
                         {
-                            key: (row) => row.has_sewerage ? "✓" : "",
+                            key: (row) => row.has_sewerage ? "OK" : "",
                             header: "SEWERAGE",
                             width: "10%"
                         },
@@ -454,7 +452,7 @@ export const SiteManagementReportPDF = ({
                 <PDFSectionTitle title="2.6 AWARENESS PROGRAMMES" />
 
                 <View style={styles.totalBox}>
-                    <Text>Sites with Programmes{"\n"}{programmeSites} out of {totalSites}</Text>
+                    <Text>Total NADI{"\n"}{programmeSites}</Text>
                 </View>
 
                 <View style={{ position: 'absolute', right: 40, top: 114, textAlign: 'right', fontSize: 8 }}>
@@ -486,149 +484,21 @@ export const SiteManagementReportPDF = ({
                             width: "15%"
                         },
                         {
+                            key: "program_name",
+                            header: "PROGRAMME NAME",
+                            width: "15%"
+                        },
+                        {
                             key: "program_date",
                             header: "DATE",
                             width: "20%"
-                        },
-                        {
-                            key: "status",
-                            header: "STATUS",
-                            width: "15%"
                         },
                     ]}
                 />
                 ) : (
                     <Text>No awareness programme data available.</Text>
-                )}
-
-                <PDFFooter />
+                )}                <PDFFooter />
             </Page>
         </Document>
-    );
-};
-
-// Helper component for rendering the download button with improved UX
-export const SiteManagementReportDownloadButton = ({
-    duspLabel,
-    phaseLabel,
-    periodType,
-    periodValue,
-    totalSites,
-    mcmcLogo,
-    duspLogo,
-    sites,
-    utilities,
-    insurance,
-    localAuthority = [],
-    audits,
-    agreements,
-    programmes,
-    buttonText = "Generate PDF",
-    fileName = "site-management-report.pdf",
-    onGenerationStart,
-    onGenerationComplete
-}: SiteManagementReportProps & {
-    buttonText?: string;
-    fileName?: string;
-    onGenerationStart?: () => void;
-    onGenerationComplete?: (success: boolean) => void;
-}) => {
-    // Track loading state internally
-    const [isGenerating, setIsGenerating] = React.useState(false);
-    // Track if user has clicked to generate PDF
-    const [userClickedGenerate, setUserClickedGenerate] = React.useState(false);
-
-    // Handle the initial button click to start generating PDF
-    const handleGeneratePDF = () => {
-        setUserClickedGenerate(true);
-        setIsGenerating(true);
-        onGenerationStart?.();
-    };
-
-    // Log the data for debugging - remove in production
-    React.useEffect(() => {
-        if (userClickedGenerate) {
-            console.log("PDF data being used:", {
-                sites: sites.length,
-                utilities: utilities.length,
-                insurance: insurance.length,
-                localAuthority: localAuthority?.length || 0,
-                audits: audits.length,
-                agreements: agreements.length
-            });
-        }
-    }, [userClickedGenerate, sites, utilities, insurance, localAuthority, audits, agreements]);
-
-    // If user hasn't clicked to generate, just show the initial button
-    if (!userClickedGenerate) {
-        return (
-            <Button
-                variant="secondary"
-                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                onClick={handleGeneratePDF}
-            >
-                <Download className="h-4 w-4 mr-2" />
-                {buttonText}
-            </Button>
-        );
-    }
-
-    // Only render PDFDownloadLink after user has clicked to generate
-    return (
-        <PDFDownloadLink
-            document={
-                <SiteManagementReportPDF
-                    duspLabel={duspLabel}
-                    phaseLabel={phaseLabel}
-                    periodType={periodType}
-                    periodValue={periodValue}
-                    totalSites={totalSites}
-                    mcmcLogo={mcmcLogo}
-                    duspLogo={duspLogo}
-                    sites={sites}
-                    utilities={utilities}
-                    localAuthority={localAuthority}
-                    insurance={insurance}
-                    audits={audits}
-                    agreements={agreements}
-                    programmes={programmes}
-                />
-            }
-            fileName={fileName}
-        >
-            {({ loading, error, url }) => {
-                // Handle PDF generation lifecycle
-                React.useEffect(() => {
-                    if (!loading && isGenerating) {
-                        setIsGenerating(false);
-                        onGenerationComplete?.(!error);
-                    }
-                }, [loading, error, url]);
-
-                if (error) {
-                    console.error("Error generating PDF:", error);
-                }
-
-                return (
-                    <Button
-                        disabled={loading}
-                        variant="secondary"
-                        className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                    >
-                        {loading ? (
-                            <>
-                                <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                Generating...
-                            </>
-                        ) : (
-                            <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download PDF
-                            </>
-                        )}
-                    </Button>
-                );
-            }}
-        </PDFDownloadLink>
     );
 };
