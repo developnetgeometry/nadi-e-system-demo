@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { UserTypeChips } from "@/components/user-groups/UserTypeChips";
 import { formatDate } from "@/utils/date-utils";
 import { Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,7 +128,6 @@ export function DashboardAnnouncements() {
                 {announcement.title}
               </AlertTitle>
               <div className="flex gap-2">
-                <UserTypeChips userTypes={announcement.user_types} />
                 {announcement.end_date &&
                   isAnnouncementExpired(announcement.end_date) && (
                     <Badge

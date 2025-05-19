@@ -23,6 +23,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface FilterBarProps {
   showDateRange?: boolean;
   showRegion?: boolean;
+  isFacility?: boolean;
   showCenterType?: boolean;
   showSearch?: boolean;
   showPcBookingFilter?: boolean;
@@ -35,6 +36,7 @@ export function FilterBar({
   showDateRange = true,
   showRegion = true,
   showCenterType = true,
+  isFacility,
   showPcBookingFilter = false,
   showSearch = true,
   onFilterChange,
@@ -46,14 +48,14 @@ export function FilterBar({
   const [region, setRegion] = React.useState<string>('all');
   const [centerType, setCenterType] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
-  const [pcAvailability, setPcAvailability] = React.useState<string>('all');
-  const [pcTypeTabs, setPcTypeTabs] = React.useState<string>('all');
+  const [availability, setAvailability] = React.useState<string>('all');
+  const [typeTabs, setTypeTabs] = React.useState<string>('all');
 
   const handleFilterChange = () => {
     if (showPcBookingFilter && onFilterChange) {
       onFilterChange({
-        pcAvailability,
-        pcTypeTabs,
+        availability,
+        typeTabs,
         searchQuery
       });
       return;
@@ -71,7 +73,7 @@ export function FilterBar({
 
   React.useEffect(() => {
     handleFilterChange();
-  }, [startDate, endDate, region, centerType, searchQuery, pcAvailability, pcTypeTabs]);
+  }, [startDate, endDate, region, centerType, searchQuery, availability, typeTabs]);
 
   return (
     <div className={cn("flex flex-wrap gap-2 items-center", className)}>
@@ -158,20 +160,28 @@ export function FilterBar({
       {showPcBookingFilter && (
 
         <section className='flex gap-2' id="filterPcBooking">
-            <Tabs value={pcAvailability} defaultValue='all' onValueChange={(value: string) => { setPcAvailability(value) }}>
-              <TabsList className='bg-white' defaultValue={'all'}>
-                <TabsTrigger value='all'>All</TabsTrigger>
-                <TabsTrigger value='Available'>Free</TabsTrigger>
-                <TabsTrigger value='in-use'>Used</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Tabs value={pcTypeTabs} defaultValue='all' onValueChange={(value: string) => { setPcTypeTabs(value) }}>
+          <Tabs value={availability} defaultValue='all' onValueChange={(value: string) => { setAvailability(value) }}>
+            <TabsList className='bg-white' defaultValue={'all'}>
+              <TabsTrigger value='all'>All</TabsTrigger>
+              <TabsTrigger value='Available'>Available</TabsTrigger>
+              <TabsTrigger value='in-use'>Used</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Tabs value={typeTabs} defaultValue='all' onValueChange={(value: string) => { setTypeTabs(value) }}>
+            {!isFacility ? (
               <TabsList className='bg-white' defaultValue={'all'}>
                 <TabsTrigger value='all'>All</TabsTrigger>
                 <TabsTrigger value='Gaming'>Gaming</TabsTrigger>
                 <TabsTrigger value='Printer'>Printer</TabsTrigger>
               </TabsList>
-            </Tabs>            
+            ) : (
+              <TabsList className='bg-white' defaultValue={'all'}>
+                <TabsTrigger value='all'>All</TabsTrigger>
+                <TabsTrigger value='Meeting'>Meeting</TabsTrigger>
+                <TabsTrigger value='Lab'>Lab</TabsTrigger>
+              </TabsList>
+            )}
+          </Tabs>
         </section>
 
       )}

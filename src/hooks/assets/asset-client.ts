@@ -150,7 +150,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
-        nd_brand!nd_asset_nd_brand_fk  ( id, name ),
+        nd_brand!nd_asset_nd_brand_fk  ( id, name, brand_type ),
         site:nd_site (
           id,
           standard_code
@@ -172,6 +172,38 @@ export const assetClient = {
       brand: data.nd_brand,
       site: profile,
     };
+  },
+
+  fetchSuperAdminAsset: async (isSuperAdmin: boolean) => {
+    if (!isSuperAdmin) {
+      throw new Error("Error dannied: you don't have permission to get all asset")
+    }
+
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select(`
+        *,
+        nd_brand (
+            id,
+            name,
+            brand_type
+          ),
+        nd_booking (
+            id,
+            booking_start,
+            booking_end,
+            is_using,
+            created_by
+          ),
+        nd_asset_type!inner (
+            category_id
+          )  
+      `)
+
+
+    if (error) throw error;
+
+    return data;
   },
 
   fetchAssetByName: async (assetName: string) => {
@@ -228,8 +260,18 @@ export const assetClient = {
     }));
   },
 
-  fetchAssetsByType: async (typeId: number, siteId: number) => {
-    if (!!siteId) {
+  fetchAssetsByType: async (siteProfileId: number) => {
+    if (!!siteProfileId) {
+      const { data: siteId, error: errorSiteId } = await supabase
+        .from("nd_site")
+        .select("id")
+        .eq("site_profile_id", siteProfileId)
+        .single()
+
+      if (errorSiteId) {
+        throw errorSiteId
+      }
+
       const { data, error } = await supabase
         .from("nd_asset")
         .select(`
@@ -243,21 +285,27 @@ export const assetClient = {
             id,
             booking_start,
             booking_end,
-            is_using
+            is_using,
+            created_by
           )
         `)
-        .eq("type_id", typeId)
         .eq("site_id", siteId);
 
       if (error) throw error;
 
       return data;
     }
+  },
+
+  fetchAssetsBySiteId: async (siteId: number): Promise<Asset[]> => {
     
     const { data, error } = await supabase
       .from("nd_asset")
       .select(`
-        *,
+        *, 
+        nd_site!inner (
+          id
+        ), 
         nd_brand (
           id,
           name,
@@ -267,35 +315,11 @@ export const assetClient = {
           id,
           booking_start,
           booking_end,
-          is_using
-        )
-        `)
-      .eq("type_id", typeId);
-
-    if (error) {
-      console.error("Error fetching assets by type:", error);
-      throw error;
-    }
-
-    return data;
-  },
-
-  fetchAssetsBySiteId: async (siteId: number, assetTypeId: number): Promise<Asset> => {
-    const { data, error } = await supabase
-      .from("nd_asset")
-      .select(`
-        *, 
-        nd_site!inner (
-          id
-        ), 
-        nd_booking (
           is_using,
-          booking_start,
-          booking_end
+          created_by
         )
       `)
-      .eq("nd_site.id", siteId)
-      .eq("type_id", assetTypeId)
+      .eq("site_id", siteId)
 
     if (error) throw error;
 
@@ -317,22 +341,6 @@ export const assetClient = {
     } catch (error) {
       console.error("Error toggling site active status:", error);
       throw error;
-    }
-  },
-
-  getAllPcInTpsSite: async(tps_site_ids: number[], assetType: number) => {
-    try {
-      const results = await Promise.all(
-        tps_site_ids.map(async (id) => {
-          const asset = await assetClient.fetchAssetsBySiteId(id, assetType);
-          return asset;
-        })
-      );
-  
-      return results.flat();
-    } catch (error) {
-      console.error("Failed to fetch assets:", error);
-      return [];
     }
   }
 };

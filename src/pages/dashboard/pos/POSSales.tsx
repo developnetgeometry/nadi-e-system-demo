@@ -12,7 +12,7 @@ import { Inventory } from "@/types/inventory";
 import { Transaction } from "@/types/transaction";
 // import { Profile } from "@/types/auth";
 
-import { Check, ChevronsUpDown, User, Search, CreditCard, Trash2, Plus, Clock, ShoppingCart, Box, QrCode, Banknote } from "lucide-react";
+import { Check, ChevronsUpDown, User, Search, CreditCard, Trash2, Plus, Clock, ShoppingCart, Box, QrCode, Banknote, Minus } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState, useMemo } from "react";
 
 const POSSales = () => {
+  const [searchItem, setSearchItem] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMember, setSelectedMember] = useState(null);
   const [isQuantityDialogOpen, setIsQuantityDialogOpen] = useState(false);
@@ -38,23 +39,33 @@ const POSSales = () => {
 
   const [cartItems, setCartItems] = useState<Array<{
     id: string | number;
-    code: string;
+    type_id: string | number;
     name: string;
     quantity: number;
     price: number;
     total: number;
+    barcode: string | number;
   }>>([]);
 
   // Fetch inventory data
   const { data: inventorys, isLoading: loadingInventorys } = useQuery({
-    queryKey: ['inventorys'],
+    queryKey: ['inventorys', searchItem],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('nd_inventory')
         .select('*')
-        .order('created_at', { ascending: false });
+
+      if (searchItem) {
+        query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%`)
+      }
+
+      query = query.order('created_at', { ascending: false });
+      const { data, error } = await query;
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching inventories:", error);
+        throw error;
+      }
       return data;
     },
   });
@@ -73,21 +84,15 @@ const POSSales = () => {
       }
 
       query = query.order('created_at', { ascending: false });
-
       const { data, error, count } = await query;
 
       if (error) {
         console.error("Error fetching members:", error);
         throw error;
       }
-
       return { data: data, count: count || 0 };
     },
   });
-
-  // const [inventoryQuantity, setInventoryQuantity] = useState<string>(
-  //   String(inventorys?.quantity || "")
-  // );
 
   const resetSale = () => {
     setCartItems([]);
@@ -96,31 +101,58 @@ const POSSales = () => {
   };
 
   const handleSearchChange = (value: string) => {
-    setSearchTerm(value || "");
+    setSearchItem(value || "");
   };
 
-  const handleQuantityChange = (value: number) => {
-    if (selectedItem && value >= 1 && value <= selectedItem.quantity) {
-      setItemQuantity(value);
+  const getInventoryStock = (itemId: string | number) => {
+    const inventoryItem = inventorys?.find(inv => inv.id === itemId);
+    return inventoryItem ? inventoryItem.quantity : 0;
+  }
+
+  const updateCartItemQuantity = (itemId: string | number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+
+    const inventoryItem = inventorys?.find(inv => inv.id === itemId);
+    if(!inventoryItem) return;
+
+    if(newQuantity > inventoryItem.quantity) {
+      toast({
+        title: "Quantity limit exceeded",
+        description: `Only ${inventoryItem.quantity} items available in stock.`,
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const handleSubmitQuantity = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedItem) {
+    const updatedItems = cartItems.map(item => {
+      if(item.id === itemId) {
+        return {
+          ...item,
+          quantity: newQuantity,
+          total: newQuantity * item.price
+        };
+      }
+      return item;
+    });
+
+    setCartItems(updatedItems);
+  }
+
+  const addToCart = (inventory: Inventory) => {
+    if (inventory) {
       // Check if item already exists in cart
-      const existingItemIndex = cartItems.findIndex(item => item.id === selectedItem.id);
+      const existingItemIndex = cartItems.findIndex(item => item.id === inventory.id);
       
       if (existingItemIndex >= 0) {
         // Calculate how many more items can be added based on what's already in cart
         const currentQtyInCart = cartItems[existingItemIndex].quantity;
-        const availableQtyToAdd = selectedItem.quantity - currentQtyInCart;
+        const availableQtyToAdd = inventory.quantity - currentQtyInCart;
         
         // If there's not enough quantity available, show an error
         if (availableQtyToAdd < itemQuantity) {
           toast({
-            title: "Fail to add inventory",
-            description: "The inventory quantity has reached max.",
+            title: `Fail to add ${inventory.name}`,
+            description: `${inventory.name} quantity has reached max.`,
             variant: "destructive",
           });
           return;
@@ -133,39 +165,38 @@ const POSSales = () => {
         setCartItems(updatedItems);
 
         toast({
-          title: "Inventory updated successfully",
-          description: "The inventory has been updated in the cart.",
+          title: `${inventory.name} updated successfully`,
+          description: `${inventory.name} has been updated in the cart.`,
           variant: "success",
         });
       } else {
         // Add new item to cart
         const newItem = {
-          id: selectedItem.id,
-          code: '-',
-          name: selectedItem.name,
+          id: inventory.id,
+          type_id: inventory.type_id,
+          barcode: '-',
+          name: inventory.name,
           quantity: itemQuantity,
-          price: selectedItem.price,
-          total: itemQuantity * selectedItem.price
+          price: inventory.price,
+          total: itemQuantity * inventory.price
         };
         setCartItems([...cartItems, newItem]);
 
         toast({
-          title: "Inventory added successfully",
-          description: "The inventory has been added in the cart.",
+          title: `${inventory.name} added successfully`,
+          description: `${inventory.name} has been added in the cart.`,
           variant: "success",
         });
       }
-      
-      setIsQuantityDialogOpen(false);
     }
   };
 
-  const handleRemoveCartItem = (itemId: string | number) => {
+  const handleRemoveCartItem = (itemId: string | number, itemName: string) => {
     setCartItems(cartItems.filter(item => item.id !== itemId));
 
     toast({
-      title: "Inventory removed successfully",
-      description: "The inventory has been removed in the cart.",
+      title: `${itemName} removed successfully`,
+      description: `${itemName} has been removed in the cart.`,
       variant: "success",
     });
   };
@@ -174,24 +205,16 @@ const POSSales = () => {
     return cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   };
 
-  // const calculateTax = (subtotal: number) => {
-  //   return subtotal * 0.06;
-  // };
-
-  const calculateTotal = (subtotal: number, tax: number) => {
-    return subtotal + tax;
+  const calculateTotal = (subtotal: number) => {
+    return subtotal;
   };
 
   const subtotal = useMemo(() => {
     return calculateSubtotal();
   }, [cartItems]);
 
-  // const tax = useMemo(() => {
-  //   return calculateTax(subtotal);
-  // }, [subtotal]);
-
   const total = useMemo(() => {
-    return calculateTotal(subtotal, 0);
+    return calculateTotal(subtotal);
   }, [subtotal, 0]);
 
   const handlePaymentQR = () => {
@@ -311,130 +334,136 @@ const POSSales = () => {
   }
 
   useEffect(() => {
-    if(isQuantityDialogOpen && selectedItem) {
-      setItemQuantity(1);
-    }
-
     if(isPayDialogOpen) {
       setIsShowCashPayment(false);
       setCashAmount(0);
     }
-  }, [isQuantityDialogOpen, selectedItem, isPayDialogOpen]);
+  }, [isPayDialogOpen]);
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="text-xl font-bold">Sales</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            POS Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage point of sale transactions
+          </p>
+        </div>
       </div>
 
-      <div className="flex w-full">
-        <Card className="w-6/12 p-4 rounded-lg shadow flex flex-col min-h-[600px]">
+      <div className="flex w-full space-x-6 mt-6">
         
-          <div className="flex w-full">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-full justify-between"
-                >
-                  {selectedMember
-                    ? `${selectedMember.full_name || ''} - ${selectedMember.email || ''}`
-                    : "Select member..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command shouldFilter={false} className="w-full">
-                  <CommandInput 
-                    placeholder="Search members..." 
-                    value={searchTerm}
-                    onValueChange={handleSearchChange}
-                    className="h-9"
-                  />
-                  <CommandList className="max-h-64 overflow-auto">
-                    {loadingMembersData ? (
-                      <div className="py-6 text-center text-sm">Loading members...</div>
-                    ) : (membersData?.data || []).length === 0 ? (
-                      <CommandEmpty>No members found.</CommandEmpty>
-                    ) : (
-                      <CommandGroup>
-                        {(membersData?.data || []).map((member) => (
-                          <CommandItem
-                            key={member.id}
-                            value={member.id?.toString()}
-                            onSelect={() => {
-                              setSelectedMember(member);
-                              setSearchTerm(member.full_name || "");
-                              setOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedMember?.id === member.id ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            <div>
-                              <div className="font-medium">{member.fullname || 'No name'}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {member.email || 'No email'} {member.identity_no ? `(${member.identity_no})` : ''}
-                              </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    )}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+        <div className="w-8/12 space-y-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Enter item name or scan barcode"
+              value={searchItem}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-9"
+            />
           </div>
 
-          <div className="flex flex-col mt-4 gap-2">
-            <span className="flex justify-between items-center">              
-              <p className="text-md">Points earned</p>
-              <p className="text-md font-semibold">0 points</p>
-            </span>
-            <span className="flex justify-between items-center">              
-              <p className="text-md">Visits</p>
-              <p className="text-md font-semibold">0 visits</p>
-            </span>
-          </div>
+          {searchItem.length > 0 && (
+            <Card className="p-4 rounded-lg shadow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {inventorys && inventorys.length > 0 ? (
+                  inventorys.map((inventory) => (
+                  <Card key={inventory.id} className="hover:cursor-pointer border hover:border-[#5147dd]" onClick={() => addToCart(inventory)}>
+                    <img src="/200x200.svg" alt="" className="w-full h-32 object-cover" />
+                    <div className="p-2">
+                      <p className="font-medium text-sm truncate">{inventory.name}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-sm font-semibold">RM{inventory.price}</span>
+                        <Button onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(inventory);
+                        }}>
+                          +
+                        </Button>
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>{inventory.type_id == 1 ? 'Physical' : 'Digital'}</span>
+                        <span>Stock: {inventory.quantity}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  No items found matching "{searchItem}"
+                </div>
+              )}
+            </Card>
+          )}
 
-          <div className="flex-grow my-6">
+          <Card>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Item Name</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className="text-right">Qty.</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {cartItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
                       No items in cart
                     </TableCell>
                   </TableRow>
                 ) : (
                   cartItems.map(item => (
                     <TableRow key={item.id}>
-                      <TableCell>{item.code}</TableCell>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{item.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-start gap-3">
+                          <img src="/200x200.svg" alt="" className="w-12 h-12 object-cover rounded-md" />
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Category: {item.type_id == 1 ? 'Physical' : 'Digital'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Barcode: {item.barcode ? item.barcode : '-'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Stock: {getInventoryStock(item.id)}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">RM{item.price}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white"
+                            onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus className="h-5 w-5" />
+                          </Button>
+                          <span>{item.quantity}</span>
+                          <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white"
+                            onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                            disabled={item.quantity >= getInventoryStock(item.id)}
+                          >
+                            <Plus className="h-5 w-5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">RM{item.total}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
                             variant="outline"
                             size="icon"
                             className="text-destructive"
-                            onClick={() => handleRemoveCartItem(item.id)}
+                            onClick={() => handleRemoveCartItem(item.id, item.name)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -445,17 +474,124 @@ const POSSales = () => {
                 )}
               </TableBody>
             </Table>
+          </Card>
+        </div>
+
+        <Card className="w-4/12 p-6 rounded-lg shadow flex flex-col">
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="" className="text-sm font-medium">Find Customer</label>
+              <div className="relative flex-1">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search name, email or phone"
+                  value={searchItem}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            <div className="border p-3 rounded-lg">
+              <h3 className="text-sm font-medium mb-1">
+                Customer
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                No customer selected
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Total Items</span>
+                <span className="font-medium">0</span>
+              </div>
+              <div className="flex justify-between items-center text-lg font-medium border-t pt-2 mt-4">
+                <span>Total</span>
+                <span>RM 0.00</span>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="" className="block text-sm font-medium mb-1">Remarks</label>
+              <textarea name="" id="remarks" placeholder="Add any notes about this sale" className="flex min-h-[80px] w-full rounded-md 
+                border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none 
+                focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 h-20"
+              ></textarea>
+            </div>
+
+            <div className="pt-4 border-t">
+              <p className="font-medium mb-2">Payment Method</p>
+              
+            </div>
+
           </div>
 
-          <div className="mt-auto flex flex-col gap-2">
+          {/* <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between"
+              >
+                {selectedMember
+                  ? `${selectedMember.full_name || ''} - ${selectedMember.email || ''}`
+                  : "Select member..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command shouldFilter={false} className="w-full">
+                <CommandInput 
+                  placeholder="Search members..." 
+                  value={searchTerm}
+                  onValueChange={handleSearchChange}
+                  className="h-9"
+                />
+                <CommandList className="max-h-64 overflow-auto">
+                  {loadingMembersData ? (
+                    <div className="py-6 text-center text-sm">Loading members...</div>
+                  ) : (membersData?.data || []).length === 0 ? (
+                    <CommandEmpty>No members found.</CommandEmpty>
+                  ) : (
+                    <CommandGroup>
+                      {(membersData?.data || []).map((member) => (
+                        <CommandItem
+                          key={member.id}
+                          value={member.id?.toString()}
+                          onSelect={() => {
+                            setSelectedMember(member);
+                            setSearchTerm(member.full_name || "");
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedMember?.id === member.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div>
+                            <div className="font-medium">{member.fullname || 'No name'}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {member.email || 'No email'} {member.identity_no ? `(${member.identity_no})` : ''}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover> */}
+
+          {/* <div className="mt-auto flex flex-col gap-2">
             <span className="flex justify-between items-center">              
               <p className="text-md">Subtotal:</p>
               <p className="text-md">RM {subtotal.toFixed(2)}</p>
-            </span>
-            <span className="flex justify-between items-center">              
-              <p className="text-md">Tax (6%):</p>
-              {/* <p className="text-md">RM {tax.toFixed(2)}</p> */}
-              <p className="text-md">RM 0.00</p>
             </span>
             <span className="flex justify-between items-center">              
               <p className="text-md font-semibold">Total:</p>
@@ -468,119 +604,8 @@ const POSSales = () => {
             >
               <CreditCard className="h-5 w-5" /> Pay Now
             </Button>
-          </div>
+          </div> */}
         </Card>
-
-        <div className="w-6/12 px-6 grid grid-cols-3 gap-4 h-fit">
-          {inventorys?.map((inventory) => (
-            <button 
-              key={inventory.id} 
-              onClick={() => {
-                setIsQuantityDialogOpen(true);
-                setSelectedItem(inventory);
-              }}
-              className="w-full h-[150px]"
-            >
-              <Card className="px-6 py-8 flex flex-col items-center justify-center gap-2 h-[150px]">
-                <Box className="h-5 w-5 mb-1" />
-                <p className="text-sm font-semibold">{inventory.name}</p>
-                <p className="text-sm font-semibold text-gray-600">RM {inventory.price}.00</p>
-              </Card>
-            </button>
-          ))}
-          {/* <button 
-            onClick={() => alert("Cart Modal")}
-            className="w-full h-[150px]"
-          >
-            <Card className="px-6 py-8 flex flex-col items-center justify-center gap-2 h-full">
-              <ShoppingCart className="h-5 w-5" />
-              <p className="text-sm font-semibold">Cart</p>
-            </Card>
-          </button>
-          <button 
-            onClick={() => alert("History Modal")}
-            className="w-full h-[150px]"
-          >
-            <Card className="px-6 py-8 flex flex-col items-center justify-center gap-2 h-full">
-              <Clock className="h-5 w-5" />
-              <p className="text-sm font-semibold">History</p>
-            </Card>
-          </button> */}
-          <button 
-            onClick={() => {
-              if (cartItems.length > 0 || selectedMember) {
-                setIsResetConfirmDialogOpen(true);
-              } else {
-                resetSale();
-              }
-            }}
-            className="w-full h-[150px]"
-          >
-            <Card className="px-6 py-8 flex flex-col items-center justify-center gap-2 h-full">
-              <Plus className="h-5 w-5" />
-              <p className="text-sm font-semibold">New Sale</p>
-            </Card>
-          </button>
-        </div>
-
-        {/* Quantity Inventory Dialog */}
-        <Dialog open={isQuantityDialogOpen} onOpenChange={setIsQuantityDialogOpen}>
-          <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="mb-2">
-              <DialogTitle>
-                {selectedItem?.name}
-              </DialogTitle>
-              <DialogDescription>
-                Choose quantity
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmitQuantity} className="space-y-4">
-              <div className="flex flex-col items-center space-y-4">
-                <div className="flex items-center justify-center w-full">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => handleQuantityChange(itemQuantity - 1)}
-                    disabled={itemQuantity <= 1}
-                  >
-                    <span className="text-xl font-bold">-</span>
-                  </Button>
-                  
-                  <Input
-                    id="quantity"
-                    name="quantity"
-                    type="number"
-                    required
-                    className="mx-2 w-24 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    value={itemQuantity}
-                    onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                    min={1}
-                    max={selectedItem?.quantity}
-                  />
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => handleQuantityChange(itemQuantity + 1)}
-                    disabled={selectedItem && itemQuantity >= selectedItem.quantity}
-                  >
-                    <span className="text-xl font-bold">+</span>
-                  </Button>
-                </div>
-                
-                <div className="text-sm text-muted-foreground">
-                  Available: <span className="font-semibold">{selectedItem?.quantity || 0}</span> units
-                </div>
-              </div>
-
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                Add
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
 
         {/* Reset Confirmation Dialog */}
         <Dialog open={isResetConfirmDialogOpen} onOpenChange={setIsResetConfirmDialogOpen}>

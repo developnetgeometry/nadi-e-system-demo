@@ -1,21 +1,24 @@
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Booking } from "@/types/booking";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { LoadingFormSkeleton } from "./LoadingFormSkeleton";
 
-const BookingForm =  lazy(() => import('./BookingForm'));
+const BookingForm = lazy(() => import('./BookingForm'));
 
 interface BookingFormDialogProps {
-    pcsName: string[],
+    assetsName: string[],
     isLoading: boolean,
     open: boolean,
+    isFacility?: boolean
     setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const BookingFormDialog = ({
-    pcsName,
+    assetsName,
     isLoading,
+    isFacility,
     setBookingCalendarData,
     setBookingsData,
     setOpen,
@@ -35,26 +38,30 @@ export const BookingFormDialog = ({
             setShowForm(false);
         }
     }, [open]);
-    
+
     return (
-        <DialogContent className="h-screen overflow-auto [&::-webkit-scrollbar]:hidden scrollbar-hide">
-            <DialogHeader>
-                <DialogTitle>Create New PC Booking</DialogTitle>
-            </DialogHeader>
-            { 
-                !showForm ? 
-                <div>Loading form...</div> :
-                // <FormLoadingSkeleton />:
-                (
-                    <Suspense fallback={<div>Loading form...</div>}>
-                        <BookingForm 
-                            setOpen={setOpen} 
-                            pcsName={pcsName}
-                            setBookingsData={setBookingsData}
-                            setBookingCalendarData={setBookingCalendarData}
-                        />
-                    </Suspense>
-                )
+        <DialogContent className="h-fit max-h-screen overflow-auto [&::-webkit-scrollbar]:hidden scrollbar-hide">
+            {
+                !showForm ?
+                    <LoadingFormSkeleton 
+                        inputSum={isFacility ? 4 : 5}
+                    /> :
+                    (
+                        <Suspense fallback={<LoadingFormSkeleton 
+                            inputSum={isFacility ? 4 : 5}
+                        />}>
+                            <DialogHeader>
+                                <DialogTitle>Create New PC Booking</DialogTitle>
+                            </DialogHeader>
+                            <BookingForm
+                                isFacility={isFacility}
+                                setOpen={setOpen}
+                                assetsName={assetsName}
+                                setBookingsData={setBookingsData}
+                                setBookingCalendarData={setBookingCalendarData}
+                            />
+                        </Suspense>
+                    )
             }
         </DialogContent>
     )
