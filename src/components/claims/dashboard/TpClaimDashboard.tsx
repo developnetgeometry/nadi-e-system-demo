@@ -7,52 +7,49 @@ import { supabase } from "@/integrations/supabase/client";
 import { FileText, Clock, CheckSquare, XSquare, Plus, Send } from "lucide-react";
 import { useState } from "react";
 import ClaimForm from "@/components/claims/tp/ClaimForm"; // Adjusted for default import
-import { ClaimList } from "@/components/claims/tp/ClaimList";
+import { ClaimListTp } from "@/components/claims/tp/ClaimListTp";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
-import { useDuspName } from "../hook/use-claim-data";
+import { useDuspTpData } from "../hook/use-claim-data";
 
 const TpClaimDashboard = () => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const organizationId = parsedMetadata?.organization_id;
-  const tpName = parsedMetadata?.organization_name;
-    const { duspName } = useDuspName();
+  const { duspTpData, isLoading: duspTpLoading, error: duspTpError } = useDuspTpData();
 
   const [showNewClaimForm, setShowNewClaimForm] = useState(false);
   const { toast } = useToast();
 
-const { data: claimStats, isLoading } = useQuery({
-  queryKey: ["claimStats"],
-  queryFn: async () => {
-    console.log("Fetching claim statistics...");
-    const { data: stats, error } = await supabase
-      .from("nd_claim_application")
-      .select(`
-        claim_status (id, name)
-      `)
-      .eq("tp_dusp_id", organizationId);
+  const { data: claimStats, isLoading } = useQuery({
+    queryKey: ["claimStats"],
+    enabled: !!organizationId, // only run query when orgId exists
+    queryFn: async () => {
+      const { data: stats, error } = await supabase
+        .from("nd_claim_application")
+        .select(`claim_status (id, name)`)
+        .eq("tp_dusp_id", organizationId);
 
-    if (error) {
-      console.error("Error fetching claim stats:", error);
-      throw error;
-    }
+      if (error) {
+        console.error("Error fetching claim stats:", error);
+        throw error;
+      }
 
-    const counts = {
-      completed: stats.filter((c) => c.claim_status.name === "COMPLETED").length,
-      processing: stats.filter((c) => c.claim_status.name === "PROCESSING").length,
-      submitted: stats.filter((c) => c.claim_status.name === "SUBMITTED").length,
-      drafted: stats.filter((c) => c.claim_status.name === "DRAFTED").length,
-    };
+      const counts = {
+        completed: stats.filter((c) => c.claim_status.name === "COMPLETED").length,
+        processing: stats.filter((c) => c.claim_status.name === "PROCESSING").length,
+        submitted: stats.filter((c) => c.claim_status.name === "SUBMITTED").length,
+        drafted: stats.filter((c) => c.claim_status.name === "DRAFTED").length,
+      };
+      return counts;
+    },
+  });
 
-    console.log("Claim statistics:", counts);
-    return counts;
-  },
-});
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
+
           <h1 className="text-xl font-bold">Claim Management</h1>
           <p className="text-muted-foreground mt-2">
             Submit and track your claims
@@ -114,17 +111,16 @@ const { data: claimStats, isLoading } = useQuery({
         </Card>
       </div>
 
-{showNewClaimForm ? (
-  <ClaimForm
-    isOpen={showNewClaimForm}
-    onClose={() => setShowNewClaimForm(false)}
-    organizationId={organizationId} // Pass organizationId here
-    tpName={tpName} // Pass tpName here
-    duspName={duspName} // Pass duspName here
-  />
-) : (
-  <ClaimList />
-)}
+      {showNewClaimForm ? (
+        <ClaimForm
+          isOpen={showNewClaimForm}
+          onClose={() => setShowNewClaimForm(false)}
+          duspTpData={duspTpData}
+          organizationId={organizationId}
+        />
+      ) : (
+        <ClaimListTp />
+      )}
     </div>
   );
 };

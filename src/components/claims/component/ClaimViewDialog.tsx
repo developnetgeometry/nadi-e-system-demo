@@ -100,6 +100,12 @@ const ClaimViewDialog: React.FC<ClaimViewDialogProps> = ({ isOpen, onClose, clai
             <h3 className="text-lg font-semibold mb-2">General Information</h3>
             <Table>
               <TableBody>
+                {claim.tp_dusp_organization && (
+                  <TableRow>
+                    <TableCell className="font-medium">DUSP Name</TableCell>
+                    <TableCell>{claim.tp_dusp_organization.name}</TableCell>
+                  </TableRow>
+                )}
                 <TableRow>
                   <TableCell className="font-medium">TP Name</TableCell>
                   <TableCell>{claim.tp_dusp_id.name}</TableCell>

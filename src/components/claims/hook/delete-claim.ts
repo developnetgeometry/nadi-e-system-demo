@@ -6,7 +6,7 @@ export const deleteClaimData = async (claimId: string) => {
     const { error: logError } = await supabase
       .from("nd_claim_log")
       .delete()
-      .eq("claim_id", claimId);
+      .eq("claim_id", Number(claimId));
 
     if (logError) {
       console.error("Error deleting from nd_claim_log:", logError);
@@ -17,7 +17,7 @@ export const deleteClaimData = async (claimId: string) => {
     const { data: claimRequests, error: fetchRequestError } = await supabase
       .from("nd_claim_request")
       .select("id")
-      .eq("application_id", claimId);
+      .eq("application_id", Number(claimId));
 
     if (fetchRequestError) {
       console.error("Error fetching claim requests:", fetchRequestError);
@@ -73,7 +73,7 @@ export const deleteClaimData = async (claimId: string) => {
     const { error: requestError } = await supabase
       .from("nd_claim_request")
       .delete()
-      .eq("application_id", claimId);
+      .eq("application_id", Number(claimId));
 
     if (requestError) {
       console.error("Error deleting from nd_claim_request:", requestError);
@@ -84,7 +84,7 @@ export const deleteClaimData = async (claimId: string) => {
     const { error: applicationError } = await supabase
       .from("nd_claim_application")
       .delete()
-      .eq("id", claimId);
+      .eq("id", Number(claimId));
 
     if (applicationError) {
       console.error("Error deleting from nd_claim_application:", applicationError);
