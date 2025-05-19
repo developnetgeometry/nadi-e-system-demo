@@ -56,7 +56,7 @@ export const DashboardNavbar = () => {
             !isMobile && "flex-1 justify-end"
           )}
         >
-          <AnnouncementButton />
+          <AnnouncementButton unreadCount={0} />
           <ThemeToggle />
           <NotificationToggle />
           <HeaderProfile />
