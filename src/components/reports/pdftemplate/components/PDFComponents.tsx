@@ -436,11 +436,11 @@ export const PDFPhaseQuarterInfo = ({
   }}>
     <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
       <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
-      {phaseLabel || 'PILOT'}
+      {phaseLabel || '-'}
     </Text>
     <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
       <Text style={{ fontWeight: "bold" }}>{periodType}: </Text>
-      {periodValue || '4/2024'}
+      {periodValue || '-'}
     </Text>
   </View>
 );

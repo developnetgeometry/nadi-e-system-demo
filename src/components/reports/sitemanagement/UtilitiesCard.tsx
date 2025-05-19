@@ -70,7 +70,7 @@ export const UtilitiesCard = ({
             
             <div className="mt-3 text-right">
               <span className="text-sm text-gray-600">
-                {utilityTypes.length ? utilityTypes.join(", ") : "Water, Electricity, IWK"}
+                {utilityTypes.length ? utilityTypes.join(", ") : "Water, Electricity, Sewage, Internet"}
               </span>
             </div>
           </>

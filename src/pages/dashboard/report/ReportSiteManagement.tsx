@@ -41,7 +41,7 @@ const yearOptions = [
 ];
 
 const ReportSiteManagement = () => {  // Filter states
-  const [duspFilter, setDuspFilter] = useState<string | number | null>(null);
+  const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [nadiFilter, setNadiFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
@@ -126,7 +126,11 @@ const ReportSiteManagement = () => {  // Filter states
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
           </div>
 
-          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton              duspLabel={dusps.find(d => d.id === duspFilter)?.name}
+          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton              duspLabel={duspFilter.length === 1 
+                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+                : duspFilter.length > 1 
+                  ? `${duspFilter.length} DUSPs selected` 
+                  : ""}
               phaseLabel={phaseFilter !== null 
                 ? phases.find(p => p.id === phaseFilter)?.name || ""
                 : ""}
