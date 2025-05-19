@@ -118,10 +118,14 @@ export const PDFSectionTitle = ({
 }) => {
   const sectionStyles = StyleSheet.create({
     sectionTitle: {
+      backgroundColor: "#000",
+      color: "#fff",
+      padding: 8,
       fontSize: 12,
       fontWeight: "bold",
       marginTop: 20,
       marginBottom: 10,
+      textTransform: "uppercase",
     }
   });
 
