@@ -208,7 +208,8 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 2: Insurance */}
-            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.2 INSURANCE" />
+            <Page size="A4" style={styles.page}>                
+                <PDFSectionTitle title="2.2 INSURANCE" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
@@ -223,35 +224,40 @@ export const SiteManagementReportPDF = ({
                     </View>
                 </View>
 
-                <PDFTable data={insurance}
-                    columns={[
-                        {
-                            key: (_, i) => `${i + 1}.`,
-                            header: "NO",
-                            width: "5%"
-                        },
-                        {
-                            key: "standard_code",
-                            header: "SITE CODE",
-                            width: "15%"
-                        },
-                        {
-                            key: "site_name",
-                            header: "NADI",
-                            width: "40%"
-                        },
-                        {
-                            key: "state",
-                            header: "STATE",
-                            width: "15%"
-                        },
-                        {
-                            key: "duration",
-                            header: "DURATION",
-                            width: "25%"
-                        },
-                    ]}
-                />
+                {insurance.length > 0 ? (
+                    <PDFTable 
+                        data={insurance}
+                        columns={[
+                            {
+                                key: (_, i) => `${i + 1}.`,
+                                header: "NO",
+                                width: "5%"
+                            },
+                            {
+                                key: "standard_code",
+                                header: "SITE CODE",
+                                width: "15%"
+                            },
+                            {
+                                key: "site_name",
+                                header: "NADI",
+                                width: "40%"
+                            },
+                            {
+                                key: "state",
+                                header: "STATE",
+                                width: "15%"
+                            },
+                            {
+                                key: "duration",
+                                header: "DURATION",
+                                width: "25%"
+                            },
+                        ]}
+                    />
+                ) : (
+                    <Text>No insurance data available.</Text>
+                )}
 
                 <PDFFooter />
             </Page>
@@ -390,42 +396,45 @@ export const SiteManagementReportPDF = ({
                     </View>
                 </View>
 
-
-                <PDFTable
-                    data={utilities}
-                    columns={[
-                        {
-                            key: (_, i) => `${i + 1}.`,
-                            header: "NO",
-                            width: "5%"
-                        },
-                        {
-                            key: "site_name",
-                            header: "NADI",
-                            width: "50%"
-                        },
-                        {
-                            key: "state",
-                            header: "STATE",
-                            width: "15%"
-                        },
-                        {
-                            key: (row) => row.has_water ? "OK" : "",
-                            header: "WATER",
-                            width: "10%"
-                        },
-                        {
-                            key: (row) => row.has_electricity ? "OK" : "",
-                            header: "ELECTRICITY",
-                            width: "10%"
-                        },
-                        {
-                            key: (row) => row.has_sewerage ? "OK" : "",
-                            header: "SEWERAGE",
-                            width: "10%"
-                        },
-                    ]}
-                />
+                {utilities.length > 0 ? (
+                    <PDFTable
+                        data={utilities}
+                        columns={[
+                            {
+                                key: (_, i) => `${i + 1}.`,
+                                header: "NO",
+                                width: "5%"
+                            },
+                            {
+                                key: "site_name",
+                                header: "NADI",
+                                width: "50%"
+                            },
+                            {
+                                key: "state",
+                                header: "STATE",
+                                width: "15%"
+                            },
+                            {
+                                key: (row) => row.has_water ? "OK" : "",
+                                header: "WATER",
+                                width: "10%"
+                            },
+                            {
+                                key: (row) => row.has_electricity ? "OK" : "",
+                                header: "ELECTRICITY",
+                                width: "10%"
+                            },
+                            {
+                                key: (row) => row.has_sewerage ? "OK" : "",
+                                header: "SEWERAGE",
+                                width: "10%"
+                            },
+                        ]}
+                    />
+                ) : (
+                    <Text>No utility data available.</Text>
+                )}
 
                 <PDFFooter />
             </Page>
