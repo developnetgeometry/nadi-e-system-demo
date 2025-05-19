@@ -39,14 +39,11 @@ export const useAssetQueries = () => {
         (!isStaffUser || !!site_id),
     });
 
-  const useAssetsByTypeQuery = (typeId: number) => 
+  const useAssetsByTypeQuery = (siteId: number) => 
     useQuery({
-      queryKey: ["assets", typeId],
-      queryFn: () => assetClient.fetchAssetsByType(typeId, Number(site_id)),
-      enabled: 
-        !!typeId || (!!organizationId && !isStaffUser) ||
-        parsedMetadata?.user_type === "super_admin" ||
-        (isStaffUser && !!site_id),
+      queryKey: ["assets", siteId],
+      queryFn: () => assetClient.fetchAssetsByType(siteId),
+      enabled: !!siteId
     });
 
   const useAssetQuery = (id: number) =>
@@ -56,17 +53,17 @@ export const useAssetQueries = () => {
       enabled: !!id,
     });
 
-  const useAllAssets = (isSuperAdmin: boolean, assetTypeId: number) =>
+  const useAllAssets = (isSuperAdmin: boolean) =>
     useQuery({
       queryKey: ["allAssets"],
-      queryFn: () => assetClient.fetchSuperAdminAsset(isSuperAdmin, assetTypeId),
-      enabled: isSuperAdmin && !!assetTypeId
+      queryFn: () => assetClient.fetchSuperAdminAsset(isSuperAdmin),
+      enabled: isSuperAdmin
     })
 
-  const useAssetBySite = (tps_sites_id: number, assetType: number) => 
+  const useAssetBySite = (tps_sites_id: number) => 
     useQuery({
-      queryKey: ["tpsAssets"],
-      queryFn: () => assetClient.fetchAssetsBySiteId(tps_sites_id, assetType),
+      queryKey: ["tpsAssets", tps_sites_id],
+      queryFn: () => assetClient.fetchAssetsBySiteId(tps_sites_id),
       enabled: !!tps_sites_id
     });
 
