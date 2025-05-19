@@ -148,8 +148,7 @@ export const PDFTable = <T extends Record<string, any>>({
     width?: number | string;
     render?: (value: any, row: T, index: number) => React.ReactNode;
   }[];
-}) => {
-  const tableStyles = StyleSheet.create({
+}) => {  const tableStyles = StyleSheet.create({
     table: { 
       width: "100%", 
       border: "1pt solid #000", 
@@ -166,14 +165,19 @@ export const PDFTable = <T extends Record<string, any>>({
       borderBottom: "1pt solid #000" 
     },
     th: { 
-      padding: 6, 
+      padding: 8, 
       flex: 1, 
-      fontSize: 9 
-    },
-    td: { 
-      padding: 6, 
+      fontSize: 10,
+      fontWeight: "bold",
+      textTransform: "uppercase",
+      textAlign: "center",
+      borderRight: "1pt solid #fff",
+    },    td: { 
+      padding: 8, 
+      paddingLeft: 12,
       flex: 1, 
-      fontSize: 9 
+      fontSize: 10,
+      borderRight: "1pt solid #000",
     },
   });
 
@@ -191,9 +195,15 @@ export const PDFTable = <T extends Record<string, any>>({
             {column.header}
           </Text>
         ))}
-      </View>
-      {data.map((row, rowIndex) => (
-        <View key={rowIndex} style={tableStyles.tableRow}>
+      </View>      {data.map((row, rowIndex) => (
+        <View 
+          key={rowIndex} 
+          style={[
+            tableStyles.tableRow,
+            // Add white background to even rows (makes alternating rows)
+            rowIndex % 2 === 1 ? { backgroundColor: "#f9f9f9" } : {}
+          ]}
+        >
           {columns.map((column, colIndex) => {
             const cellValue = typeof column.key === 'function' 
               ? column.key(row, rowIndex)
@@ -208,7 +218,9 @@ export const PDFTable = <T extends Record<string, any>>({
                 key={colIndex} 
                 style={[
                   tableStyles.td,
-                  column.width ? { flex: undefined, width: column.width } : {}
+                  column.width ? { flex: undefined, width: column.width } : {},
+                  // Center the content in the first column (No column)
+                  colIndex === 0 ? { textAlign: 'center' } : {}
                 ]}
               >
                 {displayValue}

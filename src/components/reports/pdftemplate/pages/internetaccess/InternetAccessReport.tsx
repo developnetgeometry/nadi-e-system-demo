@@ -80,30 +80,33 @@ export const InternetAccessReportPDF = ({
       periodValue={showMonth && monthLabel ? `${monthLabel} / ${year}` : `4 / ${year}`}
     />    {/* Section 4.1 */}
     <PDFSectionTitle title="4.1 MANAGED INTERNET SERVICES" />
-    <Text style={styles.box}>Total NADI{"\n"}{totalConnected}</Text>{/* Table Component */}
-    <PDFTable
+    <Text style={styles.box}>Total NADI{"\n"}{totalConnected}</Text>{/* Table Component */}    <PDFTable
       data={nadiSites}
       columns={[
         {
-          key: (_, i) => i + 1,
+          key: (_, i) => `${i + 1}.`,
           header: "No",
-          width: "10%",
-        },
-        {
-          key: "state",
-          header: "State"
-        },
-        {
-          key: "technology",
-          header: "Technology"
-        },
-        {
-          key: "bandwidth",
-          header: "Bandwidth"
+          width: "8%",
         },
         {
           key: "name",
-          header: "NADI Name"
+          header: "NADI",
+          width: "30%"
+        },
+        {
+          key: "state",
+          header: "STATE",
+          width: "20%"
+        },
+        {
+          key: "technology",
+          header: "TECHNOLOGY",
+          width: "20%"
+        },
+        {
+          key: "bandwidth",
+          header: "BANDWIDTH",
+          width: "22%"
         },
       ]}
     />{/* Footer Component */}
