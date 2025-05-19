@@ -5,7 +5,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
 import { Site } from "@/types/site";
-import { equal } from "assert";
 
 export const assetClient = {
   fetchAssets: async (
@@ -151,7 +150,7 @@ export const assetClient = {
       .select(
         `*,
         nd_asset_type ( id, name ),
-        nd_brand!nd_asset_nd_brand_fk  ( id, name ),
+        nd_brand!nd_asset_nd_brand_fk  ( id, name, brand_type ),
         site:nd_site (
           id,
           standard_code
@@ -175,7 +174,7 @@ export const assetClient = {
     };
   },
 
-  fetchSuperAdminAsset: async (isSuperAdmin: boolean, assetTypeId: number) => {
+  fetchSuperAdminAsset: async (isSuperAdmin: boolean) => {
     if (!isSuperAdmin) {
       throw new Error("Error dannied: you don't have permission to get all asset")
     }
@@ -189,15 +188,18 @@ export const assetClient = {
             name,
             brand_type
           ),
-          nd_booking (
+        nd_booking (
             id,
             booking_start,
             booking_end,
             is_using,
             created_by
+          ),
+        nd_asset_type!inner (
+            category_id
           )  
       `)
-      .eq("type_id", assetTypeId)
+
 
     if (error) throw error;
 
@@ -258,8 +260,18 @@ export const assetClient = {
     }));
   },
 
-  fetchAssetsByType: async (typeId: number, siteId: number) => {
-    if (!!siteId) {
+  fetchAssetsByType: async (siteProfileId: number) => {
+    if (!!siteProfileId) {
+      const { data: siteId, error: errorSiteId } = await supabase
+        .from("nd_site")
+        .select("id")
+        .eq("site_profile_id", siteProfileId)
+        .single()
+
+      if (errorSiteId) {
+        throw errorSiteId
+      }
+
       const { data, error } = await supabase
         .from("nd_asset")
         .select(`
@@ -277,42 +289,16 @@ export const assetClient = {
             created_by
           )
         `)
-        .eq("type_id", typeId)
         .eq("site_id", siteId);
 
       if (error) throw error;
 
       return data;
     }
-    
-    const { data, error } = await supabase
-      .from("nd_asset")
-      .select(`
-        *,
-        nd_brand (
-          id,
-          name,
-          brand_type
-        ),
-        nd_booking (
-          id,
-          booking_start,
-          booking_end,
-          is_using,
-          created_by
-        )
-        `)
-      .eq("type_id", typeId);
-
-    if (error) {
-      console.error("Error fetching assets by type:", error);
-      throw error;
-    }
-
-    return data;
   },
 
-  fetchAssetsBySiteId: async (siteId: number, assetTypeId: number): Promise<Asset[]> => {
+  fetchAssetsBySiteId: async (siteId: number): Promise<Asset[]> => {
+    
     const { data, error } = await supabase
       .from("nd_asset")
       .select(`
@@ -333,8 +319,7 @@ export const assetClient = {
           created_by
         )
       `)
-      .eq("nd_site.id", siteId)
-      .eq("type_id", assetTypeId)
+      .eq("site_id", siteId)
 
     if (error) throw error;
 
