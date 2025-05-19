@@ -76,7 +76,10 @@ export const InternetAccessReportPDF = ({
         phaseLabel={phaseLabel}
         periodType={showMonth ? "MONTH / YEAR" : "QUARTER / YEAR"}
         periodValue={showMonth && monthLabel ? `${monthLabel} / ${year}` : `4 / ${year}`}
-      />      {/* Section 4.1 */}      <PDFSectionTitle title="4.1 MANAGED INTERNET SERVICES" />
+      />      
+      
+      {/* Section 4.1 */}      
+      <PDFSectionTitle title="4.1 MANAGED INTERNET SERVICES" />
       <Text style={styles.box}>{totalConnected} NADI Sites Connected</Text>{/* Table Component */}
       <PDFTable
         data={nadiSites}
