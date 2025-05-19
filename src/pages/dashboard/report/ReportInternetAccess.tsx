@@ -35,17 +35,17 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ChartImageRenderer } from "@/components/reports/graphs/InternetAccessReport/ChartImageRenderer";
-import { InternetAccessReportPDF } from "@/components/pdf-templates/InternetAccessReport";
+import { ChartImageRenderer } from "@/components/reports/pdftemplate/component/internetaccess/graphs/InternetAccessReport/ChartImageRenderer";
+import { InternetAccessReportPDF } from "@/components/reports/pdftemplate/component/internetaccess/InternetAccessReport";
 
 import { cn } from "@/lib/utils";
 
 const duspOptions = [
-  { id: "dusp1", label: "DUSP 1" },
-  { id: "dusp2", label: "DUSP 2" },
-  { id: "dusp3", label: "DUSP 3" },
-  { id: "dusp4", label: "DUSP 4" },
-  { id: "dusp5", label: "DUSP 5" },
+  { id: "dusp1", label: "DUSP 1", logo_url: "/dusp1-logo.png" },
+  { id: "dusp2", label: "DUSP 2", logo_url: "/dusp2-logo.png" },
+  { id: "dusp3", label: "DUSP 3", logo_url: "/dusp3-logo.png" },
+  { id: "dusp4", label: "DUSP 4", logo_url: "/dusp4-logo.png" },
+  { id: "dusp5", label: "DUSP 5", logo_url: "/dusp5-logo.png" },
 ];
 
 const phaseOptions = [

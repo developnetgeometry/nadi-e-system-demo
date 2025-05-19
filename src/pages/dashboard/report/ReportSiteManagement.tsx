@@ -14,7 +14,7 @@ import {
   UtilitiesCard,
   LocalAuthorityCard,
   AwarenessProgrammeCard
-} from "@/components/reports";
+} from "@/components/reports/sitemanagement";
 
 // Define month options
 const monthOptions = [
