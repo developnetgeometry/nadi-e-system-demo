@@ -57,7 +57,7 @@ import Usage from "@/pages/dashboard/site/Usage";
 import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
 import Takwim from "@/pages/dashboard/takwim/Takwim";
 import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import WorkflowDashboard from "@/pages/workflow/Dashboard";
+import WorkflowDashboard from "@/pages/workflow/WorkflowDashboard";
 import { RouteObject } from "react-router-dom";
 import ReportDashboard from "@/pages/dashboard/report/ReportDashboard";
 import ReportNadiESystem from "@/pages/dashboard/report/ReportNadiESystem";
