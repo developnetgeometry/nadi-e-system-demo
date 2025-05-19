@@ -169,7 +169,7 @@ const BookingFacilityCardDetails = () => {
 
     return (
         <DialogContent>
-            <h1>SOON: Dialog ccontent for facility</h1>
+            <h1>SOON: Dialog content for facility</h1>
         </DialogContent>
     )
 }
