@@ -86,27 +86,27 @@ export const InternetAccessReportPDF = ({
         {
           key: (_, i) => `${i + 1}.`,
           header: "No",
-          width: "8%",
+          width: "5%" // Fixed narrow width for number column
         },
         {
           key: "name",
           header: "NADI",
-          width: "30%"
+          width: "30%" // The widest column for site names
         },
         {
           key: "state",
           header: "STATE",
-          width: "20%"
+          width: "20%" // Fixed width for state names
         },
         {
           key: "technology",
           header: "TECHNOLOGY",
-          width: "20%"
+          width: "25%" // Slightly wider for technology names
         },
         {
           key: "bandwidth",
           header: "BANDWIDTH",
-          width: "22%"
+          width: "20%" // Fixed width for bandwidth values
         },
       ]}
     />{/* Footer Component */}

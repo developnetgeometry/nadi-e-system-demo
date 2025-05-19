@@ -37,19 +37,17 @@ const styles = StyleSheet.create({
   footerText: { 
     fontSize: 9, 
     color: "#666" 
-  },
-  row: {
+  },  row: {
     flexDirection: "row",
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-  },
-  cellLabel: {
+    borderBottomWidth: 1,
+    borderColor: "#000",
+  },cellLabel: {
     backgroundColor: "#000",
     color: "#fff",
     fontWeight: "bold",
     padding: 6,
     borderRightWidth: 1,
+    borderColor: "#000",
     width: "25%",
   },
   cellValue: {
@@ -93,20 +91,74 @@ export const PDFMetaSection = ({
   phaseLabel?: string;
   periodType?: string;
   periodValue?: string;
-}) => (
-  <>
-    <View style={styles.row}>
-      <Text style={[styles.cellLabel, { width: "25%" }]}>REPORT</Text>
-      <Text style={[styles.cellValue, { width: "75%" }]}>{reportTitle}</Text>
+}) => {  // Create styles for the meta section table
+  const metaStyles = StyleSheet.create({
+    container: {
+      width: "100%",
+      borderWidth: 1,
+      borderColor: "#000",
+      marginBottom: 10,
+    },
+    row: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000",
+    },
+    firstRow: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000",
+    },    
+    labelCell: {
+      backgroundColor: "#000",
+      color: "#fff",
+      fontWeight: "bold",
+      padding: 6,
+      width: "20%",
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+    },    
+    valueCell: {
+      padding: 6,
+      width: "80%",
+      borderRightWidth: 0,
+    },
+    phaseCell: {
+      padding: 6,
+      width: "30%", 
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+    },
+    periodLabelCell: {
+      backgroundColor: "#000",
+      color: "#fff", 
+      fontWeight: "bold",
+      padding: 6,
+      width: "25%",
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+    },    
+    periodValueCell: {
+      padding: 6,
+      width: "25%",
+      borderRightWidth: 0, // Remove right border on the last cell
+    }
+  });
+    return (
+    <View style={metaStyles.container}>
+      <View style={metaStyles.firstRow}>
+        <Text style={metaStyles.labelCell}>REPORT</Text>
+        <Text style={metaStyles.valueCell}>{reportTitle}</Text>
+      </View>
+      <View style={metaStyles.row}>
+        <Text style={metaStyles.labelCell}>PHASE</Text>
+        <Text style={metaStyles.phaseCell}>{phaseLabel || "-"}</Text>
+        <Text style={metaStyles.periodLabelCell}>{periodType}</Text>
+        <Text style={metaStyles.periodValueCell}>{periodValue || "-"}</Text>
+      </View>
     </View>
-    <View style={styles.row}>
-      <Text style={styles.cellLabel}>PHASE</Text>
-      <Text style={styles.cellValue}>{phaseLabel || "-"}</Text>
-      <Text style={styles.cellLabel}>{periodType}</Text>
-      <Text style={styles.cellValue}>{periodValue || "-"}</Text>
-    </View>
-  </>
-);
+  );
+};
 
 /**
  * The PDF Section Title component
@@ -148,54 +200,131 @@ export const PDFTable = <T extends Record<string, any>>({
     width?: number | string;
     render?: (value: any, row: T, index: number) => React.ReactNode;
   }[];
-}) => {  const tableStyles = StyleSheet.create({
+}) => {
+  // Process columns to handle dynamic and fixed width columns
+  const fixedWidthColumns = columns.filter(col => col.width);
+  const dynamicColumns = columns.filter(col => !col.width);
+  
+  // Calculate total fixed width percentage
+  const totalFixedWidth = fixedWidthColumns.reduce((total, col) => {
+    const width = typeof col.width === 'string' 
+      ? parseFloat(col.width.replace('%', '')) 
+      : (typeof col.width === 'number' ? col.width : 0);
+    return total + width;
+  }, 0);
+  
+  // Calculate remaining percentage for dynamic columns
+  const remainingWidth = Math.max(0, 100 - totalFixedWidth);
+  const dynamicColumnWidth = dynamicColumns.length > 0 
+    ? remainingWidth / dynamicColumns.length 
+    : 0;  const tableStyles = StyleSheet.create({
     table: { 
       width: "100%", 
-      border: "1pt solid #000", 
-      marginTop: 10 
+      borderWidth: 1,
+      borderColor: "#000",
+      marginTop: 10
     },
     tableHeader: {
       flexDirection: "row",
       backgroundColor: "#000",
       color: "#fff",
       fontWeight: "bold",
-    },
-    tableRow: { 
+    },    tableRow: { 
       flexDirection: "row", 
-      borderBottom: "1pt solid #000" 
-    },
-    th: { 
+      borderBottomWidth: 1,
+      borderBottomColor: "#000"
+    },th: { 
       padding: 8, 
-      flex: 1, 
       fontSize: 10,
       fontWeight: "bold",
       textTransform: "uppercase",
       textAlign: "center",
-      borderRight: "1pt solid #fff",
+      color: "#fff",
     },    td: { 
-      padding: 8, 
-      paddingLeft: 12,
-      flex: 1, 
+      padding: 8,
       fontSize: 10,
+    },
+    cell: {
       borderRight: "1pt solid #000",
     },
+    numberCell: {
+      width: "5%",
+      textAlign: "center",
+      paddingLeft: 4,
+      paddingRight: 4,
+    }
+  });  // Verify that the total of all widths adds up to 100%
+  // If explicit widths are provided for all columns, we'll use them directly
+  let totalSpecifiedWidth = 0;
+  let allColumnsHaveWidth = true;
+  
+  columns.forEach(column => {
+    if (column.width) {
+      // Extract numeric value from percentage (e.g., "30%" -> 30)
+      const widthValue = typeof column.width === 'string' 
+        ? parseFloat(column.width.replace('%', '')) 
+        : (typeof column.width === 'number' ? column.width : 0);
+      
+      totalSpecifiedWidth += widthValue;
+    } else {
+      allColumnsHaveWidth = false;
+    }
   });
-
+    // Create styles for each column once - this ensures header and data cells use exactly the same width
+  const columnStyles = columns.map((column, index) => {
+    // Base style with border
+    const style: any = { 
+      borderRightWidth: 1,
+      borderRightColor: "#000" 
+    };
+    
+    // Set width based on column specifications
+    if (column.width) {
+      // Use specified width directly
+      style.width = column.width;
+    } else if (allColumnsHaveWidth && totalSpecifiedWidth !== 100) {
+      // Adjust for case where all widths are specified but don't add to 100%
+      const correction = 100 / totalSpecifiedWidth;
+      const columnWidth = parseFloat(columns[index].width?.toString() || "0");
+      style.width = `${columnWidth * correction}%`;
+    } else if (index === 0) {
+      // Default width for number column if not specified
+      style.width = "5%";
+    } else {
+      // Equal distribution for remaining columns
+      style.width = `${dynamicColumnWidth}%`;
+    }
+      // Special handling for number column
+    if (index === 0) {
+      style.textAlign = "center";
+      style.paddingLeft = 4;
+      style.paddingRight = 4;
+    }
+    
+    // Remove right border from the last column to prevent double borders with table border
+    if (index === columns.length - 1) {
+      style.borderRightWidth = 0;
+    }
+    
+    return style;
+  });
   return (
     <View style={tableStyles.table}>
       <View style={tableStyles.tableHeader}>
-        {columns.map((column, i) => (
+        {columns.map((column, i) => (          
           <Text 
             key={i} 
             style={[
               tableStyles.th,
-              column.width ? { flex: undefined, width: column.width } : {}
+              columnStyles[i]
             ]}
           >
             {column.header}
           </Text>
         ))}
-      </View>      {data.map((row, rowIndex) => (
+      </View>
+      
+      {data.map((row, rowIndex) => (
         <View 
           key={rowIndex} 
           style={[
@@ -212,15 +341,13 @@ export const PDFTable = <T extends Record<string, any>>({
             const displayValue = column.render 
               ? column.render(cellValue, row, rowIndex) 
               : cellValue;
-
+              
             return (
               <Text 
                 key={colIndex} 
                 style={[
                   tableStyles.td,
-                  column.width ? { flex: undefined, width: column.width } : {},
-                  // Center the content in the first column (No column)
-                  colIndex === 0 ? { textAlign: 'center' } : {}
+                  columnStyles[colIndex]
                 ]}
               >
                 {displayValue}
