@@ -127,22 +127,22 @@ const ReportSiteManagement = () => {
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <SiteManagementReportDownloadButton
+          <div className="flex items-center gap-2">            <SiteManagementReportDownloadButton
               duspLabel={dusps.find(d => d.id === duspFilter)?.name}
-              phaseLabel={phaseFilter.length === 1
-                ? phases.find(p => p.id === phaseFilter[0])?.name
-                : "PILOT"}
-              periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}
-              periodValue={monthFilter
-                ? `${monthOptions.find(m => m.id === monthFilter)?.label} / ${yearFilter || new Date().getFullYear()}`
-                : `4 / ${yearFilter || new Date().getFullYear()}`}
+              phaseLabel={phaseFilter.length > 0
+                ? phases.find(p => p.id === phaseFilter[0])?.name || ""
+                : ""}
+              periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}              
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}`: ""}
+              monthFilter={monthFilter}
+              yearFilter={yearFilter}
               totalSites={sites.length}
               mcmcLogo={mcmcLogo}
-              duspLogo={duspLogo}              sites={sites.map(site => ({
+              duspLogo={duspLogo}
+              sites={sites.map(site => ({
                 standard_code: site.standard_code || '',
                 name: site.sitename || '',
-                state: site.phase_name || '',  // Using phase name as state temporarily
+                state: site.phase_name || '',
               }))}
               utilities={utilities.map(utility => ({
                 site_id: utility.site_id,
@@ -161,32 +161,24 @@ const ReportSiteManagement = () => {
                 duration: ins.start_date && ins.end_date ?
                   `${new Date(ins.start_date).toLocaleDateString()} - ${new Date(ins.end_date).toLocaleDateString()}` :
                   'N/A',
-                status: ins.status
               }))}
               localAuthority={localAuthority.map(la => ({
                 standard_code: la.site_id || '',
                 site_name: la.sitename || '',
                 state: '',
-                authority_name: 'N/A', // Not yet implemented in backend
-                reference_no: '',       // Not yet implemented in backend
-                duration: '',           // Not yet implemented in backend
-                status: ''              // Not yet implemented in backend
-              }))}              audits={audits.map(audit => ({
+              }))}              
+              audits={audits.map(audit => ({
                 standard_code: audit.site_id || '',
                 site_name: audit.sitename || '',
                 state: '',
-                audit_date: 'N/A',      // Not yet implemented in backend
-                status: ''              // Not yet implemented in backend
               }))}
               agreements={agreements.map(agreement => ({
                 standard_code: agreement.site_id || '',
                 site_name: agreement.sitename || '',
                 state: '',
-                start_date: 'N/A',      // Not yet implemented in backend
-                end_date: 'N/A',        // Not yet implemented in backend
-                status: ''              // Not yet implemented in backend
               }))}
               programmes={[]}
+              
               buttonText={isGeneratingPdf ? "Generating PDF..." : "Generate PDF Report"}
               fileName={`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`}
               onGenerationStart={handleGenerationStart}

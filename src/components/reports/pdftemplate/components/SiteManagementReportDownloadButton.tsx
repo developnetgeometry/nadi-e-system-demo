@@ -27,24 +27,20 @@ type Insurance = {
     site_name: string;
     state: string;
     duration: string;
-    status: string;
 };
 
 type Audit = {
     standard_code: string;
     site_name: string;
     state: string;
-    audit_date: string;
-    status: string;
+
 };
 
 type Agreement = {
     standard_code: string;
     site_name: string;
     state: string;
-    start_date: string;
-    end_date: string;
-    status: string;
+
 };
 
 type AwarenessProgram = {
@@ -60,10 +56,6 @@ type LocalAuthority = {
     standard_code: string;
     site_name: string;
     state: string;
-    authority_name: string;
-    reference_no: string;
-    duration: string;
-    status: string;
 };
 
 // Props for the Site Management Report Download Button
@@ -84,6 +76,8 @@ type SiteManagementReportDownloadButtonProps = {
     programmes: AwarenessProgram[];
     buttonText?: string;
     fileName?: string;
+    monthFilter?: string | number | null;
+    yearFilter?: string | number | null;
     onGenerationStart?: () => void;
     onGenerationComplete?: (success: boolean) => void;
 };
@@ -106,42 +100,41 @@ export const SiteManagementReportDownloadButton = ({
     programmes,
     buttonText = "Generate PDF",
     fileName = "site-management-report.pdf",
+    monthFilter = null,
+    yearFilter = null,
     onGenerationStart,
     onGenerationComplete
 }: SiteManagementReportDownloadButtonProps) => {
-    // Track loading state internally
+    // Track loading state internally    
     const [isGenerating, setIsGenerating] = React.useState(false);
     // Track if user has clicked to generate PDF
     const [userClickedGenerate, setUserClickedGenerate] = React.useState(false);
-
+    
     // Handle the initial button click to start generating PDF
     const handleGeneratePDF = () => {
         setUserClickedGenerate(true);
         setIsGenerating(true);
         onGenerationStart?.();
     };
-
-    // Log the data for debugging - remove in production
-    React.useEffect(() => {
-        if (userClickedGenerate) {
-            console.log("PDF data being used:", {
-                sites: sites.length,
-                utilities: utilities.length,
-                insurance: insurance.length,
-                localAuthority: localAuthority?.length || 0,
-                audits: audits.length,
-                agreements: agreements.length
-            });
-        }
-    }, [userClickedGenerate, sites, utilities, insurance, localAuthority, audits, agreements]);
-
+    
     // If user hasn't clicked to generate, just show the initial button
     if (!userClickedGenerate) {
+        // Button will be disabled if:
+        // 1. No phase is selected (phaseLabel is empty/undefined or just whitespace)
+        // 2. OR neither month nor year filters are provided
+        const hasPhase = phaseLabel && phaseLabel.trim() !== '';
+        const hasMonthYearFilter = (monthFilter !== null && monthFilter !== '') || 
+                                 (yearFilter !== null && yearFilter !== '');
+        
+        const isButtonDisabled = !hasPhase || !hasMonthYearFilter;
+        
         return (
             <Button
                 variant="secondary"
                 className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
                 onClick={handleGeneratePDF}
+                disabled={isButtonDisabled}
+                title={isButtonDisabled ? "Please select a Phase and Month/Year filter before generating PDF" : ""}
             >
                 <Download className="h-4 w-4 mr-2" />
                 {buttonText}

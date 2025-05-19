@@ -80,24 +80,18 @@ type Insurance = {
     site_name: string;
     state: string;
     duration: string;
-    status: string;
 };
 
 type Audit = {
     standard_code: string; // Standard code instead of refid
     site_name: string;
     state: string;
-    audit_date: string;
-    status: string;
 };
 
 type Agreement = {
     standard_code: string; // Standard code instead of refid
     site_name: string;
     state: string;
-    start_date: string;
-    end_date: string;
-    status: string;
 };
 
 type AwarenessProgram = {
@@ -113,10 +107,7 @@ type LocalAuthority = {
     standard_code: string; // Standard code instead of refid
     site_name: string;
     state: string;
-    authority_name: string;
-    reference_no: string;
-    duration: string;
-    status: string;
+
 };
 
 // Props for the Site Management Report PDF
@@ -313,16 +304,6 @@ export const SiteManagementReportPDF = ({
                             header: "STATE",
                             width: "15%"
                         },
-                        {
-                            key: "audit_date",
-                            header: "DATE",
-                            width: "20%"
-                        },
-                        {
-                            key: "status",
-                            header: "STATUS",
-                            width: "15%"
-                        },
                     ]}
                 />
                 ) : (
@@ -378,21 +359,6 @@ export const SiteManagementReportPDF = ({
                             header: "STATE",
                             width: "15%"
                         },
-                        {
-                            key: "start_date",
-                            header: "START DATE",
-                            width: "15%"
-                        },
-                        {
-                            key: "end_date",
-                            header: "END DATE",
-                            width: "15%"
-                        },
-                        {
-                            key: "status",
-                            header: "STATUS",
-                            width: "15%"
-                        },
                     ]}
                 />
                 ) : (
@@ -408,7 +374,8 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 8: Utilities */}
-            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
+            <Page size="A4" style={styles.page}>                
+                <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>

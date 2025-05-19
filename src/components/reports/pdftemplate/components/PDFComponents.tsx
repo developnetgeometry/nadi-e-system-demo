@@ -429,12 +429,19 @@ export const PDFPhaseQuarterInfo = ({
   phaseLabel?: string;
   periodType?: string;
   periodValue?: string;
-}) => (  <View style={{
+}) => (
+  <View style={{
     ...styles.phaseQuarterInfo, 
     width: 170, 
   }}>
-    <Text style={{ fontWeight: "bold", fontSize: 8, textTransform: "uppercase" }}>PHASE: {phaseLabel || 'PILOT'}</Text>
-    <Text style={{ fontWeight: "bold", fontSize: 8, textTransform: "uppercase" }}>{periodType}: {periodValue || '4/2024'}</Text>
+    <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
+      <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
+      {phaseLabel || 'PILOT'}
+    </Text>
+    <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
+      <Text style={{ fontWeight: "bold" }}>{periodType}: </Text>
+      {periodValue || '4/2024'}
+    </Text>
   </View>
 );
 
