@@ -8,3 +8,4 @@ export { FilterBadge } from './component/FilterBadge';
 export { DateFilter } from './DateFilter';
 export { NadiFilter } from './NadiFilter';
 export { ReportFilters } from './ReportFilters';
+export { ModularReportFilters } from './ModularReportFilters';

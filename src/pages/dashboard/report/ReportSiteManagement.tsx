@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout"
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
-import { ReportFilters } from "@/components/reports/filters";
+import { ModularReportFilters } from "@/components/reports/filters";
 import { SiteManagementReportDownloadButton } from "@/components/reports/pdftemplate/components";
 import { useMcmcLogo, useDuspLogo } from "@/hooks/use-brand";
 import {
@@ -13,7 +13,7 @@ import {
   UtilitiesCard,
   LocalAuthorityCard,
   AwarenessProgrammeCard
-} from "@/components/reports/sitemanagement";
+} from "@/components/reports/component/sitemanagement";
 
 // Define month options
 const monthOptions = [
@@ -188,10 +188,16 @@ const ReportSiteManagement = () => {  // Filter states
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>
-
-        {/* Filters */}
-        <ReportFilters
+        </div>        {/* Filters */}
+        <ModularReportFilters
+          // Show all filters for site management report
+          showFilters={{
+            dusp: true,
+            phase: true,
+            nadi: true,
+            date: true
+          }}
+          
           // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
