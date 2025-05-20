@@ -237,15 +237,15 @@ export const AssetFormDialog = ({
     }
 
     const asset = {
-      name: formData.get("name"),
-      type_id: assetType,
-      brand_id: assetBrandId,
-      remark: formData.get("description"),
+      name: String(formData.get("name")),
+      type_id: Number(assetType),
+      brand_id: Number(assetBrandId),
+      remark: String(formData.get("description")),
       serial_number: assetSerialNumber,
-      retail_type: assetRetailType,
-      qty_unit: formData.get("quantity"),
-      location_id: assetLocationId,
-      site_id: String(selectedSite?.nd_site?.[0]?.id),
+      retail_type: Number(assetRetailType),
+      qty_unit: Number(formData.get("quantity")),
+      location_id: Number(assetLocationId),
+      site_id: Number(selectedSite?.nd_site?.[0]?.id),
     };
 
     try {
@@ -257,7 +257,7 @@ export const AssetFormDialog = ({
             ...asset,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", assetId);
+          .eq("id", Number(assetId));
 
         if (updateError) throw updateError;
 
