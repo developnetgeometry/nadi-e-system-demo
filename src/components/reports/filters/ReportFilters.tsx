@@ -1,12 +1,11 @@
 import React from "react";
-import { RotateCcw, Filter, Users } from "lucide-react";
+import { RotateCcw, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DuspFilter } from "./DuspFilter";
-import { MultiSelectFilter } from "./MultiSelectFilter";
-import { SingleSelectFilter } from "./SingleSelectFilter";
-import { FilterBadge } from "./FilterBadge";
+import { FilterBadge } from "./component/FilterBadge";
 import { NadiFilter } from "./NadiFilter";
 import { DateFilter } from "./DateFilter";
+import { PhaseFilter } from "./PhaseFilter";
 import { DUSP, Phase, NADISite } from "@/hooks/report/use-report-filters";
 
 type ReportFiltersProps = {
@@ -80,17 +79,10 @@ export const ReportFilters = ({
           dusps={dusps}
           isLoading={isLoading}
         />        {/* Phase Filter */}
-        <SingleSelectFilter
-          selectedItem={phaseFilter}
-          setSelectedItem={setPhaseFilter}
-          items={phases.map(phase => ({
-            id: phase.id,
-            label: phase.name
-          }))}
-          icon={Users}
-          label="Phase"
-          searchPlaceholder="Search phases..."
-          emptyMessage="No phases found."
+        <PhaseFilter
+          phaseFilter={phaseFilter}
+          setPhaseFilter={setPhaseFilter}
+          phases={phases}
           isLoading={isLoading}
         />
 
@@ -134,15 +126,12 @@ export const ReportFilters = ({
           <div className="mr-1 flex items-center">
             <Filter className="h-4 w-4 text-slate-500 mr-1" />
             <span className="text-xs font-medium text-slate-500">Active Filters:</span>
-          </div>
-            {duspFilter.length > 0 && (
+          </div>            {duspFilter.length > 0 && (
             <FilterBadge
               label="DUSP"
               value={duspFilter.length > 1
                 ? `${duspFilter.length} selected`
-                : duspFilter[0] === "unassigned"
-                  ? "Not Assigned"
-                  : dusps.find(d => String(d.id) === String(duspFilter[0]))?.name || String(duspFilter[0])}
+                : dusps.find(d => String(d.id) === String(duspFilter[0]))?.name || String(duspFilter[0])}
               onClear={() => setDuspFilter([])}
             />
           )}

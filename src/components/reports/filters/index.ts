@@ -1,9 +1,10 @@
-export { FilterPopover } from './FilterPopover';
-export { FilterCommand } from './FilterCommand';
+export { FilterPopover } from './component/FilterPopover';
+export { FilterCommand } from './component/FilterCommand';
 export { DuspFilter } from './DuspFilter';
-export { MultiSelectFilter } from './MultiSelectFilter';
-export { SingleSelectFilter } from './SingleSelectFilter';
-export { FilterBadge } from './FilterBadge';
+export { PhaseFilter } from './PhaseFilter';
+export { MultiSelectFilter } from './component/MultiSelectFilter';
+export { SingleSelectFilter } from './component/SingleSelectFilter';
+export { FilterBadge } from './component/FilterBadge';
 export { DateFilter } from './DateFilter';
 export { NadiFilter } from './NadiFilter';
 export { ReportFilters } from './ReportFilters';

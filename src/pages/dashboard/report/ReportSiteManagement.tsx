@@ -156,8 +156,6 @@ const ReportSiteManagement = () => {  // Filter states
                 has_water: utility.type_name === 'Water',
                 has_electricity: utility.type_name === 'Electricity',
                 has_sewerage: utility.type_name === 'Sewerage',
-                type_name: utility.type_name,
-                amount_bill: utility.amount_bill
               }))}
               insurance={insurance.map(ins => ({
                 standard_code: ins.site_id || '',

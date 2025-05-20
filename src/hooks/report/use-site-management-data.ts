@@ -63,6 +63,15 @@ export interface LocalAuthorityData {
   sitename?: string;
 }
 
+export interface AwarenessPromotionData {
+  id: string;
+  site_id: string;
+  sitename?: string;
+  programme_name?: string;
+  date?: string;
+  status?: string;
+}
+
 export const useSiteManagementData = (
   duspFilter: (string | number)[],
   phaseFilter: string | number | null,
@@ -72,10 +81,11 @@ export const useSiteManagementData = (
 ) => {
   const [sites, setSites] = useState<SiteData[]>([]);
   const [utilities, setUtilities] = useState<UtilityData[]>([]);
-  const [insurance, setInsurance] = useState<SiteInsuranceData[]>([]);
+  const [insurance, setInsurance] = useState<SiteInsuranceData[]>([]);  
   const [audits, setAudits] = useState<SiteAuditData[]>([]);
   const [agreements, setAgreements] = useState<SiteAgreementData[]>([]);
   const [localAuthority, setLocalAuthority] = useState<LocalAuthorityData[]>([]);
+  const [awarenessPromotion, setAwarenessPromotion] = useState<AwarenessPromotionData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -134,23 +144,10 @@ export const useSiteManagementData = (
           const sitesWithDusp = data.filter(site => Boolean(site.dusp_tp_id)).length;
           const sitesWithoutDusp = data.length - sitesWithDusp;
           console.log(`Sites with DUSP: ${sitesWithDusp}, Sites without DUSP: ${sitesWithoutDusp}`);
-          
-          // Handle multiple DUSP filters
+            // Simple DUSP filter application
           filteredData = data.filter(site => {
-            // Check if "unassigned" is in the filter list
-            if (duspFilter.includes("unassigned") && !site.dusp_tp_id) {
-              return true;
-            }
-            
-            // Skip sites without DUSP if not explicitly looking for unassigned
-            if (!site.dusp_tp_id) {
-              console.log(`Site ${site.sitename} has no dusp_tp_id assigned - excluded from DUSP filter`);
-              return false;
-            }
-            
-            // Handle different data structures that might be returned
-            if (!site.dusp_tp) {
-              console.log(`Site ${site.sitename} has no dusp_tp data`);
+            // Skip sites with no DUSP data
+            if (!site.dusp_tp_id || !site.dusp_tp) {
               return false;
             }
             
@@ -159,7 +156,6 @@ export const useSiteManagementData = (
             
             // Skip if no valid dusp data
             if (!duspData) {
-              console.log(`Site ${site.sitename} has invalid dusp_tp data format`);
               return false;
             }
             
@@ -172,20 +168,7 @@ export const useSiteManagementData = (
             const parentId = parentData?.id;
             
             // Check if the parentId matches any of the selected DUSP filters
-            const matches = duspFilter.some(filter => String(parentId) === String(filter));
-            
-            // Log every site for debugging purposes
-            console.log('DUSP filter check:', {
-              sitename: site.sitename,
-              has_dusp_tp_id: Boolean(site.dusp_tp_id),
-              duspName: duspData?.name || 'unknown',
-              parentId: parentId || 'none',
-              parentName: parentData?.name || 'unknown',
-              filterValues: duspFilter,
-              matches
-            });
-            
-            return matches;
+            return duspFilter.some(filter => String(parentId) === String(filter));
           });
         }
         
@@ -220,12 +203,9 @@ export const useSiteManagementData = (
           const dusp_id = hasDuspAssigned ? (parentData?.id ? String(parentData.id) : dusp_tp_id) : null;
           const dusp_name = duspData?.name || "";
           const parent_dusp_name = parentData?.name || "";
-          
-          // Format the display name based on available data
+            // Format the display name based on available data
           let formattedDuspName;
-          if (!hasDuspAssigned) {
-            formattedDuspName = "Not Assigned";
-          } else if (parent_dusp_name) {
+          if (parent_dusp_name) {
             formattedDuspName = `${dusp_name} (${parent_dusp_name})`;
           } else {
             formattedDuspName = dusp_name;
@@ -256,24 +236,24 @@ export const useSiteManagementData = (
         // Fetch additional data for the filtered sites
         if (transformedSites.length > 0) {
           const siteIds = transformedSites.map(site => site.id);
-          
-          // Only fetch from tables that actually exist
+            // Only fetch from tables that actually exist
           await Promise.all([
             fetchUtilitiesData(siteIds),
             fetchInsuranceData(siteIds),
-            fetchLocalAuthorityData(siteIds)
+            fetchLocalAuthorityData(siteIds),
+            fetchAwarenessPromotionData(siteIds)
           ]);
           
           // Initialize empty arrays for tables that don't exist yet
           setAudits([]);
-          setAgreements([]);
-        } else {
+          setAgreements([]);        } else {
           // Reset all datasets if no sites match
           setUtilities([]);
           setInsurance([]);
           setLocalAuthority([]);
           setAudits([]);
           setAgreements([]);
+          setAwarenessPromotion([]);
         }
         
       } catch (error: any) {
@@ -431,8 +411,7 @@ export const useSiteManagementData = (
       console.log('Local authority data table not implemented yet');
       setLocalAuthority([]);
     };
-    
-    // These functions are placeholders for future implementation
+      // These functions are placeholders for future implementation
     // when the corresponding database tables are created
     
     // Placeholder function - no audit table exists yet
@@ -446,10 +425,18 @@ export const useSiteManagementData = (
       console.log('Agreement data table not implemented yet');
       setAgreements([]);
     };
+      // Placeholder function - no awareness & promotion programme table exists yet
+    const fetchAwarenessPromotionData = async (siteIds: string[]) => {
+      try {
+        console.log('Awareness & Promotion Programme data table not implemented yet');
+        setAwarenessPromotion([]);
+      } catch (error: any) {
+        console.error("Error fetching awareness promotion data:", error);
+      }
+    };
 
     fetchSites();
   }, [duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter]);
-
   return {
     sites,
     utilities,
@@ -457,6 +444,7 @@ export const useSiteManagementData = (
     localAuthority,
     audits,
     agreements,
+    awarenessPromotion,
     loading,
     error
   };

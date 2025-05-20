@@ -1,7 +1,7 @@
 import React from "react";
 import { Building } from "lucide-react";
-import { FilterPopover } from "./FilterPopover";
-import { FilterCommand } from "./FilterCommand";
+import { FilterPopover } from "./component/FilterPopover";
+import { FilterCommand } from "./component/FilterCommand";
 import { DUSP } from "@/hooks/report/use-report-filters";
 
 type DuspFilterProps = {
@@ -24,16 +24,12 @@ export const DuspFilter = ({
         : [...duspFilter, id]
     );
   };
-
-  // Create a combined list of items including the "Not Assigned" option
-  const items = [
-    { id: "unassigned", name: "Not Assigned", label: "Not Assigned" },
-    ...dusps.map(dusp => ({
-      id: dusp.id,
-      name: dusp.name,
-      label: dusp.name
-    }))
-  ];
+  // Create a list of DUSP items
+  const items = dusps.map(dusp => ({
+    id: dusp.id,
+    name: dusp.name,
+    label: dusp.name
+  }));
 
   return (
     <FilterPopover
