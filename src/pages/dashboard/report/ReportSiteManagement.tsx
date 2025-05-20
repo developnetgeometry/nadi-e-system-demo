@@ -95,7 +95,7 @@ const ReportSiteManagement = () => {  // Filter states
   const activeInsurance = insurance.filter(i => i.status === 'Active').length;
   const expiringInsurance = insurance.filter(i => i.status === 'Expiring Soon').length;
   const expiredInsurance = insurance.filter(i => i.status === 'Expired').length;
-  
+
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
   const duspLogo = useDuspLogo();
@@ -124,18 +124,18 @@ const ReportSiteManagement = () => {  // Filter states
           <div>
             <h1 className="text-xl font-bold">Site Management Report</h1>
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
-          </div>          
-          <div className="flex items-center gap-2">            
-            <SiteManagementReportDownloadButton              
-            duspLabel={duspFilter.length === 1 
+          </div>
+          <div className="flex items-center gap-2">
+            <SiteManagementReportDownloadButton
+              duspLabel={duspFilter.length === 1
                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
-                : duspFilter.length > 1 
-                  ? `${duspFilter.length} DUSPs selected` 
-                  : ""}              phaseLabel={phaseFilter !== null 
-                ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
-                : "All Phases"}
+                : duspFilter.length > 1
+                  ? `${duspFilter.length} DUSPs selected`
+                  : ""} phaseLabel={phaseFilter !== null
+                    ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+                    : "All Phases"}
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}`: "All Records"}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
               duspFilter={duspFilter}
@@ -169,7 +169,7 @@ const ReportSiteManagement = () => {  // Filter states
                 standard_code: la.site_id || '',
                 site_name: la.sitename || '',
                 state: '',
-              }))}              
+              }))}
               audits={audits.map(audit => ({
                 standard_code: audit.site_id || '',
                 site_name: audit.sitename || '',
@@ -197,7 +197,7 @@ const ReportSiteManagement = () => {  // Filter states
             nadi: true,
             date: true
           }}
-          
+
           // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}

@@ -34,53 +34,53 @@ export const useReportFilters = () => {
           .from("nd_phases")
           .select("id, name")
           .order("name");
-          
+
         if (phasesError) throw phasesError;        // Fetch DUSP parent organizations for filtering
         const { data: orgsData, error: orgsError } = await supabase
           .from("organizations")
           .select("id, name, type")
           .eq("type", "dusp") // Get only DUSP type organizations (parent orgs)
           .order("name");
-          
+
         if (orgsError) throw orgsError;
-        
+
         console.log('Available DUSP organizations:', orgsData.map(org => ({
           id: org.id,
           name: org.name,
           type: org.type
         })));
-        
+
         // Fetch NADI sites
         const { data: sitesData, error: sitesError } = await supabase
           .from("nd_site_profile_name")
           .select("id, sitename, standard_code")
           .order("sitename");
-          
+
         if (sitesError) throw sitesError;
-          // Set the filter data - convert numeric IDs to strings to match interface definitions
+        // Set the filter data - convert numeric IDs to strings to match interface definitions
         setPhases(phasesData.map(phase => ({
           id: String(phase.id),
           name: phase.name
         })));
-        
+
         setDusps(orgsData.map(org => ({
           id: String(org.id),
           name: org.name
         })));
-        
+
         setNadiSites(sitesData.map(site => ({
           id: String(site.id),
           sitename: site.sitename,
           standard_code: site.standard_code
         })));
-          } catch (error: any) {
+      } catch (error: any) {
         console.error("Error fetching filter data:", error);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchFilterData();
   }, []);
 
