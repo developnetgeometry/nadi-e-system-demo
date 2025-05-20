@@ -1,193 +1,167 @@
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DialogTitle } from "@/components/ui/dialog";
-import { FileUpload } from "@/components/ui/file-upload"; // Import the FileUpload component
+import { useState, useEffect } from "react";
+import useClaimCategorySimple from "@/components/claims/hook/use-claim-categoy-simple";
+import React from "react";
 
-type FileData = {
-  name: string; // File name
-  url: string;  // File URL or path
+type ItemData = {
+  id: number;
+  name: string;
+  need_support_doc: boolean;
+  need_summary_report: boolean;
 };
 
+type CategoryData = {
+  id: number;
+  name: string;
+  item_ids: ItemData[];
+};
 
 type ClaimData = {
-  category_id: string;
-  item_id: string;
-  status_item: boolean | string | null;
-  request_remark: string;
-  need_support_doc: boolean | string | null;
-  need_summary_report: boolean | string | null;
-  claim_type_id_support: string;
-  file_path_support: FileData[]; // Changed to an array of objects
-  claim_type_id_summary: string;
-  file_path_summary: FileData[]; // Changed to an array of objects
-
+  category_ids: CategoryData[];
 };
 
 type ClaimRequestFormProps = ClaimData & {
   updateFields: (fields: Partial<ClaimData>) => void;
-  categories: { id: string; name: string; description: string }[];
-  items: { id: string; name: string; description: string; need_support_doc: boolean; need_summary_report: boolean; }[];
-  fetchItemsByCategory: (categoryId: string) => Promise<void>;
 };
 
 export function ClaimRequestForm({
-  category_id,
-  item_id,
-  status_item,
-  request_remark,
-  need_support_doc,
-  need_summary_report,
-  file_path_support,
-  file_path_summary,
+  category_ids,
   updateFields,
-  categories,
-  items,
-  fetchItemsByCategory,
 }: ClaimRequestFormProps) {
-  // Handle file uploads for Support Document
-  const handleSupportDocUpload = (files: File[]) => {
-    const fileData = files.map((file) => ({
-      name: file.name,
-      url: URL.createObjectURL(file), // Replace with actual file upload logic
-    }));
-    updateFields({ file_path_support: fileData });
-  };
+  const { categories, error } = useClaimCategorySimple();
+  const [selectedItems, setSelectedItems] = useState<CategoryData[]>([]);
 
-  // Handle file uploads for Summary Report
-  const handleSummaryReportUpload = (files: File[]) => {
-    const fileData = files.map((file) => ({
-      name: file.name,
-      url: URL.createObjectURL(file), // Replace with actual file upload logic
-    }));
-    updateFields({ file_path_summary: fileData });
+  // Initialize selectedItems from item_ids
+  useEffect(() => {
+    setSelectedItems(category_ids);
+  }, [category_ids]);
+
+  const handleItemChange = (
+    itemId: number,
+    isChecked: boolean,
+    categoryId: number,
+    categoryName: string,
+    itemName: string,
+    needSupportDoc: boolean,
+    needSummaryReport: boolean
+  ) => {
+    // Find the category to update
+    const categoryToUpdate = selectedItems.find((category) => category.id === categoryId);
+
+    let updatedCategory;
+
+    if (categoryToUpdate) {
+      // Update the existing category
+      const updatedItems = isChecked
+        ? [
+          ...categoryToUpdate.item_ids,
+          {
+            id: itemId,
+            name: itemName,
+            need_support_doc: needSupportDoc,
+            need_summary_report: needSummaryReport,
+          },
+        ]
+        : categoryToUpdate.item_ids.filter((item) => item.id !== itemId);
+
+      updatedCategory = { ...categoryToUpdate, item_ids: updatedItems };
+    } else {
+      // Add a new category if it doesn't exist
+      updatedCategory = {
+        id: categoryId,
+        name: categoryName,
+        item_ids: isChecked
+          ? [
+            {
+              id: itemId,
+              name: itemName,
+              need_support_doc: needSupportDoc,
+              need_summary_report: needSummaryReport,
+            },
+          ]
+          : [],
+      };
+    }
+
+    // Update the selectedItems array
+    const newSelectedItems = [
+      ...selectedItems.filter((category) => category.id !== categoryId),
+      updatedCategory,
+    ].filter((category) => category.item_ids.length > 0); // Remove categories with no items
+
+    setSelectedItems(newSelectedItems);
+
+    // Update item_ids with the correct category_id and item details
+    updateFields({
+      category_ids: newSelectedItems,
+    });
   };
 
   return (
     <>
-      <DialogTitle className="mb-4">Attachment</DialogTitle>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Category Select */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Category</Label>
-          <Select
-            value={category_id || ""}
-            onValueChange={(value) => {
-              updateFields({ category_id: value, item_id: "" });
-              fetchItemsByCategory(value);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id.toString()}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Item Select */}
-        <div className="space-y-2">
-          <Label className="flex items-center">Item</Label>
-          <Select
-            value={item_id || ""}
-            onValueChange={(value) => {
-              const selectedItem = items.find((item) => item.id.toString() === value);
-              updateFields({
-                item_id: value.toString(),
-                need_support_doc: selectedItem?.need_support_doc || false,
-                need_summary_report: selectedItem?.need_summary_report || false,
-              });
-            }}
-            disabled={!category_id}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select item" />
-            </SelectTrigger>
-            <SelectContent>
-              {items.map((item) => (
-                <SelectItem key={item.id} value={item.id.toString()}>
-                  {item.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Request Remark */}
-        <div className="space-y-2 col-span-2">
-          <Label className="flex items-center">Remark of the item</Label>
-          <Input
-            type="text"
-            value={request_remark || ""}
-            onChange={(e) => updateFields({ request_remark: e.target.value })}
-            className="w-full"
-          />
-        </div>
-
-        {/* Need Support Document */}
-        {need_support_doc && (
-          <div className="space-y-2 col-span-2">
-            <Label className="flex items-center">Supporting Document Required</Label>
-            <FileUpload
-              maxFiles={5}
-              acceptedFileTypes=".pdf,.doc,.docx,.jpg,.png"
-              maxSizeInMB={10}
-              onFilesSelected={handleSupportDocUpload}
-              multiple={true}
-              existingFiles={file_path_support.map((file) => ({
-                url: file.url,
-                name: file.name,
-              }))}
-              onExistingFilesChange={(files) =>
-                updateFields({
-                  file_path_support: files.map((file) => ({
-                    name: file.name,
-                    url: file.url,
-                  })),
-                })
-              }
-            />
-            <p className="text-sm text-gray-500">
-              Upload support documents. Accepted formats: PDF, DOC, DOCX, JPG, PNG. Max 5 files, each up to 10MB.
-            </p>
-          </div>
-        )}
-
-        {/* Need Summary Report */}
-        {need_summary_report && (
-          <div className="space-y-2 col-span-2">
-            <Label className="flex items-center">Summary Report Required</Label>
-            <FileUpload
-              maxFiles={5}
-              acceptedFileTypes=".pdf,.doc,.docx,.jpg,.png"
-              maxSizeInMB={10}
-              onFilesSelected={handleSummaryReportUpload}
-              multiple={true}
-              existingFiles={file_path_summary.map((file) => ({
-                url: file.url,
-                name: file.name,
-              }))}
-              onExistingFilesChange={(files) =>
-                updateFields({
-                  file_path_summary: files.map((file) => ({
-                    name: file.name,
-                    url: file.url,
-                  })),
-                })
-              }
-            />
-            <p className="text-sm text-gray-500">
-              Upload summary reports. Accepted formats: PDF, DOC, DOCX, JPG, PNG. Max 5 files, each up to 10MB.
-            </p>
-          </div>
-        )}
+      <h2 className="text-lg font-bold mb-4">Claim Request Form</h2>
+      <div className="overflow-x-auto">
+        <table className="table-auto border-collapse border border-gray-300 w-full">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2">Category</th>
+              <th className="border border-gray-300 px-4 py-2">Item</th>
+              <th className="border border-gray-300 px-4 py-2">Need Support Doc</th>
+              <th className="border border-gray-300 px-4 py-2">Need Summary Report</th>
+              <th className="border border-gray-300 px-4 py-2">Select</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((category) => (
+              <React.Fragment key={category.id}>
+                {(category.children || []).map((item, index) => (
+                  <tr key={item.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    {index === 0 && (
+                      <td
+                        className="border border-gray-300 px-4 py-2 font-semibold"
+                        rowSpan={category.children?.length || 1}
+                      >
+                        {category.name}
+                      </td>
+                    )}
+                    <td className="border border-gray-300 px-4 py-2">{item.name}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      {item.need_support_doc ? "Yes" : "No"}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      {item.need_summary_report ? "Yes" : "No"}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.some(
+                          (selectedCategory) =>
+                            selectedCategory.id === category.id &&
+                            selectedCategory.item_ids.some((selectedItem) => selectedItem.id === item.id)
+                        )}
+                        onChange={(e) =>
+                          handleItemChange(
+                            item.id,
+                            e.target.checked,
+                            category.id,
+                            category.name,
+                            item.name,
+                            item.need_support_doc,
+                            item.need_summary_report
+                          )
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      {/* Debugging: Display Selected Items */}
+      {/* <pre className="mt-4 bg-gray-100 p-4 rounded">{JSON.stringify(selectedItems, null, 2)}</pre> */}
+      {/* <pre className="mt-4 bg-gray-100 p-4 rounded">{JSON.stringify(categories, null, 2)}</pre> */}
     </>
   );
 }

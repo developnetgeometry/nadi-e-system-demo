@@ -43,34 +43,29 @@ export interface SiteInsuranceData {
   start_date: string | null;
   end_date: string | null;
   status: string;
-  amount?: number;
-  provider?: string;
 }
 
 export interface SiteAuditData {
   id: string;
   site_id: string;
   sitename?: string;
-  audit_date: string;
-  findings: string;
-  status: string;
-  auditor?: string;
 }
 
 export interface SiteAgreementData {
   id: string;
   site_id: string;
   sitename?: string;
-  start_date: string;
-  end_date: string;
-  agreement_type: string;
-  status: string;
-  renewal_date?: string;
+}
+
+export interface LocalAuthorityData {
+  id: string;
+  site_id: string;
+  sitename?: string;
 }
 
 export const useSiteManagementData = (
-  duspFilter: string | number | null,
-  phaseFilter: (string | number)[],
+  duspFilter: (string | number)[],
+  phaseFilter: string | number | null,
   nadiFilter: (string | number)[],
   monthFilter: string | number | null,
   yearFilter: string | number | null
@@ -80,8 +75,10 @@ export const useSiteManagementData = (
   const [insurance, setInsurance] = useState<SiteInsuranceData[]>([]);
   const [audits, setAudits] = useState<SiteAuditData[]>([]);
   const [agreements, setAgreements] = useState<SiteAgreementData[]>([]);
+  const [localAuthority, setLocalAuthority] = useState<LocalAuthorityData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchSites = async () => {
       try {
@@ -104,91 +101,96 @@ export const useSiteManagementData = (
           `);
         
         // We'll get the DUSP filter data through a join
-        if (duspFilter) {
+        if (duspFilter && duspFilter.length > 0) {
           // Log the filter for debugging
           console.log('Applying DUSP filter via post-query filtering:', duspFilter);
         }
         
         // Apply phase filter if present
-        if (phaseFilter && phaseFilter.length > 0) {
-          query = query.in("phase_id", phaseFilter);
+        if (phaseFilter !== null) {
+          query = query.eq("phase_id", phaseFilter);
         }
         
         // Apply NADI filter (site filter) if present
         if (nadiFilter && nadiFilter.length > 0) {
           query = query.in("id", nadiFilter);
         }
-          console.log('Query with filters:', { duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter });
+        
+        console.log('Query with filters:', { duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter });
         const { data, error } = await query;
         
         if (error) {
           console.error('Error in site query:', error);
           throw error;
         }
-          console.log(`Fetched ${data?.length || 0} sites before post-filtering`);        // Apply DUSP filter here if needed
+        
+        console.log(`Fetched ${data?.length || 0} sites before post-filtering`);
+        
+        // Apply DUSP filter here if needed
         let filteredData = data;
-        if (duspFilter) {
+        if (duspFilter && duspFilter.length > 0) {
           // Count sites with and without DUSP for debugging
           const sitesWithDusp = data.filter(site => Boolean(site.dusp_tp_id)).length;
           const sitesWithoutDusp = data.length - sitesWithDusp;
           console.log(`Sites with DUSP: ${sitesWithDusp}, Sites without DUSP: ${sitesWithoutDusp}`);
           
-          // Special case for "unassigned" filter - show only sites without DUSP
-          if (duspFilter === "unassigned") {
-            console.log('Filtering for unassigned sites (no DUSP)');
-            filteredData = data.filter(site => !site.dusp_tp_id);
-            console.log(`Found ${filteredData.length} unassigned sites`);
-          } else {
-            // Normal DUSP filter with better type checking and data normalization
-            filteredData = data.filter(site => {
-              // First check if site has dusp_tp_id assigned
-              if (!site.dusp_tp_id) {
-                console.log(`Site ${site.sitename} has no dusp_tp_id assigned - excluded from DUSP filter`);
-                return false;
-              }
-              
-              // Handle different data structures that might be returned
-              if (!site.dusp_tp) {
-                console.log(`Site ${site.sitename} has no dusp_tp data`);
-                return false;
-              }
-              
-              // Normalize dusp_tp data which can be an array or object
-              const duspData = Array.isArray(site.dusp_tp) ? site.dusp_tp[0] : site.dusp_tp;
-              
-              // Skip if no valid dusp data
-              if (!duspData) {
-                console.log(`Site ${site.sitename} has invalid dusp_tp data format`);
-                return false;
-              }
-              
-              // Normalize parent data which can also be an array or object
-              const parentData = duspData.parent 
-                ? (Array.isArray(duspData.parent) ? duspData.parent[0] : duspData.parent) 
-                : null;
-              
-              // Get the parent ID for comparison
-              const parentId = parentData?.id;
-              
-              const matches = String(parentId) === String(duspFilter);
-              
-              // Log every site for debugging purposes
-              console.log('DUSP filter check:', {
-                sitename: site.sitename,
-                has_dusp_tp_id: Boolean(site.dusp_tp_id),
-                duspName: duspData?.name || 'unknown',
-                parentId: parentId || 'none',
-                parentName: parentData?.name || 'unknown',
-                filterValue: duspFilter,
-                matches
-              });
-              
-              return matches;
+          // Handle multiple DUSP filters
+          filteredData = data.filter(site => {
+            // Check if "unassigned" is in the filter list
+            if (duspFilter.includes("unassigned") && !site.dusp_tp_id) {
+              return true;
+            }
+            
+            // Skip sites without DUSP if not explicitly looking for unassigned
+            if (!site.dusp_tp_id) {
+              console.log(`Site ${site.sitename} has no dusp_tp_id assigned - excluded from DUSP filter`);
+              return false;
+            }
+            
+            // Handle different data structures that might be returned
+            if (!site.dusp_tp) {
+              console.log(`Site ${site.sitename} has no dusp_tp data`);
+              return false;
+            }
+            
+            // Normalize dusp_tp data which can be an array or object
+            const duspData = Array.isArray(site.dusp_tp) ? site.dusp_tp[0] : site.dusp_tp;
+            
+            // Skip if no valid dusp data
+            if (!duspData) {
+              console.log(`Site ${site.sitename} has invalid dusp_tp data format`);
+              return false;
+            }
+            
+            // Normalize parent data which can also be an array or object
+            const parentData = duspData.parent 
+              ? (Array.isArray(duspData.parent) ? duspData.parent[0] : duspData.parent) 
+              : null;
+            
+            // Get the parent ID for comparison
+            const parentId = parentData?.id;
+            
+            // Check if the parentId matches any of the selected DUSP filters
+            const matches = duspFilter.some(filter => String(parentId) === String(filter));
+            
+            // Log every site for debugging purposes
+            console.log('DUSP filter check:', {
+              sitename: site.sitename,
+              has_dusp_tp_id: Boolean(site.dusp_tp_id),
+              duspName: duspData?.name || 'unknown',
+              parentId: parentId || 'none',
+              parentName: parentData?.name || 'unknown',
+              filterValues: duspFilter,
+              matches
             });
-          }
-          
-          console.log(`After DUSP filter: ${filteredData.length} sites remain out of ${data.length}`);
-        }        // Log some info about the data structure
+            
+            return matches;
+          });
+        }
+        
+        console.log(`After DUSP filter: ${filteredData.length} sites remain out of ${data.length}`);
+        
+        // Log some info about the data structure
         if (filteredData.length > 0) {
           console.log('Sample site data structure:', {
             sampleSite: filteredData[0],
@@ -227,14 +229,16 @@ export const useSiteManagementData = (
           } else {
             formattedDuspName = dusp_name;
           }
-            return {
+          
+          return {
             id: site.id,
             sitename: site.sitename,
             fullname: site.fullname || "",
             standard_code: site.nd_site?.[0]?.standard_code || "",
             is_active: site.is_active,
             phase_id: site.phase_id || phaseData?.id || "",
-            phase_name: phaseData?.name || "",            dusp_id: dusp_id,
+            phase_name: phaseData?.name || "",
+            dusp_id: dusp_id,
             dusp_name: formattedDuspName,
             hasDusp: hasDuspAssigned, // Flag to track if site has DUSP assigned
             // Store original IDs for debugging
@@ -251,16 +255,22 @@ export const useSiteManagementData = (
         // Fetch additional data for the filtered sites
         if (transformedSites.length > 0) {
           const siteIds = transformedSites.map(site => site.id);
+          
+          // Only fetch from tables that actually exist
           await Promise.all([
             fetchUtilitiesData(siteIds),
             fetchInsuranceData(siteIds),
-            fetchAuditsData(siteIds),
-            fetchAgreementsData(siteIds)
+            fetchLocalAuthorityData(siteIds)
           ]);
+          
+          // Initialize empty arrays for tables that don't exist yet
+          setAudits([]);
+          setAgreements([]);
         } else {
           // Reset all datasets if no sites match
           setUtilities([]);
           setInsurance([]);
+          setLocalAuthority([]);
           setAudits([]);
           setAgreements([]);
         }
@@ -312,7 +322,8 @@ export const useSiteManagementData = (
           .in("id", typeIds);
           
         if (typesError) throw typesError;
-          // Map type names and site names to utilities
+        
+        // Map type names and site names to utilities
         const utilitiesWithDetails = utilities.map(utility => {
           const site = sites.find(site => site.id === utility.site_id);
           return {
@@ -391,10 +402,7 @@ export const useSiteManagementData = (
             insurance_type_name: insuranceType?.name || "Unknown",
             start_date: report.start_date,
             end_date: report.end_date,
-            status,
-            // Mock data for demo
-            amount: Math.floor(Math.random() * 10000) + 1000,
-            provider: ["Insurance Co A", "Insurance Co B", "Insurance Co C"][Math.floor(Math.random() * 3)]
+            status
           };
         });
         
@@ -404,72 +412,25 @@ export const useSiteManagementData = (
       }
     };
     
-    const fetchAuditsData = async (siteIds: string[]) => {
-      // Mock audit data for demo
-      const mockAuditData: SiteAuditData[] = [];
-      const statuses = ["Completed", "In Progress", "Pending"];
-      
-      // Generate mock data for each site
-      siteIds.forEach(siteId => {
-        const site = sites.find(site => site.id === siteId);
-        
-        // Add 1-3 random audits per site
-        const auditCount = Math.floor(Math.random() * 3) + 1;
-        for (let i = 0; i < auditCount; i++) {
-          const auditDate = new Date();
-          // Set audit date to random past date in last 12 months
-          auditDate.setMonth(auditDate.getMonth() - Math.floor(Math.random() * 12));
-          
-          mockAuditData.push({
-            id: `audit-${siteId}-${i}`,
-            site_id: siteId,
-            sitename: site?.sitename || "Unknown",
-            audit_date: auditDate.toISOString().split('T')[0],
-            findings: ["No issues found", "Minor issues to address", "Critical issues requiring attention"][Math.floor(Math.random() * 3)],
-            status: statuses[Math.floor(Math.random() * statuses.length)],
-            auditor: ["Auditor A", "Auditor B", "Auditor C"][Math.floor(Math.random() * 3)]
-          });
-        }
-      });
-      
-      setAudits(mockAuditData);
+    // Placeholder function - no local authority table exists yet
+    const fetchLocalAuthorityData = async (siteIds: string[]) => {
+      console.log('Local authority data table not implemented yet');
+      setLocalAuthority([]);
     };
     
-    const fetchAgreementsData = async (siteIds: string[]) => {
-      // Mock agreement data for demo
-      const mockAgreementData: SiteAgreementData[] = [];
-      const agreementTypes = ["Service", "Lease", "Maintenance"];
-      const statuses = ["Active", "Expiring Soon", "Expired", "Pending Renewal"];
-      
-      // Generate mock data for each site
-      siteIds.forEach(siteId => {
-        const site = sites.find(site => site.id === siteId);
-        
-        // Generate start date (1-3 years ago)
-        const startDate = new Date();
-        startDate.setFullYear(startDate.getFullYear() - (Math.floor(Math.random() * 3) + 1));
-        
-        // Generate end date (0-2 years from now)
-        const endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + Math.floor(Math.random() * 3));
-        
-        // Generate renewal date (3 months before end date)
-        const renewalDate = new Date(endDate);
-        renewalDate.setMonth(renewalDate.getMonth() - 3);
-        
-        mockAgreementData.push({
-          id: `agreement-${siteId}`,
-          site_id: siteId,
-          sitename: site?.sitename || "Unknown",
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          agreement_type: agreementTypes[Math.floor(Math.random() * agreementTypes.length)],
-          status: statuses[Math.floor(Math.random() * statuses.length)],
-          renewal_date: renewalDate.toISOString().split('T')[0]
-        });
-      });
-      
-      setAgreements(mockAgreementData);
+    // These functions are placeholders for future implementation
+    // when the corresponding database tables are created
+    
+    // Placeholder function - no audit table exists yet
+    const fetchAuditsData = async () => {
+      console.log('Audit data table not implemented yet');
+      setAudits([]);
+    };
+    
+    // Placeholder function - no agreement table exists yet
+    const fetchAgreementsData = async () => {
+      console.log('Agreement data table not implemented yet');
+      setAgreements([]);
     };
 
     fetchSites();
@@ -479,6 +440,7 @@ export const useSiteManagementData = (
     sites,
     utilities,
     insurance,
+    localAuthority,
     audits,
     agreements,
     loading,

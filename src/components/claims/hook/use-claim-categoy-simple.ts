@@ -2,46 +2,49 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const useClaimCategorySimple = () => {
-  const [categories, setCategories] = useState<any[]>([]); // State for claim categories
-  const [items, setItems] = useState<any[]>([]); // State for claim items
+  const [categories, setCategories] = useState<any[]>([]); // State for categories with claim items
   const [error, setError] = useState<string | null>(null); // State for errors
 
-  // Fetch all active claim categories on component mount
+  // Fetch all active claim items with category info on component mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchItems = async () => {
       try {
         const { data, error } = await supabase
-          .from("nd_claim_categories")
-          .select("id, name, description")
-          .eq("is_active", true); // Filter by active categories
+          .from("nd_claim_items")
+          .select(
+            "id, name, need_support_doc, need_summary_report, category_id (id, name)"
+          )
+          .eq("is_active", true); // Filter by active items
         if (error) throw error;
-        setCategories(data);
+
+        // Group items by category
+        const groupedData = data.reduce((acc, item) => {
+          const { category_id, ...itemDetails } = item;
+
+          // Find or create the category in the accumulator
+          let category = acc.find((cat) => cat.id === category_id.id);
+          if (!category) {
+            category = { ...category_id, children: [] };
+            acc.push(category);
+          }
+
+          // Add the item to the category's children
+          category.children.push(itemDetails);
+
+          return acc;
+        }, []);
+
+        setCategories(groupedData);
       } catch (error) {
-        console.error("Error fetching claim categories:", error);
+        console.error("Error fetching claim items:", error);
         setError(error.message);
       }
     };
 
-    fetchCategories();
+    fetchItems();
   }, []);
 
-  // Function to fetch claim items by category_id
-  const fetchItemsByCategory = async (categoryId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("nd_claim_items")
-        .select("id, name, description, need_support_doc, need_summary_report")
-        .eq("category_id", categoryId) // Filter items by category_id
-        .eq("is_active", true); // Filter by active items
-      if (error) throw error;
-      setItems(data); // Update items state
-    } catch (error) {
-      console.error("Error fetching claim items:", error);
-      setError(error.message);
-    }
-  };
-
-  return { categories, items, fetchItemsByCategory, error }; // Return the states and functions
+  return { categories, error }; // Return the categories and error state
 };
 
 export default useClaimCategorySimple;
