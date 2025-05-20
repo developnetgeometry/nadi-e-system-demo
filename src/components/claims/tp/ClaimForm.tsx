@@ -3,91 +3,94 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useState, FormEvent } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { ClaimApplicationForm } from "./form/ClaimApplicationForm";
-import { useMultistepFormClaim } from "./hook/useMultipleFormClaim";
-import useGeoData from "@/hooks/use-geo-data";
-import { ClaimRequestForm } from "./form/ClaimRequestForm";
-import useClaimCategorySimple from "./hook/use-claim-categoy-simple";
-import { insertClaimData } from "./hook/insert-claim";
+import { useMultistepFormClaim } from "../hook/useMultipleFormClaim";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import { ClaimDateForm } from "../form/ClaimDateForm";
+import { ClaimApplicationForm } from "../form/ClaimApplicationForm";
+import { ClaimRequestForm } from "../form/ClaimRequestForm";
+import { ClaimReportGenerateForm } from "../form/ClaimReportGenerateForm";
+import { insertClaimData } from "./hooks/insert-claim";
 
-type FileData = {
-  name: string; // File name
-  url: string;  // File URL or path
-};
+
+type ItemData = {
+  id: number;
+  name: string;
+  need_support_doc: boolean;
+  need_summary_report: boolean;
+}
+
+type CategoryData = {
+  id: number;
+  name: string;
+  item_ids: ItemData[];
+}
+
+type ReportData = {
+  category_ids: CategoryData[];
+  report_file: Uint8Array | null; // New state for the report
+  status_item: boolean;
+}
 
 type FormData = {
-  tp_dusp_id: string;
-  dusp_name: string;
-  tp_name: string;
-  phase_id: string;
-  refid_mcmc: string;
-  claim_status: boolean | string | null;
-  year: string;
-  quarter: string;
-  month: string;
+  phase_id: number;
+  year: number;
+  quarter: number;
+  month: number;
   ref_no: string;
-  payment_status: boolean;
+  tp_dusp_id: string;
+  site_profile_ids: number[];
+  tp_name: string; //additional
+  dusp_name: string; //additional
 
-  category_id: string;
-  item_id: string;
-  status_item: boolean | string | null;
-  request_remark: string;
-  need_support_doc: boolean | string | null;
-  need_summary_report: boolean | string | null;
-  claim_type_id_support: string;
-  file_path_support: FileData[]; // Changed to an array of objects
-  claim_type_id_summary: string;
-  file_path_summary: FileData[]; // Changed to an array of objects
+  category_ids: CategoryData[];
+
+  reports: ReportData[]; // New state for the report
+
 };
 
 
 const INITIAL_DATA: FormData = {
-  tp_dusp_id: null,
-  dusp_name: null,
-  tp_name: null,
   phase_id: null,
-  refid_mcmc: null,
-  claim_status: "1",
-  year: new Date().getFullYear().toString(), // Set the current year as the default value
+  year: new Date().getFullYear(),
   quarter: null,
   month: null,
-  ref_no: null,
-  payment_status: false,
+  ref_no: "",
+  tp_dusp_id: null,
+  site_profile_ids: [],
+  tp_name: "",
+  dusp_name: "",
 
-  category_id: null,
-  item_id: null,
-  status_item: false,
-  request_remark: null,
-  need_support_doc: false,
-  need_summary_report: false,
-  claim_type_id_support: "1",
-  file_path_support: [], // Empty array of objects
-  claim_type_id_summary: "2",
-  file_path_summary: [], // Empty array of objects
+  category_ids: [],
+
+  reports: [], // New state for the report
 };
 
 const ClaimFormDialog = ({
   isOpen,
   onClose,
+  duspTpData,
   organizationId,
-  tpName,
-  duspName,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  organizationId: string | null;
-  tpName: string | null;
-  duspName: string | null;
+  duspTpData: {
+    id: string;
+    type: string;
+    name: string;
+    parent_id: {
+      id: string;
+      name: string;
+      type: string;
+    }
+  }
+  organizationId: string;
 }) => {
   const [data, setData] = useState({
     ...INITIAL_DATA,
-    tp_dusp_id: organizationId || "", // Set organizationId as the default value for tp_dusp_id
-    tp_name: tpName || "", // Set tpName as the default value for tp_name
-    dusp_name: duspName || "", // Set duspName as the default value for dusp_name
+    tp_name: duspTpData.name || "",
+    dusp_name: duspTpData.parent_id.name || "",
+    tp_dusp_id: organizationId || "",
   });
-
-  const { categories, items, fetchItemsByCategory, error } = useClaimCategorySimple(); // Use the hook
-  const { phases } = useGeoData();
 
   const [loading, setLoading] = useState(false); // Add loading state
   const { toast } = useToast();
@@ -105,19 +108,18 @@ const ClaimFormDialog = ({
   };
 
   const { currentStepIndex, step, isFirstStep, isLastStep, back, next, reset } = useMultistepFormClaim([
-    <ClaimApplicationForm  {...data} updateFields={updateFields} phases={phases} />,
-    <ClaimRequestForm
-      {...data}
-      updateFields={updateFields}
-      categories={categories} // Pass categories
-      items={items} // Pass items
-      fetchItemsByCategory={fetchItemsByCategory} // Pass fetch function
-    />,
+    <ClaimDateForm  {...data} updateFields={updateFields} />,
+    <ClaimApplicationForm {...data} updateFields={updateFields} />,
+    <ClaimRequestForm  {...data} updateFields={updateFields} />,
+    <ClaimReportGenerateForm {...data} updateFields={updateFields} />,
   ]);
 
   const steps = [
-    { label: "Claim Application", validate: () => data.tp_dusp_id && data.refid_mcmc },
-    { label: "Attachment", validate: () => data.tp_dusp_id && data.refid_mcmc },
+    { label: "Initialization", validate: () => data.year && data.month },
+    { label: "NADI Sites", validate: () => data.phase_id && data.site_profile_ids.length > 0 },
+    { label: "Claim Application", validate: () => data.category_ids.length > 0 },
+    { label: "Report Generator", validate: () => data.reports.length > 0 },
+
   ];
 
   function isStepComplete(index: number) {
@@ -126,25 +128,22 @@ const ClaimFormDialog = ({
 
   const handleNext = async () => {
     if (currentStepIndex === 0) {
-      if (!data.tp_dusp_id) return showValidationError("Organization is required.");
-      if (!data.phase_id) return showValidationError("Phases is required.");
-      if (!data.year) return showValidationError("Year is required.");
-      if (!data.month) return showValidationError("Month is required.");
+      if (!data.year) { showValidationError("Year is required"); return; }
+      if (!data.month) { showValidationError("Month is required"); return; }
+      if (!data.tp_dusp_id) { showValidationError("TP DUSP ID is required"); return; }
     }
 
     if (currentStepIndex === 1) {
-      if (!data.category_id) return showValidationError("Category is required.");
-      if (!data.item_id) return showValidationError("Item is required.");
-      if (data.need_summary_report) {
-        if (!data.file_path_summary || data.file_path_summary.length === 0) {
-          return showValidationError("Summary Report is required.");
-        }
-      }
-      if (data.need_support_doc) {
-        if (!data.file_path_support || data.file_path_support.length === 0) {
-          return showValidationError("Support Document is required.");
-        }
-      }
+      if (!data.phase_id) { showValidationError("Phase is required"); return; }
+      if (data.site_profile_ids.length === 0) { showValidationError("Site Profile is required"); return; }
+    }
+
+    if (currentStepIndex === 2) {
+      if (data.category_ids.length === 0) { showValidationError("Item is required"); return; }
+    }
+
+    if (currentStepIndex === 3) {
+      if (data.reports.length === 0) { showValidationError("Report file is required"); return; }
     }
 
     if (!isLastStep) {
@@ -155,7 +154,7 @@ const ClaimFormDialog = ({
         await insertClaimData(data); // Call the insertClaimData function
         toast({
           title: "Success",
-          description: "The new member has been successfully registered.",
+          description: "The new claim has been drafted.",
           variant: "default",
         });
         setData(INITIAL_DATA);
@@ -192,7 +191,10 @@ const ClaimFormDialog = ({
           </div>
         )}
         <DialogHeader>
-          <DialogTitle className="text-2xl mb-2">Add New Member</DialogTitle>
+          <DialogTitle className="text-2xl">Add New Claim</DialogTitle>
+          <DialogDescription className="text-muted-foreground mb-4">
+            Fill in the details for the new claim
+          </DialogDescription>
           <div className="flex bg-muted rounded-lg overflow-hidden">
             {steps.map((step, index) => {
               const isActive = currentStepIndex === index;
