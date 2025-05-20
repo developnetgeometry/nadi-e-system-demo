@@ -35,17 +35,17 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ChartImageRenderer } from "@/components/reports/graphs/InternetAccessReport/ChartImageRenderer";
-import { InternetAccessReportPDF } from "@/components/pdf-templates/InternetAccessReport";
+import { ChartImageRenderer } from "@/components/reports/pdftemplate/pages/internetaccess/graphs/ChartImageRenderer";
+import { InternetAccessReportPDF } from "@/components/reports/pdftemplate/pages/internetaccess/InternetAccessReport";
 
 import { cn } from "@/lib/utils";
 
 const duspOptions = [
-  { id: "dusp1", label: "DUSP 1" },
-  { id: "dusp2", label: "DUSP 2" },
-  { id: "dusp3", label: "DUSP 3" },
-  { id: "dusp4", label: "DUSP 4" },
-  { id: "dusp5", label: "DUSP 5" },
+  { id: "dusp1", label: "DUSP 1", logo_url: "/dusp1-logo.png" },
+  { id: "dusp2", label: "DUSP 2", logo_url: "/dusp2-logo.png" },
+  { id: "dusp3", label: "DUSP 3", logo_url: "/dusp3-logo.png" },
+  { id: "dusp4", label: "DUSP 4", logo_url: "/dusp4-logo.png" },
+  { id: "dusp5", label: "DUSP 5", logo_url: "/dusp5-logo.png" },
 ];
 
 const phaseOptions = [
@@ -89,9 +89,10 @@ const ReportInternetAccess = () => {
   const [phaseFilter, setPhaseFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>("2025"); // Default to current year
-
   // Graph image state
   const [graphImage, setGraphImage] = useState<string | null>(null);
+  const [preparingPdf, setPreparingPdf] = useState<boolean>(false);
+  const [pdfReady, setPdfReady] = useState<boolean>(false);
 
   // Labels for filters
   const duspLabel = duspOptions.find((d) => d.id === duspFilter)?.label;
@@ -106,13 +107,26 @@ const ReportInternetAccess = () => {
     duspFilter !== null ||
     phaseFilter.length > 0 ||
     monthFilter !== null ||
-    (yearFilter !== null && yearFilter !== "2025");
-
-  const resetFilters = () => {
+    (yearFilter !== null && yearFilter !== "2025");  const resetFilters = () => {
     setDuspFilter(null);
     setPhaseFilter([]);
     setMonthFilter(null);
     setYearFilter("2025");
+    
+    // Also reset PDF preparation state when filters are reset
+    resetPdfState();
+  };
+
+  const resetPdfState = () => {
+    setPreparingPdf(false);
+    setPdfReady(false);
+    setGraphImage(null);
+  };
+
+  const handlePrepareDownload = () => {
+    setPreparingPdf(true);
+    // This will trigger the ChartImageRenderer to render
+    // When it's done, it will call setGraphImage which we'll use to show the PDF download link
   };
 
   return (
@@ -129,14 +143,20 @@ const ReportInternetAccess = () => {
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload Excel
-            </Button> */}
-
-            {/* Generate chart image */}
-            <ChartImageRenderer
-              data={sampleChartData}
-              onReady={setGraphImage}
-            />
-            {graphImage && (
+            </Button> */}            {/* Only render the chart when preparing */}
+            {preparingPdf && (
+              <ChartImageRenderer
+                data={sampleChartData}
+                onReady={(img) => {
+                  setGraphImage(img);
+                  setPdfReady(true);
+                  setPreparingPdf(false);
+                }}
+              />
+            )}
+            
+            {/* Show PDF download link if ready or download button if not */}
+            {pdfReady && graphImage ? (
               <PDFDownloadLink
                 document={
                   <InternetAccessReportPDF
@@ -146,8 +166,8 @@ const ReportInternetAccess = () => {
                     year={yearFilter?.toString()}
                     totalConnected={76}
                     showMonth={true}
-                    mcmcLogo={mcmcLogo} // Replace with actual logo URL for MCMC
-                    duspLogo="/dusp-logo.png" // Replace with actual logo URL for DUSP
+                    mcmcLogo={mcmcLogo}
+                    duspLogo="/dusp-logo.png"
                     nadiSites={[
                       {
                         state: "Johor",
@@ -172,11 +192,19 @@ const ReportInternetAccess = () => {
                     variant="secondary"
                     className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
                   >
-                    <Download className="h-4 w-4" />
-                    {loading ? "Preparing..." : "Download"}
+                    <Download className="h-4 w-4" />                    {loading ? "Preparing..." : "Download Report"}
                   </Button>
                 )}
               </PDFDownloadLink>
+            ) : (
+              <Button
+                variant="secondary"                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+                onClick={handlePrepareDownload}
+                disabled={preparingPdf}
+              >
+                <Download className="h-4 w-4" />
+                {preparingPdf ? "Generating..." : "Generate Report"}
+              </Button>
             )}
           </div>
         </div>

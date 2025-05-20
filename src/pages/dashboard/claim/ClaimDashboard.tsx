@@ -1,9 +1,9 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import NoAccess from "@/pages/NoAccess";
-import { McmcClaimDashboard } from "@/components/claims/dashboard/McmcClaimDashboard";
-import { DuspClaimDashboard } from "@/components/claims/dashboard/DuspClaimDashboard";
 import TpClaimDashboard from "@/components/claims/dashboard/TpClaimDashboard";
+import DuspClaimDashboard from "@/components/claims/dashboard/DuspClaimDashboard";
+import McmcClaimDashboard from "@/components/claims/dashboard/McmcClaimDashboard";
 
 const ClaimDashboard = () => {
   const userMetadata = useUserMetadata();

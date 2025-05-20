@@ -6,9 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Clock, Zap } from "lucide-react";
-import { CardStat } from "./ui/CardStat";
-import { CardSkeleton } from "./ui/CardSkeleton";
-import { StatItem } from "./ui/StatItem";
+import { CardStat } from "../ui/CardStat";
+import { CardSkeleton } from "../ui/CardSkeleton";
+import { StatItem } from "../ui/StatItem";
 
 type UtilitiesCardProps = {
   loading: boolean;
@@ -70,7 +70,7 @@ export const UtilitiesCard = ({
             
             <div className="mt-3 text-right">
               <span className="text-sm text-gray-600">
-                {utilityTypes.length ? utilityTypes.join(", ") : "Water, Electricity, IWK"}
+                {utilityTypes.length ? utilityTypes.join(", ") : "Water, Electricity, Sewage, Internet"}
               </span>
             </div>
           </>

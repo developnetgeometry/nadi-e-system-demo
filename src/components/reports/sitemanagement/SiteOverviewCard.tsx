@@ -6,8 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
-import { CardStat } from "./ui/CardStat";
-import { CardSkeleton } from "./ui/CardSkeleton";
+import { CardStat } from "../ui/CardStat";
+import { CardSkeleton } from "../ui/CardSkeleton";
 
 type SiteOverviewCardProps = {
   loading: boolean;

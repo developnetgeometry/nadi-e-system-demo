@@ -8,7 +8,9 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1YW5ld3licXhyZGZ2cmR5ZXFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg1NDU3MzAsImV4cCI6MjA1NDEyMTczMH0.Sy_h_BHoN23rzRFpVc9ARN2wimJ8lRPEVh_hpw_7tlY";
-const BUCKET_NAME_PROFILEIMAGE =
+const SUPABASE_BUCKET_URL = 
+  import.meta.env.VITE_SUPABASE_BUCKET_URL || "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/";
+  const BUCKET_NAME_PROFILEIMAGE =
   import.meta.env.VITE_SUPABASE_BUCKET_NAME_PROFILE_IMAGE || "profileimage";
 const BUCKET_NAME_UTILITIES =
   import.meta.env.VITE_SUPABASE_BUCKET_NAME_UTILITIES || "utilities-attachment";
@@ -35,6 +37,7 @@ export const supabase = createClient<Database>(
   }
 );
 export { SUPABASE_URL };
+export { SUPABASE_BUCKET_URL}
 export { BUCKET_NAME_PROFILEIMAGE };
 export { BUCKET_NAME_UTILITIES };
 export { BUCKET_NAME_SITE_CLOSURE };

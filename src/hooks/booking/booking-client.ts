@@ -25,7 +25,7 @@ export const bookingClient = {
 
     getAllBookings: async(isSuperAdmin: boolean) => {
         if (!isSuperAdmin) {
-            throw new Error("Error dannied: you don't have permission to get all booking data!")
+            throw new Error("Error denied: you don't have permission to get all booking data!")
         }
 
         const { data, error } = await supabase

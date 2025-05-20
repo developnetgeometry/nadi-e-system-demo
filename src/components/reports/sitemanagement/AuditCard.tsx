@@ -6,26 +6,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AlertCircle, CheckCircle, ClipboardCheck, Clock } from "lucide-react";
-import { CardStat } from "./ui/CardStat";
-import { CardSkeleton } from "./ui/CardSkeleton";
-import { StatItem } from "./ui/StatItem";
+import { CardStat } from "../ui/CardStat";
+import { CardSkeleton } from "../ui/CardSkeleton";
+import { StatItem } from "../ui/StatItem";
 
 type AuditCardProps = {
   loading: boolean;
   siteCount: number;
   auditedSiteCount: number;
-  completedCount: number;
-  inProgressCount: number;
-  pendingCount: number;
 };
 
 export const AuditCard = ({
   loading,
   siteCount,
   auditedSiteCount,
-  completedCount,
-  inProgressCount,
-  pendingCount,
 }: AuditCardProps) => {
   return (
     <Card className="overflow-hidden shadow-sm border border-gray-200">
@@ -44,29 +38,7 @@ export const AuditCard = ({
             value={auditedSiteCount}
             progressValue={auditedSiteCount}
             progressMax={siteCount}
-            progressColor="bg-green-500"
-            stats={
-              <>
-                <StatItem 
-                  icon={CheckCircle} 
-                  iconColor="text-green-500" 
-                  label="Completed" 
-                  value={completedCount} 
-                />
-                <StatItem 
-                  icon={Clock} 
-                  iconColor="text-blue-500" 
-                  label="In Progress" 
-                  value={inProgressCount} 
-                />
-                <StatItem 
-                  icon={AlertCircle} 
-                  iconColor="text-amber-500" 
-                  label="Pending" 
-                  value={pendingCount} 
-                />
-              </>
-            }
+            progressColor="bg-green-500"            stats={<></>}
             footer={
               siteCount ? 
                 `${Math.round((auditedSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 

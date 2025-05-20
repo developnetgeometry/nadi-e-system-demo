@@ -5,8 +5,8 @@ import { FilterCommand } from "./FilterCommand";
 import { DUSP } from "@/hooks/report/use-report-filters";
 
 type DuspFilterProps = {
-  duspFilter: string | number | null;
-  setDuspFilter: (value: string | number | null) => void;
+  duspFilter: (string | number)[];
+  setDuspFilter: (value: (string | number)[]) => void;
   dusps: DUSP[];
   isLoading?: boolean;
 };
@@ -18,7 +18,11 @@ export const DuspFilter = ({
   isLoading = false
 }: DuspFilterProps) => {
   const handleSelect = (id: string | number) => {
-    setDuspFilter(duspFilter === id ? null : id);
+    setDuspFilter(
+      duspFilter.includes(id)
+        ? duspFilter.filter(itemId => itemId !== id)
+        : [...duspFilter, id]
+    );
   };
 
   // Create a combined list of items including the "Not Assigned" option
@@ -31,25 +35,19 @@ export const DuspFilter = ({
     }))
   ];
 
-  // Find the selected item name if any
-  const selectedItemName = duspFilter !== null
-    ? (duspFilter === 'unassigned' ? 'Not Assigned' : dusps.find(d => d.id === duspFilter)?.name)
-    : undefined;
-
   return (
     <FilterPopover
-      isActive={duspFilter !== null}
+      isActive={duspFilter.length > 0}
       icon={Building}
       label="DUSP"
-      value={selectedItemName}
-    >
-      <FilterCommand
+      value={duspFilter.length > 0 ? duspFilter.length : undefined}
+    >      <FilterCommand
         items={items}
-        selectedItems={duspFilter !== null ? [duspFilter] : []}
+        selectedItems={duspFilter}
         searchPlaceholder="Search DUSP..."
         emptyMessage="No DUSP found."
         isLoading={isLoading}
-        isMultiSelect={false}
+        isMultiSelect={true}
         onSelect={handleSelect}
       />
     </FilterPopover>
