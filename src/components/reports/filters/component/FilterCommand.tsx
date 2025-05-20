@@ -48,22 +48,21 @@ export const FilterCommand = ({
               <CommandItem
                 key={item.id}
                 onSelect={() => onSelect(item.id)}
+              >                <div
+                className={cn(
+                  "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                  (isMultiSelect
+                    ? selectedItems.some(selectedId => String(selectedId) === String(item.id))
+                    : String(selectedItems[0]) === String(item.id)
+                  ) ? "bg-primary border-primary" : "opacity-50"
+                )}
               >
-                <div
-                  className={cn(
-                    "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                    (isMultiSelect 
-                      ? selectedItems.includes(item.id) 
-                      : String(selectedItems[0]) === String(item.id)
-                    ) ? "bg-primary border-primary" : "opacity-50"
-                  )}
-                >
-                  {(isMultiSelect 
-                    ? selectedItems.includes(item.id) 
+                  {(isMultiSelect
+                    ? selectedItems.some(selectedId => String(selectedId) === String(item.id))
                     : String(selectedItems[0]) === String(item.id)
                   ) && (
-                    <Check className="h-3 w-3 text-white" />
-                  )}
+                      <Check className="h-3 w-3 text-white" />
+                    )}
                 </div>
                 {item.label || item.name}
               </CommandItem>

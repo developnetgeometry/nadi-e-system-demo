@@ -28,7 +28,16 @@ const monthOptions = [
   { id: 12, label: "December" },
 ];
 
-// TP options will be fetched from the useReportFilters hook
+// Define telecommunications provider options
+const tpOptions = [
+  { id: "tm", name: "Telekom Malaysia" },
+  { id: "maxis", name: "Maxis" },
+  { id: "celcom", name: "Celcom" },
+  { id: "digi", name: "Digi" },
+  { id: "time", name: "TIME" },
+  { id: "yesmy", name: "YES" },
+  { id: "umobile", name: "U Mobile" },
+];
 
 // Define year options (current year plus 3 years back)
 const currentYear = new Date().getFullYear();
@@ -48,8 +57,9 @@ const ReportNadiESystem = () => {  // Filter states
 
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+
   // Fetch filter options from API
-  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
+  const { phases, dusps, nadiSites, loading: filtersLoading } = useReportFilters();
     // Fetch NADI e-System data based on filters
   const {
     sites,
@@ -138,13 +148,15 @@ const ReportNadiESystem = () => {  // Filter states
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
           tpFilter={tpFilter}
-          setTpFilter={setTpFilter}          // Filter data
+          setTpFilter={setTpFilter}
+
+          // Filter data
           dusps={dusps}
           phases={phases}
           nadiSites={nadiSites}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
-          tpOptions={tpProviders}
+          tpOptions={tpOptions}
 
           // Loading state
           isLoading={filtersLoading}

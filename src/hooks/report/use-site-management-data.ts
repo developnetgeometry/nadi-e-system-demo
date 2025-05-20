@@ -77,7 +77,8 @@ export const useSiteManagementData = (
   phaseFilter: string | number | null,
   nadiFilter: (string | number)[],
   monthFilter: string | number | null,
-  yearFilter: string | number | null
+  yearFilter: string | number | null,
+  tpFilter: (string | number)[] = []
 ) => {
   const [sites, setSites] = useState<SiteData[]>([]);
   const [utilities, setUtilities] = useState<UtilityData[]>([]);
@@ -127,7 +128,7 @@ export const useSiteManagementData = (
           query = query.in("id", numericIds);
         }
 
-        console.log('Query with filters:', { duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter });
+        console.log('Query with filters:', { duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter });
         const { data, error } = await query;
 
         if (error) {
@@ -135,15 +136,31 @@ export const useSiteManagementData = (
           throw error;
         }
 
-        console.log(`Fetched ${data?.length || 0} sites before post-filtering`);
-
-        // Apply DUSP filter here if needed
+        console.log(`Fetched ${data?.length || 0} sites before post-filtering`);        // Apply DUSP filter here if needed
         let filteredData = data;
         if (duspFilter && duspFilter.length > 0) {
           // Count sites with and without DUSP for debugging
           const sitesWithDusp = data.filter(site => Boolean(site.dusp_tp_id)).length;
           const sitesWithoutDusp = data.length - sitesWithDusp;
           console.log(`Sites with DUSP: ${sitesWithDusp}, Sites without DUSP: ${sitesWithoutDusp}`);
+          
+        // Apply TP filter if present (telecommunications provider filter)
+        if (tpFilter && tpFilter.length > 0) {
+          console.log('Applying TP filter:', tpFilter);
+          filteredData = filteredData.filter(site => {
+            // Skip sites with no TP (dusp_tp) data
+            if (!site.dusp_tp_id || !site.dusp_tp) {
+              return false;
+            }
+            
+            // Normalize dusp_tp data which can be an array or object
+            const tpData = Array.isArray(site.dusp_tp) ? site.dusp_tp[0] : site.dusp_tp;
+            
+            // Check if the TP ID matches any of the selected TP filters
+            return tpFilter.some(filter => String(tpData.id) === String(filter));
+          });
+          console.log(`After TP filter: ${filteredData.length} sites remain`);
+        }
           // Simple DUSP filter application
           filteredData = data.filter(site => {
             // Skip sites with no DUSP data
@@ -437,7 +454,7 @@ export const useSiteManagementData = (
     };
 
     fetchSites();
-  }, [duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter]);
+  }, [duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter]);
   return {
     sites,
     utilities,

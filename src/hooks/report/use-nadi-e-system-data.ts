@@ -18,6 +18,7 @@ export interface NadiESystemSite {
   url_portal?: string;
   email_migrated?: boolean;
   email_staff?: string[];
+  provider?: string;
 }
 
 export interface NadiESystemData {
@@ -33,7 +34,8 @@ export const useNadiESystemData = (
   duspFilter: (string | number)[] | null,
   phaseFilter: string | number | null, 
   monthFilter: string | number | null,
-  yearFilter: string | number | null
+  yearFilter: string | number | null,
+  tpFilter: (string | number)[] = []
 ): NadiESystemData => {
   const [data, setData] = useState<NadiESystemData>({
     sites: [],
@@ -123,8 +125,13 @@ export const useNadiESystemData = (
                 `m.${siteNameForEmail}@nadi.my`,
                 `am.${siteNameForEmail}@nadi.my`
               ]
-            : [];
-            // Create and return site object with all required fields
+            : [];            // Create and return site object with all required fields          // Assign provider based on site index - distribute providers across sites
+          // Use actual provider IDs that will match with what's returned from useReportFilters hook
+          // These IDs should match the database IDs in the organizations table with type="tp"
+          // For mock data, we'll use string IDs that will match the actual database IDs format
+          const providerOptions = ["1", "2", "3", "4", "5", "6", "7"];
+          const provider = providerOptions[i % providerOptions.length];
+
           return {
             id: i + 1,
             siteId: standardCode,
@@ -141,7 +148,8 @@ export const useNadiESystemData = (
             website_migrated: websiteMigrated,
             url_portal: urlPortal,
             email_migrated: emailMigrated,
-            email_staff: emailStaff
+            email_staff: emailStaff,
+            provider: provider
           };
         });        // Add a few edge cases to demonstrate different scenarios
         
@@ -187,12 +195,16 @@ export const useNadiESystemData = (
           
           // Create a deterministic filter based on month/year combination
           const timeFilterValue = (yearValue - 2020) * 12 + monthValue;
-          
-          // Filter sites based on this value (higher value = more sites)
+              // Filter sites based on this value (higher value = more sites)
           filteredSites = filteredSites.filter(site => {
             const siteIndex = Number(site.id);
             return siteIndex <= timeFilterValue * 2;
           });
+        }        // Apply TP filter if present
+        if (tpFilter && tpFilter.length > 0) {
+          filteredSites = filteredSites.filter(site => 
+            site.provider && tpFilter.some(filter => String(site.provider) === String(filter))
+          );
         }
 
         // Calculate summary statistics
@@ -221,10 +233,8 @@ export const useNadiESystemData = (
           loading: false
         });
       }
-    };
-
-    fetchData();
-  }, [duspFilter, phaseFilter, monthFilter, yearFilter]);
+    };    fetchData();
+  }, [duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter]);
 
   return data;
 };

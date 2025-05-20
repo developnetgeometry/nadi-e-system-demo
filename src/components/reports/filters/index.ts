@@ -2,6 +2,7 @@ export { FilterPopover } from './component/FilterPopover';
 export { FilterCommand } from './component/FilterCommand';
 export { DuspFilter } from './DuspFilter';
 export { PhaseFilter } from './PhaseFilter';
+export { TPFilter } from './TPFilter';
 export { MultiSelectFilter } from './component/MultiSelectFilter';
 export { SingleSelectFilter } from './component/SingleSelectFilter';
 export { FilterBadge } from './component/FilterBadge';

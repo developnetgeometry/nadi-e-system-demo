@@ -29,34 +29,31 @@ interface UseInternetAccessDataReturn {
 const mockInternetData: InternetAccessSite[] = [
   {
     id: "site1",
-    standard_code: "NADI-001",
-    sitename: "NADI Putrajaya",
+    standard_code: "NADI-001",    sitename: "NADI Putrajaya",
     phase_name: "Phase 1",
     has_internet: true,
     connection_type: "Fiber",
-    provider: "TM",
+    provider: "1", // TM
     speed: "100Mbps",
     status: 'active'
   },
   {
     id: "site2",
-    standard_code: "NADI-002",
-    sitename: "NADI Cyberjaya",
+    standard_code: "NADI-002",    sitename: "NADI Cyberjaya",
     phase_name: "Phase 1",
     has_internet: true,
     connection_type: "Fiber",
-    provider: "Maxis",
+    provider: "2", // Maxis
     speed: "50Mbps",
     status: 'active'
   },
   {
     id: "site3",
-    standard_code: "NADI-003",
-    sitename: "NADI Shah Alam",
+    standard_code: "NADI-003",    sitename: "NADI Shah Alam",
     phase_name: "Phase 1",
     has_internet: true,
     connection_type: "Wireless",
-    provider: "Celcom",
+    provider: "3", // Celcom
     speed: "30Mbps",
     status: 'maintenance'
   },
@@ -70,23 +67,21 @@ const mockInternetData: InternetAccessSite[] = [
   },
   {
     id: "site5",
-    standard_code: "NADI-005",
-    sitename: "NADI Johor Bahru",
+    standard_code: "NADI-005",    sitename: "NADI Johor Bahru",
     phase_name: "Phase 2",
     has_internet: true,
     connection_type: "Fiber",
-    provider: "TIME",
+    provider: "5", // TIME
     speed: "100Mbps",
     status: 'active'
   },
   {
     id: "site6",
-    standard_code: "NADI-006",
-    sitename: "NADI Kuantan",
+    standard_code: "NADI-006",    sitename: "NADI Kuantan",
     phase_name: "Phase 2",
     has_internet: true,
     connection_type: "DSL",
-    provider: "TM",
+    provider: "1", // TM
     speed: "20Mbps",
     status: 'active'
   },
@@ -100,12 +95,11 @@ const mockInternetData: InternetAccessSite[] = [
   },
   {
     id: "site8",
-    standard_code: "NADI-008",
-    sitename: "NADI Kuala Terengganu",
+    standard_code: "NADI-008",    sitename: "NADI Kuala Terengganu",
     phase_name: "Phase 3",
     has_internet: true,
     connection_type: "Wireless",
-    provider: "Digi",
+    provider: "4", // Digi
     speed: "15Mbps",
     status: 'maintenance'
   }
@@ -115,7 +109,8 @@ export const useInternetAccessData = (
   duspFilter: (string | number)[],
   phaseFilter: string | number | null,
   monthFilter: string | number | null,
-  yearFilter: string | number | null
+  yearFilter: string | number | null,
+  tpFilter: (string | number)[] = []
 ): UseInternetAccessDataReturn => {
   const [sites, setSites] = useState<InternetAccessSite[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -133,20 +128,23 @@ export const useInternetAccessData = (
         // For mock data, we'll just take some sites based on the filter length
         filteredSites = filteredSites.slice(0, 5 + duspFilter.length);
       }
-      
-      // Apply phase filter
+        // Apply phase filter
       if (phaseFilter !== null) {
         const phaseStr = `Phase ${phaseFilter}`;
         filteredSites = filteredSites.filter(site => site.phase_name === phaseStr);
+      }      // Apply TP (telecommunications provider) filter
+      if (tpFilter && tpFilter.length > 0) {
+        filteredSites = filteredSites.filter(site => 
+          site.has_internet && site.provider && tpFilter.some(filter => String(site.provider) === String(filter))
+        );
       }
-      
       
       // Apply month/year filters if available
       // Note: Mock data doesn't have date fields, so we're not implementing this filtering
       
       setSites(filteredSites);
       setLoading(false);
-  }, [duspFilter, phaseFilter, monthFilter, yearFilter]);
+  }, [duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter]);
 
   // Calculate statistics based on the filtered data
   const totalSites = sites.length;
@@ -165,16 +163,28 @@ export const useInternetAccessData = (
       }
       return acc;
     }, [] as { type: string; count: number }[]);
-
   // Calculate provider distribution
   const providers = sites
     .filter(site => site.has_internet && site.provider)
     .reduce((acc, site) => {
-      const existingProvider = acc.find(p => p.name === site.provider);
+      // Add a mapping to convert provider IDs to human readable names
+      // This would be better fetched from the same place as tpProviders in useReportFilters
+      const providerIdToName: Record<string, string> = {
+        "1": "Telekom Malaysia",
+        "2": "Maxis",
+        "3": "Celcom",
+        "4": "Digi",
+        "5": "TIME",
+        "6": "YES",
+        "7": "U Mobile"
+      };
+      
+      const providerName = providerIdToName[site.provider || ""] || site.provider;
+      const existingProvider = acc.find(p => p.name === providerName);
       if (existingProvider) {
         existingProvider.count += 1;
-      } else if (site.provider) {
-        acc.push({ name: site.provider, count: 1 });
+      } else if (providerName) {
+        acc.push({ name: providerName, count: 1 });
       }
       return acc;
     }, [] as { name: string; count: number }[]);

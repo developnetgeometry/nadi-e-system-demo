@@ -36,14 +36,14 @@ const yearOptions = [
 const ReportInternetAccess = () => {  // Filter states
   const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
+  const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null); // Default to null
 
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
-
   // Fetch filter options from API
-  const { phases, dusps, nadiSites, loading: filtersLoading } = useReportFilters();
+  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
   // Fetch internet access data based on filters
   const {
     sites,
@@ -53,7 +53,7 @@ const ReportInternetAccess = () => {  // Filter states
     connectionTypes,
     providers,
     loading: dataLoading
-  }  = useInternetAccessData(duspFilter, phaseFilter, monthFilter, yearFilter);
+  }  = useInternetAccessData(duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter);
 
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
@@ -114,14 +114,14 @@ const ReportInternetAccess = () => {  // Filter states
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>        {/* Filters */}
-        <ModularReportFilters
+        </div>        {/* Filters */}        <ModularReportFilters
           // Show relevant filters for Internet Access report
           showFilters={{
             dusp: true,
             phase: true,
             nadi: false,
-            date: true
+            date: true,
+            tp: true
           }}          // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
@@ -131,11 +131,14 @@ const ReportInternetAccess = () => {  // Filter states
           setMonthFilter={setMonthFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
+          tpFilter={tpFilter}
+          setTpFilter={setTpFilter}
 
           // Filter data
           dusps={dusps}
           phases={phases}
           nadiSites={nadiSites}
+          tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
 

@@ -40,19 +40,19 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
+// TP options will be fetched from the useReportFilters hook
+
 const ReportSiteManagement = () => {  // Filter states
   const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [nadiFilter, setNadiFilter] = useState<(string | number)[]>([]);
+  const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null); // Default to null instead of current year
 
   // PDF generation states
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
-
-  // Fetch filter options from API
-  const { phases, dusps, nadiSites, loading: filtersLoading } = useReportFilters();
-  // Fetch site management data based on filters
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);  // Fetch filter options from API
+  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();// Fetch site management data based on filters
   const {
     sites,
     utilities,
@@ -61,7 +61,7 @@ const ReportSiteManagement = () => {  // Filter states
     audits,
     agreements,
     loading: dataLoading
-  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter);
+  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter);
 
   // Calculate utilities summary from the utilities data we already have
   const utilitiesSummary = useMemo(() => {
@@ -186,13 +186,13 @@ const ReportSiteManagement = () => {  // Filter states
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>        {/* Filters */}
-        <ModularReportFilters
+        </div>        {/* Filters */}        <ModularReportFilters
           // Show all filters for site management report
           showFilters={{
             dusp: true,
             phase: true,
             nadi: true,
+            tp: true,
             date: true
           }}
 
@@ -203,15 +203,16 @@ const ReportSiteManagement = () => {  // Filter states
           setPhaseFilter={setPhaseFilter}
           nadiFilter={nadiFilter}
           setNadiFilter={setNadiFilter}
+          tpFilter={tpFilter}
+          setTpFilter={setTpFilter}
           monthFilter={monthFilter}
           setMonthFilter={setMonthFilter}
           yearFilter={yearFilter}
-          setYearFilter={setYearFilter}
-
-          // Filter data
+          setYearFilter={setYearFilter}          // Filter data
           dusps={dusps}
           phases={phases}
           nadiSites={nadiSites}
+          tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
 
