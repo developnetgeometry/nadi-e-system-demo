@@ -171,10 +171,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         marginBottom: 20,
         justifyContent: "space-between",
-    },
-    pieChartPlaceholder: {
+    },    pieChartPlaceholder: {
         width: '65%',
-        height: 250,
+        height: 220,  // Reduced height to help fit everything on first page
         alignItems: 'center',
         justifyContent: 'center',
         padding: 5,
@@ -183,14 +182,13 @@ const styles = StyleSheet.create({
         width: '30%',
         padding: 5,
         justifyContent: 'space-around',
-    },
-    barChartPlaceholder: {
+    },    barChartPlaceholder: {
         width: '100%',
-        height: 300,
+        height: 240,  // Reduced height to fit better on first page
         alignItems: 'center',
         justifyContent: 'center',
         padding: 10,
-        marginTop: 10,
+        marginTop: 5, // Reduced top margin
     },
     vacanciesSection: {
         flexDirection: "row",
@@ -262,9 +260,8 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 {/* Staff Distribution Section */}
                 <View style={styles.chartContainer}>
-                    <View style={styles.pieChartPlaceholder}>
-                        {staffDistributionChart ? (
-                            <Image src={staffDistributionChart} style={{ width: 360, height: 270, objectFit: "contain" }} />
+                    <View style={styles.pieChartPlaceholder}>                        {staffDistributionChart ? (
+                            <Image src={staffDistributionChart} style={{ width: 360, height: 220, objectFit: "contain" }} />
                         ) : (
                             <>
                                 <Text>Number of Staff by Designation (Total: 5)</Text>
@@ -285,11 +282,10 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                             <Text style={styles.summaryValue}>Total : RM {formatCurrency((averageSalary * totalStaff) || 0)}</Text>
                         </View>
                     </View>
-                </View>
-                {/* Salary Bar Chart */}
+                </View>                {/* Salary Bar Chart */}
                 <View style={styles.barChartPlaceholder}>
                     {salaryChart ? (
-                        <Image src={salaryChart} style={{ width: 520, height: 300, objectFit: "contain" }} />
+                        <Image src={salaryChart} style={{ width: 520, height: 240, objectFit: "contain" }} />
                     ) : (
                         <>
                             <Text>Salary Amount (RM) by Designation</Text>
