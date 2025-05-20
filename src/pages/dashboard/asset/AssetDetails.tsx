@@ -1,4 +1,3 @@
-import { MaintenanceFormDialog } from "@/components/assets/MaintenanceFormDialog";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,11 +129,6 @@ const AssetDetails = () => {
           </Button>
         </div>
       </div>
-      <MaintenanceFormDialog
-        open={isMaintenanceDialogOpen}
-        onOpenChange={setIsMaintenanceDialogOpen}
-        asset={asset}
-      />
     </DashboardLayout>
   );
 };

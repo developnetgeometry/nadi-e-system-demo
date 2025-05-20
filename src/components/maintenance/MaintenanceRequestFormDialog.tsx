@@ -151,7 +151,16 @@ export const MaintenanceRequestFormDialog = ({
         setIsSubmitting(false);
         return;
       }
+    } else {
+      toast({
+        title: "Error",
+        description: `Please upload an attachment for the maintenance request.`,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
     }
+
     const now = new Date();
     const docketNumber = generateDocketNumber(now, formData);
 
