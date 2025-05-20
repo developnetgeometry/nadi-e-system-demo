@@ -26,7 +26,7 @@ import { Site, Space } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
+import { fetchSiteBySiteProfileId, fetchSites } from "../site/hook/site-utils";
 import { Textarea } from "../ui/textarea";
 
 export interface AssetFormDialogProps {
@@ -62,6 +62,7 @@ export const AssetFormDialog = ({
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
@@ -84,7 +85,7 @@ export const AssetFormDialog = ({
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
-  const [siteId, setSiteId] = useState("");
+  const [siteId, setSiteId] = useState(defaultSiteId ?? "");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [locations, setLocations] = useState<Space[]>([]);
 
@@ -192,10 +193,10 @@ export const AssetFormDialog = ({
 
   useEffect(() => {
     const fetchSite = async () => {
-      const site = await fetchSiteBySiteId(siteId!); // this in nd_site.id form
+      const site = await fetchSiteBySiteProfileId(siteId! || defaultSiteId);
       if (site) {
         setSelectedSite(site);
-        if (!isStaffUser) {
+        if (!isStaffUser && !isTpSiteUser) {
           const locations = (site.nd_site_space ?? []).map(
             (s): Space => s.nd_space
           );
@@ -212,12 +213,12 @@ export const AssetFormDialog = ({
     };
 
     if (siteId) {
-      if (!isStaffUser) {
+      if (!isStaffUser && !isTpSiteUser) {
         setLocations([]);
       }
       fetchSite();
     }
-  }, [siteId, isStaffUser, asset]);
+  }, [siteId, isStaffUser, isTpSiteUser, defaultSiteId, asset]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -226,7 +227,7 @@ export const AssetFormDialog = ({
 
     setIsSubmitting(true);
 
-    if (!siteId && !isStaffUser) {
+    if (!siteId && !isStaffUser && !isTpSiteUser) {
       toast({
         title: "Error",
         description: "Please select a Site.",
