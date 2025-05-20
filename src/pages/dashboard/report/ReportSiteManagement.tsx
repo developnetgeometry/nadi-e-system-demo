@@ -1,20 +1,19 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
 import { ReportFilters } from "@/components/reports/filters";
+import { SiteManagementReportDownloadButton } from "@/components/reports/pdftemplate/components";
+import { useMcmcLogo, useDuspLogo } from "@/hooks/use-brand";
 import {
-  SiteOverviewCard,
   InsuranceCard,
   AuditCard,
   AgreementCard,
   UtilitiesCard,
   LocalAuthorityCard,
   AwarenessProgrammeCard
-} from "@/components/reports";
+} from "@/components/reports/sitemanagement";
 
 // Define month options
 const monthOptions = [
@@ -41,22 +40,24 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
-const ReportSiteManagement = () => {
-  // Filter states
-  const [duspFilter, setDuspFilter] = useState<string | number | null>(null);
-  const [phaseFilter, setPhaseFilter] = useState<(string | number)[]>([]);
+const ReportSiteManagement = () => {  // Filter states
+  const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
+  const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [nadiFilter, setNadiFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null); // Default to null instead of current year
 
+  // PDF generation states
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+
   // Fetch filter options from API
   const { phases, dusps, nadiSites, loading: filtersLoading } = useReportFilters();
-
   // Fetch site management data based on filters
   const {
     sites,
     utilities,
     insurance,
+    localAuthority,
     audits,
     agreements,
     loading: dataLoading
@@ -94,13 +95,23 @@ const ReportSiteManagement = () => {
   const activeInsurance = insurance.filter(i => i.status === 'Active').length;
   const expiringInsurance = insurance.filter(i => i.status === 'Expiring Soon').length;
   const expiredInsurance = insurance.filter(i => i.status === 'Expired').length;
+  
+  // Get MCMC and DUSP logos for the PDF report
+  const mcmcLogo = useMcmcLogo();
+  const duspLogo = useDuspLogo();
 
-  const pendingAudits = audits.filter(a => a.status === 'Pending').length;
-  const inProgressAudits = audits.filter(a => a.status === 'In Progress').length;
-  const completedAudits = audits.filter(a => a.status === 'Completed').length;
+  // Handle PDF generation events
+  const handleGenerationStart = () => {
+    setIsGeneratingPdf(true);
+  };
 
-  const activeAgreements = agreements.filter(a => a.status === 'Active').length;
-  const expiringAgreements = agreements.filter(a => a.status === 'Expiring Soon').length;
+  const handleGenerationComplete = (success: boolean) => {
+    setIsGeneratingPdf(false);
+    if (!success) {
+      console.error("Failed to generate PDF");
+      // Could add toast notification here
+    }
+  };
 
   // Use individual stable loading states for each component
   const filtersStableLoading = useStableLoading(filtersLoading);
@@ -111,18 +122,73 @@ const ReportSiteManagement = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold">Site Management</h1>
+            <h1 className="text-xl font-bold">Site Management Report</h1>
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Upload Excel
-            </Button> */}
-            <Button variant="secondary" className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+          </div>          
+          <div className="flex items-center gap-2">            
+            <SiteManagementReportDownloadButton              
+            duspLabel={duspFilter.length === 1 
+                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+                : duspFilter.length > 1 
+                  ? `${duspFilter.length} DUSPs selected` 
+                  : ""}              phaseLabel={phaseFilter !== null 
+                ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+                : "All Phases"}
+              periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}`: "All Records"}
+              monthFilter={monthFilter}
+              yearFilter={yearFilter}
+              duspFilter={duspFilter}
+              phaseFilter={phaseFilter}
+              nadiFilter={nadiFilter}
+              totalSites={sites.length}
+              mcmcLogo={mcmcLogo}
+              duspLogo={duspLogo}
+              sites={sites.map(site => ({
+                standard_code: site.standard_code || '',
+                name: site.sitename || '',
+                state: site.phase_name || '',
+              }))}
+              utilities={utilities.map(utility => ({
+                site_id: utility.site_id,
+                site_name: utility.sitename || '',
+                state: '',
+                has_water: utility.type_name === 'Water',
+                has_electricity: utility.type_name === 'Electricity',
+                has_sewerage: utility.type_name === 'Sewerage',
+                type_name: utility.type_name,
+                amount_bill: utility.amount_bill
+              }))}
+              insurance={insurance.map(ins => ({
+                standard_code: ins.site_id || '',
+                site_name: ins.sitename || '',
+                state: '',
+                duration: ins.start_date && ins.end_date ?
+                  `${new Date(ins.start_date).toLocaleDateString()} - ${new Date(ins.end_date).toLocaleDateString()}` :
+                  'N/A',
+              }))}
+              localAuthority={localAuthority.map(la => ({
+                standard_code: la.site_id || '',
+                site_name: la.sitename || '',
+                state: '',
+              }))}              
+              audits={audits.map(audit => ({
+                standard_code: audit.site_id || '',
+                site_name: audit.sitename || '',
+                state: '',
+              }))}
+              agreements={agreements.map(agreement => ({
+                standard_code: agreement.site_id || '',
+                site_name: agreement.sitename || '',
+                state: '',
+              }))}
+              programmes={[]}
+
+              buttonText={isGeneratingPdf ? "Generating PDF..." : "Generate PDF Report"}
+              fileName={`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`}
+              onGenerationStart={handleGenerationStart}
+              onGenerationComplete={handleGenerationComplete}
+            />
           </div>
         </div>
 
@@ -153,27 +219,12 @@ const ReportSiteManagement = () => {
 
         {/* Statistics Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* <SiteOverviewCard
-            loading={filtersStableLoading || dataStableLoading}
-            siteCount={sites.length}
-            activeSiteCount={sites.filter(s => s.is_active).length}
-            uniquePhaseCount={new Set(sites.map(s => s.phase_id)).size}
-            uniqueDuspCount={new Set(sites
-              .filter(s => s.dusp_id !== null && s.dusp_id !== undefined && s.dusp_id !== "")
-              .map(s => s.dusp_id)).size}
-            totalSiteCount={nadiSites?.length || 0}
-          /> */}
-
           <LocalAuthorityCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            laRecordSiteCount={0} // No data available yet
-            compliantCount={0}
-            pendingCount={0}
-            inProgressCount={0}
+            laRecordSiteCount={new Set(localAuthority.map(la => la.site_id)).size}
           />
-          
+
           <InsuranceCard
             loading={dataStableLoading}
             siteCount={sites.length}
@@ -187,17 +238,12 @@ const ReportSiteManagement = () => {
             loading={dataStableLoading}
             siteCount={sites.length}
             auditedSiteCount={new Set(audits.map(a => a.site_id)).size}
-            completedCount={completedAudits}
-            inProgressCount={inProgressAudits}
-            pendingCount={pendingAudits}
           />
 
           <AgreementCard
             loading={dataStableLoading}
             siteCount={sites.length}
             agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
-            activeCount={activeAgreements}
-            expiringCount={expiringAgreements}
           />
 
           <UtilitiesCard

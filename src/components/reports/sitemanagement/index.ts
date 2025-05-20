@@ -1,7 +1,4 @@
-export { CardSkeleton } from "./ui/CardSkeleton";
-export { CardStat } from "./ui/CardStat";
-export { StatItem } from "./ui/StatItem";
-export { FilterStatusCard } from "./FilterStatusCard";
+// This file exports all the components from the sitemanagement folder
 export { SiteOverviewCard } from "./SiteOverviewCard";
 export { InsuranceCard } from "./InsuranceCard";
 export { AuditCard } from "./AuditCard";
