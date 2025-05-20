@@ -21,6 +21,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { fetchSites } from "../site/hook/site-utils";
 import { AssetDeleteDialog } from "./AssetDeleteDialog";
 import { AssetDetailsDialog } from "./AssetDetailsDialog";
@@ -395,10 +396,6 @@ export const AssetList = ({
             <TableBody>
               {paginatedAssets &&
                 paginatedAssets.map((asset, index) => {
-                  const requestDate = asset.created_at
-                    ? asset.created_at.split("T")[0]
-                    : "";
-
                   return (
                     <TableRow key={asset.id}>
                       <TableCell>
@@ -406,14 +403,17 @@ export const AssetList = ({
                       </TableCell>
                       <TableCell>{asset?.name || "N/A"}</TableCell>
                       <TableCell>{asset?.type.name || "N/A"}</TableCell>
-                      <TableCell>{asset?.qty_unit || "N/A"}</TableCell>
+                      <TableCell>{String(asset?.qty_unit) || "N/A"}</TableCell>
                       {isSuperAdmin && (
                         <TableCell>
                           {asset?.site?.dusp_tp_id_display || "N/A"}
                         </TableCell>
                       )}
                       <TableCell>{asset?.site?.sitename || "N/A"}</TableCell>
-                      <TableCell>{requestDate || "N/A"}</TableCell>
+                      <TableCell>
+                        {format(new Date(asset?.created_at), "dd/MM/yyyy") ||
+                          "N/A"}
+                      </TableCell>
                       <TableCell>
                         {asset?.is_active ? "Active" : "Inactive"}
                       </TableCell>
