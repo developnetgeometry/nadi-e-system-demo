@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import { InternetAccessReportPDF } from "../pages/internetaccess/InternetAccessReport";
 
 interface InternetAccessSite {
@@ -67,45 +67,22 @@ export const InternetAccessReportDownloadButton: React.FC<InternetAccessReportDo
   fileName = "internet-access-report.pdf",
   onGenerationStart,
   onGenerationComplete,
-}) => {  const [isGenerating, setIsGenerating] = useState(false);
-  const [showDownloadLink, setShowDownloadLink] = useState(false);
-
+}) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  
   // Calculate percentages for key metrics
   const internetAccessPercentage = totalSites > 0 
     ? ((sitesWithInternet / totalSites) * 100).toFixed(1) 
     : "0";
-    // Effect to reset button state when filters change
-  useEffect(() => {
-    // Reset the button state when any filter changes
-    if (showDownloadLink) {
-      setShowDownloadLink(false);
-      setIsGenerating(false);
-    }
-  }, [duspFilter, phaseFilter, monthFilter, yearFilter]);
 
-  // Handle button click to start PDF generation
-  const handleGenerateClick = () => {
+  // Function to generate and download PDF
+  const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
-    setShowDownloadLink(true);
     onGenerationStart?.();
-  };
-
-  // Only render PDFDownloadLink after user has clicked to generate
-  if (!showDownloadLink) {
-    return (      <Button
-        variant="secondary"
-        className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-        onClick={handleGenerateClick}
-      >
-        <Download className="h-4 w-4 mr-2" />
-        Generate PDF Report
-      </Button>
-    );
-  }
-
-  return (
-    <PDFDownloadLink
-      document={
+    
+    try {
+      // Create the PDF document
+      const blob = await pdf(
         <InternetAccessReportPDF
           duspLabel={duspLabel}
           phaseLabel={phaseLabel}
@@ -124,40 +101,50 @@ export const InternetAccessReportDownloadButton: React.FC<InternetAccessReportDo
           currentMonth={new Date().getMonth() + 1}
           currentYear={new Date().getFullYear()}
         />
-      }
-      fileName={fileName}
+      ).toBlob();
+      
+      // Create a URL for the blob
+      const url = URL.createObjectURL(blob);
+      
+      // Create and click a temporary download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL
+      URL.revokeObjectURL(url);
+      
+      // Signal completion
+      setIsGenerating(false);
+      onGenerationComplete?.(true);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setIsGenerating(false);
+      onGenerationComplete?.(false);
+    }
+  };
+
+  return (
+    <Button
+      disabled={isGenerating}
+      variant="secondary"
+      className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+      onClick={generateAndDownloadPDF}
     >
-      {({ loading, error, url }) => {
-        // Handle PDF generation lifecycle
-        React.useEffect(() => {
-          if (!loading && isGenerating) {
-            setIsGenerating(false);
-            onGenerationComplete?.(!error);
-          } 
-        }, [loading, error, url]);
-
-        if (error) {
-          console.error("Error generating PDF:", error);
-        }
-
-        return (          <Button
-            disabled={loading}
-            variant="secondary"
-            className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-          >            {loading ? (
-              <>
-                <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </>
-            )}
-          </Button>
-        );
-      }}
-    </PDFDownloadLink>
+      {isGenerating ? (
+        <>
+          <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Downloading...
+        </>
+      ) : (
+        <>
+          <Download className="h-4 w-4 mr-2" />
+          Download
+        </>
+      )}
+    </Button>
   );
 };
