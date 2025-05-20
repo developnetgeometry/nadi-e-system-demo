@@ -72,7 +72,7 @@ export const AssetFormDialog = ({
     { id: 3, name: "Retail Type 3" },
   ];
 
-  const [assetId, setAssetId] = useState<string>(String(asset?.id) || null);
+  const [assetId, setAssetId] = useState<number | null>(asset?.id ?? null);
   const [assetName, setAssetName] = useState("");
   const [assetType, setAssetType] = useState("");
   const [assetBrandId, setAssetBrandId] = useState("");
@@ -111,23 +111,6 @@ export const AssetFormDialog = ({
     enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
   });
 
-  useEffect(() => {
-    if (duspId) {
-      refetchTPs();
-      setTpId("");
-      setSiteId("");
-      setSelectedSite(null);
-    }
-  }, [duspId, refetchTPs]);
-
-  useEffect(() => {
-    if (tpId) {
-      refetchSites();
-      setSiteId("");
-      setSelectedSite(null);
-    }
-  }, [tpId, refetchSites]);
-
   const { useAssetTypesQuery } = useAssets();
 
   const {
@@ -155,13 +138,13 @@ export const AssetFormDialog = ({
       if (!brandIsLoading && !assetTypeIsLoading) {
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
-        setAssetLocationId(String(asset.location_id));
       }
       if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading) {
         setDuspId(String(asset.site?.dusp_tp?.parent?.id));
         setTpId(String(asset.site?.dusp_tp_id));
         setSiteId(String(asset.site_id));
         setSelectedSite(asset.site);
+        setAssetLocationId(String(asset.location_id));
       }
     }
   }, [
@@ -174,8 +157,25 @@ export const AssetFormDialog = ({
   ]);
 
   useEffect(() => {
+    if (duspId) {
+      refetchTPs();
+      setTpId("");
+      setSiteId("");
+      setSelectedSite(null);
+    }
+  }, [duspId, refetchTPs]);
+
+  useEffect(() => {
+    if (tpId) {
+      refetchSites();
+      setSiteId("");
+      setSelectedSite(null);
+    }
+  }, [tpId, refetchSites]);
+
+  useEffect(() => {
     if (!open) {
-      setAssetId("");
+      setAssetId(null);
       setAssetName("");
       setAssetType("");
       setAssetBrandId("");
@@ -337,18 +337,6 @@ export const AssetFormDialog = ({
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Asset Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="Enter asset name"
-                  value={assetName}
-                  onChange={(e) => setAssetName(e.target.value)}
-                />
-              </div>
-
               {isSuperAdmin && (
                 <div className="space-y-2">
                   <Label htmlFor="type">DUSP</Label>
@@ -416,13 +404,54 @@ export const AssetFormDialog = ({
                           key={index}
                           value={site.nd_site[0].id.toString()}
                         >
-                          {site.sitename} - {site.nd_site[0].id.toString()}
+                          {site.sitename}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Asset Location</Label>
+                <Select
+                  name="location"
+                  required
+                  value={assetLocationId}
+                  onValueChange={setAssetLocationId}
+                  disabled={locations && locations.length > 0 ? false : true}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        locations && locations.length > 0
+                          ? "Select asset location"
+                          : "No locations found for this site"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations &&
+                      locations.map((location, index) => (
+                        <SelectItem key={index} value={location.id.toString()}>
+                          {location.eng}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Asset Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  placeholder="Enter asset name"
+                  value={assetName}
+                  onChange={(e) => setAssetName(e.target.value)}
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="type">Brand</Label>
@@ -480,35 +509,6 @@ export const AssetFormDialog = ({
                   onChange={(e) => setAssetQuantity(e.target.value)}
                   min={0}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="type">Asset Location</Label>
-                <Select
-                  name="location"
-                  required
-                  value={assetLocationId}
-                  onValueChange={setAssetLocationId}
-                  disabled={locations && locations.length > 0 ? false : true}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        locations && locations.length > 0
-                          ? "Select asset location"
-                          : "No locations found for this site"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations &&
-                      locations.map((location, index) => (
-                        <SelectItem key={index} value={location.id.toString()}>
-                          {location.eng}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">
