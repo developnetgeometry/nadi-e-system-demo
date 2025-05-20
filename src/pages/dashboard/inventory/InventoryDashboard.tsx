@@ -7,9 +7,10 @@ import { useInventories } from "@/hooks/use-inventories";
 import { useSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { InventoryStatsCardProps, InventoryStatsData } from "@/types/inventory";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const InventoryDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -95,10 +96,18 @@ const InventoryDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold">Inventory Management</h1>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Inventory
-          </Button>
+          <div className="flex gap-2">
+            <Link to="/site-management/inventory-management/settings">
+              <Button onClick={() => {}}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Inventory
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
