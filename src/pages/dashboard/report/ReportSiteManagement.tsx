@@ -125,7 +125,7 @@ const ReportSiteManagement = () => {  // Filter states
             <h1 className="text-xl font-bold">Site Management Report</h1>
             <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">            
             <SiteManagementReportDownloadButton
               duspLabel={duspFilter.length === 1
                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
@@ -181,8 +181,6 @@ const ReportSiteManagement = () => {  // Filter states
                 state: '',
               }))}
               programmes={[]}
-
-              buttonText={isGeneratingPdf ? "Generating PDF..." : "Generate PDF Report"}
               fileName={`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}

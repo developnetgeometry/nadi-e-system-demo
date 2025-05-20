@@ -111,7 +111,6 @@ const ReportNadiESystem = () => {
               sitesWithEmailMigration={sitesWithEmailMigration}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-              buttonText={isGeneratingPdf ? "Generating PDF..." : "Generate PDF Report"}
               fileName={`nadi-e-system-report-${new Date().toISOString().split('T')[0]}.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}

@@ -101,7 +101,6 @@ export const SiteManagementReportDownloadButton = ({
     audits,
     agreements,
     programmes,
-    buttonText = "Generate PDF",
     fileName = "site-management-report.pdf",
     monthFilter = null,
     yearFilter = null,
@@ -136,14 +135,13 @@ export const SiteManagementReportDownloadButton = ({
     if (!userClickedGenerate) {
         // No restrictions - allow generating PDF with any filter configuration
         
-        return (
-            <Button
+        return (            <Button
                 variant="secondary"
                 className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
                 onClick={handleGeneratePDF}
             >
                 <Download className="h-4 w-4 mr-2" />
-                {buttonText}
+                Generate PDF Report
             </Button>
         );
     }
@@ -185,23 +183,22 @@ export const SiteManagementReportDownloadButton = ({
                 }
 
                 return (
-                    <Button
-                        disabled={loading}
-                        variant="secondary"
-                        className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                    >
-                        {loading ? (
-                            <>
-                                <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                Generating...
-                            </>
-                        ) : (
-                            <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download PDF
-                            </>
-                        )}
-                    </Button>
+          <Button
+            disabled={loading}
+            variant="secondary"
+            className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+          >            {loading ? (
+              <>
+                <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </>
+            )}
+          </Button>
                 );
             }}
         </PDFDownloadLink>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { PDFDownloadLink, pdf } from "@react-pdf/renderer";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NadiESystemReportPDF } from "../pages/nadiesystem/NadiESystemReport";
@@ -46,33 +46,26 @@ export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownload
   fileName = "nadi-e-system-report.pdf",
   onGenerationStart,
   onGenerationComplete,
-}) => {  
-  // Track loading state internally    
+}) => {  // Track loading state internally    
   const [isGenerating, setIsGenerating] = useState(false);
   // Track if user has clicked to generate PDF
   const [userClickedGenerate, setUserClickedGenerate] = useState(false);
-  
-  // Effect to reset button state when filters change  
-  useEffect(() => {
+  // Effect to reset button state when filters change  useEffect(() => {
     // Reset the button state when any filter changes
     if (userClickedGenerate) {
       setUserClickedGenerate(false);
       setIsGenerating(false);
     }
   }, [duspFilter, phaseFilter, monthFilter, yearFilter]);
-  
-  // Handle the initial button click to start generating PDF  
-  const handleGeneratePDF = () => {
+    // Handle the initial button click to start generating PDF  const handleGeneratePDF = () => {
     setUserClickedGenerate(true);
     setIsGenerating(true);
     onGenerationStart?.();
-    // Removed artificial delay (setTimeout)
   };
 
   // If user hasn't clicked to generate, just show the initial button
   if (!userClickedGenerate) {
-    return (
-      <Button
+    return (      <Button
         variant="secondary"
         className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
         onClick={handleGeneratePDF}
@@ -101,8 +94,7 @@ export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownload
           duspLogo={duspLogo}
         />
       }
-      fileName={fileName}
-    >
+      fileName={fileName}    >
       {({ loading, error, url }) => {
         // Handle PDF generation lifecycle
         React.useEffect(() => {
@@ -116,13 +108,11 @@ export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownload
           console.error("Error generating PDF:", error);
         }
 
-        return (
-          <Button
+        return (          <Button
             disabled={loading}
             variant="secondary"
             className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-          >
-            {loading ? (
+          >            {loading ? (
               <>
                 <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 Generating...
