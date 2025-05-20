@@ -35,8 +35,6 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import { ChartImageRenderer } from "@/components/reports/pdftemplate/pages/internetaccess/graphs/ChartImageRenderer";
-import { InternetAccessReportPDF } from "@/components/reports/pdftemplate/pages/internetaccess/InternetAccessReport";
 
 import { cn } from "@/lib/utils";
 
@@ -100,8 +98,7 @@ const ReportInternetAccess = () => {
   const phaseLabels = phaseOptions
     .filter((p) => phaseFilter.includes(p.id))
     .map((p) => p.label);
-  const duspLogo = duspOptions.find((d) => d.id === duspFilter)?.logo_url;
-  const mcmcLogo = "/MCMC_Logo.png"; // Replace with actual logo URL for MCMC
+
 
   const hasActiveFilters =
     duspFilter !== null ||
@@ -114,20 +111,8 @@ const ReportInternetAccess = () => {
     setYearFilter("2025");
     
     // Also reset PDF preparation state when filters are reset
-    resetPdfState();
   };
 
-  const resetPdfState = () => {
-    setPreparingPdf(false);
-    setPdfReady(false);
-    setGraphImage(null);
-  };
-
-  const handlePrepareDownload = () => {
-    setPreparingPdf(true);
-    // This will trigger the ChartImageRenderer to render
-    // When it's done, it will call setGraphImage which we'll use to show the PDF download link
-  };
 
   return (
     <DashboardLayout>
@@ -143,69 +128,16 @@ const ReportInternetAccess = () => {
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload Excel
-            </Button> */}            {/* Only render the chart when preparing */}
-            {preparingPdf && (
-              <ChartImageRenderer
-                data={sampleChartData}
-                onReady={(img) => {
-                  setGraphImage(img);
-                  setPdfReady(true);
-                  setPreparingPdf(false);
-                }}
-              />
-            )}
+            </Button> */}           
             
-            {/* Show PDF download link if ready or download button if not */}
-            {pdfReady && graphImage ? (
-              <PDFDownloadLink
-                document={
-                  <InternetAccessReportPDF
-                    duspLabel={duspLabel}
-                    phaseLabel={phaseLabels.join(", ")}
-                    monthLabel={monthLabel}
-                    year={yearFilter?.toString()}
-                    totalConnected={76}
-                    showMonth={true}
-                    mcmcLogo={mcmcLogo}
-                    duspLogo="/dusp-logo.png"
-                    nadiSites={[
-                      {
-                        state: "Johor",
-                        technology: "ADSL",
-                        bandwidth: "100Mbps",
-                        name: "BATU 1 SUNGAI PINGGAN",
-                      },
-                      {
-                        state: "Pahang",
-                        technology: "UNIFI",
-                        bandwidth: "100Mbps",
-                        name: "XXXXXX",
-                      },
-                    ]}
-                    graphImage={graphImage}
-                  />
-                }
-                fileName={`internet-access-report-${Date.now()}.pdf`}
-              >
-                {({ loading }) => (
-                  <Button
-                    variant="secondary"
-                    className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                  >
-                    <Download className="h-4 w-4" />                    {loading ? "Preparing..." : "Download Report"}
-                  </Button>
-                )}
-              </PDFDownloadLink>
-            ) : (
+            
               <Button
-                variant="secondary"                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-                onClick={handlePrepareDownload}
-                disabled={preparingPdf}
+                variant="secondary"              
+               className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
               >
                 <Download className="h-4 w-4" />
-                {preparingPdf ? "Generating..." : "Generate Report"}
+                Generate Report
               </Button>
-            )}
           </div>
         </div>
         {/* Filters Row */}
