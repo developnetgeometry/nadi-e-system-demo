@@ -23,11 +23,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Helvetica",
     position: "relative",
-  },
-  box: {
+  },  box: {
     padding: 20,
     backgroundColor: "#fff",
-    border: "1pt solid #000",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#000",
     marginBottom: 10,
     marginTop: 5,
     maxWidth: 170,
