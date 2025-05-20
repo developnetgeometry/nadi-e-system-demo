@@ -180,12 +180,7 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-        />        {/* Phase and Quarter Info */}
-        <PDFPhaseQuarterInfo 
-          phaseLabel={phaseLabel || "PILOT"}
-          periodType="QUARTER / YEAR"
-          periodValue={quarterText}
-        />
+        />   
 
         {/* Section 1: Managed Internet Services */}
         <View style={{ marginBottom: 20 }}>
@@ -252,23 +247,6 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
 
       {/* Page 2: NMS */}
       <Page size="A4" style={styles.page}>
-        <PDFHeader
-          mcmcLogo={mcmcLogo}
-          duspLogo={duspLogo}
-        />
-        
-        <PDFMetaSection
-          reportTitle="4.0 Internet Access"
-          phaseLabel={phaseLabel}
-          periodType="QUARTER / YEAR"
-          periodValue={quarterText}
-        />
-
-        <PDFPhaseQuarterInfo 
-          phaseLabel={phaseLabel || "PILOT"}
-          periodType="QUARTER / YEAR"
-          periodValue={quarterText}
-        />
 
         {/* Section 2: NMS */}
         <View style={{ marginBottom: 20 }}>
@@ -287,23 +265,6 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
 
       {/* Page 3: Monitoring & Reporting */}
       <Page size="A4" style={styles.page}>
-        <PDFHeader
-          mcmcLogo={mcmcLogo}
-          duspLogo={duspLogo}
-        />
-        
-        <PDFMetaSection
-          reportTitle="4.0 Internet Access"
-          phaseLabel={phaseLabel}
-          periodType="QUARTER / YEAR"
-          periodValue={quarterText}
-        />
-
-        <PDFPhaseQuarterInfo 
-          phaseLabel={phaseLabel || "PILOT"}
-          periodType="QUARTER / YEAR"
-          periodValue={quarterText}
-        />
 
         {/* Section 3: Monitoring & Reporting */}
         <View>
