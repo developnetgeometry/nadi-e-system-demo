@@ -37,7 +37,6 @@ export const TurnoverRateCard: React.FC<TurnoverRateCardProps> = ({
               <Skeleton className="h-8 w-16 mx-auto" />
               <Skeleton className="h-4 w-24 mx-auto mt-1" />
             </div>
-            <Skeleton className="h-48 w-full mt-4" />
           </>
         ) : (
           <>

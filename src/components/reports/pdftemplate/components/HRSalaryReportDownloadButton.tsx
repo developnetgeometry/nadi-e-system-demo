@@ -1,9 +1,11 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
-import { pdf } from "@react-pdf/renderer";
-import { HRSalaryReportPDF } from "../pages/hrsalary/HRSalaryReport";
-import { StaffDistribution, StaffVacancy, TurnoverRate, HRStaffMember } from "@/hooks/report/use-hr-salary-data";
+// HRSalaryReportDownloadButton.tsx
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { pdf } from '@react-pdf/renderer';
+import { useHRSalaryData } from '@/hooks/report/use-hr-salary-data';
+import { HRSalaryReportPDF } from '../pages/hrsalary/HRSalaryReport';
+import ChartGenerator from '../pages/hrsalary/graphs/ChartGenerator';
 
 interface HRSalaryReportDownloadButtonProps {
   // Report info
@@ -13,31 +15,21 @@ interface HRSalaryReportDownloadButtonProps {
   periodValue?: string;
 
   // Filter values to include in the report
-  monthFilter?: string | number | null;
-  yearFilter?: string | number | null;
-  duspFilter?: (string | number)[];
-  phaseFilter?: string | number | null;
-
-  // Data for reports
-  staff: HRStaffMember[];
-  totalStaff: number;
-  activeNadiSites: number;
-  sitesWithIncentives: number;
-  averageSalary: number;
-  averageIncentive: number;
-  employeeDistribution: StaffDistribution[];
-  vacancies: StaffVacancy[];
-  turnoverRates: TurnoverRate[];
-  averageTurnoverRate: number;
-
+  duspFilter: (string | number)[] | null;
+  phaseFilter: string | number | null;
+  monthFilter: string | number | null;
+  yearFilter: string | number | null;
+  tpFilter?: (string | number)[] | null;
+  
   // Logos
   mcmcLogo?: string;
   duspLogo?: string;
-
+  
   // Button configuration
-  fileName: string;
+  fileName?: string;
   onGenerationStart?: () => void;
   onGenerationComplete?: (success: boolean) => void;
+  className?: string;
 }
 
 export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButtonProps> = ({
@@ -45,41 +37,102 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
   phaseLabel = "All Phases",
   periodType = "All Time",
   periodValue = "All Records",
-  monthFilter = null,
-  yearFilter = null,
-  duspFilter = [],
-  phaseFilter = null,
-  staff = [],
-  totalStaff = 0,
-  activeNadiSites = 0,
-  sitesWithIncentives = 0,
-  averageSalary = 0,
-  averageIncentive = 0,
-  employeeDistribution = [],
-  vacancies = [],
-  turnoverRates = [],
-  averageTurnoverRate = 0,
+  duspFilter,
+  phaseFilter,
+  monthFilter,
+  yearFilter,
+  tpFilter,
   mcmcLogo = "",
   duspLogo = "",
   fileName = "hr-salary-report.pdf",
   onGenerationStart,
   onGenerationComplete,
+  className
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   
-  // Function to generate and download PDF
-  const generateAndDownloadPDF = async () => {
-    setIsGenerating(true);
-    onGenerationStart?.();
-    
+  // Get the HR Salary data from the hook
+  const {
+    staff,
+    totalStaff,
+    activeNadiSites,
+    sitesWithIncentives,
+    averageSalary,
+    averageIncentive,
+    employeeDistribution,
+    vacancies,
+    turnoverRates,
+    averageTurnoverRate,
+    loading,
+    error
+  } = useHRSalaryData(
+    duspFilter, 
+    phaseFilter,
+    monthFilter,
+    yearFilter,
+    tpFilter
+  );
+  
+  const handleGenerateReport = async () => {
     try {
-      // Create the PDF document
+      setIsGenerating(true);
+      
+      // Step 1: Generate chart images
+      const chartPromise = new Promise<{
+        staffDistributionChart: string;
+        salaryChart: string;
+        vacancyChart: string;
+      }>((resolve) => {
+        // Create a temporary div to mount the chart generator
+        const tempDiv = document.createElement('div');
+        document.body.appendChild(tempDiv);
+        
+        // Create a temporary React root
+        const cleanup = () => {
+          document.body.removeChild(tempDiv);
+        };
+        
+        // Mount the ChartGenerator component
+        const chartGeneratorElement = document.createElement('div');
+        tempDiv.appendChild(chartGeneratorElement);
+        
+        // Use React to render the chart generator
+        const onChartReady = (charts: {
+          staffDistributionChart: string;
+          salaryChart: string;
+          vacancyChart: string;
+        }) => {
+          resolve(charts);
+          setTimeout(cleanup, 500); // Clean up after a delay to ensure complete rendering
+        };
+        
+        // Render chart component with ReactDOM.render or similar approach
+        // This is a simplified version - you would need to use createRoot or another method
+        // depending on your React version
+        import('react-dom/client').then(({ createRoot }) => {
+          const root = createRoot(chartGeneratorElement);
+          root.render(
+            <ChartGenerator
+              employeeDistribution={employeeDistribution}
+              vacancies={vacancies}
+              staff={staff}
+              onChartsReady={onChartReady}
+            />
+          );
+        });
+      });
+      
+      // Step 2: Wait for chart images to be generated
+      const charts = await chartPromise;
+      
+      // Step 3: Create the PDF with chart images
+      const fileName = `HR_Salary_Report_${monthFilter || ''}_${yearFilter || ''}.pdf`;
       const blob = await pdf(
         <HRSalaryReportPDF
-          duspLabel={duspLabel}
-          phaseLabel={phaseLabel}
-          periodType={periodType}
-          periodValue={periodValue}
+          duspLabel={duspFilter?.join(', ')}
+          phaseLabel={phaseFilter?.toString() || ""}
+          periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}
+          periodValue={`${monthFilter || ''}/${yearFilter || ''}`}
           staff={staff}
           totalStaff={totalStaff}
           activeNadiSites={activeNadiSites}
@@ -94,12 +147,13 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
           duspLogo={duspLogo}
           monthFilter={monthFilter}
           yearFilter={yearFilter}
-          currentMonth={new Date().getMonth() + 1}
-          currentYear={new Date().getFullYear()}
+          staffDistributionChart={charts.staffDistributionChart}
+          salaryChart={charts.salaryChart}
+          vacancyChart={charts.vacancyChart}
         />
       ).toBlob();
       
-      // Create a download link
+      // Step 4: Create and trigger download
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -107,29 +161,36 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       
-      onGenerationComplete?.(true);
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      onGenerationComplete?.(false);
-    } finally {
       setIsGenerating(false);
+      onGenerationComplete?.(true);
+    } catch (err) {
+      console.error("Error generating HR Salary report PDF:", err);
+      setIsGenerating(false);
+      onGenerationComplete?.(false);
     }
   };
-
-  return (
+    return (
     <Button
+      onClick={handleGenerateReport}
+      disabled={isGenerating || loading || !!error}
       variant="secondary"
       className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-      onClick={generateAndDownloadPDF}
-      disabled={isGenerating}
     >
       {isGenerating ? (
-        <span className="animate-spin">◌</span>
+        <>
+          <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Downloading...
+        </>
       ) : (
-        <Download className="h-4 w-4" />
+        <>
+          <Download className="h-4 w-4 mr-2" />
+          Download
+        </>
       )}
-      {isGenerating ? "Generating..." : "Download Report"}
     </Button>
   );
 };
+
+export default HRSalaryReportDownloadButton;

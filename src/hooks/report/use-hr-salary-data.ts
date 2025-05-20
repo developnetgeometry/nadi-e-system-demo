@@ -6,11 +6,17 @@ export interface HRStaffMember {
   id: string;
   site_id?: string;
   sitename?: string;
+  state?: string; // Added state field for NADI & STATE column
   phase_name?: string;
   fullname: string;
   position?: string;
   department?: string;
   salary?: number;
+  service_period?: string; // Added service period (e.g., "5y 6m 13d")
+  join_date?: string; // Added join date
+  date_start_work?: string; // For incentive report
+  date_end_work?: string; // For incentive report
+  duration?: number; // Duration in days for incentive
   has_incentive?: boolean;
   incentive_amount?: number;
 }
@@ -50,28 +56,25 @@ export const useHRSalaryData = (
   const [sitesWithIncentives, setSitesWithIncentives] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Staff distribution data (mock data for now)
+  // Staff distribution data based on image
   const [employeeDistribution, setEmployeeDistribution] = useState<StaffDistribution[]>([
-    { position: 'Manager', count: 24, color: '#0088FE' },
-    { position: 'Assistant Manager', count: 36, color: '#00C49F' },
-    { position: 'Part Timer', count: 68, color: '#FF8042' },
+    { position: 'Manager', count: 2, color: '#0000FF' }, // Blue in chart
+    { position: 'Assistant Manager', count: 1, color: '#FFA500' }, // Orange in chart
+    { position: 'Part Timer', count: 2, color: '#008000' }, // Green in chart
   ]);
 
-  // Vacancies data (mock data for now)
+  // Vacancies data based on image (showing 5 total vacancies)
   const [vacancies, setVacancies] = useState<StaffVacancy[]>([
-    { position: 'Manager', open: 6, filled: 2, color: '#0088FE' },
-    { position: 'Assistant Manager', open: 4, filled: 1, color: '#00C49F' },
+    { position: 'Manager', open: 3, filled: 0, color: '#0000FF' },
+    { position: 'Assistant Manager', open: 2, filled: 0, color: '#FFA500' },
   ]);
 
-  // Turnover rate data (mock data for now)
+  // Turnover rate data (based on 0.3% shown in image)
   const [turnoverRates, setTurnoverRates] = useState<TurnoverRate[]>([
-    { month: 'July', rate: 5.1 },
-    { month: 'Aug', rate: 4.9 },
-    { month: 'Sep', rate: 5.2 },
-    { month: 'Oct', rate: 4.7 },
-    { month: 'Nov', rate: 4.5 },
-    { month: 'Dec', rate: 4.8 }
+    { month: 'Jan', rate: 0.3 },
+    { month: 'Feb', rate: 0.3 },
+    { month: 'Mar', rate: 0.3 },
+    { month: 'Apr', rate: 0.3 }
   ]);
 
   // Load staff data
@@ -116,31 +119,48 @@ export const useHRSalaryData = (
         
         setStaff(data || []);
         */
-        
-        // Mock data for demonstration
+          // Mock data based on the actual required format
         setTimeout(() => {
+          // Mock data based on the images provided
+          const nadiSites = [
+            { site: 'BATU 1 SUNGAI PINGGAN', state: 'JOHOR' },
+            { site: 'KAMPUNG BERUAS', state: 'PAHANG' }
+          ];
+          
           const mockStaff: HRStaffMember[] = [];
           
-          // Generate 128 mock staff members
-          for (let i = 0; i < 128; i++) {
-            const position = i < 24 ? 'Manager' : i < 60 ? 'Assistant Manager' : 'Part Timer';
-            const salary = position === 'Manager' ? 5000 + Math.random() * 2000 :
-                          position === 'Assistant Manager' ? 3000 + Math.random() * 1000 :
-                          1500 + Math.random() * 500;
+          // Generate staff similar to the example in the images
+          const staffNames = [
+            'AHMAD AIMAN BIN HUSIN',
+            'AHMAD AIDIL BIN ISHAK'
+          ];
+          
+          // Generate 20 mock staff members to match the report example
+          for (let i = 0; i < 20; i++) {
+            const siteIndex = i % 2;
+            const nameIndex = i % 2;
+            const isManager = nameIndex === 0; // Ahmad Aiman is always a manager, Ahmad Aidil is assistant
             
-            const hasIncentive = Math.random() > 0.5;
+            const position = isManager ? 'MANAGER' : 'ASSIST. MANAGER';
+            const salary = isManager ? 2500 : 2000;
+            const servicePeriod = isManager ? '5y 6m 13d' : '6y 1m 20d';
+            const joinDate = isManager ? '01 AUG 2019' : '15 DEC 2018';
             
             mockStaff.push({
               id: `staff-${i + 1}`,
-              site_id: `site-${Math.floor(Math.random() * 12) + 1}`,
-              sitename: `NADI Site ${Math.floor(Math.random() * 12) + 1}`,
-              phase_name: `Phase ${Math.floor(Math.random() * 3) + 1}`,
-              fullname: `Staff Member ${i + 1}`,
+              site_id: `site-${siteIndex + 1}`,
+              sitename: nadiSites[siteIndex].site,
+              state: nadiSites[siteIndex].state,
+              fullname: staffNames[nameIndex],
               position,
-              department: ['Admin', 'IT', 'Operations', 'Finance'][Math.floor(Math.random() * 4)],
               salary,
-              has_incentive: hasIncentive,
-              incentive_amount: hasIncentive ? Math.round(salary * 0.1) : 0,
+              service_period: servicePeriod,
+              join_date: joinDate,
+              date_start_work: joinDate,
+              date_end_work: joinDate, // Same date for example
+              duration: isManager ? 30 : 28,
+              has_incentive: true,
+              incentive_amount: isManager ? 2000 : 1500,
             });
           }
           

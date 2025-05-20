@@ -101,9 +101,7 @@ const ReportHRSalary = () => {    // Filter states
                     <div>
                         <h1 className="text-xl font-bold">Human Resources</h1>
                         <p className="text-gray-500 mt-1">View and analyze staff data across all NADI sites</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <HRSalaryReportDownloadButton
+                    </div>                    <div className="flex items-center gap-2">                        <HRSalaryReportDownloadButton
                             duspLabel={duspFilter.length === 1
                                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
                                 : duspFilter.length > 1
@@ -114,20 +112,10 @@ const ReportHRSalary = () => {    // Filter states
                                 : "All Phases"}
                             periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
                             periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
-                            monthFilter={monthFilter}
-                            yearFilter={yearFilter}
                             duspFilter={duspFilter}
                             phaseFilter={phaseFilter}
-                            staff={staff}
-                            totalStaff={totalStaff}
-                            activeNadiSites={activeNadiSites}
-                            sitesWithIncentives={sitesWithIncentives}
-                            averageSalary={averageSalary}
-                            averageIncentive={averageIncentive}
-                            employeeDistribution={employeeDistribution}
-                            vacancies={vacancies}
-                            turnoverRates={turnoverRates}
-                            averageTurnoverRate={averageTurnoverRate}
+                            monthFilter={monthFilter}
+                            yearFilter={yearFilter}
                             mcmcLogo={mcmcLogo}
                             duspLogo={duspLogo}
                             fileName={`hr-salary-report-${new Date().toISOString().split('T')[0]}.pdf`}
