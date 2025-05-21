@@ -233,6 +233,8 @@ export const MaintenanceRequestFormDialog = ({
       no_docket: docketNumber,
       description: description,
       type_id: Number(formData.get("maintenanceType")),
+      asset_id: selectedAsset?.id as number,
+      frequency: Number(formData.get("frequency")),
       requester_by: user.id,
     };
 
@@ -469,6 +471,70 @@ export const MaintenanceRequestFormDialog = ({
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="asset">Asset</Label>
+                  <div className="relative flex space-x-4">
+                    <Input
+                      placeholder="Search and add asset"
+                      value={assetsFilter}
+                      onChange={(e) => {
+                        setAssetsFilter(e.target.value);
+                      }}
+                      className="pl-10"
+                    />
+                    <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+
+                  <div className="mt-2">
+                    {isLoadingAssets ? (
+                      <LoadingSpinner />
+                    ) : assetsFilter && assets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No assets found
+                      </p>
+                    ) : (
+                      assets.map((asset) => (
+                        <AssetCard key={asset.id} asset={asset} />
+                      ))
+                    )}
+
+                    {selectedAsset && (
+                      <div className="relative mt-4 p-4 border rounded bg-gray-50">
+                        <button
+                          onClick={() => setSelectedAsset(null)}
+                          className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+                          aria-label="Clear selection"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="mt-2 bg-gray-50">
+                          <p className="font-semibold text-sm">
+                            {selectedAsset.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedAsset.id}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="frequency">Frequency</Label>
+                  <Select name="frequency" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Weekly</SelectItem>
+                      <SelectItem value="1">Monthly</SelectItem>
+                      <SelectItem value="2">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

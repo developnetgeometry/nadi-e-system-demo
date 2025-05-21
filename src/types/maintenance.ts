@@ -16,6 +16,7 @@ export interface MaintenanceRequest {
   updates?: MaintenanceUpdate[];
   maintenance_date?: string;
   priority_type_id?: number;
+  frequency?: number;
   created_at?: string;
   updated_at?: string;
   created_by?: string;
