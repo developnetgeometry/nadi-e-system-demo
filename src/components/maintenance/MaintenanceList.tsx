@@ -341,7 +341,7 @@ export const MaintenanceList = ({
                             </TableCell>
                           </>
                         )}
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <div className="flex items-center space-x-2">
                             <div>
                               {getMaintenanceStatusIcon(
