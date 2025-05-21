@@ -58,6 +58,9 @@ export const MaintenanceList = ({
       ? parsedMetadata.organization_id
       : null;
 
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
+
   const [isViewDetailsDialogCMOpen, setIsViewDetailsDialogCMOpen] =
     useState(false);
   const [isViewDetailsDialogPMOpen, setIsViewDetailsDialogPMOpen] =
@@ -230,6 +233,9 @@ export const MaintenanceList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
                 <TableHead>Type</TableHead>
+                {!isStaffUser && !isTpSiteUser && (
+                  <TableHead>TP Site</TableHead>
+                )}
                 {type === "cm" && (
                   <>
                     <TableHead>SLA</TableHead>
@@ -282,6 +288,9 @@ export const MaintenanceList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Docket No.</TableHead>
                 <TableHead>Type</TableHead>
+                {!isStaffUser && !isTpSiteUser && (
+                  <TableHead>TP Site</TableHead>
+                )}
                 {type === "cm" && (
                   <>
                     <TableHead>SLA</TableHead>
@@ -306,6 +315,11 @@ export const MaintenanceList = ({
                         <TableCell>
                           {maintenanceRequest?.type?.name || ""}
                         </TableCell>
+                        {!isStaffUser && !isTpSiteUser && (
+                          <TableCell>
+                            {maintenanceRequest?.asset?.site?.sitename || ""}
+                          </TableCell>
+                        )}
                         {type === "cm" && (
                           <>
                             <TableCell>

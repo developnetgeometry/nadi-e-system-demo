@@ -10,11 +10,13 @@ export interface MaintenanceRequest {
   type?: TypeMaintenance;
   sla_id?: number;
   sla: SLACategories;
-  status: string;
+  status: MaintenanceStatus;
   requester_by: string;
   attachment?: string;
   updates?: MaintenanceUpdate[];
   maintenance_date?: string;
+  priority_type_id?: number;
+  frequency?: number;
   created_at?: string;
   updated_at?: string;
   created_by?: string;

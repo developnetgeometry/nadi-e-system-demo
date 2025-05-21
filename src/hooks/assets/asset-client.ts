@@ -28,7 +28,7 @@ export const assetClient = {
       .is("deleted_at", null);
 
     if (siteId) {
-      query = query.eq("site_id", siteId);
+      query = query.eq("site_id", Number(siteId));
     }
 
     query = query.order("id");
@@ -79,6 +79,8 @@ export const assetClient = {
 
     const allSites = await fetchSites(organizationId);
 
+    console.log(siteId);
+
     let query = supabase
       .from("nd_asset")
       .select(
@@ -94,11 +96,11 @@ export const assetClient = {
       .is("deleted_at", null);
 
     if (siteId) {
-      query = query.eq("site_id", siteId);
+      query = query.eq("site_id", Number(siteId));
     }
 
     if (name) {
-      query = query.textSearch("name", name);
+      query = query.textSearch("name", name, { type: "plain" });
     }
 
     if (isActive) {
@@ -176,12 +178,12 @@ export const assetClient = {
 
   fetchSuperAdminAsset: async (isSuperAdmin: boolean) => {
     if (!isSuperAdmin) {
-      throw new Error("Error dannied: you don't have permission to get all asset")
+      throw new Error(
+        "Error dannied: you don't have permission to get all asset"
+      );
     }
 
-    const { data, error } = await supabase
-      .from("nd_asset")
-      .select(`
+    const { data, error } = await supabase.from("nd_asset").select(`
         *,
         nd_brand (
             id,
@@ -198,8 +200,7 @@ export const assetClient = {
         nd_asset_type!inner (
             category_id
           )  
-      `)
-
+      `);
 
     if (error) throw error;
 
@@ -211,7 +212,7 @@ export const assetClient = {
       .from("nd_asset")
       .select("id")
       .eq("name", assetName)
-      .single()
+      .single();
 
     if (error) {
       console.error("Error fetching asset by name", error);
@@ -261,20 +262,21 @@ export const assetClient = {
   },
 
   fetchAssetsByType: async (siteProfileId: number) => {
-    if (!!siteProfileId) {
+    if (siteProfileId) {
       const { data: siteId, error: errorSiteId } = await supabase
         .from("nd_site")
         .select("id")
         .eq("site_profile_id", siteProfileId)
-        .single()
+        .single();
 
       if (errorSiteId) {
-        throw errorSiteId
+        throw errorSiteId;
       }
 
       const { data, error } = await supabase
         .from("nd_asset")
-        .select(`
+        .select(
+          `
           *,
           nd_brand (
             id,
@@ -288,7 +290,8 @@ export const assetClient = {
             is_using,
             created_by
           )
-        `)
+        `
+        )
         .eq("site_id", siteId);
 
       if (error) throw error;
@@ -298,10 +301,10 @@ export const assetClient = {
   },
 
   fetchAssetsBySiteId: async (siteId: number): Promise<Asset[]> => {
-    
     const { data, error } = await supabase
       .from("nd_asset")
-      .select(`
+      .select(
+        `
         *, 
         nd_site!inner (
           id
@@ -318,8 +321,9 @@ export const assetClient = {
           is_using,
           created_by
         )
-      `)
-      .eq("site_id", siteId)
+      `
+      )
+      .eq("site_id", siteId);
 
     if (error) throw error;
 
@@ -342,5 +346,5 @@ export const assetClient = {
       console.error("Error toggling site active status:", error);
       throw error;
     }
-  }
+  },
 };

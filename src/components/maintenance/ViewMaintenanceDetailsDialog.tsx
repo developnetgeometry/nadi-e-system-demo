@@ -24,7 +24,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchUserProfileNameById } from "@/hooks/auth/utils/profile-handler";
-import { useMaintenance } from "@/hooks/use-maintenance";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,22 +179,44 @@ export const ViewMaintenanceDetailsDialog = ({
   }
 
   function UpdateSLACategory() {
-    const { useSLACategoriesQuery } = useMaintenance();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [estimatedCompletionDate, setEstimatedCompletionDate] =
       useState<Date | null>(null);
-
-    const { data: slaCategories = [], isLoading: isLoadingSLACategories } =
-      useSLACategoriesQuery();
+    const [sla, setSLA] = useState<number>(null);
 
     const [buttonText, setButtonText] = useState("Update Request");
 
-    const handleSLAChange = (value: string) => {
-      if (Number(value) === 4) {
-        setButtonText("Submit to DUSP");
+    const handleEstimatedCompletionDateChange = (date: Date | null) => {
+      setEstimatedCompletionDate(date);
+
+      if (!date) return;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const diffInDays = Math.floor(
+        (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      let slaLevel: number;
+      let buttonLabel: string;
+
+      if (diffInDays >= 1 && diffInDays <= 3) {
+        slaLevel = 1; // Critical
+        buttonLabel = "Update Request";
+      } else if (diffInDays >= 4 && diffInDays <= 7) {
+        slaLevel = 2; // High
+        buttonLabel = "Update Request";
+      } else if (diffInDays >= 8 && diffInDays <= 14) {
+        slaLevel = 3; // Moderate
+        buttonLabel = "Update Request";
       } else {
-        setButtonText("Update Request");
+        slaLevel = 4; // Low
+        buttonLabel = "Submit to DUSP";
       }
+
+      setSLA(slaLevel);
+      setButtonText(buttonLabel);
     };
 
     const handleSLAUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -203,14 +224,11 @@ export const ViewMaintenanceDetailsDialog = ({
 
       setIsSubmitting(true);
 
-      const formData = new FormData(e.currentTarget);
-      const selectedSLA = formData.get("sla");
-
       try {
         const { error: updateError } = await supabase
           .from("nd_maintenance_request")
           .update({
-            sla_id: Number(selectedSLA),
+            sla_id: sla,
             maintenance_date: estimatedCompletionDate,
             updated_at: new Date().toISOString(),
           })
@@ -237,21 +255,6 @@ export const ViewMaintenanceDetailsDialog = ({
 
     return (
       <form onSubmit={handleSLAUpdate} className="space-y-4">
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-500">SLA</Label>
-          <Select name="sla" required onValueChange={handleSLAChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select SLA" />
-            </SelectTrigger>
-            <SelectContent>
-              {slaCategories.map((type, index) => (
-                <SelectItem key={index} value={type.id.toString()}>
-                  {type?.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
         <div className="space-y-2">
           <Label className="text-sm font-medium text-gray-500">
             Estimated Completion Date
@@ -280,7 +283,7 @@ export const ViewMaintenanceDetailsDialog = ({
               <Calendar
                 mode="single"
                 selected={estimatedCompletionDate}
-                onSelect={setEstimatedCompletionDate}
+                onSelect={handleEstimatedCompletionDateChange}
                 initialFocus
                 className="pointer-events-auto"
                 disabled={(date) =>
@@ -290,11 +293,7 @@ export const ViewMaintenanceDetailsDialog = ({
             </PopoverContent>
           </Popover>
         </div>
-        <Button
-          type="submit"
-          disabled={isSubmitting || isLoadingSLACategories}
-          className="pt-2 w-full"
-        >
+        <Button type="submit" disabled={isSubmitting} className="pt-2 w-full">
           {isSubmitting ? "Updating..." : buttonText}
         </Button>
       </form>
@@ -729,6 +728,17 @@ export const ViewMaintenanceDetailsDialog = ({
                   Asset
                 </Label>
                 <div className="mt-1">{maintenanceRequest?.asset?.name}</div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Priority
+                </Label>
+                <div className="mt-1">
+                  {maintenanceRequest?.priority_type_id === 0
+                    ? "Critical"
+                    : "Non-Critical"}
+                </div>
               </div>
 
               <div>

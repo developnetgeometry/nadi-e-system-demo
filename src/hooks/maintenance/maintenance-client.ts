@@ -10,7 +10,9 @@ import {
 export const maintenanceClient = {
   fetchMaintenanceRequests: async (
     type?: string,
-    statuses?: MaintenanceStatus[]
+    statuses?: MaintenanceStatus[],
+    organizationId?: string | null,
+    siteId?: string | null
   ): Promise<MaintenanceRequest[]> => {
     let query = supabase
       .from("nd_maintenance_request")
@@ -42,6 +44,10 @@ export const maintenanceClient = {
       query = query.in("status", statuses);
     }
 
+    if (siteId) {
+      query = query.eq("nd_asset.site_id", siteId);
+    }
+
     const { data, error } = await query;
 
     if (error) {
@@ -49,23 +55,25 @@ export const maintenanceClient = {
       throw error;
     }
     const filteredData = await Promise.all(
-      data.map(async (item) => {
-        if (type === "cm") {
-          const profile = await fetchSiteBySiteId(item.asset.site_id);
-          item.asset.site = profile;
-          return {
-            ...item,
-            type: item.nd_type_maintenance,
-            sla: item.sla,
-            asset: item.asset,
-          };
-        } else {
-          return {
-            ...item,
-            type: item.nd_type_maintenance,
-          };
-        }
-      })
+      data
+        .filter((item) => item.asset && item.asset.site_id)
+        .map(async (item) => {
+          if (type === "cm") {
+            const profile = await fetchSiteBySiteId(item.asset.site_id);
+            item.asset.site = profile;
+            return {
+              ...item,
+              type: item.nd_type_maintenance,
+              sla: item.sla,
+              asset: item.asset,
+            };
+          } else {
+            return {
+              ...item,
+              type: item.nd_type_maintenance,
+            };
+          }
+        })
     );
 
     return filteredData;

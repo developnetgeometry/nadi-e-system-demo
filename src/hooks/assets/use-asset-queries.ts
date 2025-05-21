@@ -2,30 +2,44 @@ import { useQuery } from "@tanstack/react-query";
 
 import { assetClient } from "./asset-client";
 
-import { useSiteId } from "@/hooks/use-site-id";
+import { useSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useSiteIdFromSiteProfile } from "../use-site-profile-site-id";
 
 export const useAssetQueries = () => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const organizationId =
     parsedMetadata?.user_type !== "super_admin" &&
-    parsedMetadata?.user_group_name === "TP" &&
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSite = parsedMetadata?.user_group_name === "Site";
 
-  const site_id = useSiteId(isStaffUser);
+  const siteIdStaff = useSiteId(isStaffUser);
+  const {
+    siteId: siteProfileIdTpManager,
+    isLoading: siteProfileIdTpManagerLoading,
+  } = useTpManagerSiteId(isTpSite);
+  const siteIdTpManager = useSiteIdFromSiteProfile(
+    siteProfileIdTpManagerLoading ? null : siteProfileIdTpManager
+  );
+  let site_id: string | null = null;
+  if (isStaffUser) {
+    site_id = siteIdStaff;
+  } else if (isTpSite) {
+    site_id = siteIdTpManager;
+  }
 
   const useAssetsQuery = () =>
     useQuery({
       queryKey: ["assets", organizationId, site_id],
       queryFn: () => assetClient.fetchAssets(organizationId, site_id),
       enabled:
-        (!!organizationId && !isStaffUser) ||
+        (!!organizationId && !isStaffUser && !isTpSite) ||
         parsedMetadata?.user_type === "super_admin" ||
-        (isStaffUser && !!site_id),
+        ((isStaffUser || isTpSite) && !!site_id),
     });
 
   const useAssetsByNameQuery = (name: string, isActive?: boolean) =>
@@ -39,11 +53,11 @@ export const useAssetQueries = () => {
         (!isStaffUser || !!site_id),
     });
 
-  const useAssetsByTypeQuery = (siteId: number) => 
+  const useAssetsByTypeQuery = (siteId: number) =>
     useQuery({
       queryKey: ["assets", siteId],
       queryFn: () => assetClient.fetchAssetsByType(siteId),
-      enabled: !!siteId
+      enabled: !!siteId,
     });
 
   const useAssetQuery = (id: number) =>
@@ -57,14 +71,14 @@ export const useAssetQueries = () => {
     useQuery({
       queryKey: ["allAssets"],
       queryFn: () => assetClient.fetchSuperAdminAsset(isSuperAdmin),
-      enabled: isSuperAdmin
-    })
+      enabled: isSuperAdmin,
+    });
 
-  const useAssetBySite = (tps_sites_id: number) => 
+  const useAssetBySite = (tps_sites_id: number) =>
     useQuery({
       queryKey: ["tpsAssets", tps_sites_id],
       queryFn: () => assetClient.fetchAssetsBySiteId(tps_sites_id),
-      enabled: !!tps_sites_id
+      enabled: !!tps_sites_id,
     });
 
   return {
@@ -73,6 +87,6 @@ export const useAssetQueries = () => {
     useAssetQuery,
     useAssetsByTypeQuery,
     useAssetBySite,
-    useAllAssets
+    useAllAssets,
   };
 };
