@@ -237,6 +237,8 @@ export const AssetFormDialog = ({
       return;
     }
 
+    const site = await fetchSiteBySiteProfileId(siteId! || defaultSiteId);
+
     const asset = {
       name: String(formData.get("name")),
       type_id: Number(assetType),
@@ -245,8 +247,8 @@ export const AssetFormDialog = ({
       serial_number: assetSerialNumber,
       retail_type: Number(assetRetailType),
       qty_unit: Number(formData.get("quantity")),
-      location_id: Number(assetLocationId),
-      site_id: Number(selectedSite?.nd_site?.[0]?.id),
+      location_id: Number(assetLocationId) || null,
+      site_id: Number(site?.nd_site?.[0]?.id),
     };
 
     try {
