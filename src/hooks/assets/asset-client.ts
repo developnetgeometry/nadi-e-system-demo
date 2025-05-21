@@ -289,7 +289,7 @@ export const assetClient = {
             created_by
           )
         `)
-        .eq("site_id", siteId);
+        .eq("site_id", siteId?.id);
 
       if (error) throw error;
 
@@ -297,8 +297,21 @@ export const assetClient = {
     }
   },
 
-  fetchAssetsBySiteId: async (siteId: number): Promise<Asset[]> => {
-    
+  fetchAssetsBySiteId: async (siteProfileId: number | null, siteId?: number) => {
+    let site_id = siteId;
+
+    if (siteProfileId) {
+      const { data: siteProfile, error: errorSiteProfile } = await supabase
+        .from("nd_site")
+        .select("id")
+        .eq("site_profile_id", siteProfileId)
+        .single()
+
+      if (errorSiteProfile) throw errorSiteProfile;
+
+      site_id = siteProfile?.id;
+    }
+
     const { data, error } = await supabase
       .from("nd_asset")
       .select(`
@@ -319,11 +332,27 @@ export const assetClient = {
           created_by
         )
       `)
-      .eq("site_id", siteId)
+      .eq("site_id", site_id)
 
     if (error) throw error;
 
     return data;
+  },
+
+  fetchAssetsInTpsSites: async (tps_sites_ids: number[]) => {
+    try {
+      const results = await Promise.all(
+        tps_sites_ids.map(async (id) => {
+          const asset = await assetClient.fetchAssetsBySiteId(null, id);
+          return asset;
+        })
+      );
+
+      return results.flat();
+    } catch (error) {
+      console.error("Failed to fetch bookings:", error);
+      return [];
+    }
   },
 
   toggleAssetActiveStatus: async (

@@ -4,7 +4,7 @@ import type { Booking } from "@/types/booking";
 import { Brand } from "@/types/brand";
 
 export const bookingClient = {
-    postNewBooking: async (bookingData: Booking, isBookingAllowed: boolean) => {
+    postNewBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<Booking> => {
         if (!isBookingAllowed) {
             throw Error("Error dannied: you don't have permission to create a book!")
         }
@@ -23,7 +23,7 @@ export const bookingClient = {
         return data;
     },
 
-    getAllBookings: async(isSuperAdmin: boolean) => {
+    getAllBookings: async (isSuperAdmin: boolean) => {
         if (!isSuperAdmin) {
             throw new Error("Error denied: you don't have permission to get all booking data!")
         }
@@ -48,18 +48,19 @@ export const bookingClient = {
         return data;
     },
 
-    getBooking: async (): Promise<Booking[]> => {
+    getBooking: async (siteProfileId: number | string): Promise<Booking[]> => {
         const { data, error } = await supabase
             .from("nd_booking")
             .select(`
                 *,
                 nd_asset!inner (
-                    name
+                    *
                 ),
                 profiles (
-                    full_name
+                    *
                 )
             `)
+            .eq("site_id", siteProfileId)
 
         if (error) {
             console.error("Error fetching booking", error);
@@ -82,12 +83,12 @@ export const bookingClient = {
         return data;
     },
 
-    getBrandById: async(brandId: string) => {
+    getBrandById: async (brandId: string) => {
         const { data, error } = await supabase
             .from("nd_brand")
             .select("*")
             .single()
-        
+
         if (error) throw error;
 
         return data;
@@ -114,6 +115,26 @@ export const bookingClient = {
         }
     },
 
+    getAllRegion: async () => {
+        const { data, error } = await supabase
+            .from("nd_region")
+            .select("eng")
+
+        if (error) throw error;
+
+        return data;
+    },
+
+    getAllState: async () => {
+        const { data, error } = await supabase
+            .from("nd_state")
+            .select("name")
+
+        if (error) throw error;
+
+        return data;
+    },
+
     searchBookingList: async (input: string): Promise<Booking[]> => {
         const { data, error } = await supabase
             .from("nd_booking")
@@ -130,14 +151,46 @@ export const bookingClient = {
 
     getAllTpsSites: async (dusp_tp_id: string) => {
         const { data, error } = await supabase
+            .from("nd_site_profile")
+            .select(`
+                *,
+                nd_site (
+                    *,
+                    nd_asset (
+                        id,
+                        nd_booking (
+                            id,
+                            is_using
+                        )
+                    )
+                ),
+                nd_state (
+                    id,
+                    name
+                ),
+                nd_region (
+                    eng,
+                    bm
+                )
+            `)
+            .eq("dusp_tp_id", dusp_tp_id)
+
+        if (error) throw error;
+
+        return data;
+    },
+
+    getTotalTpsSites: async (dusp_tp_id: string) => {
+
+        const { data, error } = await supabase
             .from("nd_site")
             .select(`
                 id,
                 nd_site_profile!inner (
                     *
-                )
-            `)
-            .eq("nd_site_profile.dusp_tp_id", dusp_tp_id);
+                )`
+            )
+            .eq("nd_site_profile.dusp_tp_id", dusp_tp_id)
 
         if (error) throw error;
 
@@ -157,14 +210,15 @@ export const bookingClient = {
                     full_name
                 )    
             `)
-            .eq("nd_asset.site_id", siteId)
 
         if (error) throw error;
 
-        return data;
+        const filtered = data.filter(item => item?.nd_asset?.site_id === siteId);
+
+        return filtered;
     },
 
-    getAllPcBoookingInTpsSites: async (tps_site_ids: number[]) => {
+    getAllPcBookingInTpsSites: async (tps_site_ids: number[]) => {
         try {
             const results = await Promise.all(
                 tps_site_ids.map(async (id) => {
@@ -202,7 +256,7 @@ export const bookingClient = {
         return data;
     },
 
-    getSitesSpaces: async(siteId: string | number) => {
+    getSitesSpaces: async (siteId: string | number) => {
         const { data, error } = await supabase
             .from("nd_site_space")
             .select(`
@@ -288,7 +342,7 @@ export const bookingClient = {
         }
     },
 
-    getBookingBySiteSpaceId: async(id: number) => {
+    getBookingBySiteSpaceId: async (id: number) => {
         const { data, error } = await supabase
             .from("nd_booking")
             .select("*")
@@ -298,6 +352,27 @@ export const bookingClient = {
         if (error) {
             throw error;
         }
+
+        return data;
+    },
+
+    getSpaceByName: async (spaceName: string, siteId: number) => {
+        const { data: space, error: spaceError } = await supabase
+            .from("nd_space")
+            .select("id")
+            .eq("eng", spaceName)
+            .single()
+
+        if (spaceError) throw spaceError;
+
+        const { data, error } = await supabase
+            .from("nd_site_space")
+            .select("*")
+            .eq("space_id", space?.id)
+            .eq("site_id", siteId)
+            .single()
+
+        if (error) throw error;
 
         return data;
     }

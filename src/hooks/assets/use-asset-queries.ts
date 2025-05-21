@@ -67,12 +67,20 @@ export const useAssetQueries = () => {
       enabled: !!tps_sites_id
     });
 
+  const useAssetsInTpsSites = (tps_sites_ids: number[]) =>
+    useQuery({
+      queryKey: ["tpsAssets", tps_sites_ids],
+      queryFn: () => assetClient.fetchAssetsInTpsSites(tps_sites_ids),
+      enabled: tps_sites_ids.length > 0
+    });
+
   return {
     useAssetsQuery,
     useAssetsByNameQuery,
     useAssetQuery,
     useAssetsByTypeQuery,
     useAssetBySite,
-    useAllAssets
+    useAllAssets,
+    useAssetsInTpsSites
   };
 };

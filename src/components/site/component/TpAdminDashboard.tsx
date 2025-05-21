@@ -1,127 +1,214 @@
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import StatsCard from "../../dashboard/StatCard";
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Site } from "@/types/site"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { useEffect, useRef, useState } from "react"
-import { Download, Eye } from "lucide-react";
-import { PaginationTable } from "./PaginationTable";
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Download, RefreshCcw } from "lucide-react";
 import { exportToCSV } from "@/utils/export-utils";
+import { Asset } from "@/types/asset";
+import { PaginationTable } from "./PaginationTable";
+import type { SiteProfile } from "@/types/site";
+import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 
 interface TpAdminDashboardProps {
-    selectedSite: Site
-    setSelecTedSite: React.Dispatch<React.SetStateAction<Site | any>>
-    tpsSites: Site[] | any[]
+    pcsInTpsAdminSite: Asset[]
+    setSelecTedSite: React.Dispatch<React.SetStateAction<SiteProfile>>
+    tpsSites: SiteProfile[]
 }
 
 export const TpAdminDashBoard = ({
-    selectedSite,
+    pcsInTpsAdminSite,
     setSelecTedSite,
     tpsSites
 }: TpAdminDashboardProps) => {
-    console.log("tps sites from tp admin comp", tpsSites)
-    // state management tp sites
-    const [sites, setSites] = useState<Site[]>(tpsSites);
+    console.log("PC in tp admin site", pcsInTpsAdminSite)
+    const {
+        useAllRegion,
+        useAllState
+    } = useBookingQueries();
+    const {
+        data: allRegion,
+        isLoading: isAllRegionLoading
+    } = useAllRegion();
+    const {
+        data: allState,
+        isLoading: isAllStateLoading
+    } = useAllState();
+    const [sites, setSites] = useState<SiteProfile[]>([]);
     const [searchInput, setSearchInput] = useState("");
-    console.log("sites state tp admin dashboard", sites)
+    const [region, setRegion] = useState("All Region");
+    const [state, setState] = useState("All State");
+    const [bodyTableData, setBodyTableData] = useState([]);
 
-    function handleSelectedSite(siteId: number) {
-        setSelecTedSite(sites.find(site => site.id === Number(siteId)));
+    const initialTotalSites = useRef(tpsSites?.length);
+
+    const isLoadingPCs = !pcsInTpsAdminSite || pcsInTpsAdminSite.length === 0;
+    const { totalPc, pcInUse } = useMemo(() => {
+        const totalPc = pcsInTpsAdminSite.length;
+        const pcInUse = pcsInTpsAdminSite.filter(pc => pc?.nd_booking?.some(b => b?.is_using)).length;
+    
+        return {
+            totalPc,
+            pcInUse
+        };
+    }, [pcsInTpsAdminSite]);
+
+    useEffect(() => {
+        setSites(tpsSites);
+    }, [tpsSites])
+
+    useEffect(() => {
+        let isCanceled = false;
+
+        function formatTableBody() {
+            if (sites.length > 0) {
+                const handledBodyTable = handleBodyTableData(sites);
+
+                if (!isCanceled) {
+                    setBodyTableData(handledBodyTable);
+                }
+
+            }
+        }
+
+        formatTableBody();
+
+        return () => {
+            isCanceled = true;
+        };
+
+    }, [sites]);
+
+    const handleSelectedSite = (siteId: number) => {
+        setSelecTedSite(sites?.find(site => site.id === Number(siteId))!);
     }
 
-    function handleSearch(searchInput: string) {
+    const handleFilter = (searchInput: string, regionName: string, stateName: string) => {
 
-        let sitesTofiltered = tpsSites;
+        let sitesTofiltered = [...tpsSites];
 
-        sitesTofiltered = sitesTofiltered.filter((site) => site.nd_site_profile.sitename.includes(searchInput));
+        if (regionName !== "All Region") {
+            sitesTofiltered = sitesTofiltered.filter(site => site?.nd_region?.eng === regionName);
+        }
+
+        if (stateName !== "All State") {
+            sitesTofiltered = sitesTofiltered.filter(site => site?.nd_state?.name === stateName)
+        }
+
+        if (searchInput.trim() !== "") {
+            sitesTofiltered = sitesTofiltered.filter((site) => site?.sitename.toLowerCase().includes(searchInput.toLowerCase()));
+        }
 
         setSites(sitesTofiltered);
     }
 
-    useEffect(() => {
-        handleSearch(searchInput)
-    }, [searchInput])
+    const handleBodyTableData = (tpsSites: SiteProfile[]) => {
+        const formattedTableData = [];
 
-    // PCS in this site (total pc, in use, available)
+        for (const site of tpsSites) {
+            const totalPcs = site?.nd_site?.reduce((sum, s) => sum + (s.nd_asset?.length || 0), 0);
+            let inUse = 0;
+            let available = 0;
 
-    const initialTotalSites = useRef(tpsSites.length);
+            for (const repSite of site?.nd_site || []) {
+                for (const asset of repSite.nd_asset || []) {
+                    const bookings = asset.nd_booking || [];
 
-    // Overview data 
+                    const isInUse = bookings.length > 0 && bookings.some(b => b.is_using === true);
+                    const isAvailable = bookings.length === 0 || bookings.every(b => b.is_using === false);
+
+                    if (isInUse) {
+                        inUse++;
+                    } else if (isAvailable) {
+                        available++;
+                    }
+                }
+            }
+
+            formattedTableData.push({
+                id: site.id,
+                siteName: site?.sitename,
+                state: site?.nd_state?.name,
+                region: site?.nd_region?.eng,
+                totalPcs: totalPcs,
+                inUse: inUse,
+                available: available,
+                maintenance: "0 in Maintenance",
+                action: "View"
+            });
+        }
+
+        return formattedTableData;
+    }
+
     const siteOverView = [
         {
             title: "Total Sites",
             value: String(initialTotalSites.current),
             description: "",
-            // iconTextColor: "text-green-500",
         },
         {
             title: "Total Pcs",
-            value: "3",
+            value: totalPc,
             description: "",
-            // iconTextColor: "text-green-500",
         },
         {
             title: "PCs In Use",
-            value: "2",
+            value: pcInUse,
             description: "",
             customValueColorClass: "text-blue-500"
-            // iconTextColor: "text-green-500",
         },
         {
             title: "Pcs available",
-            value: "1",
+            value: pcsInTpsAdminSite.filter(pc =>
+                !pc?.nd_booking?.some(b => b?.is_using)
+            ).length.toString(),
             description: "",
             customValueColorClass: "text-green-500"
-            // iconTextColor: "text-green-500",
         },
-    ]
-
-    // Table data
-    const headTable = [
-        { key: "siteName", label: "Site Name"},
-        { key: "location", label: "Location"},
-        { key: "totalPcs", label: "Total PCs"},
-        { key: "inUse", label: "In Use"},
-        { key: "available", label: "Available"},
-        { key: "status", label: "Status"},
-        { key: "action", label: "Action"}
     ];
 
-    const bodyTableData = sites.map((site) => {
-        return {
-            id: site.id,
-            siteName: site?.nd_site_profile?.sitename,
-            location: site?.nd_site_profile?.state_id,
-            totalPcs: "8",
-            inUse: "3",
-            available: "5",
-            status: "1 in Maintenance",
-            action: "View"
-        }
-    })
+    const headTable = [
+        { key: "siteName", label: "Site Name" },
+        { key: "state", label: "State" },
+        { key: "region", label: "Region" },
+        { key: "totalPcs", label: "Total PCs" },
+        { key: "inUse", label: "In Use" },
+        { key: "available", label: "Available" },
+        { key: "maintenance", label: "Maintenance" },
+        { key: "action", label: "Action" }
+    ];
 
-
-    // trigger selected site to open booking && site selected
+    if (
+        isAllRegionLoading ||
+        isAllStateLoading ||
+        isLoadingPCs
+    ) {
+        return <LoadingSpinner />
+    }
 
     return (
         <>
             <header className="flex flex-col justify-start">
                 <h1 className="text-2xl font-bold">TP Admin Dashboard</h1>
-                <p className="text-gray-600">Manage TP sites and PC bookings</p>
+                <p className="text-gray-600">Manage Facilities and PCs bookings</p>
             </header>
+
             <div className="p-6 bg-white rounded-md border border-gray-200 mt-6">
                 <h1 className="text-2xl font-semibold mb-3">Overview</h1>
                 <div className="flex gap-3 items-center">
-                    {siteOverView.map((site) => (
+                    {siteOverView.map((site, idx) => (
                         <StatsCard
+                            key={idx}
                             className="flex-grow border border-gray-200"
                             title={site.title}
                             value={site.value}
@@ -130,21 +217,61 @@ export const TpAdminDashBoard = ({
                     ))}
                 </div>
             </div>
+
             <div className="flex justify-between items-center mt-6">
-                <Input
-                    className="w-[30%]"
-                    type="search"
-                    placeholder="Search Site..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                />
+                <div className="flex items-center gap-3 flex-grow">
+                    <Input
+                        className="w-[30%]"
+                        type="search"
+                        placeholder="Search Site..."
+                        value={searchInput}
+                        onChange={(e) => {
+                            setSearchInput(e.target.value)
+                            handleFilter(e.target.value, region, state)
+                        }}
+                    />
+                    <Select defaultValue="All State" onValueChange={(value) => {
+                        setState(value)
+                        handleFilter(searchInput, region, value)
+                    }}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder={`Select State`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                {
+                                    [{ name: "All State" }, ...allState].map((state) => (
+                                        <SelectItem key={state.name} value={state.name}>{state.name}</SelectItem>
+                                    ))
+                                }
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                    <Select defaultValue="All Region" onValueChange={(value) => {
+                        setRegion(value)
+                        handleFilter(searchInput, value, state)
+                    }}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder={`Select Region`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                {
+                                    [{eng: "All Region"}, ...allRegion].map((region) => (
+                                        <SelectItem key={region.eng} value={region.eng}>{region.eng}</SelectItem>
+                                    ))
+                                }
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                </div>
                 <Button onClick={() => exportToCSV(bodyTableData, "sites")} className="flex gap-2">
                     <Download />
                     Export
                 </Button>
             </div>
             <div className="rounded-md">
-                <PaginationTable 
+                <PaginationTable
                     bodyTableData={bodyTableData}
                     handleSelectedSite={handleSelectedSite}
                     headTable={headTable}
