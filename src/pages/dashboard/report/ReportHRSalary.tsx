@@ -177,7 +177,9 @@ const ReportHRSalary = () => {    // Filter states
                     <VacancyCard
                         loading={dataStableLoading}
                         vacancies={vacancies}
-                    />                    <TurnoverRateCard
+                    />                    
+                    
+                    <TurnoverRateCard
                         loading={dataStableLoading}
                         turnoverRates={turnoverRates}
                         averageTurnoverRate={averageTurnoverRate}
