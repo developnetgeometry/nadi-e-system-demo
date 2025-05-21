@@ -17,6 +17,7 @@ import {
 import { useAssets } from "@/hooks/use-assets";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/asset";
@@ -40,6 +41,11 @@ export const MaintenanceRequestFormDialog = ({
 }: MaintenanceRequestFormDialogProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
 
   const { user } = useAuth();
 
@@ -172,6 +178,7 @@ export const MaintenanceRequestFormDialog = ({
       requester_by: user.id,
       attachment: attachmentUrl,
       status: MaintenanceStatus.Submitted,
+      priority_type_id: Number(formData.get("prirority")),
     };
 
     try {
@@ -293,9 +300,22 @@ export const MaintenanceRequestFormDialog = ({
               <Select
                 name="maintenanceDocketType"
                 required
-                onValueChange={(value) =>
-                  setMaintenanceDocketType(value as MaintenanceDocketType)
-                }
+                onValueChange={(value) => {
+                  if (
+                    value === MaintenanceDocketType.Preventive &&
+                    (isStaffUser || isTpSiteUser)
+                  ) {
+                    toast({
+                      title: "Error",
+                      description:
+                        "Preventive Maintenance is not allowed for staff or tp site users.",
+                      variant: "destructive",
+                    });
+                    return;
+                  } else {
+                    setMaintenanceDocketType(value as MaintenanceDocketType);
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -387,6 +407,19 @@ export const MaintenanceRequestFormDialog = ({
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select name="priority" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Critical</SelectItem>
+                      <SelectItem value="1">Non-Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
