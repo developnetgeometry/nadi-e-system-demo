@@ -85,11 +85,21 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
       }>((resolve) => {
         // Create a temporary div to mount the chart generator
         const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
         document.body.appendChild(tempDiv);
         
         // Create a temporary React root
+        let isCleanedUp = false;
         const cleanup = () => {
-          document.body.removeChild(tempDiv);
+          if (!isCleanedUp && document.body.contains(tempDiv)) {
+            try {
+              document.body.removeChild(tempDiv);
+              isCleanedUp = true;
+            } catch (error) {
+              console.warn('Cleanup error:', error);
+            }
+          }
         };
         
         // Mount the ChartGenerator component
@@ -103,7 +113,8 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
           vacancyChart: string;
         }) => {
           resolve(charts);
-          setTimeout(cleanup, 500); // Clean up after a delay to ensure complete rendering
+          // Increase timeout to ensure rendering is complete
+          setTimeout(cleanup, 500);
         };
         
         // Render chart component with ReactDOM.render or similar approach
