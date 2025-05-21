@@ -6,8 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Shield } from "lucide-react";
-import { CardStat } from "../ui/CardStat";
-import { CardSkeleton } from "../ui/CardSkeleton";
+import { CardStat } from "../../ui/CardStat";
+import { CardSkeleton } from "../../ui/CardSkeleton";
 
 type LocalAuthorityCardProps = {
   loading: boolean;

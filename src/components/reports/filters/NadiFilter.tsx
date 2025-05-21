@@ -1,8 +1,8 @@
 import React from "react";
 import { Building2 } from "lucide-react";
 import { NADISite } from "@/hooks/report/use-report-filters";
-import { FilterPopover } from "./FilterPopover";
-import { FilterCommand } from "./FilterCommand";
+import { FilterPopover } from "./component/FilterPopover";
+import { FilterCommand } from "./component/FilterCommand";
 
 type NadiFilterProps = {
   selectedItems: (string | number)[];

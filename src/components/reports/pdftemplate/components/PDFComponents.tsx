@@ -289,13 +289,14 @@ export const PDFTable = <T extends Record<string, any>>({
       textTransform: "uppercase",
       textAlign: "center",
       color: "#fff",
-    },    
-    td: { 
+    },      td: { 
       padding: 8,
       fontSize: 10,
     },
     cell: {
-      borderRight: "1pt solid #000",
+      borderRightWidth: 1,
+      borderRightStyle: "solid",
+      borderRightColor: "#000",
     },
     numberCell: {
       width: "5%",
