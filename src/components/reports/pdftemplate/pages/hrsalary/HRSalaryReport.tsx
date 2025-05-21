@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         textAlign: "center",
-        color: "#0000FF",
+        color: "black",
     }, chartContainer: {
         flexDirection: "row",
         marginBottom: 20,
@@ -260,8 +260,9 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 {/* Staff Distribution Section */}
                 <View style={styles.chartContainer}>
-                    <View style={styles.pieChartPlaceholder}>                        {staffDistributionChart ? (
-                            <Image src={staffDistributionChart} style={{ width: 360, height: 220, objectFit: "contain" }} />
+                    <View style={styles.pieChartPlaceholder}>                        
+                        {staffDistributionChart ? (
+                            <Image src={staffDistributionChart} style={{ objectFit: "contain" }} />
                         ) : (
                             <>
                                 <Text>Number of Staff by Designation (Total: 5)</Text>
@@ -285,7 +286,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 </View>                {/* Salary Bar Chart */}
                 <View style={styles.barChartPlaceholder}>
                     {salaryChart ? (
-                        <Image src={salaryChart} style={{ width: 520, height: 240, objectFit: "contain" }} />
+                        <Image src={salaryChart} style={{ objectFit: "contain" }} />
                     ) : (
                         <>
                             <Text>Salary Amount (RM) by Designation</Text>
