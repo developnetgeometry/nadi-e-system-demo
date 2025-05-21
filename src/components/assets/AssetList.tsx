@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Download, Eye, EyeOff, Search, Settings, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { assetClient } from "@/hooks/assets/asset-client";
 import { useAssets } from "@/hooks/use-assets";
@@ -21,6 +21,7 @@ import { toast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Asset } from "@/types/asset";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { fetchSites } from "../site/hook/site-utils";
 import { AssetDeleteDialog } from "./AssetDeleteDialog";
 import { AssetDetailsDialog } from "./AssetDetailsDialog";
@@ -58,6 +59,12 @@ export const AssetList = ({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const [filter, setFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("");
+  const [duspFilter, setDuspFilter] = useState<string>("");
+  const [tpFilter, setTpFilter] = useState<string>("");
+  const [siteFilter, setSiteFilter] = useState<string>("");
+
   const { useAssetTypesQuery } = useAssets();
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
@@ -65,16 +72,23 @@ export const AssetList = ({
   const { data: dusps = [], isLoading: isLoadingDusps } =
     useOrganizationsByTypeQuery("dusp", isSuperAdmin);
 
-  const { data: tps = [], isLoading: isLoadingTPs } =
-    useOrganizationsByTypeQuery(
-      "tp",
-      isSuperAdmin || isDUSPUser,
-      organizationId
-    );
+  const {
+    data: tps = [],
+    isLoading: isLoadingTPs,
+    refetch: refetchTPs,
+  } = useOrganizationsByTypeQuery(
+    "tp",
+    isSuperAdmin || isDUSPUser,
+    duspFilter ?? organizationId
+  );
 
-  const { data: sites = [], isLoading: isLoadingSites } = useQuery({
+  const {
+    data: sites = [],
+    isLoading: isLoadingSites,
+    refetch: refetchSites,
+  } = useQuery({
     queryKey: ["sites", organizationId],
-    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
+    queryFn: () => fetchSites(tpFilter ?? organizationId, isTPUser, isDUSPUser),
     enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
   });
 
@@ -84,11 +98,13 @@ export const AssetList = ({
     error: spaceError,
   } = useSpace();
 
-  const [filter, setFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
-  const [duspFilter, setDuspFilter] = useState<string>("");
-  const [tpFilter, setTpFilter] = useState<string>("");
-  const [siteFilter, setSiteFilter] = useState<string>("");
+  useEffect(() => {
+    refetchTPs();
+  }, [duspFilter, refetchTPs]);
+
+  useEffect(() => {
+    refetchSites();
+  }, [duspFilter, tpFilter, refetchSites]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -113,7 +129,7 @@ export const AssetList = ({
     )
     .filter((asset) =>
       duspFilter
-        ? String(asset?.site?.dusp_tp.parent.id) === String(duspFilter)
+        ? String(asset?.site?.dusp_tp?.parent.id) === String(duspFilter)
         : true
     )
     .filter((asset) =>
@@ -186,7 +202,7 @@ export const AssetList = ({
         index + 1,
         asset.name,
         asset.type?.name ?? "",
-        asset.brand?.name ?? "",
+        asset.nd_brand?.name ?? "",
         asset.serial_number ?? "",
         asset.qty_unit ?? "",
         asset.remark ?? "",
@@ -380,10 +396,6 @@ export const AssetList = ({
             <TableBody>
               {paginatedAssets &&
                 paginatedAssets.map((asset, index) => {
-                  const requestDate = asset.created_at
-                    ? asset.created_at.split("T")[0]
-                    : "";
-
                   return (
                     <TableRow key={asset.id}>
                       <TableCell>
@@ -391,14 +403,17 @@ export const AssetList = ({
                       </TableCell>
                       <TableCell>{asset?.name || "N/A"}</TableCell>
                       <TableCell>{asset?.type.name || "N/A"}</TableCell>
-                      <TableCell>{asset?.qty_unit || "N/A"}</TableCell>
+                      <TableCell>{String(asset?.qty_unit) || "N/A"}</TableCell>
                       {isSuperAdmin && (
                         <TableCell>
                           {asset?.site?.dusp_tp_id_display || "N/A"}
                         </TableCell>
                       )}
                       <TableCell>{asset?.site?.sitename || "N/A"}</TableCell>
-                      <TableCell>{requestDate || "N/A"}</TableCell>
+                      <TableCell>
+                        {format(new Date(asset?.created_at), "dd/MM/yyyy") ||
+                          "N/A"}
+                      </TableCell>
                       <TableCell>
                         {asset?.is_active ? "Active" : "Inactive"}
                       </TableCell>

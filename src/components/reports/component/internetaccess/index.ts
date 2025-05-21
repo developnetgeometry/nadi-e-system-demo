@@ -1,0 +1,1 @@
+export { InternetAccessCard } from "./InternetAccessCard";

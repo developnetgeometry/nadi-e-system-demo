@@ -108,6 +108,9 @@ export const InventoryFormDialog = ({
   const [inventoryDescription, setInventoryDescription] = useState<string>(
     String(inventory?.description || "")
   );
+  const [inventoryBarcode, setInventoryBarcode] = useState<string>(
+    String(inventory?.barcode || "")
+  );
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
@@ -132,6 +135,7 @@ export const InventoryFormDialog = ({
       setInventoryPrice(String(inventory.price));
       setInventoryQuantity(String(inventory.quantity));
       setInventoryDescription(String(inventory.description));
+      setInventoryBarcode(String(inventory.barcode));
       if (!isLoadingInventoryType) {
         setInventoryType(String(inventory.type_id));
       }
@@ -165,6 +169,7 @@ export const InventoryFormDialog = ({
       setInventoryName("");
       setInventoryType("");
       setInventoryDescription("");
+      setInventoryBarcode("");
       setRetailType("");
       setInventoryPrice("");
       setInventoryQuantity("");
@@ -204,14 +209,27 @@ export const InventoryFormDialog = ({
       return;
     }
 
-    const inventory = {
-      name: formData.get("name"),
-      type_id: inventoryType,
-      description: formData.get("description"),
-      retail_type: retailType,
-      price: formData.get("price"),
-      quantity: formData.get("quantity"),
-      site_id: String(selectedSite?.nd_site?.[0]?.id),
+    // const inventory = {
+    //   name: formData.get("name"),
+    //   type_id: inventoryType,
+    //   description: formData.get("description"),
+    //   retail_type: retailType,
+    //   price: formData.get("price"),
+    //   quantity: formData.get("quantity"),
+    //   site_id: String(selectedSite?.nd_site?.[0]?.id),
+    //   barcode: formData.get("barcode"),
+    // };
+
+    const inventory: Partial<Inventory> = {
+      name: String(formData.get("name") || ""),
+      // Convert string values to numbers for numeric fields
+      type_id: inventoryType ? parseInt(inventoryType) : null,
+      description: String(formData.get("description") || ""),
+      retail_type: retailType ? parseInt(retailType) : null,
+      price: formData.get("price") ? parseFloat(String(formData.get("price"))) : null,
+      quantity: formData.get("quantity") ? parseInt(String(formData.get("quantity"))) : null,
+      site_id: selectedSite?.nd_site?.[0]?.id ? parseInt(String(selectedSite.nd_site[0].id)) : null,
+      barcode: String(formData.get("barcode") || ""),
     };
 
     try {
@@ -395,6 +413,17 @@ export const InventoryFormDialog = ({
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="name">Barcode</Label>
+                <Input
+                  id="barcode"
+                  name="barcode"
+                  placeholder="Enter inventory barcode"
+                  value={inventoryBarcode}
+                  onChange={(e) => setInventoryBarcode(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="name">Unit / Stock</Label>
                 <Input
                   id="quantity"
@@ -424,7 +453,12 @@ export const InventoryFormDialog = ({
 
               <div className="space-y-2">
                 <Label htmlFor="type">Inventory Type</Label>
-                <Select name="type" required>
+                <Select 
+                  name="type" 
+                  required
+                  value={inventoryType}
+                  onValueChange={setInventoryType}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select inventory type" />
                   </SelectTrigger>

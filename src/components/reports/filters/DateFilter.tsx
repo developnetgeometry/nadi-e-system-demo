@@ -1,5 +1,5 @@
 import React from "react";
-import { SingleSelectFilter } from "./SingleSelectFilter";
+import { SingleSelectFilter } from "./component/SingleSelectFilter";
 import { NADISite } from "@/hooks/report/use-report-filters";
 import { Building2, Calendar } from "lucide-react";
 

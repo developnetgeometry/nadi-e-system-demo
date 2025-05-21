@@ -4,7 +4,7 @@ import { AssetStatsCard } from "@/components/dashboard/asset/AssetStatsCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { useAssets } from "@/hooks/use-assets";
-import { useSiteId } from "@/hooks/use-site-id";
+import { useSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { AssetStatsCardProps, AssetStatsData } from "@/types/asset";
 import { Plus } from "lucide-react";
@@ -14,10 +14,21 @@ import { useEffect, useState } from "react";
 const AssetDashboard = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const siteId = useSiteId();
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
+
+  const siteIdStaff = useSiteId(isStaffUser);
+  const { siteId: siteIdTpManager, isLoading: siteIdTpManagerLoading } =
+    useTpManagerSiteId(isTpSiteUser);
+
+  let site_id: string | null = null;
+  if (isStaffUser) {
+    site_id = siteIdStaff;
+  } else if (isTpSiteUser) {
+    site_id = siteIdTpManager;
+  }
 
   let assetStats: AssetStatsData = {
     total: 0,
@@ -45,7 +56,7 @@ const AssetDashboard = () => {
     return <div>Error fetching assets</div>;
   }
 
-  const displayAssets = isStaffUser && !siteId ? [] : assets;
+  const displayAssets = (isStaffUser || isTpSiteUser) && !site_id ? [] : assets;
 
   if (!isLoadingAssets && assets) {
     if (displayAssets.length > 0) {
@@ -110,7 +121,9 @@ const AssetDashboard = () => {
         <AssetFormDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          defaultSiteId={isStaffUser && siteId ? siteId : null}
+          defaultSiteId={
+            (isStaffUser || isTpSiteUser) && site_id ? site_id : null
+          }
         />
       </div>
     </DashboardLayout>

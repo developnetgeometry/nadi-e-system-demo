@@ -17,6 +17,7 @@ import {
 import { useAssets } from "@/hooks/use-assets";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset } from "@/types/asset";
@@ -40,6 +41,11 @@ export const MaintenanceRequestFormDialog = ({
 }: MaintenanceRequestFormDialogProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
 
   const { user } = useAuth();
 
@@ -151,7 +157,16 @@ export const MaintenanceRequestFormDialog = ({
         setIsSubmitting(false);
         return;
       }
+    } else {
+      toast({
+        title: "Error",
+        description: `Please upload an attachment for the maintenance request.`,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
     }
+
     const now = new Date();
     const docketNumber = generateDocketNumber(now, formData);
 
@@ -163,6 +178,7 @@ export const MaintenanceRequestFormDialog = ({
       requester_by: user.id,
       attachment: attachmentUrl,
       status: MaintenanceStatus.Submitted,
+      priority_type_id: Number(formData.get("prirority")),
     };
 
     try {
@@ -217,6 +233,8 @@ export const MaintenanceRequestFormDialog = ({
       no_docket: docketNumber,
       description: description,
       type_id: Number(formData.get("maintenanceType")),
+      asset_id: selectedAsset?.id as number,
+      frequency: Number(formData.get("frequency")),
       requester_by: user.id,
     };
 
@@ -284,9 +302,22 @@ export const MaintenanceRequestFormDialog = ({
               <Select
                 name="maintenanceDocketType"
                 required
-                onValueChange={(value) =>
-                  setMaintenanceDocketType(value as MaintenanceDocketType)
-                }
+                onValueChange={(value) => {
+                  if (
+                    value === MaintenanceDocketType.Preventive &&
+                    (isStaffUser || isTpSiteUser)
+                  ) {
+                    toast({
+                      title: "Error",
+                      description:
+                        "Preventive Maintenance is not allowed for staff or tp site users.",
+                      variant: "destructive",
+                    });
+                    return;
+                  } else {
+                    setMaintenanceDocketType(value as MaintenanceDocketType);
+                  }
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
@@ -381,6 +412,19 @@ export const MaintenanceRequestFormDialog = ({
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select name="priority" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Critical</SelectItem>
+                      <SelectItem value="1">Non-Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="attachment">Attachment</Label>
                   <AttachmentUploadField
                     previewUrl={attachmentPreviewUrl}
@@ -427,6 +471,70 @@ export const MaintenanceRequestFormDialog = ({
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="asset">Asset</Label>
+                  <div className="relative flex space-x-4">
+                    <Input
+                      placeholder="Search and add asset"
+                      value={assetsFilter}
+                      onChange={(e) => {
+                        setAssetsFilter(e.target.value);
+                      }}
+                      className="pl-10"
+                    />
+                    <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+
+                  <div className="mt-2">
+                    {isLoadingAssets ? (
+                      <LoadingSpinner />
+                    ) : assetsFilter && assets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No assets found
+                      </p>
+                    ) : (
+                      assets.map((asset) => (
+                        <AssetCard key={asset.id} asset={asset} />
+                      ))
+                    )}
+
+                    {selectedAsset && (
+                      <div className="relative mt-4 p-4 border rounded bg-gray-50">
+                        <button
+                          onClick={() => setSelectedAsset(null)}
+                          className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+                          aria-label="Clear selection"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="mt-2 bg-gray-50">
+                          <p className="font-semibold text-sm">
+                            {selectedAsset.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedAsset.id}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="frequency">Frequency</Label>
+                  <Select name="frequency" required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Weekly</SelectItem>
+                      <SelectItem value="1">Monthly</SelectItem>
+                      <SelectItem value="2">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

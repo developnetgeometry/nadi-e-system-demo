@@ -438,6 +438,28 @@ export const ViewMaintenanceDetailsDialogPM = ({
 
               <div>
                 <Label className="text-sm font-medium text-gray-500">
+                  Asset
+                </Label>
+                <div className="mt-1">{maintenanceRequest?.asset?.name}</div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Frequency
+                </Label>
+                <div className="mt-1">
+                  {maintenanceRequest?.frequency === 0
+                    ? "Weekly"
+                    : maintenanceRequest?.frequency === 1
+                    ? "Monthly"
+                    : maintenanceRequest?.frequency === 2
+                    ? "Yearly"
+                    : "N/A"}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
                   Description
                 </Label>
                 <p className="mt-1 text-sm text-gray-700">

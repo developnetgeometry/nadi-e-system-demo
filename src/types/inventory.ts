@@ -1,15 +1,15 @@
 import { Site } from "@/types/site";
 
 export interface Inventory {
-  id: number;
+  id: string;
   name: string;
   description?: string;
+  barcode?: string;
   type_id: number;
   type: InventoryType;
   retail_type?: number;
   price?: number;
   quantity?: number;
-  barcode?: number;
   site_id?: number;
   site?: Site;
   created_by?: string;

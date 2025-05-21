@@ -26,7 +26,7 @@ import { Site, Space } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
+import { fetchSiteBySiteProfileId, fetchSites } from "../site/hook/site-utils";
 import { Textarea } from "../ui/textarea";
 
 export interface AssetFormDialogProps {
@@ -62,24 +62,9 @@ export const AssetFormDialog = ({
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
-
-  const { data: dusps = [], isLoading: duspsIsLoading } =
-    useOrganizationsByTypeQuery("dusp", isSuperAdmin);
-
-  const { data: tps = [], isLoading: tpsIsLoading } =
-    useOrganizationsByTypeQuery(
-      "tp",
-      isSuperAdmin || isDUSPUser,
-      organizationId
-    );
-
-  const { data: sites = [], isLoading: sitesIsLoading } = useQuery({
-    queryKey: ["sites", organizationId],
-    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
-  });
 
   // TODO: use real data
   const retail_types = [
@@ -88,7 +73,7 @@ export const AssetFormDialog = ({
     { id: 3, name: "Retail Type 3" },
   ];
 
-  const [assetId, setAssetId] = useState<string>(String(asset?.id) || null);
+  const [assetId, setAssetId] = useState<number | null>(asset?.id ?? null);
   const [assetName, setAssetName] = useState("");
   const [assetType, setAssetType] = useState("");
   const [assetBrandId, setAssetBrandId] = useState("");
@@ -100,11 +85,32 @@ export const AssetFormDialog = ({
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
-  const [siteId, setSiteId] = useState<string>(
-    String(defaultSiteId) || String(asset?.site_id) || ""
-  );
+  const [siteId, setSiteId] = useState(defaultSiteId ?? "");
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [locations, setLocations] = useState<Space[]>([]);
+
+  const { data: dusps = [], isLoading: duspsIsLoading } =
+    useOrganizationsByTypeQuery("dusp", isSuperAdmin);
+
+  const {
+    data: tps = [],
+    isLoading: tpsIsLoading,
+    refetch: refetchTPs,
+  } = useOrganizationsByTypeQuery(
+    "tp",
+    isSuperAdmin || isDUSPUser,
+    duspId ?? organizationId
+  );
+
+  const {
+    data: sites = [],
+    isLoading: sitesIsLoading,
+    refetch: refetchSites,
+  } = useQuery({
+    queryKey: ["sites", organizationId],
+    queryFn: () => fetchSites(tpId ?? organizationId, isTPUser, isDUSPUser),
+    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
+  });
 
   const { useAssetTypesQuery } = useAssets();
 
@@ -133,12 +139,13 @@ export const AssetFormDialog = ({
       if (!brandIsLoading && !assetTypeIsLoading) {
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
-        setAssetLocationId(String(asset.location_id));
       }
       if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading) {
         setDuspId(String(asset.site?.dusp_tp?.parent?.id));
         setTpId(String(asset.site?.dusp_tp_id));
         setSiteId(String(asset.site_id));
+        setSelectedSite(asset.site);
+        setAssetLocationId(String(asset.location_id));
       }
     }
   }, [
@@ -152,17 +159,24 @@ export const AssetFormDialog = ({
 
   useEffect(() => {
     if (duspId) {
-      tps?.filter((tp) => tp?.parent_id?.toString() === duspId);
+      refetchTPs();
+      setTpId("");
+      setSiteId("");
+      setSelectedSite(null);
     }
+  }, [duspId, refetchTPs]);
 
+  useEffect(() => {
     if (tpId) {
-      sites?.filter((site) => site?.dusp_tp_id?.toString() === tpId);
+      refetchSites();
+      setSiteId("");
+      setSelectedSite(null);
     }
-  }, [duspId, tps, tpId, sites]);
+  }, [tpId, refetchSites]);
 
   useEffect(() => {
     if (!open) {
-      setAssetId("");
+      setAssetId(null);
       setAssetName("");
       setAssetType("");
       setAssetBrandId("");
@@ -179,10 +193,10 @@ export const AssetFormDialog = ({
 
   useEffect(() => {
     const fetchSite = async () => {
-      const site = await fetchSiteBySiteId(siteId!); // this in nd_site.id form
+      const site = await fetchSiteBySiteProfileId(siteId! || defaultSiteId);
       if (site) {
         setSelectedSite(site);
-        if (!isStaffUser) {
+        if (!isStaffUser && !isTpSiteUser) {
           const locations = (site.nd_site_space ?? []).map(
             (s): Space => s.nd_space
           );
@@ -199,12 +213,12 @@ export const AssetFormDialog = ({
     };
 
     if (siteId) {
-      if (!isStaffUser) {
+      if (!isStaffUser && !isTpSiteUser) {
         setLocations([]);
       }
       fetchSite();
     }
-  }, [siteId, isStaffUser, asset]);
+  }, [siteId, isStaffUser, isTpSiteUser, defaultSiteId, asset]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -213,7 +227,7 @@ export const AssetFormDialog = ({
 
     setIsSubmitting(true);
 
-    if (!siteId && !isStaffUser) {
+    if (!siteId && !isStaffUser && !isTpSiteUser) {
       toast({
         title: "Error",
         description: "Please select a Site.",
@@ -223,16 +237,18 @@ export const AssetFormDialog = ({
       return;
     }
 
+    const site = await fetchSiteBySiteProfileId(siteId! || defaultSiteId);
+
     const asset = {
-      name: formData.get("name"),
-      type_id: assetType,
-      brand_id: assetBrandId,
-      remark: formData.get("description"),
+      name: String(formData.get("name")),
+      type_id: Number(assetType),
+      brand_id: Number(assetBrandId),
+      remark: String(formData.get("description")),
       serial_number: assetSerialNumber,
-      retail_type: assetRetailType,
-      qty_unit: formData.get("quantity"),
-      location_id: assetLocationId,
-      site_id: String(selectedSite?.nd_site?.[0]?.id),
+      retail_type: Number(assetRetailType),
+      qty_unit: Number(formData.get("quantity")),
+      location_id: Number(assetLocationId) || null,
+      site_id: Number(site?.nd_site?.[0]?.id),
     };
 
     try {
@@ -244,7 +260,7 @@ export const AssetFormDialog = ({
             ...asset,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", assetId);
+          .eq("id", Number(assetId));
 
         if (updateError) throw updateError;
 
@@ -324,18 +340,6 @@ export const AssetFormDialog = ({
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Asset Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="Enter asset name"
-                  value={assetName}
-                  onChange={(e) => setAssetName(e.target.value)}
-                />
-              </div>
-
               {isSuperAdmin && (
                 <div className="space-y-2">
                   <Label htmlFor="type">DUSP</Label>
@@ -412,6 +416,47 @@ export const AssetFormDialog = ({
               )}
 
               <div className="space-y-2">
+                <Label htmlFor="type">Asset Location</Label>
+                <Select
+                  name="location"
+                  required
+                  value={assetLocationId}
+                  onValueChange={setAssetLocationId}
+                  disabled={locations && locations.length > 0 ? false : true}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        locations && locations.length > 0
+                          ? "Select asset location"
+                          : "No locations found for this site"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations &&
+                      locations.map((location, index) => (
+                        <SelectItem key={index} value={location.id.toString()}>
+                          {location.eng}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Asset Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  required
+                  placeholder="Enter asset name"
+                  value={assetName}
+                  onChange={(e) => setAssetName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="type">Brand</Label>
                 <Select
                   name="brand"
@@ -467,35 +512,6 @@ export const AssetFormDialog = ({
                   onChange={(e) => setAssetQuantity(e.target.value)}
                   min={0}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="type">Asset Location</Label>
-                <Select
-                  name="location"
-                  required
-                  value={assetLocationId}
-                  onValueChange={setAssetLocationId}
-                  disabled={locations && locations.length > 0 ? false : true}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        locations && locations.length > 0
-                          ? "Select asset location"
-                          : "No locations found for this site"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations &&
-                      locations.map((location, index) => (
-                        <SelectItem key={index} value={location.id.toString()}>
-                          {location.eng}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">

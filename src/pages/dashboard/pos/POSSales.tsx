@@ -2,6 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { SelectOne } from "@/components/ui/SelectOne";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
@@ -12,7 +13,7 @@ import { Inventory } from "@/types/inventory";
 import { Transaction } from "@/types/transaction";
 // import { Profile } from "@/types/auth";
 
-import { Check, ChevronsUpDown, User, Search, CreditCard, Trash2, Plus, Clock, ShoppingCart, Box, QrCode, Banknote, Minus } from "lucide-react";
+import { User, Search, CreditCard, Trash2, Plus, QrCode, Banknote, Minus, Receipt, FileText, Printer } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -25,16 +26,23 @@ const POSSales = () => {
   const [searchItem, setSearchItem] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMember, setSelectedMember] = useState(null);
-  const [isQuantityDialogOpen, setIsQuantityDialogOpen] = useState(false);
-  const [isResetConfirmDialogOpen, setIsResetConfirmDialogOpen] = useState(false);
-  const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
-  const [isShowCashPayment, setIsShowCashPayment] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [isPaymentAmountDialogOpen, setIsPaymentAmountDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Inventory | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [cashAmount, setCashAmount] = useState<number>();
+  const [remarks, setRemarks] = useState<string>("");
+  const [receipt, setReceipt] = useState(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<(string | number | null)>('cash');
+  const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
+  const [printOptions, setPrintOptions] = useState({
+    type: 'bw', // 'bw' or 'color'
+    pricePerPage: 0.10,
+    numberOfPages: 1,
+    subtotal: 0.10
+  });
+  const [printingItem, setPrintingItem] = useState<Inventory | null>(null);
+  const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   const [cartItems, setCartItems] = useState<Array<{
@@ -45,7 +53,14 @@ const POSSales = () => {
     price: number;
     total: number;
     barcode: string | number;
+    description?: string;
+    isPrintingService?: boolean;
   }>>([]);
+
+  const paymentMethodOption = [
+    { id: 'cash', label: 'Cash' },
+    { id: 'qr', label: 'QR' }
+  ];
 
   // Fetch inventory data
   const { data: inventorys, isLoading: loadingInventorys } = useQuery({
@@ -56,7 +71,7 @@ const POSSales = () => {
         .select('*')
 
       if (searchItem) {
-        query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%`)
+        query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%,barcode.ilike.%${searchItem}%`)
       }
 
       query = query.order('created_at', { ascending: false });
@@ -98,6 +113,8 @@ const POSSales = () => {
     setCartItems([]);
     setSelectedMember(null);
     setSearchTerm("");
+    setSelectedPaymentMethod('cash');
+    setRemarks("");
   };
 
   const handleSearchChange = (value: string) => {
@@ -140,6 +157,13 @@ const POSSales = () => {
 
   const addToCart = (inventory: Inventory) => {
     if (inventory) {
+      // Check if it's a printing service
+      if (inventory.name.toLowerCase().includes('printing')) {
+        setPrintingItem(inventory);
+        setIsPrintDialogOpen(true);
+        return;
+      }
+
       // Check if item already exists in cart
       const existingItemIndex = cartItems.findIndex(item => item.id === inventory.id);
       
@@ -174,7 +198,7 @@ const POSSales = () => {
         const newItem = {
           id: inventory.id,
           type_id: inventory.type_id,
-          barcode: '-',
+          barcode: inventory.barcode,
           name: inventory.name,
           quantity: itemQuantity,
           price: inventory.price,
@@ -188,6 +212,7 @@ const POSSales = () => {
           variant: "success",
         });
       }
+      setSearchItem("");
     }
   };
 
@@ -217,13 +242,14 @@ const POSSales = () => {
     return calculateTotal(subtotal);
   }, [subtotal, 0]);
 
-  const handlePaymentQR = () => {
-    setIsPayDialogOpen(false);
-    handlePaySales();
-  }
-
-  const handlePaymentCash = () => {
-    setIsShowCashPayment(true);
+  const handlePayment = () => {
+    if(cartItems.length === 0) {
+      toast({
+        title: 'Please add items to the cart',
+      });
+      return;
+    }
+    setIsPaymentAmountDialogOpen(true);
   }
 
   const handlePaySales = async () => {
@@ -241,12 +267,13 @@ const POSSales = () => {
 
       const transactionData = {
         member_id: selectedMember?.id || null,
-        type: isShowCashPayment ? 'cash' : 'qr',
+        type: selectedPaymentMethod,
         transaction_date: new Date().toISOString(),
         created_by: userId,
         created_at: new Date().toISOString(),
         updated_by: null,
-        updated_at: null
+        updated_at: null,
+        remarks: remarks || null,
       }
 
       const { data: transactionResult, error: insertTransactionError } = await supabase
@@ -320,7 +347,25 @@ const POSSales = () => {
         console.log(`Updated inventory for item ${item.id}: ${currentQuantity} → ${newQuantity}`);
       }
 
-      setIsReceiptDialogOpen(true);
+      setReceipt({
+        id: transactionId,
+        date: transactionResult[0].transaction_date,
+        items: cartItems,
+        customer: selectedMember,
+        paymentMethod: selectedPaymentMethod,
+        remarks: remarks,
+        subtotal: subtotal,
+        tax: 0,
+        total: total,
+        paymentAmount: cashAmount,
+        balance: cashAmount - total
+      });
+
+      toast({
+        title: "Payment completed succesfully",
+        variant: "success",
+      });
+
       resetSale();
     } catch (error) {
       console.error("Error processing payment:", error);
@@ -333,23 +378,101 @@ const POSSales = () => {
     }
   }
 
-  useEffect(() => {
-    if(isPayDialogOpen) {
-      setIsShowCashPayment(false);
-      setCashAmount(0);
+  const formatReceiptDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) + ' at ' + date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const handlePrintOptionsChange = (field: string, value: any) => {
+    setPrintOptions(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Calculate subtotal
+      if (field === 'type' || field === 'pricePerPage' || field === 'numberOfPages') {
+        const price = field === 'type' ? 
+          (value === 'color' ? 0.10 : 0.10) :
+          (field === 'pricePerPage' ? value : prev.pricePerPage);
+        
+        const pages = field === 'numberOfPages' ? value : prev.numberOfPages;
+        updated.subtotal = parseFloat((price * pages).toFixed(2));
+        
+        if (field === 'type') {
+          updated.pricePerPage = value === 'color' ? 0.10 : 0.10;
+        }
+      }
+      
+      return updated;
+    });
+  };
+
+  const addPrintingToCart = () => {
+    if (printingItem) {
+      const description = `${printOptions.type === 'bw' ? 'B&W' : 'Color'} - RM${printOptions.pricePerPage.toFixed(2)}/page × ${printOptions.numberOfPages} pages`;
+      
+      const newItem = {
+        id: printingItem.id,
+        type_id: printingItem.type_id,
+        barcode: printingItem.barcode,
+        name: printingItem.name,
+        description: description,
+        quantity: 1,
+        price: printOptions.subtotal,
+        total: printOptions.subtotal,
+        isPrintingService: true
+      };
+      
+      if (editingCartItemIndex !== null && editingCartItemIndex >= 0) {
+        const updatedCartItems = [...cartItems];
+        updatedCartItems[editingCartItemIndex] = newItem;
+        setCartItems(updatedCartItems);
+        
+        toast({
+          title: `${printingItem.name} updated successfully`,
+          variant: "success",
+        });
+        
+        setEditingCartItemIndex(null);
+      } 
+      // If adding a new item
+      else {
+        setCartItems([...cartItems, newItem]);
+        
+        toast({
+          title: `${printingItem.name} added successfully`,
+          variant: "success",
+        });
+      }
+      
+      setIsPrintDialogOpen(false);
+      setPrintingItem(null);
+      setSearchItem("");
     }
-  }, [isPayDialogOpen]);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  useEffect(() => {
+    if(!isPaymentAmountDialogOpen) {
+      setCashAmount(null);
+    }
+  }, [isPaymentAmountDialogOpen]);
 
   return (
     <DashboardLayout>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            POS Management
-          </h1>
-          <p className="text-muted-foreground">
-            Manage point of sale transactions
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight">POS Management</h1>
+          <p className="text-muted-foreground">Manage point of sale transactions</p>
         </div>
       </div>
 
@@ -440,20 +563,60 @@ const POSSales = () => {
                       </TableCell>
                       <TableCell className="text-right">RM{item.price}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white"
-                            onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                          >
-                            <Minus className="h-5 w-5" />
-                          </Button>
-                          <span>{item.quantity}</span>
-                          <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white"
-                            onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
-                            disabled={item.quantity >= getInventoryStock(item.id)}
-                          >
-                            <Plus className="h-5 w-5" />
-                          </Button>
+                        <div className="flex flex-col justify-end space-y-2">
+                          <div className="space-x-2">
+                            <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
+                              onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="h-5 w-5" />
+                            </Button>
+                            <span>{item.quantity}</span>
+                            <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
+                              onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                              disabled={item.quantity >= getInventoryStock(item.id)}
+                            >
+                              <Plus className="h-5 w-5" />
+                            </Button>
+                          </div>
+                          <div>
+                            {item.isPrintingService && item.description && (
+                              <Button variant="secondary" className="text-xs py-0 px-2 inline-flex hover:bg-[#5147dd] hover:text-white border"
+                                onClick={() => {
+                                  // Find the index of this item in the cart
+                                  const itemIndex = cartItems.findIndex(cartItem => cartItem.id === item.id);
+                                  if (itemIndex !== -1) {
+                                    setEditingCartItemIndex(itemIndex);
+                                    
+                                    const description = item.description || '';
+                                    const isBW = description.includes('B&W');
+                                    const priceMatch = description.match(/RM([\d.]+)\/page/);
+                                    const pagesMatch = description.match(/(\d+) pages/);
+                                    
+                                    setPrintOptions({
+                                      type: isBW ? 'bw' : 'color',
+                                      pricePerPage: priceMatch ? parseFloat(priceMatch[1]) : 0.10,
+                                      numberOfPages: pagesMatch ? parseInt(pagesMatch[1]) : 1,
+                                      subtotal: item.price
+                                    });
+                                    
+                                    setPrintingItem({
+                                      id: item.id,
+                                      type_id: item.type_id,
+                                      name: item.name,
+                                      barcode: item.barcode,
+                                      price: item.price,
+                                      quantity: item.quantity,
+                                    } as Inventory);
+                                    
+                                    setIsPrintDialogOpen(true);
+                                  }
+                                }}
+                              >
+                                <Printer className="h-5 w-5" /> {item.description}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">RM{item.total}</TableCell>
@@ -486,248 +649,371 @@ const POSSales = () => {
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search name, email or phone"
-                  value={searchItem}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9"
                 />
               </div>
+
+              {/* Customer dropdown */}
+              {searchTerm && membersData?.data && membersData.data.length > 0 && (
+                <div className="max-h-40 overflow-y-auto border rounded-md bg-background">
+                  {membersData.data.map((member) => (
+                    <div
+                      key={member.id}
+                      className="p-2 hover:bg-accent cursor-pointer border-b last:border-b-0"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setSearchTerm("");
+                      }}
+                    >
+                      <div className="font-medium text-sm">{member.fullname || 'No name'}</div>
+                      <div className="text-xs text-muted-foreground">{member.email || 'No email'}</div>
+                      <div className="text-xs text-muted-foreground">{member.identity_no || 'No ID'}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="border p-3 rounded-lg">
-              <h3 className="text-sm font-medium mb-1">
-                Customer
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                No customer selected
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium mb-1">Customer</h3>
+                  {selectedMember ? (
+                    <div>
+                      <p className="text-sm font-medium">{selectedMember.fullname || 'No name'}</p>
+                      <p className="text-xs text-muted-foreground">{selectedMember.email || 'No email'}</p>
+                      <p className="text-xs text-muted-foreground">{selectedMember.identity_no || 'No ID'}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No customer selected</p>
+                  )}
+                </div>
+                {selectedMember && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedMember(null)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm">Total Items</span>
-                <span className="font-medium">0</span>
+                <span className="font-medium">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
               </div>
               <div className="flex justify-between items-center text-lg font-medium border-t pt-2 mt-4">
                 <span>Total</span>
-                <span>RM 0.00</span>
+                <span>RM {total.toFixed(2)}</span>
               </div>
             </div>
 
             <div>
               <label htmlFor="" className="block text-sm font-medium mb-1">Remarks</label>
-              <textarea name="" id="remarks" placeholder="Add any notes about this sale" className="flex min-h-[80px] w-full rounded-md 
-                border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none 
-                focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 h-20"
+              <textarea name="" id="remarks" placeholder="Add any notes about this sale" 
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background 
+                placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
+                focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 h-20"
               ></textarea>
             </div>
 
             <div className="pt-4 border-t">
               <p className="font-medium mb-2">Payment Method</p>
-              
+              <SelectOne
+                options={paymentMethodOption}
+                value={selectedPaymentMethod}
+                onChange={setSelectedPaymentMethod}
+                placeholder="Select payment method"
+              />
             </div>
-
           </div>
 
-          {/* <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                className="w-full justify-between"
-              >
-                {selectedMember
-                  ? `${selectedMember.full_name || ''} - ${selectedMember.email || ''}`
-                  : "Select member..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-              <Command shouldFilter={false} className="w-full">
-                <CommandInput 
-                  placeholder="Search members..." 
-                  value={searchTerm}
-                  onValueChange={handleSearchChange}
-                  className="h-9"
-                />
-                <CommandList className="max-h-64 overflow-auto">
-                  {loadingMembersData ? (
-                    <div className="py-6 text-center text-sm">Loading members...</div>
-                  ) : (membersData?.data || []).length === 0 ? (
-                    <CommandEmpty>No members found.</CommandEmpty>
-                  ) : (
-                    <CommandGroup>
-                      {(membersData?.data || []).map((member) => (
-                        <CommandItem
-                          key={member.id}
-                          value={member.id?.toString()}
-                          onSelect={() => {
-                            setSelectedMember(member);
-                            setSearchTerm(member.full_name || "");
-                            setOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedMember?.id === member.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          <div>
-                            <div className="font-medium">{member.fullname || 'No name'}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {member.email || 'No email'} {member.identity_no ? `(${member.identity_no})` : ''}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover> */}
-
-          {/* <div className="mt-auto flex flex-col gap-2">
-            <span className="flex justify-between items-center">              
-              <p className="text-md">Subtotal:</p>
-              <p className="text-md">RM {subtotal.toFixed(2)}</p>
-            </span>
-            <span className="flex justify-between items-center">              
-              <p className="text-md font-semibold">Total:</p>
-              <p className="text-md font-semibold">RM {total.toFixed(2)}</p>
-            </span>
-            <Button 
-              className="mt-1 font-bold"
-              onClick={() => setIsPayDialogOpen(true)}
-              disabled={cartItems.length === 0}
-            >
-              <CreditCard className="h-5 w-5" /> Pay Now
-            </Button>
-          </div> */}
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            <Button onClick={handlePayment}><CreditCard className="h-5 w-5"/> Payment</Button>
+            <Button onClick={() => setIsReceiptDialogOpen(true)} disabled={!receipt}><Receipt className="h-5 w-5" /> Receipt</Button>
+          </div>
         </Card>
 
-        {/* Reset Confirmation Dialog */}
-        <Dialog open={isResetConfirmDialogOpen} onOpenChange={setIsResetConfirmDialogOpen}>
+        {/* Payment Dialog */}
+        <Dialog open={isPaymentAmountDialogOpen} onOpenChange={setIsPaymentAmountDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Start New Sale?</DialogTitle>
-              <DialogDescription>
-                This will clear the current cart and customer selection. Are you sure you want to proceed?
-              </DialogDescription>
+              <DialogTitle>Payment</DialogTitle>
             </DialogHeader>
+            <div className="space-y-5 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="cashAmount">Payment Amount:</Label>
+                <Input 
+                  id="cashAmount" 
+                  type="number" 
+                  placeholder="Enter payment amount" 
+                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={cashAmount}
+                  onChange={(e) => {
+                    const amount = parseFloat(e.target.value);
+                    setCashAmount(amount);
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm">Total Amount:</p>
+                  <p className="text-sm font-semibold">RM {total.toFixed(2)}</p>
+                </div>
+                {!cashAmount ? (
+                  <div></div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm">Balance:</p>
+                    <p className={`text-sm font-semibold ${
+                      cashAmount && (cashAmount - total) < 0 
+                        ? 'text-danger' 
+                        : 'text-success'
+                    }`}>
+                      RM { cashAmount ? (cashAmount - total).toFixed(2) : 0}
+                      </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
             <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={() => setIsResetConfirmDialogOpen(false)}>
-                Cancel
+              <Button 
+                variant="outline" 
+                onClick={() => setIsPaymentAmountDialogOpen(false)}
+              >
+                Back
               </Button>
               <Button 
                 variant="default"
                 onClick={() => {
-                  resetSale();
-                  setIsResetConfirmDialogOpen(false);
+                  setIsPaymentAmountDialogOpen(false);
+                  handlePaySales();
                 }}
+                disabled={cashAmount < total || !cashAmount}
               >
-                Start New Sale
+                Confirm Payment
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Pay Dialog */}
-        <Dialog open={isPayDialogOpen} onOpenChange={setIsPayDialogOpen}>
-          {isShowCashPayment 
-          ? (
-            <DialogContent className="sm:max-w-md">
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
-                  <Label htmlFor="cashAmount">Payment Amount:</Label>
-                  <Input 
-                    id="cashAmount" 
-                    type="number" 
-                    placeholder="Enter amount" 
-                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    value={cashAmount}
-                    onChange={(e) => {
-                      const amount = parseFloat(e.target.value);
-                      setCashAmount(amount);
-                    }}
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Label className="text-md">Total Amount:</Label>
-                  <p className="text-md font-bold">RM {total.toFixed(2)}</p>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Label className="text-md">Balance:</Label>
-                  <p className="text-md font-bold">RM { cashAmount ? (cashAmount - total).toFixed(2) : 0}</p>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-2 mt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsShowCashPayment(false)}
-                >
-                  Back
-                </Button>
-                <Button 
-                  variant="default"
-                  onClick={() => {
-                    setIsPayDialogOpen(false);
-                    handlePaySales();
-                  }}
-                  disabled={cashAmount < total || !cashAmount}
-                >
-                  Confirm Payment
-                </Button>
-              </div>
-            </DialogContent>
-          ) : (
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Payment Method</DialogTitle>
-                <DialogDescription>
-                  Choose your payment method.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex justify-center gap-4 my-4">
-                <Button 
-                  className="flex flex-col w-fit h-fit items-center justify-center py-5 px-9 gap-4"
-                  variant="outline" 
-                  onClick={() => handlePaymentQR()}
-                >
-                  <QrCode className="!h-12 !w-12" /> QR
-                </Button>
-                <Button 
-                  className="flex flex-col w-fit h-fit items-center justify-center py-5 px-9 gap-4"
-                  variant="outline"
-                  onClick={() => handlePaymentCash()}
-                >
-                  <Banknote className="!h-12 !w-12" /> Cash
-                </Button>
-              </div>
-            </DialogContent>
-          )}
-        </Dialog>
-
         {/* Receipt Dialog */}
         <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Payment successful!</DialogTitle>
-              <DialogDescription>
-                Your transaction has been completed.
-              </DialogDescription>
+              <DialogTitle className="flex items-center justify-center gap-2"><FileText className="h-5 w-5"/> Receipt</DialogTitle>
             </DialogHeader>
-            <div className="flex justify-center gap-4 my-4">
+            {receipt && (
+              <div className="space-y-4 py-4">
+                {/* Receipt Header */}
+                <div className="text-center border-b pb-4">
+                  <h3 className="font-bold text-lg">NADI 2.0 POS</h3>
+                  <p className="text-sm text-muted-foreground">Kuala Lumpur, Malaysia</p>
+                </div>
+
+                {/* Customer Info */}
+                {receipt.customer && (
+                  <div className="border-b pb-2 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Receipt No:</p>
+                      <p className="text-sm">{receipt.id}</p>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Date:</p>
+                      <p className="text-sm">{formatReceiptDate(receipt.date)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Items */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Items:</p>
+                  {receipt.items.map((item, index) => (
+                    <div key={index} className="flex flex-col gap-3 pb-2">
+                      <div className="grid grid-cols-8">
+                        <div className="flex col-span-5 gap-2">
+                          <img src="/200x200.svg" alt="" className="w-12 h-12 object-cover rounded" />
+                          <div>
+                            <p className="font-medium text-sm">{item.name}</p>
+                            {item.isPrintingService && item.description && (
+                              <p className="text-xs text-muted-foreground">{item.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-right">{item.quantity}x</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-sm text-right">RM {item.total.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Totals */}
+                <div className="space-y-2 border-t pt-4 text-sm">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>RM {receipt.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax (0%):</span>
+                    <span>RM {receipt.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg pt-2">
+                    <span>Total:</span>
+                    <span>RM {receipt.total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Payment Info */}
+                <div className="space-y-2 border-t pt-4 text-sm">
+                  <div className="flex justify-between">
+                    <span>Payment Method:</span>
+                    <span className="capitalize">{receipt.paymentMethod}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Payment Amount:</span>
+                    <span>RM {receipt.paymentAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Balance:</span>
+                    <span className="text-success">RM {receipt.balance.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                {receipt.remarks && (
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium">Remarks:</p>
+                    <p className="text-sm text-muted-foreground">{receipt.remarks}</p>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="text-center text-sm border-t pt-4">
+                  <p>Thank you for your purchase!</p>
+                </div>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
               <Button 
-                className="flex flex-col w-fit h-fit items-center justify-center py-5 px-9 gap-4"
+                variant="secondary"
+                className="border print:hidden"
+                onClick={handlePrint}
+              >
+                <Printer className="h-5 w-5"/>
+                Print
+              </Button>
+              <Button 
                 variant="default" 
                 onClick={() => setIsReceiptDialogOpen(false)}
               >
-                Done
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Printing Options Dialog */}
+        <Dialog open={isPrintDialogOpen} onOpenChange={(open) => {
+          setIsPrintDialogOpen(open);
+          if (!open) {
+            setEditingCartItemIndex(null);
+          }
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Printing Options</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label className="text-sm font-medium">Print Type</Label>
+                <div className="flex gap-4 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="bw"
+                      checked={printOptions.type === 'bw'}
+                      onChange={() => handlePrintOptionsChange('type', 'bw')}
+                      className="h-4 w-4 rounded-full"
+                    />
+                    <Label htmlFor="bw">Black & White</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="color"
+                      checked={printOptions.type === 'color'}
+                      onChange={() => handlePrintOptionsChange('type', 'color')}
+                      className="h-4 w-4 rounded-full"
+                    />
+                    <Label htmlFor="color">Color</Label>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="pricePerPage">Price Per Page (RM)</Label>
+                <Input
+                  id="pricePerPage"
+                  type="number"
+                  step="0.01"
+                  value={printOptions.pricePerPage}
+                  onChange={(e) => handlePrintOptionsChange('pricePerPage', parseFloat(e.target.value))}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Number of Pages</Label>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    size="sm" 
+                    onClick={() => handlePrintOptionsChange('numberOfPages', Math.max(1, printOptions.numberOfPages - 1))}
+                    disabled={printOptions.numberOfPages <= 1}
+                  >
+                    <Minus className="h-5 w-5" />
+                  </Button>
+                  <Input
+                    type="number"
+                    min="1"
+                    className="text-center"
+                    value={printOptions.numberOfPages}
+                    onChange={(e) => handlePrintOptionsChange('numberOfPages', parseInt(e.target.value) || 1)}
+                  />
+                  <Button 
+                    size="sm" 
+                    onClick={() => handlePrintOptionsChange('numberOfPages', printOptions.numberOfPages + 1)}
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-4 border-t font-medium">
+                <span>Subtotal:</span>
+                <span>RM{printOptions.subtotal.toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setIsPrintDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="default" onClick={addPrintingToCart}>
+                Save Options
               </Button>
             </div>
           </DialogContent>
