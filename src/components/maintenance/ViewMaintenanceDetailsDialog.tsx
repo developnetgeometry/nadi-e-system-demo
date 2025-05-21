@@ -732,6 +732,17 @@ export const ViewMaintenanceDetailsDialog = ({
               </div>
 
               <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Priority
+                </Label>
+                <div className="mt-1">
+                  {maintenanceRequest?.priority_type_id === 0
+                    ? "Critical"
+                    : "Non-Critical"}
+                </div>
+              </div>
+
+              <div>
                 <Label className="text-sm font-medium text-gray-500">SLA</Label>
                 <div className="mt-1">
                   <Badge
