@@ -101,7 +101,9 @@ const ReportHRSalary = () => {    // Filter states
                     <div>
                         <h1 className="text-xl font-bold">Human Resources</h1>
                         <p className="text-gray-500 mt-1">View and analyze staff data across all NADI sites</p>
-                    </div>                    <div className="flex items-center gap-2">                        <HRSalaryReportDownloadButton
+                    </div>                    
+                    <div className="flex items-center gap-2">                        
+                        <HRSalaryReportDownloadButton
                             duspLabel={duspFilter.length === 1
                                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
                                 : duspFilter.length > 1
