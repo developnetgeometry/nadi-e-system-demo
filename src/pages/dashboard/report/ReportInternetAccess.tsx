@@ -97,21 +97,17 @@ const ReportInternetAccess = () => {  // Filter states
                 ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
                 : "All Phases"}
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}              monthFilter={monthFilter}
-              yearFilter={yearFilter}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
               duspFilter={duspFilter}
               phaseFilter={phaseFilter}
-              sites={sites}
-              totalSites={totalSites}
-              sitesWithInternet={sitesWithInternet}
-              sitesWithoutInternet={sitesWithoutInternet}
-              connectionTypes={connectionTypes}
-              providers={providers}
+              tpFilter={tpFilter}
+              monthFilter={monthFilter}
+              yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
-              duspLogo={duspLogo}              
+              duspLogo={duspLogo}
               fileName={`internet-access-report-${new Date().toISOString().split('T')[0]}.pdf`}
-              onGenerationStart={handleGenerationStart}
-              onGenerationComplete={handleGenerationComplete}
+              onGenerationStart={() => setIsGeneratingPdf(true)}
+              onGenerationComplete={() => setIsGeneratingPdf(false)}
             />
           </div>
         </div>        {/* Filters */}        <ModularReportFilters
