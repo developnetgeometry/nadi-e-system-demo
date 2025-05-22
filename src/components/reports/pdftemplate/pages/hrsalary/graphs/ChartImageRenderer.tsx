@@ -68,41 +68,98 @@ export const ChartImageRenderer = ({
 
     return () => clearTimeout(timer);
   }, [data, type, onReady]);
+
+
+  const createPieLabelRenderer = ({ data, nameKey, dataKey }) => ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index
+  }) => {
+    const RADIAN = Math.PI / 180;
+    const item = data[index];
+    const labelText = item[nameKey];
+    const formattedPercent = `${(percent * 100).toFixed(0)}%`;
+
+    const radiusOuter = outerRadius + 10;
+    const radiusInner = innerRadius + (outerRadius - innerRadius) * 0.5;
+
+    const outerX = cx + radiusOuter * Math.cos(-midAngle * RADIAN);
+    const outerY = cy + radiusOuter * Math.sin(-midAngle * RADIAN);
+
+    const innerX = cx + radiusInner * Math.cos(-midAngle * RADIAN);
+    const innerY = cy + radiusInner * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <>
+        {/* Outer Label (Name/Position) */}
+        <text
+          x={outerX}
+          y={outerY}
+          textAnchor={outerX > cx ? "start" : "end"}
+          dominantBaseline="central"
+          fontSize={12}
+          fontWeight="bold"
+          fill="#000"
+        >
+          {labelText}
+        </text>
+
+        {/* Inner Label (Percentage) */}
+        <text
+          x={innerX}
+          y={innerY}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={12}
+          fontWeight="bold"
+          fill="#fff"
+        >
+          {formattedPercent}
+        </text>
+      </>
+    );
+  };
+
+
   const renderChart = () => {
     switch (type) {
       case 'staffDistribution':
         return (
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart margin={{ top: 60, right: 10, left: 10, bottom: 10 }}>
-              <text x={width / 2} y={20} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
+            <PieChart margin={{ top: 15, right: 10, left: 10, bottom: 10 }}>
+              <text x={width / 2} y={10} textAnchor="middle" dominantBaseline="central" fontSize={15} fontWeight="bold">
                 Number of Staff by Designation (Total: {(data as StaffDistribution[]).reduce((sum, item) => sum + item.count, 0)})
               </text>
               <Pie
                 data={data as StaffDistribution[]}
                 cx="50%"
-                cy="55%"
-                outerRadius={90}
-                innerRadius={0}
-                paddingAngle={2}
-                fill="#8884d8"
+                cy="50%"
+                // outerRadius={90}
+                // innerRadius={0}
+                // paddingAngle={2}
+                // fill="#8884d8"
                 dataKey="count"
                 nameKey="position"
-                label={true}
+                label={createPieLabelRenderer({ data, nameKey: 'position', dataKey: 'count' })}
                 labelLine={false}
                 isAnimationActive={false}
-                strokeWidth={1}
+                strokeWidth={2}
                 stroke="#ffffff"
               >
                 {(data as StaffDistribution[]).map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color || getDefaultColor(index)} />
                 ))}
-              </Pie>              
-              
+              </Pie>
+
               <Legend
                 layout="horizontal"
-                verticalAlign="top"
+                verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ top: 35, fontSize: 12, fontWeight: 'bold' }}
+                // wrapperStyle={{ top: 35, fontSize: 12, fontWeight: 'bold' }}
                 iconSize={12}
                 iconType="circle"
                 formatter={(value, entry, index) => {
@@ -143,7 +200,7 @@ export const ChartImageRenderer = ({
                   angle: -90,
                   position: 'insideLeft',
                   style: { textAnchor: 'middle', fontSize: 12, fontWeight: 'bold' }
-                }}              />
+                }} />
               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
               <Legend
                 verticalAlign="top"
@@ -184,16 +241,16 @@ export const ChartImageRenderer = ({
                 data={data as StaffVacancy[]}
                 cx="50%"
                 cy="55%"
-                outerRadius={90}
-                innerRadius={0}
-                paddingAngle={2}
-                fill="#8884d8"
+                // outerRadius={90}
+                // innerRadius={0}
+                // paddingAngle={2}
+                // fill="#8884d8"
                 dataKey="open"
                 nameKey="position"
-                label={true}
+                label={createPieLabelRenderer({ data, nameKey: 'position', dataKey: 'count' })}
                 labelLine={false}
                 isAnimationActive={false}
-                strokeWidth={1}
+                strokeWidth={2}
                 stroke="#ffffff"
               >
                 {(data as StaffVacancy[]).map((entry, index) => (
@@ -228,11 +285,11 @@ export const ChartImageRenderer = ({
       style={{
         width: width,
         height: height,
-        position: "absolute",
-        left: "-9999px",
-        backgroundColor: "#ffffff",
-        padding: "20px",
-        boxSizing: "border-box"
+        backgroundColor: "white",
+        padding: "10px",
+        boxSizing: "border-box",
+        border: "1px solid #ccc",
+        borderRadius: "4px"
       }}
     >
       {renderChart()}
