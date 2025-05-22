@@ -118,10 +118,10 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
       const fileName = `HR_Salary_Report_${monthFilter || ''}_${yearFilter || ''}.pdf`;
       const blob = await pdf(
         <HRSalaryReportPDF
-          duspLabel={duspFilter?.join(', ')}
-          phaseLabel={phaseFilter?.toString() || ""}
-          periodType={monthFilter ? "MONTH / YEAR" : "QUARTER / YEAR"}
-          periodValue={`${monthFilter || ''}/${yearFilter || ''}`}
+          duspLabel={duspLabel}
+          phaseLabel={phaseLabel}
+          periodType={periodType}
+          periodValue={periodValue}
           staff={pdfData.staff}
           totalStaff={pdfData.totalStaff}
           activeNadiSites={pdfData.activeNadiSites}

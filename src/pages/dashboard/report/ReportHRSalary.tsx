@@ -128,7 +128,8 @@ const ReportHRSalary = () => {    // Filter states
                     </div>
                 </div>
 
-                {/* Filters */}                <ModularReportFilters
+                {/* Filters */}                
+                <ModularReportFilters
                     // Show all filters for HR report
                     showFilters={{
                         dusp: true,
