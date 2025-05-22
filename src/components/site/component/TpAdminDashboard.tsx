@@ -18,44 +18,55 @@ import { PaginationTable } from "./PaginationTable";
 import type { SiteProfile } from "@/types/site";
 import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { useSitePaginationServer } from "@/hooks/useSitePaginationServer";
+import { PaginationTableServer } from "./PaginationTableServer";
 
 interface TpAdminDashboardProps {
     pcsInTpsAdminSite: Asset[]
     setSelecTedSite: React.Dispatch<React.SetStateAction<SiteProfile>>
     tpsSites: SiteProfile[]
+    tpAdminOrgId: string
 }
 
 export const TpAdminDashBoard = ({
     pcsInTpsAdminSite,
     setSelecTedSite,
-    tpsSites
+    tpsSites,
+    tpAdminOrgId
 }: TpAdminDashboardProps) => {
-    console.log("PC in tp admin site", pcsInTpsAdminSite)
+    const INITIAL_PAGE = 1;
+    const PER_PAGE = 8;
+
     const {
         useAllRegion,
         useAllState
     } = useBookingQueries();
+    const [selectedRegion, setSelectedRegion] = useState(0);
+    const [selectedState, setSelectedState] = useState(0);
     const {
         data: allRegion,
         isLoading: isAllRegionLoading
-    } = useAllRegion();
+    } = useAllRegion(selectedState);
     const {
         data: allState,
         isLoading: isAllStateLoading
-    } = useAllState();
-    const [sites, setSites] = useState<SiteProfile[]>([]);
-    const [searchInput, setSearchInput] = useState("");
-    const [region, setRegion] = useState("All Region");
-    const [state, setState] = useState("All State");
+    } = useAllState(selectedRegion);
+    const {
+        page,
+        setPage,
+        isSiteResultLoading,
+        sitesResult,
+        filter,
+        setFilter
+    } = useSitePaginationServer(INITIAL_PAGE, PER_PAGE, tpAdminOrgId);
     const [bodyTableData, setBodyTableData] = useState([]);
 
-    const initialTotalSites = useRef(tpsSites?.length);
-
     const isLoadingPCs = !pcsInTpsAdminSite || pcsInTpsAdminSite.length === 0;
+    const initialTotalSites = useRef(tpsSites?.length);
     const { totalPc, pcInUse } = useMemo(() => {
         const totalPc = pcsInTpsAdminSite.length;
         const pcInUse = pcsInTpsAdminSite.filter(pc => pc?.nd_booking?.some(b => b?.is_using)).length;
-    
+
         return {
             totalPc,
             pcInUse
@@ -63,15 +74,11 @@ export const TpAdminDashBoard = ({
     }, [pcsInTpsAdminSite]);
 
     useEffect(() => {
-        setSites(tpsSites);
-    }, [tpsSites])
-
-    useEffect(() => {
         let isCanceled = false;
 
         function formatTableBody() {
-            if (sites.length > 0) {
-                const handledBodyTable = handleBodyTableData(sites);
+            if (sitesResult?.length > 0) {
+                const handledBodyTable = handleBodyTableData(sitesResult);
 
                 if (!isCanceled) {
                     setBodyTableData(handledBodyTable);
@@ -86,29 +93,10 @@ export const TpAdminDashBoard = ({
             isCanceled = true;
         };
 
-    }, [sites]);
+    }, [sitesResult]);
 
     const handleSelectedSite = (siteId: number) => {
-        setSelecTedSite(sites?.find(site => site.id === Number(siteId))!);
-    }
-
-    const handleFilter = (searchInput: string, regionName: string, stateName: string) => {
-
-        let sitesTofiltered = [...tpsSites];
-
-        if (regionName !== "All Region") {
-            sitesTofiltered = sitesTofiltered.filter(site => site?.nd_region?.eng === regionName);
-        }
-
-        if (stateName !== "All State") {
-            sitesTofiltered = sitesTofiltered.filter(site => site?.nd_state?.name === stateName)
-        }
-
-        if (searchInput.trim() !== "") {
-            sitesTofiltered = sitesTofiltered.filter((site) => site?.sitename.toLowerCase().includes(searchInput.toLowerCase()));
-        }
-
-        setSites(sitesTofiltered);
+        setSelecTedSite(sitesResult?.find(site => site.id === Number(siteId))!);
     }
 
     const handleBodyTableData = (tpsSites: SiteProfile[]) => {
@@ -137,8 +125,8 @@ export const TpAdminDashBoard = ({
             formattedTableData.push({
                 id: site.id,
                 siteName: site?.sitename,
-                state: site?.nd_state?.name,
                 region: site?.nd_region?.eng,
+                state: site?.nd_state?.name,
                 totalPcs: totalPcs,
                 inUse: inUse,
                 available: available,
@@ -179,8 +167,8 @@ export const TpAdminDashBoard = ({
 
     const headTable = [
         { key: "siteName", label: "Site Name" },
-        { key: "state", label: "State" },
         { key: "region", label: "Region" },
+        { key: "state", label: "State" },
         { key: "totalPcs", label: "Total PCs" },
         { key: "inUse", label: "In Use" },
         { key: "available", label: "Available" },
@@ -224,32 +212,20 @@ export const TpAdminDashBoard = ({
                         className="w-[30%]"
                         type="search"
                         placeholder="Search Site..."
-                        value={searchInput}
+                        value={filter.searchInput}
                         onChange={(e) => {
-                            setSearchInput(e.target.value)
-                            handleFilter(e.target.value, region, state)
+                            setFilter((prev) => ({
+                                ...prev,
+                                searchInput: e.target.value
+                            }))
                         }}
                     />
-                    <Select defaultValue="All State" onValueChange={(value) => {
-                        setState(value)
-                        handleFilter(searchInput, region, value)
-                    }}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder={`Select State`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                {
-                                    [{ name: "All State" }, ...allState].map((state) => (
-                                        <SelectItem key={state.name} value={state.name}>{state.name}</SelectItem>
-                                    ))
-                                }
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                    <Select defaultValue="All Region" onValueChange={(value) => {
-                        setRegion(value)
-                        handleFilter(searchInput, value, state)
+                    <Select defaultValue={String(selectedRegion)} onValueChange={(value) => {
+                        setFilter((prev) => ({
+                            ...prev,
+                            region: value
+                        }))
+                        setSelectedRegion(Number(value))
                     }}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder={`Select Region`} />
@@ -257,8 +233,28 @@ export const TpAdminDashBoard = ({
                         <SelectContent>
                             <SelectGroup>
                                 {
-                                    [{eng: "All Region"}, ...allRegion].map((region) => (
-                                        <SelectItem key={region.eng} value={region.eng}>{region.eng}</SelectItem>
+                                    [{ eng: "All Region", id: "0" }, ...allRegion].map((region) => (
+                                        <SelectItem key={region.id} value={String(region.id)}>{region.eng}</SelectItem>
+                                    ))
+                                }
+                            </SelectGroup>
+                        </SelectContent>
+                    </Select>
+                    <Select defaultValue={String(selectedState)} onValueChange={(value) => {
+                        setFilter((prev) => ({
+                            ...prev,
+                            state: value
+                        }))
+                        setSelectedState(Number(value))
+                    }}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder={`Select State`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectGroup>
+                                {
+                                    [{ name: "All State", id: "0" }, ...allState].map((state) => (
+                                        <SelectItem key={state.id} value={String(state.id)}>{state.name}</SelectItem>
                                     ))
                                 }
                             </SelectGroup>
@@ -271,8 +267,12 @@ export const TpAdminDashBoard = ({
                 </Button>
             </div>
             <div className="rounded-md">
-                <PaginationTable
-                    bodyTableData={bodyTableData}
+                <PaginationTableServer
+                    contentResult={bodyTableData}
+                    page={page}
+                    setPage={setPage}
+                    isLoading={isSiteResultLoading}
+                    totalPages={initialTotalSites.current}
                     handleSelectedSite={handleSelectedSite}
                     headTable={headTable}
                 />

@@ -27,11 +27,32 @@ export const useBookingQueries = () => {
             queryFn: () => bookingClient.getBrands()
         })
 
-    const useTpsSites = (dusp_tp_id: string | null) => 
+    const useTpsSites = (dusp_tp_id: string) => 
         useQuery({
             queryKey: ["tpsSites", dusp_tp_id],
             queryFn: () => bookingClient.getAllTpsSites(dusp_tp_id),
             enabled: !!dusp_tp_id
+        })
+
+    const useTpsSitesWithPagination = (
+        dusp_tp_id: string, 
+        page: number, 
+        perPage: number, 
+        {searchInput, region, state}
+    ) =>
+        useQuery({
+            queryKey:["sites", page, perPage, dusp_tp_id, searchInput, region, state],
+            queryFn: async () => {
+                try {
+                    return await bookingClient.getAllTpsSitesWithPagination(dusp_tp_id, page, perPage, searchInput, region, state)
+                } catch (error) {
+                    console.error(error);
+                    throw error;
+                }
+            },
+            enabled: page !== undefined && 
+                perPage !== undefined && 
+                !!dusp_tp_id
         })
 
     const useBookingAssetInTpsSites = (tps_site_ids: number[]) => 
@@ -96,16 +117,16 @@ export const useBookingQueries = () => {
             enabled: !!site_id
         })
 
-    const useAllRegion = () => 
+    const useAllRegion = (stateId: number) => 
         useQuery({
-            queryKey: ["allRegion"],
-            queryFn: () => bookingClient.getAllRegion()
+            queryKey: ["allRegion", stateId],
+            queryFn: () => bookingClient.getAllRegion(stateId)
         })
 
-    const useAllState = () => 
+    const useAllState = (regionId: number) => 
         useQuery({
-            queryKey: ["allState"],
-            queryFn: () => bookingClient.getAllState()
+            queryKey: ["allState", regionId],
+            queryFn: () => bookingClient.getAllState(regionId)
         })
 
     return {
@@ -121,6 +142,7 @@ export const useBookingQueries = () => {
         useBookingSpacesInTpsSites,
         useSpacesBySite,
         useAllRegion,
+        useTpsSitesWithPagination,
         useAllState
     };
 };
