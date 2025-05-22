@@ -5,7 +5,7 @@ import { Download } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { useHRSalaryData } from '@/hooks/report/use-hr-salary-data';
 import { HRSalaryReportPDF } from '../pages/hrsalary/HRSalaryReport';
-import ChartGenerator from '../pages/hrsalary/graphs/ChartGenerator';
+import ChartGenerator, { ChartBundle } from '../pages/hrsalary/graphs';
 
 interface HRSalaryReportDownloadButtonProps {
   // Report info
@@ -76,13 +76,8 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
   const handleGenerateReport = async () => {
     try {
       setIsGenerating(true);
-      
-      // Step 1: Generate chart images
-      const chartPromise = new Promise<{
-        staffDistributionChart: string;
-        salaryChart: string;
-        vacancyChart: string;
-      }>((resolve) => {
+        // Step 1: Generate chart images
+      const chartPromise = new Promise<ChartBundle>((resolve) => {
         // Create a temporary div to mount the chart generator
         const tempDiv = document.createElement('div');
         tempDiv.style.position = 'absolute';
@@ -107,19 +102,13 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
         tempDiv.appendChild(chartGeneratorElement);
         
         // Use React to render the chart generator
-        const onChartReady = (charts: {
-          staffDistributionChart: string;
-          salaryChart: string;
-          vacancyChart: string;
-        }) => {
+        const onChartReady = (charts: ChartBundle) => {
           resolve(charts);
           // Increase timeout to ensure rendering is complete
           setTimeout(cleanup, 500);
         };
         
         // Render chart component with ReactDOM.render or similar approach
-        // This is a simplified version - you would need to use createRoot or another method
-        // depending on your React version
         import('react-dom/client').then(({ createRoot }) => {
           const root = createRoot(chartGeneratorElement);
           root.render(
