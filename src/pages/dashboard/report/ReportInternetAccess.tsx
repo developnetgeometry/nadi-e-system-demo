@@ -43,7 +43,7 @@ const ReportInternetAccess = () => {  // Filter states
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   // Fetch filter options from API
-  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
+  const { phases, dusps, tpProviders, loading: filtersLoading } = useReportFilters();
   // Fetch internet access data based on filters
   const {
     sites,
@@ -106,11 +106,14 @@ const ReportInternetAccess = () => {  // Filter states
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
               fileName={`internet-access-report-${new Date().toISOString().split('T')[0]}.pdf`}
-              onGenerationStart={() => setIsGeneratingPdf(true)}
-              onGenerationComplete={() => setIsGeneratingPdf(false)}
+              onGenerationStart={handleGenerationStart}
+              onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>        {/* Filters */}        <ModularReportFilters
+        </div>        
+        
+        {/* Filters */}        
+        <ModularReportFilters
           // Show relevant filters for Internet Access report
           showFilters={{
             dusp: true,
@@ -118,7 +121,9 @@ const ReportInternetAccess = () => {  // Filter states
             nadi: false,
             date: true,
             tp: true
-          }}          // Filter state
+          }}          
+          
+          // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
           phaseFilter={phaseFilter}
@@ -133,14 +138,15 @@ const ReportInternetAccess = () => {  // Filter states
           // Filter data
           dusps={dusps}
           phases={phases}
-          nadiSites={nadiSites}
           tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
 
           // Loading state
           isLoading={filtersLoading}
-        />        {/* Internet Access Card */}
+        />        
+        
+        {/* Internet Access Card */}
         <div className="w-full max-w-3xl">
           <InternetAccessCard
             loading={dataStableLoading}

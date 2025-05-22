@@ -49,7 +49,7 @@ const ReportNadiESystem = () => {  // Filter states
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   // Fetch filter options from API
-  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
+  const { phases, dusps, tpProviders, loading: filtersLoading } = useReportFilters();
     // Fetch NADI e-System data based on filters
   const {
     sites,
@@ -88,7 +88,8 @@ const ReportNadiESystem = () => {  // Filter states
           <div>
             <h1 className="text-xl font-bold">NADI e-System</h1>
             <p className="text-gray-500 mt-1">View and analyze NADI e-System data across all sites</p>
-          </div>          <div className="flex items-center gap-2">
+          </div>          
+          <div className="flex items-center gap-2">
             <NadiESystemReportDownloadButton
               duspLabel={duspFilter.length === 1
                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
@@ -108,11 +109,13 @@ const ReportNadiESystem = () => {  // Filter states
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
               fileName={`nadi-e-system-report-${new Date().toISOString().split('T')[0]}.pdf`}
-              onGenerationStart={() => setIsGeneratingPdf(true)}
-              onGenerationComplete={() => setIsGeneratingPdf(false)}
+              onGenerationStart={handleGenerationStart}
+              onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>        {/* Filters */}
+        </div>        
+        
+        {/* Filters */}
         <ModularReportFilters
           // Show only relevant filters for NADI e-System report
           showFilters={{
@@ -128,24 +131,25 @@ const ReportNadiESystem = () => {  // Filter states
           setDuspFilter={setDuspFilter}
           phaseFilter={phaseFilter}
           setPhaseFilter={setPhaseFilter}
-          nadiFilter={[]}  // Not used in this report
-          setNadiFilter={() => {}}  // Not used in this report
           monthFilter={monthFilter}
           setMonthFilter={setMonthFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
           tpFilter={tpFilter}
-          setTpFilter={setTpFilter}          // Filter data
+          setTpFilter={setTpFilter}         
+          
+          // Filter data
           dusps={dusps}
           phases={phases}
-          nadiSites={nadiSites}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
           tpOptions={tpProviders}
 
           // Loading state
           isLoading={filtersLoading}
-        />{/* Statistics Cards Grid */}
+        />
+        
+        {/* Statistics Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <CmsCard
             loading={dataStableLoading}
