@@ -250,7 +250,7 @@ export const PDFTable = <T extends Record<string, any>>({
   // Process columns to handle dynamic and fixed width columns
   const fixedWidthColumns = columns.filter(col => col.width);
   const dynamicColumns = columns.filter(col => !col.width);
-  
+
   // Calculate total fixed width percentage  
   const totalFixedWidth = fixedWidthColumns.reduce((total, col) => {
     const width = typeof col.width === 'string' 
@@ -258,12 +258,19 @@ export const PDFTable = <T extends Record<string, any>>({
       : (typeof col.width === 'number' ? col.width : 0);
     return total + width;
   }, 0);
-  
+
   // Calculate remaining percentage for dynamic columns
-  const remainingWidth = Math.max(0, 100 - totalFixedWidth);
-  const dynamicColumnWidth = dynamicColumns.length > 0 
+  let remainingWidth = Math.max(0, 100 - totalFixedWidth);
+  let dynamicColumnWidth = dynamicColumns.length > 0 
     ? remainingWidth / dynamicColumns.length 
-    : 0;  
+    : 0;
+
+  // If no columns have width, distribute equally
+  if (fixedWidthColumns.length === 0) {
+    dynamicColumnWidth = 100 / columns.length;
+    remainingWidth = 100;
+  }
+
   const tableStyles = StyleSheet.create({
     table: { 
       width: "100%", 
@@ -305,25 +312,7 @@ export const PDFTable = <T extends Record<string, any>>({
       paddingRight: 4,
     }
   });  
-  
-  // Verify that the total of all widths adds up to 100%
-  // If explicit widths are provided for all columns, we'll use them directly
-  let totalSpecifiedWidth = 0;
-  let allColumnsHaveWidth = true;
-  
-  columns.forEach(column => {
-    if (column.width) {
-      // Extract numeric value from percentage (e.g., "30%" -> 30)
-      const widthValue = typeof column.width === 'string' 
-        ? parseFloat(column.width.replace('%', '')) 
-        : (typeof column.width === 'number' ? column.width : 0);
-      
-      totalSpecifiedWidth += widthValue;
-    } else {
-      allColumnsHaveWidth = false;
-    }
-  });
-  
+
   // Create styles for each column once - this ensures header and data cells use exactly the same width
   const columnStyles = columns.map((column, index) => {
     // Base style with border
@@ -331,39 +320,25 @@ export const PDFTable = <T extends Record<string, any>>({
       borderRightWidth: 1,
       borderRightColor: "#000" 
     };
-    
     // Set width based on column specifications
     if (column.width) {
-      // Use specified width directly
       style.width = column.width;
-    } else if (allColumnsHaveWidth && totalSpecifiedWidth !== 100) {
-      // Adjust for case where all widths are specified but don't add to 100%
-      const correction = 100 / totalSpecifiedWidth;
-      const columnWidth = parseFloat(columns[index].width?.toString() || "0");
-      style.width = `${columnWidth * correction}%`;
-    } else if (index === 0) {
-      // Default width for number column if not specified
-      style.width = "5%";
     } else {
-      // Equal distribution for remaining columns
       style.width = `${dynamicColumnWidth}%`;
     }
-    
     // Special handling for number column
     if (index === 0) {
       style.textAlign = "center";
       style.paddingLeft = 4;
       style.paddingRight = 4;
     }
-    
     // Remove right border from the last column to prevent double borders with table border
     if (index === columns.length - 1) {
       style.borderRightWidth = 0;
     }
-    
     return style;
   });  
-  
+
   return (
     <View style={tableStyles.table}>
       <View style={tableStyles.tableHeader}>
@@ -379,7 +354,6 @@ export const PDFTable = <T extends Record<string, any>>({
           </Text>
         ))}
       </View>
-      
       {data.map((row, rowIndex) => (
         <View 
           key={rowIndex} 
@@ -396,11 +370,9 @@ export const PDFTable = <T extends Record<string, any>>({
             const cellValue = typeof column.key === 'function' 
               ? column.key(row, rowIndex)
               : row[column.key as keyof T];
-
             const displayValue = column.render 
               ? column.render(cellValue, row, rowIndex) 
               : cellValue;
-              
             return (
               <Text 
                 key={colIndex} 

@@ -69,6 +69,7 @@ const ReportHRSalary = () => {    // Filter states
         vacancies,
         turnoverRates,
         averageTurnoverRate,
+        incentiveDistribution,
         loading: dataLoading,
         error
     } = useHRSalaryData(duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter);

@@ -1,4 +1,3 @@
-// VacancyDistributionChart.tsx
 import { FC } from "react";
 import {
   PieChart,
@@ -7,49 +6,50 @@ import {
   Legend,
   Cell,
 } from "recharts";
-import { StaffVacancy } from "@/hooks/report/use-hr-salary-data";
-import { getDefaultColor } from "../utils/colorUtils";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
 
-interface VacancyDistributionChartProps {
-  data: StaffVacancy[];
+export interface IncentiveDistributionData {
+  position: string;
+  count: number;
+  color?: string;
+}
+
+interface IncentiveDistributionChartProps {
+  data: IncentiveDistributionData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;
 }
 
-export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({ 
-  data, 
-  width = 650, 
+export const IncentiveDistributionChart: FC<IncentiveDistributionChartProps> = ({
+  data = [],
+  width = 650,
   height = 420,
   onReady
 }) => {
-  const createPieLabelRenderer = ({ data, nameKey, dataKey }) => ({
+  const createPieLabelRenderer = ({ data, nameKey, dataKey }: any) => ({
     cx,
     cy,
     midAngle,
     innerRadius,
     outerRadius,
     percent,
-    index
+    index,
   }) => {
     const RADIAN = Math.PI / 180;
     const item = data[index];
     const labelText = item[nameKey];
     const formattedPercent = `${(percent * 100).toFixed(0)}%`;
-
+    // Outer label (position)
     const radiusOuter = outerRadius + 10;
-    const radiusInner = innerRadius + (outerRadius - innerRadius) * 0.5;
-
     const outerX = cx + radiusOuter * Math.cos(-midAngle * RADIAN);
     const outerY = cy + radiusOuter * Math.sin(-midAngle * RADIAN);
-
+    // Inner label (percent)
+    const radiusInner = innerRadius + (outerRadius - innerRadius) * 0.5;
     const innerX = cx + radiusInner * Math.cos(-midAngle * RADIAN);
     const innerY = cy + radiusInner * Math.sin(-midAngle * RADIAN);
-
     return (
       <>
-        {/* Outer Label (Name/Position) */}
         <text
           x={outerX}
           y={outerY}
@@ -61,8 +61,6 @@ export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({
         >
           {labelText}
         </text>
-
-        {/* Inner Label (Percentage) */}
         <text
           x={innerX}
           y={innerY}
@@ -77,7 +75,9 @@ export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({
       </>
     );
   };
-  const totalVacancies = data.reduce((sum, item) => sum + item.open, 0);
+
+  // Safely calculate total
+  const total = Array.isArray(data) ? data.reduce((sum, item) => sum + (item.count || 0), 0) : 0;
 
   // Use image generator only if onReady is provided
   const chartRef = onReady ? useChartImageGenerator({ onImageReady: onReady }) : undefined;
@@ -91,36 +91,45 @@ export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({
         {data.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#aaa', paddingTop: 100 }}>No data available</div>
         ) : (
-          <PieChart margin={{ top: 60, right: 10, left: 10, bottom: 10 }}>
-            <text x={width / 2} y={20} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
-              Vacancy Distribution (Total: {totalVacancies})
+          <PieChart margin={{ top: 15, right: 10, left: 10, bottom: 10 }}>
+            <text
+              x={width / 2}
+              y={10}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize={15}
+              fontWeight="bold"
+            >
+              Incentive Distribution (Total: {total})
             </text>
             <Pie
               data={data}
               cx="50%"
-              cy="55%"
-              dataKey="open"
+              cy="50%"
+              dataKey="count"
               nameKey="position"
-              label={createPieLabelRenderer({ data, nameKey: 'position', dataKey: 'open' })}
+              outerRadius={90}
+              innerRadius={0}
+              paddingAngle={2}
+              label={createPieLabelRenderer({ data, nameKey: "position", dataKey: "count" })}
               labelLine={false}
               isAnimationActive={false}
               strokeWidth={2}
               stroke="#ffffff"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color || getDefaultColor(index)} />
+                <Cell key={`cell-${index}`} fill={entry.color || "#36A2EB"} />
               ))}
             </Pie>
             <Legend
               layout="horizontal"
-              verticalAlign="top"
+              verticalAlign="bottom"
               align="center"
-              wrapperStyle={{ top: 35, fontSize: 12, fontWeight: 'bold' }}
               iconSize={12}
               iconType="circle"
               formatter={(value, entry, index) => {
                 const item = data[index];
-                return `${value} (${item.open})`;
+                return `${value} (${item.count})`;
               }}
             />
           </PieChart>

@@ -1,4 +1,4 @@
-// SalaryByPositionChart.tsx
+// IncentiveByPositionChart.tsx
 import { FC } from "react";
 import {
   BarChart,
@@ -11,24 +11,31 @@ import {
   CartesianGrid
 } from "recharts";
 import { SALARY_CHART_COLORS, getDefaultColor } from "../utils/colorUtils";
-import { SalaryData } from "../ChartGenerator";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
 
-interface SalaryByPositionChartProps {
-  data: SalaryData[];
+export interface IncentiveData {
+  position: string;
+  incentive: number;
+  color?: string;
+}
+
+interface IncentiveByPositionChartProps {
+  data: IncentiveData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;
 }
 
-export const SalaryByPositionChart: FC<SalaryByPositionChartProps> = ({ 
+export const IncentiveByPositionChart: FC<IncentiveByPositionChartProps> = ({ 
   data, 
   width = 650, 
   height = 420,
   onReady
 }) => {
+  // Use image generator only if onReady is provided
   const chartRef = onReady ? useChartImageGenerator({ onImageReady: onReady }) : undefined;
 
+  // Always render a container with minWidth/minHeight to avoid Recharts 0x0 error
   return (
     <div
       ref={chartRef}
@@ -36,45 +43,47 @@ export const SalaryByPositionChart: FC<SalaryByPositionChartProps> = ({
     >
       <ResponsiveContainer width="100%" height="100%">
         {data.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#aaa', paddingTop: 100 }}>No data available</div>
+          <div style={{ textAlign: 'center', color: '#aaa', paddingTop: 100 }}>
+            No data available
+          </div>
         ) : (
           <BarChart
             data={data}
             margin={{ top: 30, right: 30, left: 50, bottom: 40 }}
           >
             <text x={width / 2} y={20} textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight="bold">
-              Salary Amount (RM) by Designation
+              Performance Incentives (RM) by Designation
             </text>
-            <XAxis
-              dataKey="position"
+            <XAxis 
+              dataKey="position" 
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={true}
               height={40}
             />
-            <YAxis
-              tickFormatter={(value) => value === 0 ? '0' : `RM ${value}`}
+            <YAxis 
+              tickFormatter={(value) => value === 0 ? '0' : `RM ${value}`} 
               tick={{ fontSize: 12 }}
               domain={[0, 'dataMax + 1000']}
               tickCount={6}
               width={60}
               axisLine={true}
-              label={{
-                value: 'Salary Average (RM)',
-                angle: -90,
-                position: 'insideLeft',
-                style: { textAnchor: 'middle', fontSize: 12, fontWeight: 'bold' }
+              label={{ 
+                value: 'Incentive Average (RM)', 
+                angle: -90, 
+                position: 'insideLeft', 
+                style: { textAnchor: 'middle', fontSize: 12, fontWeight: 'bold' } 
               }} 
             />
             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-            <Legend
-              verticalAlign="top"
+            <Legend 
+              verticalAlign="top" 
               height={36}
               wrapperStyle={{ paddingTop: 20 }}
             />
-            <Bar
-              dataKey="salary"
-              name="Salary (RM)"
+            <Bar 
+              dataKey="incentive" 
+              name="Incentive (RM)" 
               barSize={60}
               label={{
                 position: 'top',

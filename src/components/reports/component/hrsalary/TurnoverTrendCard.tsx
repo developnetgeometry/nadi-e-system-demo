@@ -25,23 +25,9 @@ export const TurnoverTrendCard: React.FC<TurnoverTrendCardProps> = ({
   // Format the data for the chart if available
   const chartData = React.useMemo(() => {
     if (!turnoverRates || !turnoverRates.length) {
-      // Default sample data if none provided
-      return [
-        { month: "Jan", rate: 4.2 },
-        { month: "Feb", rate: 4.5 },
-        { month: "Mar", rate: 4.8 },
-        { month: "Apr", rate: 4.3 },
-        { month: "May", rate: 5.1 },
-        { month: "Jun", rate: 5.0 },
-        { month: "Jul", rate: 4.9 },
-        { month: "Aug", rate: 4.7 },
-        { month: "Sep", rate: 4.6 },
-        { month: "Oct", rate: 4.8 },
-        { month: "Nov", rate: 5.0 },
-        { month: "Dec", rate: 4.8 }
-      ];
+      // No data: return empty array
+      return [];
     }
-    
     return turnoverRates.map(item => ({
       month: item.month,
       rate: Number(item.rate.toFixed(1))
@@ -87,9 +73,11 @@ export const TurnoverTrendCard: React.FC<TurnoverTrendCardProps> = ({
                 />
               </LineChart>
             </ResponsiveContainer>
-            <div className="text-xs text-center text-gray-500 mt-2">
-              Average Turnover Rate: {averageTurnoverRate.toFixed(1)}%
-            </div>
+            {chartData.length > 0 && (
+              <div className="text-xs text-center text-gray-500 mt-2">
+                Average Turnover Rate: {averageTurnoverRate.toFixed(1)}%
+              </div>
+            )}
           </>
         )}
       </CardContent>
