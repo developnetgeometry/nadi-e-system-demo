@@ -319,7 +319,7 @@ export const assetClient = {
       .select(
         `
         *, 
-        nd_site!inner (
+        nd_site (
           id
         ), 
         nd_brand (
@@ -342,20 +342,26 @@ export const assetClient = {
     return data;
   },
 
-  fetchAssetsInTpsSites: async (tps_sites_ids: number[]) => {
-    try {
-      const results = await Promise.all(
-        tps_sites_ids.map(async (id) => {
-          const asset = await assetClient.fetchAssetsBySiteId(null, id);
-          return asset;
-        })
-      );
+  fetchAssetsInTpsSites: async (tpOrgId: string) => {
+    // Fetch all profile eq tpOrgId and join site table, inside site join asset
 
-      return results.flat();
-    } catch (error) {
-      console.error("Failed to fetch bookings:", error);
-      return [];
-    }
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(`
+          nd_site (
+            nd_asset (
+              *,
+              nd_booking (*)
+            )
+          )
+      `)
+      .eq("dusp_tp_id", tpOrgId)
+
+    if (error) throw error;
+
+    const assetsOnly = data.flatMap((siteItem) => siteItem.nd_site.flatMap((site) => site.nd_asset));
+
+    return assetsOnly;
   },
 
   toggleAssetActiveStatus: async (

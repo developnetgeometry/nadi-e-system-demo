@@ -115,20 +115,41 @@ export const bookingClient = {
         }
     },
 
-    getAllRegion: async () => {
-        const { data, error } = await supabase
+    getAllRegion: async (stateId: number) => {
+        const query = supabase
             .from("nd_region")
-            .select("eng")
+            .select(`
+                id,
+                eng,
+                nd_state!inner (
+                    id
+                )
+            `)
+
+        if (stateId !== 0) {
+            query.eq("nd_state.id", stateId)
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
         return data;
     },
 
-    getAllState: async () => {
-        const { data, error } = await supabase
+    getAllState: async (regionId: number) => {
+        const query = supabase
             .from("nd_state")
-            .select("name")
+            .select(`
+                id,
+                name
+            `)
+
+        if (regionId !== 0) {
+            query.eq("region_id", regionId)
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -154,6 +175,23 @@ export const bookingClient = {
             .from("nd_site_profile")
             .select(`
                 *,
+                id
+            `)
+            .eq("dusp_tp_id", dusp_tp_id)
+
+        if (error) throw error;
+
+        return data;
+    },
+
+    getAllTpsSitesWithPagination: async (dusp_tp_id: string, page: number, perPage: number, searchInput: string, region: number, state: number) => {
+        const from = (page - 1) * perPage;
+        const to = from + perPage - 1;
+
+        const query = supabase
+            .from("nd_site_profile")
+            .select(`
+                *,
                 nd_site (
                     *,
                     nd_asset (
@@ -173,11 +211,26 @@ export const bookingClient = {
                     bm
                 )
             `)
+            .range(from, to)
             .eq("dusp_tp_id", dusp_tp_id)
+
+        if (searchInput.trim() !== "") {
+            query.textSearch("sitename", searchInput)
+        }
+
+        if (region !== 0 && state !== 0) {
+            query.eq("region_id", region).eq("state_id", state);
+        } else if (state !== 0) {
+            query.eq("state_id", state);
+        } else if (region !== 0) {
+            query.eq("region_id", region);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
-        return data;
+        return data ?? [];
     },
 
     getTotalTpsSites: async (dusp_tp_id: string) => {

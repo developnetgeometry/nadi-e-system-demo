@@ -68,6 +68,8 @@ export const BookingManagementDetail = () => {
     console.log("Member site ID", memberSiteId)
     console.log("Tp manager site ID", tpManagerSiteId)
 
+    console.log("tp admin org id", tpAdminOrganizationId)
+
     const {
         useAssetsByTypeQuery,
         useAssetBySite,
@@ -111,7 +113,8 @@ export const BookingManagementDetail = () => {
     );
 
     // All PC in tp admin sites
-    const { data: pcsInTpsAdminSites, isLoading: pcsInTpsAdminSitesLoading } = useAssetsInTpsSites(tpsSiteIds);
+    const { data: pcsInTpsAdminSites, isLoading: pcsInTpsAdminSitesLoading } = useAssetsInTpsSites(tpAdminOrganizationId);
+    console.log("total pc in tp admin site", pcsInTpsAdminSites)
 
     // State to share to the TP admin dashboard (choosing a site)
     const [selectedSite, setSelectedSite] = useState<SiteProfile | null>();
@@ -211,10 +214,9 @@ export const BookingManagementDetail = () => {
         return (
             <TpAdminDashBoard
                 pcsInTpsAdminSite={pcsInTpsAdminSites}
-                selectedSite={selectedSite}
+                tpAdminOrgId={tpAdminOrganizationId}
                 setSelecTedSite={setSelectedSite}
                 tpsSites={tpsSites}
-                tpAdminOrganizationId={tpAdminOrganizationId}
             />
         );
     }
