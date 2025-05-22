@@ -100,19 +100,16 @@ const ReportNadiESystem = () => {  // Filter states
                 : "All Phases"}
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
               periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+              duspFilter={duspFilter}
+              phaseFilter={phaseFilter}
+              tpFilter={tpFilter}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
-              duspFilter={duspFilter}              phaseFilter={phaseFilter}
-              sites={sites}
-              totalSites={totalSites}
-              sitesWithCms={sitesWithCms}
-              sitesWithWebsiteMigration={sitesWithWebsiteMigration}
-              sitesWithEmailMigration={sitesWithEmailMigration}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
               fileName={`nadi-e-system-report-${new Date().toISOString().split('T')[0]}.pdf`}
-              onGenerationStart={handleGenerationStart}
-              onGenerationComplete={handleGenerationComplete}
+              onGenerationStart={() => setIsGeneratingPdf(true)}
+              onGenerationComplete={() => setIsGeneratingPdf(false)}
             />
           </div>
         </div>        {/* Filters */}
