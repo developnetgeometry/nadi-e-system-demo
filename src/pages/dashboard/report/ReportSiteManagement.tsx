@@ -69,16 +69,6 @@ const ReportSiteManagement = () => {
     error
   } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter);
 
-  // Fetch site management data for PDF (mirrors HR Salary pattern)
-  const pdfData = useSiteManagementPdfData(
-    duspFilter,
-    phaseFilter,
-    nadiFilter,
-    monthFilter,
-    yearFilter,
-    tpFilter
-  );
-
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
   const duspLogo = useDuspLogo();
