@@ -105,6 +105,16 @@ export const ModularReportFilters = ({
                         isLoading={isLoading}
                     />
                 )}
+                
+                {/* TP Filter */}
+                {showFilters.tp && (
+                    <TPFilter
+                        selectedItems={tpFilter}
+                        setSelectedItems={setTpFilter}
+                        tpOptions={tpOptions}
+                        isLoading={isLoading}
+                    />
+                )}
 
                 {/* Phase Filter */}
                 {showFilters.phase && (
@@ -124,16 +134,6 @@ export const ModularReportFilters = ({
                     />
                 )}
                 
-                {/* TP Filter */}
-                {showFilters.tp && (
-                    <TPFilter
-                        selectedItems={tpFilter}
-                        setSelectedItems={setTpFilter}
-                        tpOptions={tpOptions}
-                        isLoading={isLoading}
-                    />
-                )}
-
                 {/* Month and Year Filters */}
                 {showFilters.date && (
                     <DateFilter
