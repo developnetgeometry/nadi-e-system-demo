@@ -27,7 +27,7 @@ type ModularReportFiltersProps = {
     duspFilter?: (string | number)[];
     setDuspFilter?: (value: (string | number)[]) => void;
     phaseFilter?: string | number | null;
-    setPhaseFilter?: (value: string | number | null) => void;    
+    setPhaseFilter?: (value: string | number | null) => void;
     nadiFilter?: (string | number)[];
     setNadiFilter?: (value: (string | number)[]) => void;
     tpFilter?: (string | number)[];
@@ -57,7 +57,7 @@ type ModularReportFiltersProps = {
 
 export const ModularReportFilters = ({
     // Configuration
-    showFilters = { dusp: false, phase: false, nadi: false, tp: false, date: false,  pillar: false, program: false },
+    showFilters = { dusp: false, phase: false, nadi: false, tp: false, date: false, pillar: false, program: false },
 
     // Filter state
     duspFilter = [],
@@ -74,10 +74,10 @@ export const ModularReportFilters = ({
     setYearFilter = () => { },
     // Destructure new filter props
     pillarFilter = [],
-    setPillarFilter = () => {},
+    setPillarFilter = () => { },
     pillarOptions = [],
     programFilter = [],
-    setProgramFilter = () => {},
+    setProgramFilter = () => { },
     programOptions = [],
 
     // Filter data
@@ -96,7 +96,7 @@ export const ModularReportFilters = ({
         (showFilters.phase && phaseFilter !== null) ||
         (showFilters.nadi && nadiFilter.length > 0) ||
         (showFilters.tp && tpFilter.length > 0) ||
-        (showFilters.date && (monthFilter !== null || yearFilter !== null))||
+        (showFilters.date && (monthFilter !== null || yearFilter !== null)) ||
         (showFilters.pillar && pillarFilter.length > 0) ||
         (showFilters.program && programFilter.length > 0);
 
@@ -112,7 +112,7 @@ export const ModularReportFilters = ({
         }
         if (showFilters.pillar) setPillarFilter([]);
         if (showFilters.program) setProgramFilter([]);
-        
+
     };
 
     return (
@@ -128,7 +128,7 @@ export const ModularReportFilters = ({
                         isLoading={isLoading}
                     />
                 )}
-                
+
                 {/* TP Filter */}
                 {showFilters.tp && (
                     <TPFilter
@@ -147,7 +147,9 @@ export const ModularReportFilters = ({
                         phases={phases}
                         isLoading={isLoading}
                     />
-                )}                {/* NADI Filter */}
+                )}
+
+                {/* NADI Filter */}
                 {showFilters.nadi && (
                     <NadiFilter
                         selectedItems={nadiFilter}
@@ -156,7 +158,28 @@ export const ModularReportFilters = ({
                         isLoading={isLoading}
                     />
                 )}
-                
+
+                {/* Pillar Filter */}
+                {showFilters.pillar && (
+                    <PillarFilter
+                        pillarFilter={pillarFilter || []}
+                        setPillarFilter={setPillarFilter || (() => { })}
+                        pillarOptions={pillarOptions || []}
+                        isLoading={isLoading}
+                    />
+                )}
+
+                {/* Program Filter */}
+                {showFilters.program && (
+                    <ProgramFilter
+                        programFilter={programFilter || []}
+                        setProgramFilter={setProgramFilter || (() => { })}
+                        programOptions={programOptions || []}
+                        isLoading={isLoading}
+                    />
+                )}
+
+
                 {/* Month and Year Filters */}
                 {showFilters.date && (
                     <DateFilter
@@ -170,25 +193,6 @@ export const ModularReportFilters = ({
                     />
                 )}
 
-                {/* Pillar Filter */}
-                {showFilters.pillar && (
-                    <PillarFilter
-                        pillarFilter={pillarFilter || []}
-                        setPillarFilter={setPillarFilter || (() => {})}
-                        pillarOptions={pillarOptions || []}
-                        isLoading={isLoading}
-                    />
-                )}
-
-                {/* Program Filter */}
-                {showFilters.program && (
-                    <ProgramFilter
-                        programFilter={programFilter || []}
-                        setProgramFilter={setProgramFilter || (() => {})}
-                        programOptions={programOptions || []}
-                        isLoading={isLoading}
-                    />
-                )}
 
                 {/* Spacer */}
                 <div className="flex-1"></div>
@@ -238,7 +242,7 @@ export const ModularReportFilters = ({
                             onClear={() => setNadiFilter([])}
                         />
                     )}
-                    
+
                     {showFilters.tp && tpFilter.length > 0 && (
                         <FilterBadge
                             label="TP"
