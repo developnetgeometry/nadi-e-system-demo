@@ -96,7 +96,9 @@ export const ModularReportFilters = ({
         (showFilters.phase && phaseFilter !== null) ||
         (showFilters.nadi && nadiFilter.length > 0) ||
         (showFilters.tp && tpFilter.length > 0) ||
-        (showFilters.date && (monthFilter !== null || yearFilter !== null));
+        (showFilters.date && (monthFilter !== null || yearFilter !== null))||
+        (showFilters.pillar && pillarFilter.length > 0) ||
+        (showFilters.program && programFilter.length > 0);
 
     // Reset only the filters that are enabled
     const resetFilters = () => {
@@ -110,6 +112,7 @@ export const ModularReportFilters = ({
         }
         if (showFilters.pillar) setPillarFilter([]);
         if (showFilters.program) setProgramFilter([]);
+        
     };
 
     return (
