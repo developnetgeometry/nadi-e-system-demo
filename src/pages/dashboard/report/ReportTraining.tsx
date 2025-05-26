@@ -103,6 +103,7 @@ const ReportTraining = () => {
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
               periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
               duspFilter={duspFilter}
+              tpFilter={tpFilter}
               phaseFilter={phaseFilter}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
