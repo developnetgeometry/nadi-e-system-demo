@@ -39,8 +39,8 @@ export function ClaimListTp() {
   };
 
 
-  const handleView = (claim: any) => {
-    setSelectedClaim(claim);
+  const handleView = (claimId: number) => {
+    setSelectedClaim(claimId); // Store only the claim ID
     setIsViewDialogOpen(true);
   };
 
@@ -117,7 +117,7 @@ export function ClaimListTp() {
                   <div className="flex gap-2">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button size="sm" variant="outline" onClick={() => handleView(claim)}>
+                        <Button size="sm" variant="outline" onClick={() => handleView(claim.id)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
@@ -175,7 +175,7 @@ export function ClaimListTp() {
         <ClaimViewDialog
           isOpen={isViewDialogOpen}
           onClose={() => setIsViewDialogOpen(false)}
-          claim={selectedClaim}
+          claimId={selectedClaim} // Pass only the claim ID
         />
       )}
 

@@ -1,4 +1,3 @@
-import { DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { ClaimReportGenerator } from "../tp/ClaimReportGenerator";
 
@@ -45,7 +44,7 @@ export function ClaimReportGenerateForm({
 
   return (
     <>
-      <DialogTitle className="mb-4">Report Generation</DialogTitle>
+      <header className="mb-4">Report Generation</header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Generate Report Button */}

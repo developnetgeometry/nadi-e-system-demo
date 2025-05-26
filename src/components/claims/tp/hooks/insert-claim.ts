@@ -1,36 +1,36 @@
 import { BUCKET_NAME_SITE_CLAIM, supabase } from "@/integrations/supabase/client";
 
 type ItemData = {
-  id: number;
-  name: string;
-  need_support_doc: boolean;
-  need_summary_report: boolean;
+    id: number;
+    name: string;
+    need_support_doc: boolean;
+    need_summary_report: boolean;
 }
 
 type CategoryData = {
-  id: number;
-  name: string;
-  item_ids: ItemData[];
+    id: number;
+    name: string;
+    item_ids: ItemData[];
 }
 
 type ReportData = {
-  category_ids: CategoryData[];
-  report_file: Uint8Array | null; // New state for the report
-  status_item: boolean;
+    category_ids: CategoryData[];
+    report_file: Uint8Array | null; // New state for the report
+    status_item: boolean;
 }
 
 type ClaimData = {
-  phase_id: number;
-  year: number;
-  quarter: number;
-  month: number;
-  ref_no: string;
-  tp_dusp_id: string;
-  site_profile_ids: number[];
-  tp_name: string; //additional
-  dusp_name: string; //additional
+    phase_id: number;
+    year: number;
+    quarter: number;
+    month: number;
+    ref_no: string;
+    tp_dusp_id: string;
+    site_profile_ids: number[];
+    tp_name: string; //additional
+    dusp_name: string; //additional
 
-  reports: ReportData[]; // New state for the report
+    reports: ReportData[]; // New state for the report
 
 };
 
@@ -43,6 +43,10 @@ export const insertClaimData = async (data: ClaimData) => {
             throw new Error("Failed to fetch user");
         }
         const createdBy = userData.user.id;
+
+        const itemIds = data.reports.flatMap((report) =>
+            report.category_ids.flatMap((category) => category.item_ids.map((item) => item.id))
+        );
 
         // Insert into nd_claim_application
         const { data: claimApplication, error: claimApplicationError } = await supabase
@@ -58,6 +62,7 @@ export const insertClaimData = async (data: ClaimData) => {
                 created_by: createdBy,
                 tp_dusp_id: data.tp_dusp_id,
                 site_profile_ids: data.site_profile_ids,
+                item_ids: itemIds,
             })
             .select("id")
             .single();

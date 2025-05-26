@@ -1,7 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DialogTitle } from "@/components/ui/dialog";
 import { useEffect } from "react";
 
 
@@ -47,7 +46,7 @@ export function ClaimDateForm({
 
     return (
         <>
-            <DialogTitle className="mb-4">Reference</DialogTitle>
+            <header className="mb-4">Reference</header>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-mute-foreground rounded-md p-4 mb-4">
                 {/* DUSP */}
                 <div className="space-y-2">
@@ -96,7 +95,7 @@ export function ClaimDateForm({
                 </div>
             </div>
 
-            <DialogTitle className="mb-4">Initialize Date</DialogTitle>
+            <header className="mb-4">Initialize Date</header>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 {/* Year */}

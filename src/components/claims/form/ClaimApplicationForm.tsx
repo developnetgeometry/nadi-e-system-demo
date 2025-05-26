@@ -2,7 +2,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DialogTitle } from "@/components/ui/dialog";
 import React, { useState, useEffect } from "react";
 import { useSiteByPhase } from "../hook/use-claim-data";
 
@@ -52,7 +51,7 @@ export function ClaimApplicationForm({
 
   return (
     <>
-      <DialogTitle className="mb-4">Phase and Sites</DialogTitle>
+      <header className="mb-4">Phase and Sites</header>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Phase */}
