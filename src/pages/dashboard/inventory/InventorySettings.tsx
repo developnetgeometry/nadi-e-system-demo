@@ -27,13 +27,13 @@ const InventorySettings = () => {
 
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-1">
         <h1 className="text-3xl font-bold">Inventory Management Settings</h1>
         <Card>
           <CardHeader>
             <CardTitle>General Settings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-1">
             <div className="flex items-center justify-between">
               <Label htmlFor="enableDepreciation">
                 Enable Depreciation Calculation

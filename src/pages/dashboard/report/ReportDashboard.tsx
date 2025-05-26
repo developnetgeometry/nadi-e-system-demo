@@ -121,7 +121,7 @@ const ReportDashboard = () => {
   };
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">NADI Statistics</h1>

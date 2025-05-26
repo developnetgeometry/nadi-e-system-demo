@@ -43,7 +43,7 @@ const WorkflowConfiguration = () => {
 
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" onClick={() => navigate("/workflow")}>

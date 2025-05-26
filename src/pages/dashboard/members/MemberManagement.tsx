@@ -125,7 +125,7 @@ const MemberManagement = () => {
 
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-1">
         <div>
           <h1 className="text-xl font-bold">Member Management</h1>
           <p className="text-gray-500 mt-1">

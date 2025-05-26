@@ -4,7 +4,7 @@ import { ReportList } from "@/components/reports/ReportList";
 const ComplianceReports = () => {
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-1">
         <div>
           <h1 className="text-xl font-bold">Compliance Reports</h1>
           <p className="text-muted-foreground mt-2">

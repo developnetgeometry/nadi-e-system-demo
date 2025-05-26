@@ -33,7 +33,7 @@ const AssetDetails = () => {
 
   return (
     <div>
-      <div className="space-y-6">
+      <div className="space-y-1">
         <div className="flex items-center gap-2">
           <Link to="/asset">
             <ArrowLeft className="h-6 w-6" />

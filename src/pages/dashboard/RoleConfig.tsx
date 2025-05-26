@@ -95,7 +95,7 @@ const RoleConfig = () => {
       ) : role ? (
         <div>
           <h1 className="text-3xl font-bold mb-8">Role Configuration</h1>
-          <div className="space-y-6">
+          <div className="space-y-1">
             <div>
               <h2 className="text-xl font-semibold">Role Details</h2>
               <div className="mt-4 space-y-4">

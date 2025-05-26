@@ -136,7 +136,7 @@ const VendorStaffRegistration = () => {
         />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
             <Card>
               <CardHeader>
                 <CardTitle>Staff Information</CardTitle>

@@ -41,7 +41,7 @@ const CalendarPage = () => {
 
   return (
     <div>
-      <div className="space-y-1 max-w-6xl">
+      <div className="space-y-1  ">
         <div className="flex items-center gap-4 mb-8">
           <CalendarIcon className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Calendar</h1>

@@ -33,7 +33,7 @@ const ServiceInfo = () => {
   return (
     <div>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="space-y-6">
+        <div className="space-y-1">
           <div>
             <h1 className="text-xl font-bold">Service Information</h1>
             <p className="text-muted-foreground mt-2">

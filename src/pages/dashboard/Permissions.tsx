@@ -63,7 +63,7 @@ const Permissions = () => {
 
   return (
     <div>
-      <div className="space-y-1 max-w-6xl space-y-6">
+      <div className="space-y-1">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

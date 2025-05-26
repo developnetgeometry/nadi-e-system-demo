@@ -15,10 +15,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const SiteManagementDashboard = () => {
   return (
     <div>
-      <div className="max-w-7xl mx-auto">
+      <div className="space-y-1">
         <h1 className="text-3xl font-bold mb-6">NADI Staff Dashboard</h1>
 
-        <div className="space-y-6 mb-6">
+        <div className="space-y-1 mb-6">
           <DashboardStatistics />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
@@ -37,7 +37,7 @@ const SiteManagementDashboard = () => {
             <TabsTrigger value="community">Community</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="general" className="space-y-6">
+          <TabsContent value="general" className="space-y-1">
             <NADIInfo />
             <LocationMap />
             <ServiceProvider />
@@ -45,13 +45,13 @@ const SiteManagementDashboard = () => {
             <OtherDetails />
           </TabsContent>
 
-          <TabsContent value="operations" className="space-y-6">
+          <TabsContent value="operations" className="space-y-1">
             <OperationHours />
             <ServiceProvider />
             <OtherDetails />
           </TabsContent>
 
-          <TabsContent value="community" className="space-y-6">
+          <TabsContent value="community" className="space-y-1">
             <Membership />
             <Events />
           </TabsContent>
