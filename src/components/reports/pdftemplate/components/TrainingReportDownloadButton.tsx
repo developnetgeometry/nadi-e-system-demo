@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import { useTrainingPdfData } from '@/hooks/report/use-training-pdf-data';
-import ChartGenerator, { ChartBundle } from '../pages/hrsalary/graphs';
 import { TrainingReportPDF } from '../pages/training/TrainingReport';
 
 interface TrainingReportDownloadButtonProps {
