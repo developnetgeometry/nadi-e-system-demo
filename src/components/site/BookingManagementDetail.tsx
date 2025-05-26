@@ -784,6 +784,7 @@ const AssetStatus = ({
                     const booking: Booking = await bookingClient.getBookingBySiteSpaceId(facility?.id);
 
                     return {
+                        id: facility.id,
                         status: !booking ? "Available" : "in-use",
                         type: facility.nd_space?.eng,
                         name: facility.nd_space?.eng,
@@ -842,6 +843,7 @@ const AssetStatus = ({
                     const isBooking = !!booking;
 
                     return {
+                        id: pc.id,
                         status: booking?.is_using ? "in-use" : "Available",
                         type: pc.nd_brand?.brand_type,
                         name: pc.name,

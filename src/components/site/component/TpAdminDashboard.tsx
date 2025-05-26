@@ -177,8 +177,6 @@ export const TpAdminDashBoard = ({
     ];
 
     if (
-        isAllRegionLoading ||
-        isAllStateLoading ||
         isLoadingPCs
     ) {
         return <LoadingSpinner />
@@ -232,7 +230,7 @@ export const TpAdminDashBoard = ({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
-                                {
+                                { isAllRegionLoading ? (<LoadingSpinner />) :
                                     [{ eng: "All Region", id: "0" }, ...allRegion].map((region) => (
                                         <SelectItem key={region.id} value={String(region.id)}>{region.eng}</SelectItem>
                                     ))
@@ -252,7 +250,7 @@ export const TpAdminDashBoard = ({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectGroup>
-                                {
+                                { isAllStateLoading ? (<LoadingSpinner />) :
                                     [{ name: "All State", id: "0" }, ...allState].map((state) => (
                                         <SelectItem key={state.id} value={String(state.id)}>{state.name}</SelectItem>
                                     ))
@@ -268,6 +266,8 @@ export const TpAdminDashBoard = ({
             </div>
             <div className="rounded-md">
                 <PaginationTableServer
+                    isStateLoading={isAllStateLoading}
+                    isRegionLoading={isAllRegionLoading}
                     contentResult={bodyTableData}
                     page={page}
                     setPage={setPage}
