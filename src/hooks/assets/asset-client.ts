@@ -372,7 +372,7 @@ export const assetClient = {
       const newStatus = currentStatus ? 0 : 1;
       const { error } = await supabase
         .from("nd_asset")
-        .update({ is_active: newStatus })
+        .update({ is_active: !!newStatus })
         .eq("id", assetId);
 
       if (error) throw error;
@@ -380,5 +380,5 @@ export const assetClient = {
       console.error("Error toggling site active status:", error);
       throw error;
     }
-  },
+  }
 };

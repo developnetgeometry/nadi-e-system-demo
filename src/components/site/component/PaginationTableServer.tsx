@@ -30,6 +30,8 @@ interface PaginationTableServer {
     header?: string
     totalPages: number
     isLoading?: boolean
+    isStateLoading?: boolean,
+    isRegionLoading?: boolean,
 }
 
 export const PaginationTableServer = ({
@@ -39,6 +41,8 @@ export const PaginationTableServer = ({
     header,
     headTable,
     totalPages,
+    isRegionLoading,
+    isStateLoading,
     handleSelectedSite,
     isLoading
 }: PaginationTableServer) => {
@@ -83,7 +87,7 @@ export const PaginationTableServer = ({
                         }
                     </TableRow>
                 </TableHeader>
-                {isLoading ? (
+                {isLoading || isRegionLoading || isStateLoading ? (
                     <TableBody className="flex justify-center">
                         <LoadingSpinner />
                     </TableBody>
