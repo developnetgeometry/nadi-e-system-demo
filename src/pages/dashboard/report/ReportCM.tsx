@@ -1,19 +1,45 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, RotateCcw, Building, Calendar, Download, Upload, ChevronsUpDown, Check, ClipboardList } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  X,
+  Filter,
+  RotateCcw,
+  Building,
+  Calendar,
+  Download,
+  Upload,
+  ChevronsUpDown,
+  Check,
+  ClipboardList,
+} from "lucide-react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 const duspOptions = [
   { id: "dusp1", label: "DUSP 1" },
@@ -62,10 +88,10 @@ const yearOptions = [
 
 // Dummy data for docket status
 const docketStatusData = [
-  { status: 'Existing', minor: 21, major: 18 },
-  { status: 'New', minor: 19, major: 33 },
-  { status: 'Close', minor: 21, major: 19 },
-  { status: 'Pending', minor: 14, major: 38 },
+  { status: "Existing", minor: 21, major: 18 },
+  { status: "New", minor: 19, major: 33 },
+  { status: "Close", minor: 21, major: 19 },
+  { status: "Pending", minor: 14, major: 38 },
 ];
 
 const ReportCM = () => {
@@ -77,16 +103,16 @@ const ReportCM = () => {
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>("2025"); // Default to current year
 
-  const hasActiveFiltersNadi = 
-    duspFilter !== null || 
-    nadiFilter !== null || 
-    monthFilter !== null || 
+  const hasActiveFiltersNadi =
+    duspFilter !== null ||
+    nadiFilter !== null ||
+    monthFilter !== null ||
     (yearFilter !== null && yearFilter !== "2025");
 
-  const hasActiveFiltersPhase = 
-    duspFilter !== null || 
-    phaseFilter !== null || 
-    monthFilter !== null || 
+  const hasActiveFiltersPhase =
+    duspFilter !== null ||
+    phaseFilter !== null ||
+    monthFilter !== null ||
     (yearFilter !== null && yearFilter !== "2025");
 
   const resetFilters = () => {
@@ -98,31 +124,41 @@ const ReportCM = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Comprehensive Maintenance</h1>
-            <p className="text-gray-500 mt-1">View and analyze maintenance dockets across all sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze maintenance dockets across all sites
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload Excel
             </Button> */}
-            <Button variant="secondary" className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+            >
               <Download className="h-4 w-4" />
               Download
             </Button>
           </div>
         </div>
 
-        <Tabs defaultValue="nadi" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          defaultValue="nadi"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
           <TabsList className="grid w-[400px] grid-cols-2">
             <TabsTrigger value="nadi">By NADI</TabsTrigger>
             <TabsTrigger value="phase">By Phase</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="nadi" className="mt-4">
             {/* Filters Row for NADI tab */}
             <div className="flex flex-wrap gap-2 mb-4">
@@ -149,13 +185,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setDuspFilter(option.id === duspFilter ? null : option.id);
+                              setDuspFilter(
+                                option.id === duspFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                duspFilter === option.id ? "opacity-100" : "opacity-0"
+                                duspFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -190,13 +230,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setNadiFilter(option.id === nadiFilter ? null : option.id);
+                              setNadiFilter(
+                                option.id === nadiFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                nadiFilter === option.id ? "opacity-100" : "opacity-0"
+                                nadiFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -231,13 +275,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setMonthFilter(option.id === monthFilter ? null : option.id);
+                              setMonthFilter(
+                                option.id === monthFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                monthFilter === option.id ? "opacity-100" : "opacity-0"
+                                monthFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -272,13 +320,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setYearFilter(option.id === yearFilter ? null : option.id);
+                              setYearFilter(
+                                option.id === yearFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                yearFilter === option.id ? "opacity-100" : "opacity-0"
+                                yearFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -289,27 +341,38 @@ const ReportCM = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Spacer */}
               <div className="flex-1"></div>
-              
+
               {/* Reset Button */}
-              <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Reset Filters
               </Button>
             </div>
-            
             {/* Active Filters */}
             {hasActiveFiltersNadi && (
               <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100 mb-6">
                 <div className="mr-1 flex items-center">
                   <Filter className="h-4 w-4 text-slate-500 mr-1" />
-                  <span className="text-sm font-medium text-slate-500">Active filters:</span>
+                  <span className="text-sm font-medium text-slate-500">
+                    Active filters:
+                  </span>
                 </div>
                 {duspFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>DUSP: {duspOptions.find(d => d.id === duspFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      DUSP:{" "}
+                      {duspOptions.find((d) => d.id === duspFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setDuspFilter(null)}
@@ -317,8 +380,14 @@ const ReportCM = () => {
                   </Badge>
                 )}
                 {nadiFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>NADI: {nadiOptions.find(n => n.id === nadiFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      NADI:{" "}
+                      {nadiOptions.find((n) => n.id === nadiFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setNadiFilter(null)}
@@ -326,8 +395,14 @@ const ReportCM = () => {
                   </Badge>
                 )}
                 {monthFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Month: {monthOptions.find(m => m.id === monthFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Month:{" "}
+                      {monthOptions.find((m) => m.id === monthFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setMonthFilter(null)}
@@ -335,7 +410,10 @@ const ReportCM = () => {
                   </Badge>
                 )}
                 {yearFilter !== null && yearFilter !== "2025" && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
                     <span>Year: {yearFilter}</span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
@@ -344,13 +422,16 @@ const ReportCM = () => {
                   </Badge>
                 )}
               </div>
-            )}            {/* Main Content for NADI tab */}
+            )}{" "}
+            {/* Main Content for NADI tab */}
             <div className="grid grid-cols-12 gap-6">
               {/* Docket Status Chart */}
               <div className="col-span-8 lg:col-span-8">
                 <Card className="shadow-sm border border-gray-200 h-full overflow-hidden">
                   <CardHeader className="p-4 bg-white border-b">
-                    <CardTitle className="text-lg font-medium text-gray-800">Number of Dockets by Status (Minor & Major)</CardTitle>
+                    <CardTitle className="text-lg font-medium text-gray-800">
+                      Number of Dockets by Status (Minor & Major)
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 bg-white">
                     <ResponsiveContainer width="100%" height={300}>
@@ -380,14 +461,18 @@ const ReportCM = () => {
               <div className="col-span-4 lg:col-span-4">
                 <Card className="shadow-sm border border-gray-200 h-full overflow-hidden">
                   <CardHeader className="p-4 bg-white border-b">
-                    <CardTitle className="text-lg font-medium text-gray-800">Total Docket Open</CardTitle>
+                    <CardTitle className="text-lg font-medium text-gray-800">
+                      Total Docket Open
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center justify-center p-6 bg-white">
                     <div className="p-2.5 rounded-full bg-blue-50 mb-2">
                       <ClipboardList className="h-7 w-7 text-blue-500" />
                     </div>
                     <div className="text-4xl font-bold text-gray-800">182</div>
-                    <div className="text-gray-600 text-sm mt-2">Current open maintenance dockets</div>
+                    <div className="text-gray-600 text-sm mt-2">
+                      Current open maintenance dockets
+                    </div>
                     <div className="mt-4 pt-4 border-t border-gray-100 w-full flex justify-between text-sm">
                       <div className="flex flex-col items-center">
                         <span className="font-medium text-blue-600">67</span>
@@ -432,13 +517,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setDuspFilter(option.id === duspFilter ? null : option.id);
+                              setDuspFilter(
+                                option.id === duspFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                duspFilter === option.id ? "opacity-100" : "opacity-0"
+                                duspFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -473,13 +562,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setPhaseFilter(option.id === phaseFilter ? null : option.id);
+                              setPhaseFilter(
+                                option.id === phaseFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                phaseFilter === option.id ? "opacity-100" : "opacity-0"
+                                phaseFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -514,13 +607,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setMonthFilter(option.id === monthFilter ? null : option.id);
+                              setMonthFilter(
+                                option.id === monthFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                monthFilter === option.id ? "opacity-100" : "opacity-0"
+                                monthFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -555,13 +652,17 @@ const ReportCM = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setYearFilter(option.id === yearFilter ? null : option.id);
+                              setYearFilter(
+                                option.id === yearFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                yearFilter === option.id ? "opacity-100" : "opacity-0"
+                                yearFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -572,27 +673,39 @@ const ReportCM = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Spacer */}
               <div className="flex-1"></div>
-              
+
               {/* Reset Button */}
-              <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Reset Filters
               </Button>
             </div>
-            
+
             {/* Active Filters */}
             {hasActiveFiltersPhase && (
               <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100 mb-6">
                 <div className="mr-1 flex items-center">
                   <Filter className="h-4 w-4 text-slate-500 mr-1" />
-                  <span className="text-sm font-medium text-slate-500">Active filters:</span>
+                  <span className="text-sm font-medium text-slate-500">
+                    Active filters:
+                  </span>
                 </div>
                 {duspFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>DUSP: {duspOptions.find(d => d.id === duspFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      DUSP:{" "}
+                      {duspOptions.find((d) => d.id === duspFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setDuspFilter(null)}
@@ -600,8 +713,14 @@ const ReportCM = () => {
                   </Badge>
                 )}
                 {phaseFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Phase: {phaseOptions.find(p => p.id === phaseFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Phase:{" "}
+                      {phaseOptions.find((p) => p.id === phaseFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setPhaseFilter(null)}
@@ -609,8 +728,14 @@ const ReportCM = () => {
                   </Badge>
                 )}
                 {monthFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Month: {monthOptions.find(m => m.id === monthFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Month:{" "}
+                      {monthOptions.find((m) => m.id === monthFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setMonthFilter(null)}
@@ -618,7 +743,10 @@ const ReportCM = () => {
                   </Badge>
                 )}
                 {yearFilter !== null && yearFilter !== "2025" && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
                     <span>Year: {yearFilter}</span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
@@ -635,7 +763,9 @@ const ReportCM = () => {
               <div className="col-span-8 lg:col-span-8">
                 <Card className="shadow-sm border border-gray-200 h-full overflow-hidden">
                   <CardHeader className="p-4 bg-white border-b">
-                    <CardTitle className="text-lg font-medium text-gray-800">Number of Dockets by Status (Minor & Major)</CardTitle>
+                    <CardTitle className="text-lg font-medium text-gray-800">
+                      Number of Dockets by Status (Minor & Major)
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 bg-white">
                     <ResponsiveContainer width="100%" height={300}>
@@ -665,14 +795,18 @@ const ReportCM = () => {
               <div className="col-span-4 lg:col-span-4">
                 <Card className="shadow-sm border border-gray-200 h-full overflow-hidden">
                   <CardHeader className="p-4 bg-white border-b">
-                    <CardTitle className="text-lg font-medium text-gray-800">Total Docket Open</CardTitle>
+                    <CardTitle className="text-lg font-medium text-gray-800">
+                      Total Docket Open
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center justify-center p-6 bg-white">
                     <div className="p-2.5 rounded-full bg-blue-50 mb-2">
                       <ClipboardList className="h-7 w-7 text-blue-500" />
                     </div>
                     <div className="text-4xl font-bold text-gray-800">182</div>
-                    <div className="text-gray-600 text-sm mt-2">Current open maintenance dockets</div>
+                    <div className="text-gray-600 text-sm mt-2">
+                      Current open maintenance dockets
+                    </div>
                     <div className="mt-4 pt-4 border-t border-gray-100 w-full flex justify-between text-sm">
                       <div className="flex flex-col items-center">
                         <span className="font-medium text-blue-600">67</span>
@@ -691,7 +825,7 @@ const ReportCM = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

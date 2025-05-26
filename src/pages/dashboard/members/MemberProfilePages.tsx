@@ -15,9 +15,9 @@ const MemberProfilePages = () => {
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <MemberProfilePage userId={userId} />
-    </DashboardLayout>
+    </div>
   );
 };
 

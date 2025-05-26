@@ -31,21 +31,25 @@ const Products = () => {
   const [filteredInventories, setFilteredInventories] = useState([]);
 
   // Fetch transactions with items
-  const { data: inventoryData, isLoading, error } = useQuery({
-    queryKey: ['inventories'],
+  const {
+    data: inventoryData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["inventories"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('nd_inventory')
+        .from("nd_inventory")
         .select(`*, type:nd_inventory_type!type_id(id, name)`);
-        // .is('deleted_at', null);
-        
+      // .is('deleted_at', null);
+
       if (error) {
-        console.error('Error fetching inventory:', error);
+        console.error("Error fetching inventory:", error);
         throw error;
       }
-      
+
       return data || [];
-    }
+    },
   });
 
   const handleSearchChange = (e) => {
@@ -64,8 +68,8 @@ const Products = () => {
       setFilteredInventories(inventories || []);
       return;
     }
-      
-    const filtered = inventories.filter(item => {
+
+    const filtered = inventories.filter((item) => {
       const searchLower = searchTerm.toLowerCase();
 
       const idMatch = item.id.toLowerCase().includes(searchLower);
@@ -74,13 +78,13 @@ const Products = () => {
       const barcodeMatch = item.barcode?.toLowerCase().includes(searchLower);
 
       return idMatch || nameMatch || typeMatch || barcodeMatch;
-    })
-    
+    });
+
     setFilteredInventories(filtered);
   }, [inventories, searchTerm]);
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center sm:items-center mb-4 gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Products</h1>
@@ -123,14 +127,20 @@ const Products = () => {
                 {filteredInventories.length > 0 ? (
                   filteredInventories.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                      <TableCell>{item.name || 'N/A'}</TableCell>
-                      <TableCell>{item.type?.name || 'N/A'}</TableCell>
-                      <TableCell>{item.price ? `RM ${item.price.toFixed(2)}` : 'N/A'}</TableCell>
-                      <TableCell>{item.quantity || 0}</TableCell>
-                      <TableCell>{item.barcode || 'N/A'}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {item.id}
+                      </TableCell>
+                      <TableCell>{item.name || "N/A"}</TableCell>
+                      <TableCell>{item.type?.name || "N/A"}</TableCell>
                       <TableCell>
-                        {item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A'}
+                        {item.price ? `RM ${item.price.toFixed(2)}` : "N/A"}
+                      </TableCell>
+                      <TableCell>{item.quantity || 0}</TableCell>
+                      <TableCell>{item.barcode || "N/A"}</TableCell>
+                      <TableCell>
+                        {item.created_at
+                          ? new Date(item.created_at).toLocaleString()
+                          : "N/A"}
                       </TableCell>
                     </TableRow>
                   ))
@@ -146,7 +156,7 @@ const Products = () => {
           )}
         </CardContent>
       </Card>
-    </DashboardLayout>
+    </div>
   );
 };
 

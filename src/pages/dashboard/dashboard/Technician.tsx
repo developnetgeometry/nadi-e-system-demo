@@ -1,8 +1,14 @@
-
 import { Card } from "@/components/ui/card";
 // import { PageContainer } from "@/components/ui/dashboard/PageContainer";
 import { PageHeader } from "@/components/ui/dashboard/PageHeader";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import StatusCard from "@/components/ui/dashboard/StatusCard";
 import { Calendar, Clock, UserCircle, Wrench } from "lucide-react";
@@ -10,21 +16,56 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export default function Technician() {
   const technicians = [
-    { id: 1, name: "John Doe", specialty: "Electrical", activeJobs: 3, completedToday: 2, availableIn: null },
-    { id: 2, name: "Sarah Smith", specialty: "Plumbing", activeJobs: 1, completedToday: 4, availableIn: 30 },
-    { id: 3, name: "Michael Brown", specialty: "HVAC", activeJobs: 2, completedToday: 1, availableIn: 15 },
-    { id: 4, name: "Lisa Johnson", specialty: "Mechanical", activeJobs: 0, completedToday: 3, availableIn: null },
-    { id: 5, name: "Robert Davis", specialty: "Electrical", activeJobs: 2, completedToday: 0, availableIn: 45 },
+    {
+      id: 1,
+      name: "John Doe",
+      specialty: "Electrical",
+      activeJobs: 3,
+      completedToday: 2,
+      availableIn: null,
+    },
+    {
+      id: 2,
+      name: "Sarah Smith",
+      specialty: "Plumbing",
+      activeJobs: 1,
+      completedToday: 4,
+      availableIn: 30,
+    },
+    {
+      id: 3,
+      name: "Michael Brown",
+      specialty: "HVAC",
+      activeJobs: 2,
+      completedToday: 1,
+      availableIn: 15,
+    },
+    {
+      id: 4,
+      name: "Lisa Johnson",
+      specialty: "Mechanical",
+      activeJobs: 0,
+      completedToday: 3,
+      availableIn: null,
+    },
+    {
+      id: 5,
+      name: "Robert Davis",
+      specialty: "Electrical",
+      activeJobs: 2,
+      completedToday: 0,
+      availableIn: 45,
+    },
   ];
 
   return (
-    <DashboardLayout>
-    {/*<PageContainer> */}
-      <PageHeader 
-        title="Technician Dashboard" 
-        description="Monitor technician availability and workload" 
+    <div>
+      {/*<PageContainer> */}
+      <PageHeader
+        title="Technician Dashboard"
+        description="Monitor technician availability and workload"
       />
-      
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatusCard
           title="Total Technicians"
@@ -51,7 +92,7 @@ export default function Technician() {
           icon={<Calendar size={18} />}
         />
       </div>
-      
+
       <div className="mt-6">
         <Card>
           <Table>
@@ -73,11 +114,16 @@ export default function Technician() {
                   <TableCell>{tech.completedToday}</TableCell>
                   <TableCell>
                     {tech.activeJobs === 0 ? (
-                      <Badge className="bg-green-500 hover:bg-green-600">Available</Badge>
+                      <Badge className="bg-green-500 hover:bg-green-600">
+                        Available
+                      </Badge>
                     ) : tech.availableIn === null ? (
                       <Badge variant="secondary">Busy</Badge>
                     ) : (
-                      <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                      <Badge
+                        variant="outline"
+                        className="border-yellow-500 text-yellow-600"
+                      >
                         Available in {tech.availableIn} min
                       </Badge>
                     )}
@@ -88,7 +134,7 @@ export default function Technician() {
           </Table>
         </Card>
       </div>
-    {/*</PageContainer> */}
-    </DashboardLayout>
+      {/*</PageContainer> */}
+    </div>
   );
 }

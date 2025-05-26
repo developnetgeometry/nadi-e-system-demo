@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { CalendarMonthView } from "@/components/ui/calendar-monthview";
 import {
   Card,
   CardContent,
@@ -211,8 +212,8 @@ export default function Takwim() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-6">
+    <div>
+      <div className="space-y-1 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Takwim</h1>
@@ -258,12 +259,19 @@ export default function Takwim() {
                     weekend: (date) => isSaturday(date) || isSunday(date),
                     holiday: (date) => isHoliday(date),
                     hasEvent: (date) => hasEvent(date),
+                    today: (date) =>
+                      format(date, "yyyy-MM-dd") ===
+                      format(new Date(), "yyyy-MM-dd"),
                   }}
                   modifiersStyles={{
                     weekend: { color: "#ea384c" },
                     holiday: { color: "#ea384c", fontWeight: "bold" },
                     hasEvent: {
                       backgroundColor: "#d6bcfa",
+                      borderRadius: "100%",
+                    },
+                    today: {
+                      border: "2px solid #7e22ce",
                       borderRadius: "100%",
                     },
                   }}
@@ -281,126 +289,97 @@ export default function Takwim() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4">
+                <div className="flex flex-col gap-4 w-full">
+                  {/* Calendar */}
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={(newDate) => newDate && setDate(newDate)}
-                    className="rounded-md border w-full pointer-events-auto"
+                    className="pointer-events-auto w-full rounded-lg border"
+                    initialFocus
                     modifiers={{
                       weekend: (date) => isSaturday(date) || isSunday(date),
                       holiday: (date) => isHoliday(date),
                       hasEvent: (date) => hasEvent(date),
+                      today: (date) =>
+                        format(date, "yyyy-MM-dd") ===
+                        format(new Date(), "yyyy-MM-dd"),
                     }}
                     modifiersStyles={{
                       weekend: { color: "#ea384c" },
-                      holiday: { color: "#ea384c", fontWeight: "bold" },
+                      holiday: {
+                        color: "#ea384c",
+                        fontWeight: "bold",
+                        backgroundColor: "#ffe4e6",
+                      },
                       hasEvent: {
-                        backgroundColor: "#d6bcfa",
+                        backgroundColor: "#e9d5ff",
+                        borderRadius: "100%",
+                        fontWeight: "bold",
+                      },
+                      today: {
+                        border: "2px solid #7e22ce",
                         borderRadius: "100%",
                       },
                     }}
                   />
 
-                  {/* Display holidays for the selected date if any */}
-                  {selectedDateHolidays.length > 0 && (
-                    <div className="mt-1 mb-4">
-                      <h4 className="text-md font-semibold mb-2">
-                        Holidays on {format(date, "PPP")}:
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
+                  {/* <CalendarMonthView /> */}
+                  {/* Legend */}
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-400" />{" "}
+                      Holiday
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-purple-400" />{" "}
+                      Event
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full border border-purple-700" />{" "}
+                      Today
+                    </div>
+                  </div>
+
+                  {/* Events and holidays list */}
+                  <div className="mt-2">
+                    <h4 className="text-md font-semibold mb-2">
+                      Events & Holidays on {format(date, "PPP")}
+                    </h4>
+
+                    {selectedDateHolidays.length === 0 &&
+                    eventsForSelectedDate.length === 0 ? (
+                      <p className="text-sm text-gray-500">
+                        No holidays or events
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
                         {selectedDateHolidays.map((holiday) => (
                           <Badge
                             key={holiday.id}
                             variant="outline"
-                            className="bg-red-50 text-red-700 border-red-200"
+                            className="bg-red-50 text-red-700 border-red-200 w-fit"
                           >
                             {holiday.desc}
                           </Badge>
                         ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">
-                      Events for {format(date, "PPP")}
-                    </h3>
-                    {eventsForSelectedDate.length > 0 ? (
-                      <div className="space-y-2">
                         {eventsForSelectedDate.map((event) => (
                           <div
                             key={event.id}
-                            className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                            className="flex flex-col p-3 border rounded-lg bg-purple-50"
                           >
-                            <div className="flex justify-between items-start">
-                              <h4 className="font-medium text-lg">
-                                {event.title}
-                              </h4>
-                              <span
-                                className={cn(
-                                  "px-2 py-1 rounded-full text-xs",
-                                  getEventTypeColor(event.type)
-                                )}
-                              >
-                                {
-                                  eventTypes.find((t) => t.value === event.type)
-                                    ?.label
-                                }
-                              </span>
-                            </div>
-                            <div className="text-sm text-gray-500 mt-1">
-                              {getEventDateRangeText(event)}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {event.startTime} - {event.endTime} (
+                            <p className="font-semibold">{event.title}</p>
+                            <p className="text-sm text-gray-600">
+                              {event.startTime} – {event.endTime} (
                               {event.duration})
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              <Badge variant="secondary">
-                                {getCategoryLabel(event.category)}
-                              </Badge>
-                              <Badge variant="secondary">
-                                {getPillarLabel(event.pillar)}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  event.mode === "Online"
-                                    ? "bg-blue-50"
-                                    : "bg-green-50"
-                                }
-                              >
-                                {event.mode}
-                              </Badge>
-                              {event.isGroupEvent && <Badge>Group Event</Badge>}
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mt-2">
-                              <div>
-                                <strong>Location:</strong>{" "}
-                                {event.location || "N/A"}
-                              </div>
-                              <div>
-                                <strong>Target:</strong>{" "}
-                                {event.targetParticipant}
-                              </div>
-                              <div>
-                                <strong>Trainer:</strong> {event.trainerName}
-                              </div>
-                            </div>
+                            </p>
                             {event.description && (
-                              <div className="text-sm text-gray-600 mt-2 border-t pt-2">
+                              <p className="text-sm text-gray-500 mt-1">
                                 {event.description}
-                              </div>
+                              </p>
                             )}
                           </div>
                         ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
-                        {selectedDateHolidays.length > 0
-                          ? "Holiday - No events scheduled"
-                          : "No events scheduled for this date"}
                       </div>
                     )}
                   </div>
@@ -518,6 +497,6 @@ export default function Takwim() {
         programmes={programmes}
         modules={modules}
       />
-    </DashboardLayout>
+    </div>
   );
 }

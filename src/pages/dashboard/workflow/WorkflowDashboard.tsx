@@ -101,8 +101,8 @@ const WorkflowDashboard = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Workflow Configurations</h1>
           <Button onClick={handleCreateConfig}>
@@ -119,7 +119,7 @@ const WorkflowDashboard = () => {
           onRefresh={fetchConfigurations}
         />
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

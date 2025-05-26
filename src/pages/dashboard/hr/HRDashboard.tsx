@@ -492,7 +492,7 @@ const HRDashboard: React.FC = () => {
   );
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="flex flex-col gap-4 p-4 md:p-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h1 className="text-3xl font-bold">HR Dashboard</h1>
@@ -1610,7 +1610,7 @@ const HRDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

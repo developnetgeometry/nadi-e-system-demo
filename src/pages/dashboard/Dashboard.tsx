@@ -79,7 +79,7 @@ const Dashboard = () => {
     }
   };
   return (
-    <DashboardLayout>
+    <div>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         {/* Announcement Banner */}
         <Card className="mb-2">
@@ -95,7 +95,7 @@ const Dashboard = () => {
         </Card>
         <DynamicDashboard />
       </ErrorBoundary>
-    </DashboardLayout>
+    </div>
   );
 };
 export default Dashboard;

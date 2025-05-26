@@ -45,17 +45,17 @@ const Roles = () => {
 
   if (error) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="p-4 text-red-500">
           Error loading roles. Please try again later.
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl space-y-8">
+    <div>
+      <div className="space-y-1   space-y-8">
         <div className="flex justify-between items-center">
           <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
           <Button
@@ -89,7 +89,7 @@ const Roles = () => {
         initialData={editingRole || undefined}
         onSubmit={handleUpdateRole}
       />
-    </DashboardLayout>
+    </div>
   );
 };
 

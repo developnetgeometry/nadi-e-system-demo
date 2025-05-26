@@ -91,8 +91,8 @@ const formSchema = z
       required_error: "Mode is required",
     }),
     targetParticipant: z
-      .string()
-      .min(1, { message: "Target participant is required" }),
+      .enum(["umum", "komuniti_madani", "both"])
+      .default("umum"),
     trainerName: z
       .string()
       .min(1, { message: "Trainer/organization name is required" }),
@@ -162,7 +162,7 @@ export function TakwimEventDialog({
       module: eventToEdit?.module || "",
       isGroupEvent: eventToEdit?.isGroupEvent || false,
       mode: eventToEdit?.mode || "Physical",
-      targetParticipant: eventToEdit?.targetParticipant || "",
+      targetParticipant: eventToEdit?.targetParticipant || "umum",
       trainerName: eventToEdit?.trainerName || "",
     },
   });
@@ -758,11 +758,42 @@ export function TakwimEventDialog({
                         <RequiredLabel>Target Participant</RequiredLabel>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Enter target participant"
-                          {...field}
-                          className="bg-white"
-                        />
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex flex-row gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="umum" id="umum" />
+                            <label
+                              htmlFor="umum"
+                              className="text-sm font-normal"
+                            >
+                              Umum
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem
+                              value="komuniti_madani"
+                              id="komuniti_madani"
+                            />
+                            <label
+                              htmlFor="komuniti_madani"
+                              className="text-sm font-normal"
+                            >
+                              Komuniti Madani
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="both" id="both" />
+                            <label
+                              htmlFor="both"
+                              className="text-sm font-normal"
+                            >
+                              Both
+                            </label>
+                          </div>
+                        </RadioGroup>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -8,7 +8,7 @@ import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import MemberLogin from "@/pages/auth/MemberLogin";
 import { dashboardRoutes, DashboardRoutes } from "@/routes/dashboard.routes";
-import { memberRoutes } from "@/routes/module.member.routes";
+import { memberRoutes } from "@/routes/module-routes/module.member.routes";
 import { moduleRoutes } from "@/routes/module.routes";
 import UIComponents from "@/pages/UIComponents";
 import OrganizationDetails from "@/pages/dashboard/OrganizationDetails";
@@ -20,6 +20,8 @@ import NoAccess from "@/pages/NoAccess";
 import HomeExample from "@/pages/examples/HomeExample";
 import DetailExample from "@/pages/examples/DetailExample";
 import SettingsExample from "@/pages/examples/SettingsExample";
+import { DashboardLayout } from "./components/layout/DashboardLayout";
+import Dashboard from "./pages/dashboard/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -51,7 +53,11 @@ function App() {
               {/* Add organization details route */}
               <Route
                 path="/admin/organizations/:id"
-                element={<OrganizationDetails />}
+                element={
+                  <DashboardLayout>
+                    <OrganizationDetails />
+                  </DashboardLayout>
+                }
               />
 
               <Route path="/under-development" element={<UnderDevelopment />} />
@@ -64,9 +70,11 @@ function App() {
                   key={route.path}
                   path={route.path}
                   element={
-                    <Suspense fallback={<LoadingSpinner />}>
-                      {route.element}
-                    </Suspense>
+                    <DashboardLayout>
+                      <Suspense fallback={<LoadingSpinner />}>
+                        {route.element}
+                      </Suspense>
+                    </DashboardLayout>
                   }
                 />
               ))}
@@ -78,9 +86,11 @@ function App() {
                     key={route.path}
                     path={route.path}
                     element={
-                      <Suspense fallback={<LoadingSpinner />}>
-                        {route.element}
-                      </Suspense>
+                      <DashboardLayout>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          {route.element}
+                        </Suspense>
+                      </DashboardLayout>
                     }
                   />
                 ))}
@@ -92,9 +102,11 @@ function App() {
                     key={route.path}
                     path={route.path}
                     element={
-                      <Suspense fallback={<LoadingSpinner />}>
-                        {route.element}
-                      </Suspense>
+                      <DashboardLayout>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          {route.element}
+                        </Suspense>
+                      </DashboardLayout>
                     }
                   />
                 ))}

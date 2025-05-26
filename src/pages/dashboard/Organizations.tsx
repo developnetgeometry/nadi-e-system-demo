@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -8,32 +7,42 @@ import { OrganizationTree } from "@/components/organizations/OrganizationTree";
 import { OrganizationFormDialog } from "@/components/organizations/OrganizationFormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Building, Plus, Search, List, Grid3X3 } from "lucide-react";
 import { Organization } from "@/types/organization";
 
 const Organizations = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [organizationToDelete, setOrganizationToDelete] = useState<Organization | null>(null);
+  const [organizationToDelete, setOrganizationToDelete] =
+    useState<Organization | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "tree">("grid");
-  
+
   const {
     useOrganizationsQuery,
     useCreateOrganizationMutation,
     useDeleteOrganizationMutation,
   } = useOrganizations();
-  
+
   const { data: organizations = [], isLoading } = useOrganizationsQuery();
   const createOrganizationMutation = useCreateOrganizationMutation();
   const deleteOrganizationMutation = useDeleteOrganizationMutation();
-  
+
   // Filter organizations based on search query
-  const filteredOrganizations = organizations.filter(
-    (org) => org.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredOrganizations = organizations.filter((org) =>
+    org.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   // Find parent names for display
   const getParentName = (parentId: string | undefined) => {
     if (!parentId) return undefined;
@@ -48,14 +57,14 @@ const Organizations = () => {
   const handleDeleteOrganization = () => {
     if (organizationToDelete) {
       deleteOrganizationMutation.mutate(organizationToDelete.id, {
-        onSuccess: () => setOrganizationToDelete(null)
+        onSuccess: () => setOrganizationToDelete(null),
       });
     }
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Organizations</h1>
@@ -79,7 +88,7 @@ const Organizations = () => {
               className="pl-9"
             />
           </div>
-          
+
           <div className="flex items-center border rounded-md">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
@@ -127,10 +136,16 @@ const Organizations = () => {
                 key={organization.id}
                 organization={organization}
                 parentName={getParentName(organization.parent_id)}
-                onEdit={() => navigate(`/admin/organizations/${organization.id}`)}
+                onEdit={() =>
+                  navigate(`/admin/organizations/${organization.id}`)
+                }
                 onDelete={() => setOrganizationToDelete(organization)}
-                onManageUsers={() => navigate(`/admin/organizations/${organization.id}?tab=users`)}
-                onViewDetails={() => navigate(`/admin/organizations/${organization.id}`)}
+                onManageUsers={() =>
+                  navigate(`/admin/organizations/${organization.id}?tab=users`)
+                }
+                onViewDetails={() =>
+                  navigate(`/admin/organizations/${organization.id}`)
+                }
               />
             ))}
           </div>
@@ -148,16 +163,16 @@ const Organizations = () => {
         onSubmit={handleCreateOrganization}
       />
 
-      <AlertDialog 
-        open={!!organizationToDelete} 
+      <AlertDialog
+        open={!!organizationToDelete}
         onOpenChange={(open) => !open && setOrganizationToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the organization "{organizationToDelete?.name}".
-              This action cannot be undone.
+              This will permanently delete the organization "
+              {organizationToDelete?.name}". This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -171,7 +186,7 @@ const Organizations = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </DashboardLayout>
+    </div>
   );
 };
 

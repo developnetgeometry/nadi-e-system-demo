@@ -1,9 +1,13 @@
-
 import { useState } from "react";
 import { Plus, ChevronDown } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserAccess } from "@/hooks/use-user-access";
 import { HolidayFormDialog } from "@/components/holidays/HolidayFormDialog";
@@ -14,18 +18,20 @@ import { useHolidays } from "@/hooks/use-holidays";
 import { useHolidayOperations } from "@/hooks/use-holiday-operations";
 
 const StateHolidays = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date()
+  );
   const { user } = useAuth();
   const { isSuperAdmin } = useUserAccess();
-  
+
   // Use our custom hook for fetching data
-  const { 
-    currentYear, 
-    setCurrentYear, 
-    holidays, 
-    states, 
+  const {
+    currentYear,
+    setCurrentYear,
+    holidays,
+    states,
     isLoading,
-    fetchHolidays 
+    fetchHolidays,
   } = useHolidays();
 
   // Use our custom hook for holiday operations
@@ -36,7 +42,7 @@ const StateHolidays = () => {
     handleAddHoliday,
     handleEditHoliday,
     handleDeleteHoliday,
-    submitHoliday
+    submitHoliday,
   } = useHolidayOperations(() => fetchHolidays(currentYear));
 
   const handleYearChange = (year: number) => {
@@ -48,8 +54,8 @@ const StateHolidays = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl">
+    <div>
+      <div className="space-y-1  ">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">State Holidays Management</h1>
@@ -62,14 +68,20 @@ const StateHolidays = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map((year) => (
-                  <DropdownMenuItem key={year} onClick={() => handleYearChange(year)}>
+                {Array.from(
+                  { length: 5 },
+                  (_, i) => new Date().getFullYear() - 2 + i
+                ).map((year) => (
+                  <DropdownMenuItem
+                    key={year}
+                    onClick={() => handleYearChange(year)}
+                  >
                     {year}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             {isSuperAdmin && (
               <Button onClick={handleAddHoliday} className="gap-2">
                 <Plus className="h-4 w-4" /> Add Holiday
@@ -79,16 +91,18 @@ const StateHolidays = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <HolidayCalendar 
+          <HolidayCalendar
             holidays={holidays}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
           />
 
           <HolidayList
-            title={selectedDate 
-              ? `Holidays for ${selectedDate.toLocaleDateString()}` 
-              : 'Select a date to view holidays'}
+            title={
+              selectedDate
+                ? `Holidays for ${selectedDate.toLocaleDateString()}`
+                : "Select a date to view holidays"
+            }
             holidays={getHolidaysForDate(selectedDate, holidays)}
             isLoading={isLoading}
             onEdit={handleEditHoliday}
@@ -118,7 +132,7 @@ const StateHolidays = () => {
         states={states}
         onSubmit={onSubmit}
       />
-    </DashboardLayout>
+    </div>
   );
 };
 
