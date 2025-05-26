@@ -68,13 +68,10 @@ import WorkflowDashboard from "@/pages/workflow/WorkflowDashboard";
 import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
-<<<<<<< HEAD
 import ClaimRegister from "@/pages/dashboard/claim/ClaimRegister";
-=======
 import ProgrammeEdit from "@/pages/dashboard/programmes/ProgrammeRegistration";
 
 import { vendorRoutes } from "@/routes/module-routes/module.vendor.routes";
->>>>>>> origin/main
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
