@@ -19,7 +19,7 @@ interface TrainingReportDownloadButtonProps {
     phaseFilter: string | number | null;
     monthFilter: string | number | null;
     yearFilter: string | number | null;
-    tpFilter?: (string | number)[] | null;
+    tpFilter: (string | number)[] | null;
 
     // Logos
     mcmcLogo?: string;

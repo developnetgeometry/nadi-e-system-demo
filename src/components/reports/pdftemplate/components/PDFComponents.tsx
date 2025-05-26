@@ -230,7 +230,78 @@ export const PDFSectionTitle = ({
   return <Text style={sectionStyles.sectionTitle}>{title}</Text>;
 };
 
-// PDFBox removed as it's specific to individual reports and not reusable
+/**
+ * The PDF Info Table component for displaying structured information tables with title header
+ */
+export const PDFInfoTable = ({
+  title,
+  data,
+}: {
+  title: string;
+  data: { label: string; value: string }[];
+}) => {
+  const infoTableStyles = StyleSheet.create({
+    container: {
+      width: "100%",
+      borderWidth: 1,
+      borderColor: "#000",
+      marginBottom: 20,
+    },
+    titleContainer: {
+      backgroundColor: "#000",
+      padding: 8,
+      width: "100%",
+      textAlign: "center",
+    },
+    title: {
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: "bold",
+      textTransform: "uppercase",
+    },
+    row: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000",
+    },
+    labelCell: {
+      backgroundColor: "#fff",
+      padding: 6,
+      width: "30%",
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+      fontSize: 10,
+      fontWeight: "bold",
+      textTransform: "uppercase",
+    },
+    valueCell: {
+      padding: 6,
+      width: "70%",
+      fontSize: 10,
+    }
+  });
+
+  return (
+    <View style={infoTableStyles.container}>
+      <View style={infoTableStyles.titleContainer}>
+        <Text style={infoTableStyles.title}>{title}</Text>
+      </View>
+      {data.map((item, index) => (
+        <View 
+          key={index} 
+          style={[
+            infoTableStyles.row,
+            // Remove bottom border from last row
+            index === data.length - 1 && { borderBottomWidth: 0 }
+          ]}
+        >
+          <Text style={infoTableStyles.labelCell}>{item.label}</Text>
+          <Text style={infoTableStyles.valueCell}>{item.value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
 
 /**
  * The PDF Table component for standardized tables
