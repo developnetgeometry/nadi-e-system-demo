@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
-import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
 import { useSiteManagementPdfData } from "@/hooks/report/use-site-management-pdf-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
 import { ModularReportFilters } from "@/components/reports/filters";
@@ -60,7 +59,6 @@ const ReportSiteManagement = () => {
 
   // Fetch filter options from API
   const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
-
   // Fetch site management data for UI
   const {
     sites,
@@ -72,7 +70,7 @@ const ReportSiteManagement = () => {
     awarenessPromotion,
     loading: dataLoading,
     error
-  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter);
+  } = useSiteManagementPdfData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter);
 
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
@@ -109,12 +107,15 @@ const ReportSiteManagement = () => {
                 ? dusps.find(d => d.id === duspFilter[0])?.name || ""
                 : duspFilter.length > 1
                   ? `${duspFilter.length} DUSPs selected`
-                  : ""}
-              phaseLabel={phaseFilter !== null
+                  : ""}              phaseLabel={phaseFilter !== null
                 ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
                 : "All Phases"}
-              periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+              periodType={monthFilter ? "MONTH / YEAR" : (yearFilter ? "YEAR" : "All Time")}
+              periodValue={monthFilter 
+                ? `${monthOptions.find(m => m.id === monthFilter)?.label || ""} / ${yearFilter || ""}`
+                : yearFilter 
+                  ? `${yearFilter}` 
+                  : "All Records"}
               duspFilter={duspFilter}
               phaseFilter={phaseFilter}
               nadiFilter={nadiFilter}
@@ -164,53 +165,47 @@ const ReportSiteManagement = () => {
 
           // Loading state
           isLoading={filtersLoading}
-        />
-
-        {/* Statistics Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        />        {/* Statistics Cards Grid */}        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <LocalAuthorityCard
             loading={dataStableLoading}
-            siteCount={sites.length}
-            laRecordSiteCount={new Set(localAuthority.map(la => la.site_id)).size}
+            siteCount={sites?.length || 0}
+            laRecordSiteCount={localAuthority ? new Set(localAuthority.map(la => la.site_id)).size : 0}
           />
 
           <InsuranceCard
             loading={dataStableLoading}
-            siteCount={sites.length}
-            insuredSiteCount={new Set(insurance.map(i => i.site_id)).size}
-            activeCount={insurance.filter(i => i.status === 'Active').length}
-            expiringCount={insurance.filter(i => i.status === 'Expiring Soon').length}
-            expiredCount={insurance.filter(i => i.status === 'Expired').length}
+            siteCount={sites?.length || 0}
+            insuredSiteCount={insurance ? new Set(insurance.map(i => i.site_id)).size : 0}
           />
 
           <AuditCard
             loading={dataStableLoading}
-            siteCount={sites.length}
-            auditedSiteCount={new Set(audits.map(a => a.site_id)).size}
+            siteCount={sites?.length || 0}
+            auditedSiteCount={audits ? new Set(audits.map(a => a.site_id)).size : 0}
           />
 
           <AgreementCard
             loading={dataStableLoading}
-            siteCount={sites.length}
-            agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
-          />
-
+            siteCount={sites?.length || 0}
+            agreementSiteCount={agreements ? new Set(agreements.map(a => a.site_id)).size : 0}          />
+          
           <UtilitiesCard
             loading={dataStableLoading}
-            siteCount={sites.length}
-            utilitySiteCount={new Set(utilities.map(u => u.site_id)).size}
-            totalBills={utilities.length}
-            totalAmount={utilities.reduce((sum, u) => sum + (u.amount_bill || 0), 0)}
-            utilityTypes={[...new Set(utilities.map(u => u.type_name))]}
-          />
-
+            siteCount={sites?.length || 0}
+            utilitySiteCount={utilities ? new Set(utilities.map(u => u.site_id)).size : 0}
+            totalBills={utilities ? utilities.reduce((sum, u) => sum + (u.total_bills || 0), 0) : 0}
+            totalAmount={utilities ? utilities.reduce((sum, u) => sum + (u.total_amount || 0), 0) : 0}
+            utilityTypes={utilities ? [
+              ...(utilities.filter(u => u.has_water).length > 0 ? ['Water'] : []),
+              ...(utilities.filter(u => u.has_electricity).length > 0 ? ['Electricity'] : []),
+              ...(utilities.filter(u => u.has_sewerage).length > 0 ? ['Sewerage'] : [])
+            ] : []}          />
+          
           <AwarenessProgrammeCard
             loading={dataStableLoading}
-            siteCount={sites.length}
-            programmesSiteCount={awarenessPromotion.length}
-            totalProgrammes={awarenessPromotion.length}
-            completedCount={awarenessPromotion.filter(p => p.status === 'Completed').length}
-            upcomingCount={awarenessPromotion.filter(p => p.status === 'Upcoming').length}
+            siteCount={sites?.length || 0}
+            programmesSiteCount={awarenessPromotion ? new Set(awarenessPromotion.map(ap => ap.site_id)).size : 0}
+            totalProgrammes={awarenessPromotion ? awarenessPromotion.length : 0}
           />
         </div>
       </div>

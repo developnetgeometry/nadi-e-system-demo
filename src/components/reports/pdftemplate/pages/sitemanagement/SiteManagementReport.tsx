@@ -43,15 +43,27 @@ const styles = StyleSheet.create({
         borderColor: "#000",
         borderStyle: "solid",
         margin: "auto",
-    },
-    utilityChecked: {
+    },    utilityChecked: {
         width: 12,
         height: 12,
         borderWidth: 1,
         borderColor: "#000",
-        borderStyle: "solid",
-        backgroundColor: "#000",
-        margin: "auto",
+    },    attachmentImage: {
+        maxWidth: "100%",
+        height: "auto",
+        marginBottom: 10,
+    },
+    fullPageImage: {
+        width: "100%",
+        height: "auto",
+        objectFit: "contain",
+        objectPosition: "center"
+    },
+    attachmentCaption: {
+        fontSize: 8,
+        color: "#555",
+        textAlign: "center",
+        marginBottom: 15,
     },
     appendixTitle: {
         fontSize: 16,
@@ -90,21 +102,34 @@ export const SiteManagementReportPDF = ({
     periodType,
     periodValue,
     mcmcLogo,
-    duspLogo,
-    sites,
-    utilities,
-    insurance,
+    duspLogo,    sites = [],
+    utilities = [],
+    insurance = [],
     localAuthority = [],
-    audits,
-    agreements,
-    programmes,
+    audits = [],
+    agreements = [],
+    programmes = [],
 }: SiteManagementReportProps) => {  // Calculate statistics
-    const utilitySites = [...new Set(utilities.map(u => u.site_id))].length;
-    const insuranceSites = [...new Set(insurance.map(i => i.standard_code))].length;
-    const localAuthoritySites = [...new Set(localAuthority.map(la => la.standard_code))].length;
-    const auditSites = [...new Set(audits.map(a => a.standard_code))].length;
-    const agreementSites = [...new Set(agreements.map(a => a.standard_code))].length;
-    const programmeSites = [...new Set(programmes.map(p => p.standard_code))].length;
+    // Safe access to data with null checks
+    const utilitySites = utilities?.length ? [...new Set(utilities.map(u => u.site_id))].length : 0;
+    const insuranceSites = insurance?.length ? [...new Set(insurance.map(i => i.standard_code))].length : 0;
+    const localAuthoritySites = localAuthority?.length ? [...new Set(localAuthority.map(la => la.standard_code))].length : 0;
+    const auditSites = audits?.length ? [...new Set(audits.map(a => a.standard_code))].length : 0;
+    const agreementSites = agreements?.length ? [...new Set(agreements.map(a => a.standard_code))].length : 0;
+    const programmeSites = programmes?.length ? [...new Set(programmes.map(p => p.standard_code))].length : 0;
+    
+    // Determine which appendices will be shown
+    const hasInsuranceAttachments = insurance.some(ins => ins.attachments && ins.attachments.length > 0);
+    const hasAuditAttachments = false; // Set to true when implemented
+    const hasAgreementAttachments = false; // Set to true when implemented
+    const hasProgrammeAttachments = false; // Set to true when implemented
+    
+    // Calculate appendix numbers dynamically
+    let currentAppendixNumber = 1;
+    const insuranceAppendixNumber = hasInsuranceAttachments ? currentAppendixNumber++ : null;
+    const auditAppendixNumber = hasAuditAttachments ? currentAppendixNumber++ : null;
+    const agreementAppendixNumber = hasAgreementAttachments ? currentAppendixNumber++ : null;
+    const programmeAppendixNumber = hasProgrammeAttachments ? currentAppendixNumber : null;
 
     return (
         <Document>
@@ -123,10 +148,9 @@ export const SiteManagementReportPDF = ({
 
                 {/* Section 2.1 Local Authority */}
 
-                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
-
-                <View style={styles.totalBox}>
-                    <Text>Total NADI{"\n"}{localAuthoritySites}</Text> // total NADI sites have authority
+                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />                <View style={styles.totalBox}>
+                    {/* total NADI sites have authority */}
+                    <Text>Total NADI{"\n"}{localAuthoritySites}</Text>
                 </View>
 
                 {localAuthority.length > 0 ?
@@ -165,9 +189,9 @@ export const SiteManagementReportPDF = ({
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.2 INSURANCE" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        <Text>Total NADI{"\n"}{insuranceSites}</Text> // total NADI sites with insurance
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                        {/* total NADI sites with insurance */}
+                        <Text>Total NADI{"\n"}{insuranceSites}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
@@ -210,24 +234,67 @@ export const SiteManagementReportPDF = ({
                 )}
 
                 <PDFFooter />
-            </Page>
+            </Page>            {/* Page 3: APPENDIX for SITE INSURANCE - Only show if there are attachments */}
+            {hasInsuranceAttachments && (
+                <Page size="A4" style={styles.page}>
+                    <PDFAppendixTitlePage
+                        appendixNumber={`APPENDIX ${insuranceAppendixNumber}`}
+                        title="SITE INSURANCE"
+                    />
+                    <PDFFooter />
+                </Page>
+            )}
+              {/* Insurance Attachments Pages - One page per attachment */}
+            {insurance.filter(ins => ins.attachments && ins.attachments.length > 0).flatMap((ins, index) => 
+                ins.attachments.map((url, attIdx) => {
+                    // Extract filename from URL path
+                    const fileName = url.split('/').pop() || 'Insurance Document';
+                    const cleanFileName = fileName.replace(/_\d+\.pdf$/, '.pdf');
+                    
+                    return (
+                        <Page key={`insurance-attachment-${index}-${attIdx}`} size="A4" style={styles.page}>
 
-            {/* Page 3: APPENDIX 1 SITE INSURANCE */}
-            <Page size="A4" style={styles.page}>
-                <PDFAppendixTitlePage
-                    appendixNumber="APPENDIX 1"
-                    title="SITE INSURANCE"
-                />
-                <PDFFooter />
-            </Page>
+                            <View style={{ marginBottom: 10, borderBottom: '1px solid #ccc', paddingBottom: 10 }}>
+                                <Text style={{ fontSize: 10, textAlign: 'center', marginTop: 5 }}>
+                                    Site: {ins.site_name} ({ins.standard_code}) - {ins.state}
+                                </Text>
+                                <Text style={{ fontSize: 10, textAlign: 'center' }}>
+                                    Insurance Duration: {ins.duration}
+                                </Text>
+                            </View>
+                            
+                            {/* Display filename */}
+                            <Text style={{ fontSize: 11, marginBottom: 10, textAlign: 'center' }}>
+                                {cleanFileName}
+                            </Text>
+                            
+                            {/* Display the attachment at full page */}
+                            <View style={{ 
+                                flex: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '100%',
+                                height: '75%', // Take most of the page
+                            }}>                                <Image 
+                                    src={url}
+                                    style={styles.fullPageImage}
+                                />
+                            </View>
+                            
+                            <PDFFooter />
+                        </Page>
+                    );
+                })
+            )}
 
             {/* Page 4: Audits */}
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.3 AUDITS" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        <Text>Total NADI{"\n"}{auditSites}</Text> // total NADI sites with audits
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                        {/* total NADI sites with audits */}
+                        <Text>Total NADI{"\n"}{auditSites}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
@@ -264,24 +331,25 @@ export const SiteManagementReportPDF = ({
                     <Text>No audit data available.</Text>
                 )}
                 <PDFFooter />
-            </Page>
-            {/* Page 5: APPENDIX 2 AUDIT */}
-            <Page size="A4" style={styles.page}>
-                <PDFAppendixTitlePage
-                    appendixNumber="APPENDIX 2"
-                    title="SITE AUDIT"
-                />
-                <PDFFooter />
-            </Page>
+            </Page>            {/* Page 5: APPENDIX for AUDIT - Only show if there are audit attachments */}
+            {hasAuditAttachments && (
+                <Page size="A4" style={styles.page}>
+                    <PDFAppendixTitlePage
+                        appendixNumber={`APPENDIX ${auditAppendixNumber}`}
+                        title="SITE AUDIT"
+                    />
+                    <PDFFooter />
+                </Page>
+            )}
 
             {/* Page 6: Agreements */}
             <Page size="A4" style={styles.page}>
 
                 <PDFSectionTitle title="2.5 AGREEMENTS" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        <Text>Total NADI{"\n"}{agreementSites}</Text> // total NADI sites with agreements
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                        {/* total NADI sites with agreements */}
+                        <Text>Total NADI{"\n"}{agreementSites}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
@@ -313,26 +381,28 @@ export const SiteManagementReportPDF = ({
                             header: "STATE",
                         },
                     ]}
-                />
-                ) : (
+                />                ) : (
                     <Text>No agreement data available.</Text>
-                )}                <PDFFooter />
-            </Page>            {/* Page 7: APPENDIX 3 AGREEMENT */}
-            <Page size="A4" style={styles.page}>
-                <PDFAppendixTitlePage
-                    appendixNumber="APPENDIX 3"
-                    title="SITE AGREEMENT"
-                />
+                )}
                 <PDFFooter />
-            </Page>
+            </Page>            {/* Page 7: APPENDIX for AGREEMENT - Only show if there are agreement attachments */}
+            {hasAgreementAttachments && (
+                <Page size="A4" style={styles.page}>
+                    <PDFAppendixTitlePage
+                        appendixNumber={`APPENDIX ${agreementAppendixNumber}`}
+                        title="SITE AGREEMENT"
+                    />
+                    <PDFFooter />
+                </Page>
+            )}
 
             {/* Page 8: Utilities */}
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        <Text>Total NADI{"\n"}{utilitySites}</Text> // total NADI sites with utilities
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                        {/* total NADI sites with utilities */}
+                        <Text>Total NADI{"\n"}{utilitySites}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
@@ -382,11 +452,12 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 9: Awareness Programmes */}
-            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.6 AWARENESS PROGRAMMES" />
+            <Page size="A4" style={styles.page}>
+                <PDFSectionTitle title="2.6 AWARENESS PROGRAMMES" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        <Text>Total NADI{"\n"}{programmeSites}</Text> // total NADI sites with awareness programmes
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                        {/* total NADI sites with awareness programmes */}
+                        <Text>Total NADI{"\n"}{programmeSites}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
@@ -429,16 +500,17 @@ export const SiteManagementReportPDF = ({
                 />
                 ) : (
                     <Text>No awareness programme data available.</Text>
-                )}
-                <PDFFooter />
-            </Page>            {/* Page 10: APPENDIX 4 AWARENESS PROGRAMMES */}
-            <Page size="A4" style={styles.page}>
-                <PDFAppendixTitlePage
-                    appendixNumber="APPENDIX 4"
-                    title={"AWARENESS & PROMOTION\nPROGRAMME REPORT"}
-                />
-                <PDFFooter />
-            </Page>
+                )}                <PDFFooter />
+            </Page>            {/* Page 10: APPENDIX for AWARENESS PROGRAMMES - Only show if there are programme attachments */}
+            {hasProgrammeAttachments && (
+                <Page size="A4" style={styles.page}>
+                    <PDFAppendixTitlePage
+                        appendixNumber={`APPENDIX ${programmeAppendixNumber}`}
+                        title={"AWARENESS & PROMOTION\nPROGRAMME REPORT"}
+                    />
+                    <PDFFooter />
+                </Page>
+            )}
         </Document>
     );
 };

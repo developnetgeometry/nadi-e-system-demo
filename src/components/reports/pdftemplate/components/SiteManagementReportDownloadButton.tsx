@@ -53,61 +53,29 @@ export const SiteManagementReportDownloadButton = ({
     yearFilter,
     tpFilter
   );
-
-  
-
-  // Map data for PDF (same as previously done in the page)
-  const mappedSites = pdfData.sites.map(site => ({
-    standard_code: site.standard_code || '',
-    name: site.sitename || '',
-    state: site.phase_name || '',
-  }));
-  const mappedUtilities = pdfData.utilities.map(utility => ({
-    site_id: utility.site_id,
-    site_name: utility.sitename || '',
-    state: '',
-    has_water: utility.type_name === 'Water',
-    has_electricity: utility.type_name === 'Electricity',
-    has_sewerage: utility.type_name === 'Sewerage',
-    type_name: utility.type_name,
-    amount_bill: utility.amount_bill,
-  }));
-  const mappedInsurance = pdfData.insurance.map(ins => ({
-    standard_code: ins.site_id || '',
-    site_name: ins.sitename || '',
-    state: '',
-    duration: ins.start_date && ins.end_date ?
-      `${new Date(ins.start_date).toLocaleDateString()} - ${new Date(ins.end_date).toLocaleDateString()}` :
-      'N/A',
-  }));
-  const mappedLocalAuthority = pdfData.localAuthority.map(la => ({
-    standard_code: la.site_id || '',
-    site_name: la.sitename || '',
-    state: '',
-  }));
-  const mappedAudits = pdfData.audits.map(audit => ({
-    standard_code: audit.site_id || '',
-    site_name: audit.sitename || '',
-    state: '',
-  }));
-  const mappedAgreements = pdfData.agreements.map(agreement => ({
-    standard_code: agreement.site_id || '',
-    site_name: agreement.sitename || '',
-    state: '',
-  }));
-  const mappedProgrammes = pdfData.awarenessPromotion.map(prog => ({
-    standard_code: prog.site_id || '',
-    site_name: prog.sitename || '',
-    state: '',
-    program_name: prog.programme_name || '',
-    program_date: prog.date || '',
-    status: prog.status || '',
-  }));
-  const fileName=`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`
-  const generateAndDownloadPDF = async () => {
+  const fileName = `site-management-report-${new Date().toISOString().split('T')[0]}.pdf`;  const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
     onGenerationStart?.();
     try {
+      // Check if data is still loading
+      if (pdfData.loading) {
+        console.warn("Data is still loading. Waiting for data to be available...");
+        // Wait a bit before continuing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // Debug data before PDF generation
+      console.log('PDF DATA CHECK:', {
+        sitesCount: pdfData.sites?.length || 0,
+        utilitiesCount: pdfData.utilities?.length || 0, 
+        insuranceCount: pdfData.insurance?.length || 0,
+        localAuthorityCount: pdfData.localAuthority?.length || 0,
+        auditsCount: pdfData.audits?.length || 0,
+        agreementsCount: pdfData.agreements?.length || 0,
+        programmeCount: pdfData.awarenessPromotion?.length || 0,
+        filters: { monthFilter, yearFilter, duspFilter, phaseFilter, nadiFilter, tpFilter }
+      });
+      
       const blob = await pdf(
         <SiteManagementReportPDF
           duspLabel={duspLabel}
@@ -116,13 +84,13 @@ export const SiteManagementReportDownloadButton = ({
           periodValue={periodValue}
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
-          sites={mappedSites}
-          utilities={mappedUtilities}
-          localAuthority={mappedLocalAuthority}
-          insurance={mappedInsurance}
-          audits={mappedAudits}
-          agreements={mappedAgreements}
-          programmes={mappedProgrammes}
+          sites={pdfData.sites || []}
+          utilities={pdfData.utilities || []}
+          localAuthority={pdfData.localAuthority || []}
+          insurance={pdfData.insurance || []}
+          audits={pdfData.audits || []}
+          agreements={pdfData.agreements || []}
+          programmes={pdfData.awarenessPromotion || []}
         />
       ).toBlob();
       const url = URL.createObjectURL(blob);
@@ -134,33 +102,58 @@ export const SiteManagementReportDownloadButton = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       setIsGenerating(false);
-      onGenerationComplete?.(true);
-    } catch (error) {
+      onGenerationComplete?.(true);    } catch (error) {
       console.error('Error generating PDF:', error);
+      
+      // Provide more detailed error info
+      if (error instanceof Error) {
+        console.error(`Error details: ${error.name}: ${error.message}`);
+        console.error('Stack trace:', error.stack);
+        
+        // Check common issues
+        if (error.message.includes('undefined')) {
+          console.error('Possible undefined data issue - check if all required data is loaded.');
+        }
+        if (error.message.includes('map') || error.message.includes('is not a function')) {
+          console.error('Possible invalid data structure - ensure arrays are properly initialized.');
+        }
+      }
+      
       setIsGenerating(false);
       onGenerationComplete?.(false);
     }
   };
+  // Show warning if data is missing
+  const hasMissingData = !pdfData.sites?.length || 
+    (!pdfData.utilities?.length && 
+     !pdfData.insurance?.length && 
+     !pdfData.localAuthority?.length &&
+     !pdfData.audits?.length &&
+     !pdfData.agreements?.length &&
+     !pdfData.awarenessPromotion?.length);
 
   return (
-    <Button
-      disabled={isGenerating}
-      variant="secondary"
-      className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-      onClick={generateAndDownloadPDF}
-    >
-      {isGenerating ? (
-        <>
-          <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          Downloading...
-        </>
-      ) : (
-        <>
-          <Download className="h-4 w-4 mr-2" />
-          Download
-        </>
-      )}
-    </Button>
+    <div className="flex flex-col items-end">
+      <Button
+        disabled={isGenerating}
+        variant="secondary"
+        className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+        onClick={generateAndDownloadPDF}
+        title={hasMissingData ? "Some data sections may be empty in the report" : "Download PDF report"}
+      >
+        {isGenerating ? (
+          <>
+            <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            Generating PDF...
+          </>
+        ) : (
+          <>
+            <Download className="h-4 w-4 mr-2" />
+            Download Report
+          </>
+        )}
+      </Button>
+    </div>
   );
 };
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useFormatDuration } from "@/hooks/use-format-duration";
 
 export interface SiteData {
   id: string;
@@ -38,6 +39,8 @@ export interface SiteInsuranceData {
   start_date: string | null;
   end_date: string | null;
   status: string;
+  duration?: string; // Formatted duration string
+  attachments?: string[]; // URLs to attachments
 }
 
 export interface SiteAuditData {
