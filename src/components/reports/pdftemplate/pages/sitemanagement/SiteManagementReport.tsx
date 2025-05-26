@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 12,
         width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
-    },/* Removed phaseInfoBox style in favor of using PDFPhaseQuarterInfo component */    
+    },/* Removed phaseInfoBox style in favor of using PDFPhaseQuarterInfo component */
     utilityCheckbox: {
         width: 12,
         height: 12,
@@ -117,9 +117,11 @@ type SiteManagementReportProps = {
     phaseLabel?: string;
     periodType?: string;
     periodValue?: string;
-    totalSites: number;
-    mcmcLogo: string; // base64 or url
-    duspLogo: string; // base64 or url
+
+    mcmcLogo: string; 
+    duspLogo: string; 
+
+    // Data arrays
     sites: Site[];
     utilities: Utility[];
     insurance: Insurance[];
@@ -135,7 +137,6 @@ export const SiteManagementReportPDF = ({
     phaseLabel,
     periodType,
     periodValue,
-    totalSites,
     mcmcLogo,
     duspLogo,
     sites,
@@ -168,7 +169,9 @@ export const SiteManagementReportPDF = ({
                     periodValue={periodValue}
                 />
 
-                {/* Section 2.1 Local Authority */}                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
+                {/* Section 2.1 Local Authority */}
+
+                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
 
                 <View style={styles.totalBox}>
                     <Text>Total NADI{"\n"}{localAuthoritySites}</Text> // total NADI sites have authority
@@ -186,17 +189,15 @@ export const SiteManagementReportPDF = ({
                             {
                                 key: "standard_code",
                                 header: "SITE CODE",
-                                width: "15%"
                             },
                             {
                                 key: "site_name",
                                 header: "NADI",
-                                width: "55%"
+
                             },
                             {
                                 key: "state",
                                 header: "STATE",
-                                width: "25%"
                             }
                         ]}
                     />
@@ -209,7 +210,7 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 2: Insurance */}
-            <Page size="A4" style={styles.page}>                
+            <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.2 INSURANCE" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
@@ -226,7 +227,7 @@ export const SiteManagementReportPDF = ({
                 </View>
 
                 {insurance.length > 0 ? (
-                    <PDFTable 
+                    <PDFTable
                         data={insurance}
                         columns={[
                             {
@@ -237,22 +238,18 @@ export const SiteManagementReportPDF = ({
                             {
                                 key: "standard_code",
                                 header: "SITE CODE",
-                                width: "15%"
                             },
                             {
                                 key: "site_name",
                                 header: "NADI",
-                                width: "40%"
                             },
                             {
                                 key: "state",
                                 header: "STATE",
-                                width: "15%"
                             },
                             {
                                 key: "duration",
                                 header: "DURATION",
-                                width: "25%"
                             },
                         ]}
                     />
@@ -273,7 +270,8 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 4: Audits */}
-            <Page size="A4" style={styles.page}>                <PDFSectionTitle title="2.3 AUDITS" />
+            <Page size="A4" style={styles.page}>
+                <PDFSectionTitle title="2.3 AUDITS" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
@@ -299,24 +297,23 @@ export const SiteManagementReportPDF = ({
                         {
                             key: "standard_code",
                             header: "SITE CODE",
-                            width: "15%"
                         },
                         {
                             key: "site_name",
                             header: "NADI",
-                            width: "30%"
                         },
                         {
                             key: "state",
                             header: "STATE",
-                            width: "15%"
                         },
                     ]}
                 />
                 ) : (
                     <Text>No audit data available.</Text>
-                )}                <PDFFooter />
-            </Page>            {/* Page 5: APPENDIX 2 AUDIT */}
+                )}
+                <PDFFooter />
+            </Page>
+            {/* Page 5: APPENDIX 2 AUDIT */}
             <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX 2"
@@ -354,17 +351,14 @@ export const SiteManagementReportPDF = ({
                         {
                             key: "standard_code",
                             header: "SITE CODE",
-                            width: "15%"
                         },
                         {
                             key: "site_name",
                             header: "NADI",
-                            width: "30%"
                         },
                         {
                             key: "state",
                             header: "STATE",
-                            width: "15%"
                         },
                     ]}
                 />
@@ -381,7 +375,7 @@ export const SiteManagementReportPDF = ({
             </Page>
 
             {/* Page 8: Utilities */}
-            <Page size="A4" style={styles.page}>                
+            <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
@@ -409,27 +403,22 @@ export const SiteManagementReportPDF = ({
                             {
                                 key: "site_name",
                                 header: "NADI",
-                                width: "50%"
                             },
                             {
                                 key: "state",
                                 header: "STATE",
-                                width: "15%"
                             },
                             {
                                 key: (row) => row.has_water ? "OK" : "",
                                 header: "WATER",
-                                width: "10%"
                             },
                             {
                                 key: (row) => row.has_electricity ? "OK" : "",
                                 header: "ELECTRICITY",
-                                width: "10%"
                             },
                             {
                                 key: (row) => row.has_sewerage ? "OK" : "",
                                 header: "SEWERAGE",
-                                width: "10%"
                             },
                         ]}
                     />
@@ -467,27 +456,22 @@ export const SiteManagementReportPDF = ({
                         {
                             key: "standard_code",
                             header: "STANDARD CODE",
-                            width: "15%"
                         },
                         {
                             key: "site_name",
                             header: "NADI",
-                            width: "30%"
                         },
                         {
                             key: "state",
                             header: "STATE",
-                            width: "15%"
                         },
                         {
                             key: "program_name",
                             header: "PROGRAMME NAME",
-                            width: "15%"
                         },
                         {
                             key: "program_date",
                             header: "DATE",
-                            width: "20%"
                         },
                     ]}
                 />

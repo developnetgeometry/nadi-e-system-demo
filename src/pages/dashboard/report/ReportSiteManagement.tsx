@@ -117,7 +117,7 @@ const ReportSiteManagement = () => {
               yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-              fileName={`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`}
+        
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />

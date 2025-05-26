@@ -31,9 +31,10 @@ export const SiteManagementReportDownloadButton = ({
   phaseLabel,
   periodType,
   periodValue,
+
   mcmcLogo,
   duspLogo,
-  fileName = 'site-management-report.pdf',
+
   monthFilter = null,
   yearFilter = null,
   duspFilter = [],
@@ -102,8 +103,7 @@ export const SiteManagementReportDownloadButton = ({
     status: prog.status || '',
   }));
 
-  const totalSites = pdfData.sites.length;
-
+  const fileName=`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`
   const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
     onGenerationStart?.();
@@ -114,7 +114,6 @@ export const SiteManagementReportDownloadButton = ({
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-          totalSites={totalSites}
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
           sites={mappedSites}
