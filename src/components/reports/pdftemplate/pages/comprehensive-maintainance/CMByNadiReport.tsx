@@ -23,7 +23,6 @@ import { MaintenanceData, SiteInfo, SupervisorInfo } from "@/hooks/report/use-cm
 interface CMByNadiReportPDFProps {
     // Report info
     duspLabel?: string;
-    phaseLabel?: string;
     periodType?: string;
     periodValue?: string;
 
@@ -65,7 +64,6 @@ const styles = StyleSheet.create({
 
 export const CMByNadiReportPDF = ({
     duspLabel = "",
-    phaseLabel = "",
     periodType = "All Time",
     periodValue = "All Records",
 

@@ -71,8 +71,10 @@ export const CMByNadiReportDownloadButton = ({
                     duspLabel={duspLabel}
                     periodType={periodType}
                     periodValue={periodValue}
+
                     mcmcLogo={mcmcLogo}
                     duspLogo={duspLogo}
+                    
                     monthFilter={monthFilter}
                     yearFilter={yearFilter}
 
