@@ -219,7 +219,7 @@ export const PDFSectionTitle = ({
       backgroundColor: "#000",
       color: "#fff",
       padding: 8,
-      fontSize: 12,
+      fontSize: 10,
       fontWeight: "bold",
       marginTop: 20,
       marginBottom: 10,
