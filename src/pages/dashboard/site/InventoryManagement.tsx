@@ -3,11 +3,11 @@ import { UsageHeader } from "@/components/site/usage/UsageHeader";
 import UsageDynamic from "@/components/site/usage/UsageDynamic";
 
 const InventoryManagement = () => {
-    return (
-        <DashboardLayout>
-            <p>Inventory page</p>
-        </DashboardLayout>
-    );
+  return (
+    <div>
+      <p>Inventory page</p>
+    </div>
+  );
 };
 
 export default InventoryManagement;

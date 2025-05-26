@@ -16,24 +16,24 @@ const ServiceInfo = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <div>
         <LoadingSpinner />
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <DashboardLayout>
+      <div>
         <ErrorMessage message="Failed to load service information" />
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="space-y-6">
+        <div className="space-y-1">
           <div>
             <h1 className="text-xl font-bold">Service Information</h1>
             <p className="text-muted-foreground mt-2">
@@ -42,14 +42,21 @@ const ServiceInfo = () => {
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             {services?.map((service) => (
-              <Card key={service.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={service.id}
+                className="hover:shadow-md transition-shadow"
+              >
                 <CardHeader>
                   <CardTitle>{service.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-muted-foreground">{service.description}</p>
-                    <p className="text-xl font-bold text-primary">{service.price}</p>
+                    <p className="text-muted-foreground">
+                      {service.description}
+                    </p>
+                    <p className="text-xl font-bold text-primary">
+                      {service.price}
+                    </p>
                     <div>
                       <h4 className="font-medium mb-2">Features:</h4>
                       <ul className="list-disc list-inside space-y-1">
@@ -67,7 +74,7 @@ const ServiceInfo = () => {
           </div>
         </div>
       </ErrorBoundary>
-    </DashboardLayout>
+    </div>
   );
 };
 

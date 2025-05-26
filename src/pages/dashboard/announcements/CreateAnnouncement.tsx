@@ -184,15 +184,15 @@ export default function CreateAnnouncement() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-6">
+    <div>
+      <div className="space-y-1 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Create New Announcement</h1>
         </div>
 
         <div className="max-w-2xl">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
               <FormField
                 control={form.control}
                 name="title"
@@ -317,6 +317,6 @@ export default function CreateAnnouncement() {
           </Form>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

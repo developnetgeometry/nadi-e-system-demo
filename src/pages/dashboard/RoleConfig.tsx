@@ -78,16 +78,16 @@ const RoleConfig = () => {
 
   if (error) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="p-4 text-red-500">
           Error loading role. Please try again later.
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       {isLoading ? (
         <div className="flex items-center justify-center p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -95,7 +95,7 @@ const RoleConfig = () => {
       ) : role ? (
         <div>
           <h1 className="text-3xl font-bold mb-8">Role Configuration</h1>
-          <div className="space-y-6">
+          <div className="space-y-1">
             <div>
               <h2 className="text-xl font-semibold">Role Details</h2>
               <div className="mt-4 space-y-4">
@@ -130,7 +130,7 @@ const RoleConfig = () => {
           </div>
         </div>
       ) : null}
-    </DashboardLayout>
+    </div>
   );
 };
 

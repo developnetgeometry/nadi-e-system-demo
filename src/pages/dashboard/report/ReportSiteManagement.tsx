@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
@@ -12,7 +12,7 @@ import {
   AgreementCard,
   UtilitiesCard,
   LocalAuthorityCard,
-  AwarenessProgrammeCard
+  AwarenessProgrammeCard,
 } from "@/components/reports/component/sitemanagement";
 
 // Define month options
@@ -42,7 +42,8 @@ const yearOptions = [
 
 // TP options will be fetched from the useReportFilters hook
 
-const ReportSiteManagement = () => {  // Filter states
+const ReportSiteManagement = () => {
+  // Filter states
   const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [nadiFilter, setNadiFilter] = useState<(string | number)[]>([]);
@@ -51,8 +52,14 @@ const ReportSiteManagement = () => {  // Filter states
   const [yearFilter, setYearFilter] = useState<string | number | null>(null); // Default to null instead of current year
 
   // PDF generation states
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);  // Fetch filter options from API
-  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();// Fetch site management data based on filters
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false); // Fetch filter options from API
+  const {
+    phases,
+    dusps,
+    nadiSites,
+    tpProviders,
+    loading: filtersLoading,
+  } = useReportFilters(); // Fetch site management data based on filters
   const {
     sites,
     utilities,
@@ -60,14 +67,24 @@ const ReportSiteManagement = () => {  // Filter states
     localAuthority,
     audits,
     agreements,
-    loading: dataLoading
-  } = useSiteManagementData(duspFilter, phaseFilter, nadiFilter, monthFilter, yearFilter, tpFilter);
+    loading: dataLoading,
+  } = useSiteManagementData(
+    duspFilter,
+    phaseFilter,
+    nadiFilter,
+    monthFilter,
+    yearFilter,
+    tpFilter
+  );
 
   // Calculate utilities summary from the utilities data we already have
   const utilitiesSummary = useMemo(() => {
     // Calculate totals
     const totalCount = utilities.length;
-    const totalAmount = utilities.reduce((sum, u) => sum + (u.amount_bill || 0), 0);
+    const totalAmount = utilities.reduce(
+      (sum, u) => sum + (u.amount_bill || 0),
+      0
+    );
 
     // Group utilities by type
     const typeGroups = utilities.reduce((groups, utility) => {
@@ -76,7 +93,7 @@ const ReportSiteManagement = () => {  // Filter states
         groups[type] = {
           type,
           count: 0,
-          amount: 0
+          amount: 0,
         };
       }
       groups[type].count += 1;
@@ -87,14 +104,18 @@ const ReportSiteManagement = () => {  // Filter states
     return {
       totalCount,
       totalAmount,
-      byType: Object.values(typeGroups)
+      byType: Object.values(typeGroups),
     };
   }, [utilities]);
 
   // Calculate stats for cards
-  const activeInsurance = insurance.filter(i => i.status === 'Active').length;
-  const expiringInsurance = insurance.filter(i => i.status === 'Expiring Soon').length;
-  const expiredInsurance = insurance.filter(i => i.status === 'Expired').length;
+  const activeInsurance = insurance.filter((i) => i.status === "Active").length;
+  const expiringInsurance = insurance.filter(
+    (i) => i.status === "Expiring Soon"
+  ).length;
+  const expiredInsurance = insurance.filter(
+    (i) => i.status === "Expired"
+  ).length;
 
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
@@ -118,24 +139,36 @@ const ReportSiteManagement = () => {  // Filter states
   const dataStableLoading = useStableLoading(dataLoading);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Site Management Report</h1>
-            <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze site management data across all NADI sites
+            </p>
           </div>
-          <div className="flex items-center gap-2">            
+          <div className="flex items-center gap-2">
             <SiteManagementReportDownloadButton
-              duspLabel={duspFilter.length === 1
-                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
-                : duspFilter.length > 1
+              duspLabel={
+                duspFilter.length === 1
+                  ? dusps.find((d) => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
                   ? `${duspFilter.length} DUSPs selected`
-                  : ""} phaseLabel={phaseFilter !== null
-                    ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
-                    : "All Phases"}
+                  : ""
+              }
+              phaseLabel={
+                phaseFilter !== null
+                  ? phases.find((p) => p.id === phaseFilter)?.name ||
+                    "All Phases"
+                  : "All Phases"
+              }
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+              periodValue={
+                monthFilter
+                  ? `${monthFilter || ""} / ${yearFilter || ""}`
+                  : "All Records"
+              }
               monthFilter={monthFilter}
               yearFilter={yearFilter}
               duspFilter={duspFilter}
@@ -144,58 +177,66 @@ const ReportSiteManagement = () => {  // Filter states
               totalSites={sites.length}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-              sites={sites.map(site => ({
-                standard_code: site.standard_code || '',
-                name: site.sitename || '',
-                state: site.phase_name || '',
+              sites={sites.map((site) => ({
+                standard_code: site.standard_code || "",
+                name: site.sitename || "",
+                state: site.phase_name || "",
               }))}
-              utilities={utilities.map(utility => ({
+              utilities={utilities.map((utility) => ({
                 site_id: utility.site_id,
-                site_name: utility.sitename || '',
-                state: '',
-                has_water: utility.type_name === 'Water',
-                has_electricity: utility.type_name === 'Electricity',
-                has_sewerage: utility.type_name === 'Sewerage',
+                site_name: utility.sitename || "",
+                state: "",
+                has_water: utility.type_name === "Water",
+                has_electricity: utility.type_name === "Electricity",
+                has_sewerage: utility.type_name === "Sewerage",
               }))}
-              insurance={insurance.map(ins => ({
-                standard_code: ins.site_id || '',
-                site_name: ins.sitename || '',
-                state: '',
-                duration: ins.start_date && ins.end_date ?
-                  `${new Date(ins.start_date).toLocaleDateString()} - ${new Date(ins.end_date).toLocaleDateString()}` :
-                  'N/A',
+              insurance={insurance.map((ins) => ({
+                standard_code: ins.site_id || "",
+                site_name: ins.sitename || "",
+                state: "",
+                duration:
+                  ins.start_date && ins.end_date
+                    ? `${new Date(
+                        ins.start_date
+                      ).toLocaleDateString()} - ${new Date(
+                        ins.end_date
+                      ).toLocaleDateString()}`
+                    : "N/A",
               }))}
-              localAuthority={localAuthority.map(la => ({
-                standard_code: la.site_id || '',
-                site_name: la.sitename || '',
-                state: '',
+              localAuthority={localAuthority.map((la) => ({
+                standard_code: la.site_id || "",
+                site_name: la.sitename || "",
+                state: "",
               }))}
-              audits={audits.map(audit => ({
-                standard_code: audit.site_id || '',
-                site_name: audit.sitename || '',
-                state: '',
+              audits={audits.map((audit) => ({
+                standard_code: audit.site_id || "",
+                site_name: audit.sitename || "",
+                state: "",
               }))}
-              agreements={agreements.map(agreement => ({
-                standard_code: agreement.site_id || '',
-                site_name: agreement.sitename || '',
-                state: '',
+              agreements={agreements.map((agreement) => ({
+                standard_code: agreement.site_id || "",
+                site_name: agreement.sitename || "",
+                state: "",
               }))}
               programmes={[]}
-              fileName={`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`}
+              fileName={`site-management-report-${
+                new Date().toISOString().split("T")[0]
+              }.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>        {/* Filters */}        <ModularReportFilters
+        </div>{" "}
+        {/* Filters */}{" "}
+        <ModularReportFilters
           // Show all filters for site management report
           showFilters={{
             dusp: true,
             phase: true,
             nadi: true,
             tp: true,
-            date: true
+            date: true,
           }}
-
           // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
@@ -208,30 +249,30 @@ const ReportSiteManagement = () => {  // Filter states
           monthFilter={monthFilter}
           setMonthFilter={setMonthFilter}
           yearFilter={yearFilter}
-          setYearFilter={setYearFilter}          // Filter data
+          setYearFilter={setYearFilter} // Filter data
           dusps={dusps}
           phases={phases}
           nadiSites={nadiSites}
           tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
-
           // Loading state
           isLoading={filtersLoading}
         />
-
         {/* Statistics Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <LocalAuthorityCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            laRecordSiteCount={new Set(localAuthority.map(la => la.site_id)).size}
+            laRecordSiteCount={
+              new Set(localAuthority.map((la) => la.site_id)).size
+            }
           />
 
           <InsuranceCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            insuredSiteCount={new Set(insurance.map(i => i.site_id)).size}
+            insuredSiteCount={new Set(insurance.map((i) => i.site_id)).size}
             activeCount={activeInsurance}
             expiringCount={expiringInsurance}
             expiredCount={expiredInsurance}
@@ -240,22 +281,22 @@ const ReportSiteManagement = () => {  // Filter states
           <AuditCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            auditedSiteCount={new Set(audits.map(a => a.site_id)).size}
+            auditedSiteCount={new Set(audits.map((a) => a.site_id)).size}
           />
 
           <AgreementCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            agreementSiteCount={new Set(agreements.map(a => a.site_id)).size}
+            agreementSiteCount={new Set(agreements.map((a) => a.site_id)).size}
           />
 
           <UtilitiesCard
             loading={dataStableLoading}
             siteCount={sites.length}
-            utilitySiteCount={new Set(utilities.map(u => u.site_id)).size}
+            utilitySiteCount={new Set(utilities.map((u) => u.site_id)).size}
             totalBills={utilitiesSummary.totalCount}
             totalAmount={utilitiesSummary.totalAmount}
-            utilityTypes={(utilitiesSummary.byType as any[]).map(t => t.type)}
+            utilityTypes={(utilitiesSummary.byType as any[]).map((t) => t.type)}
           />
 
           <AwarenessProgrammeCard
@@ -268,7 +309,7 @@ const ReportSiteManagement = () => {  // Filter states
           />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

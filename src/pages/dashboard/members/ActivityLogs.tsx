@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useMemberActivity } from "@/components/activity/hooks/useMemberActivity";
 import { MemberActivityHeader } from "@/components/activity/MemberActivityHeader";
@@ -15,21 +14,21 @@ const ActivityLogs = () => {
     sessions,
     isLoadingLogs,
     isLoadingSessions,
-    handleRefresh
+    handleRefresh,
   } = useMemberActivity();
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-8">
-        <MemberActivityHeader 
+    <div>
+      <div className="space-y-1">
+        <MemberActivityHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           onRefresh={handleRefresh}
           logs={logs}
         />
-        
+
         <div className="mt-6">
-          <MemberActivityTabs 
+          <MemberActivityTabs
             logs={logs}
             sessions={sessions}
             isLoadingLogs={isLoadingLogs}
@@ -39,7 +38,7 @@ const ActivityLogs = () => {
           />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

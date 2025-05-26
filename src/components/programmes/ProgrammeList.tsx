@@ -1,11 +1,22 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Calendar, MapPin, Users, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState } from "react";
 import { ProgrammeForm } from "./ProgrammeForm";
 
@@ -24,9 +35,15 @@ export const ProgrammeList = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProgramme, setSelectedProgramme] = useState<Programme | undefined>();
+  const [selectedProgramme, setSelectedProgramme] = useState<
+    Programme | undefined
+  >();
 
-  const { data: programmes, isLoading, error } = useQuery({
+  const {
+    data: programmes,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["programmes"],
     queryFn: async () => {
       console.log("Fetching programmes...");
@@ -39,7 +56,7 @@ export const ProgrammeList = () => {
         console.error("Error fetching programmes:", error);
         throw error;
       }
-      
+
       console.log("Fetched programmes:", data);
       return data as Programme[];
     },
@@ -107,7 +124,10 @@ export const ProgrammeList = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {programmes?.map((programme) => (
-            <Card key={programme.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={programme.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{programme.title}</CardTitle>

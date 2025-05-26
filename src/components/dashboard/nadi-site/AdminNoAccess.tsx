@@ -16,7 +16,7 @@ const AdminNoAccess = () => {
     }, [navigate]);
 
     return (
-        <DashboardLayout>
+        <div>
             <div className="min-h-[calc(100vh-10rem)] flex flex-col items-center justify-center bg-background p-8 text-center">
                 <Container>
                     <XOctagon className="w-16 h-16 text-red-600 mb-4 mx-auto" />
@@ -28,7 +28,7 @@ const AdminNoAccess = () => {
                     </p>
                 </Container>
             </div>
-        </DashboardLayout>
+        </div>
     );
 };
 

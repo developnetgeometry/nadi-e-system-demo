@@ -12,6 +12,10 @@ export const handleCreateUser = async (data: UserFormData): Promise<any> => {
     // First, create the user account
     const { data: userData, error: createError } =
       await supabase.functions.invoke("create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: {
           email: data.email,
           fullName: data.full_name,

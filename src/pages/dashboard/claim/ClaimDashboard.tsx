@@ -22,9 +22,9 @@ const ClaimDashboard = () => {
 
   if (userType === "super_admin") {
     return (
-      <DashboardLayout>
+      <div>
         <McmcClaimDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -32,39 +32,35 @@ const ClaimDashboard = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>);
+      </div>
+    );
   }
-
-
 
   if (userGroup === 2) {
     return (
-      <DashboardLayout>
+      <div>
         <McmcClaimDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 1) {
     return (
-      <DashboardLayout>
+      <div>
         <DuspClaimDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
-
 
   if (userGroup === 3) {
     return (
-      <DashboardLayout>
+      <div>
         <TpClaimDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
 
-  return (
-    <NoAccess />
-  );
+  return <NoAccess />;
 };
 
 export default ClaimDashboard;

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { usePermissions } from "@/hooks/use-permissions";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { SettingsHeader } from "@/components/settings/SettingsHeader";
@@ -54,19 +53,19 @@ const Settings = () => {
   // Allow access if user is either super_admin or has manage_settings permission
   if (!isSuperAdmin && !canManageSettings) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-700">
             You don't have permission to access system settings
           </h2>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl">
+    <div>
+      <div className="space-y-1 ">
         <SettingsHeader />
 
         <div className="flex items-center justify-end mb-6 gap-4">
@@ -83,7 +82,7 @@ const Settings = () => {
           <SystemSettings />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

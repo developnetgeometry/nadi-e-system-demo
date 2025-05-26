@@ -12,9 +12,9 @@ const MemberPersonalDetails = () => {
   }
 
   return (
-    <DashboardLayout>
-      <MemberProfileSettings/>
-    </DashboardLayout>
+    <div>
+      <MemberProfileSettings />
+    </div>
   );
 };
 

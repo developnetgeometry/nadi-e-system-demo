@@ -1,19 +1,49 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Filter, RotateCcw, Building, Calendar, Download, Upload, ChevronsUpDown, Check, Users, CalendarDays, BookOpen } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  X,
+  Filter,
+  RotateCcw,
+  Building,
+  Calendar,
+  Download,
+  Upload,
+  ChevronsUpDown,
+  Check,
+  Users,
+  CalendarDays,
+  BookOpen,
+} from "lucide-react";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Line,
+  ComposedChart,
+} from "recharts";
 import {
   Table,
   TableBody,
@@ -86,29 +116,79 @@ const yearOptions = [
 
 // Dummy data for programs and participants by category
 const programsAndParticipantsData = [
-  { category: 'Entrepreneur', programs: 7, participants: 176, nadiInvolved: 43 },
-  { category: 'Lifelong Learning', programs: 5, participants: 74, nadiInvolved: 17 },
-  { category: 'Wellbeing', programs: 18, participants: 146, nadiInvolved: 41 },
-  { category: 'Awareness', programs: 11, participants: 84, nadiInvolved: 30 },
-  { category: 'Govt Initiative', programs: 7, participants: 144, nadiInvolved: 41 },
+  {
+    category: "Entrepreneur",
+    programs: 7,
+    participants: 176,
+    nadiInvolved: 43,
+  },
+  {
+    category: "Lifelong Learning",
+    programs: 5,
+    participants: 74,
+    nadiInvolved: 17,
+  },
+  { category: "Wellbeing", programs: 18, participants: 146, nadiInvolved: 41 },
+  { category: "Awareness", programs: 11, participants: 84, nadiInvolved: 30 },
+  {
+    category: "Govt Initiative",
+    programs: 7,
+    participants: 144,
+    nadiInvolved: 41,
+  },
 ];
 
 // Dummy data for programs and participants
 const singleNadiData = [
-  { category: 'Entrepreneur', programs: 6, participants: 94 },
-  { category: 'Lifelong Learning', programs: 8, participants: 31 },
-  { category: 'Wellbeing', programs: 6, participants: 61 },
-  { category: 'Awareness', programs: 3, participants: 76 },
-  { category: 'Govt Initiative', programs: 9, participants: 57 },
+  { category: "Entrepreneur", programs: 6, participants: 94 },
+  { category: "Lifelong Learning", programs: 8, participants: 31 },
+  { category: "Wellbeing", programs: 6, participants: 61 },
+  { category: "Awareness", programs: 3, participants: 76 },
+  { category: "Govt Initiative", programs: 9, participants: 57 },
 ];
 
 // Dummy data for program table
 const programTableData = [
-  { id: 1, name: 'Entrepreneur Workshop Series 1', date: '15 Apr 2025', channel: 'In-person Workshop', format: 'Physical', participants: 35 },
-  { id: 2, name: 'Digital Skills Development', date: '20 Apr 2025', channel: 'Online Course', format: 'Online', participants: 57 },
-  { id: 3, name: 'Community Business Forum', date: '28 Apr 2025', channel: 'Seminar', format: 'Physical', participants: 42 },
-  { id: 4, name: 'Youth Leadership Program', date: '05 May 2025', channel: 'Hybrid Workshop', format: 'Hybrid', participants: 28 },
-  { id: 5, name: 'Financial Literacy Webinar', date: '12 May 2025', channel: 'Webinar', format: 'Online', participants: 63 },
+  {
+    id: 1,
+    name: "Entrepreneur Workshop Series 1",
+    date: "15 Apr 2025",
+    channel: "In-person Workshop",
+    format: "Physical",
+    participants: 35,
+  },
+  {
+    id: 2,
+    name: "Digital Skills Development",
+    date: "20 Apr 2025",
+    channel: "Online Course",
+    format: "Online",
+    participants: 57,
+  },
+  {
+    id: 3,
+    name: "Community Business Forum",
+    date: "28 Apr 2025",
+    channel: "Seminar",
+    format: "Physical",
+    participants: 42,
+  },
+  {
+    id: 4,
+    name: "Youth Leadership Program",
+    date: "05 May 2025",
+    channel: "Hybrid Workshop",
+    format: "Hybrid",
+    participants: 28,
+  },
+  {
+    id: 5,
+    name: "Financial Literacy Webinar",
+    date: "12 May 2025",
+    channel: "Webinar",
+    format: "Online",
+    participants: 63,
+  },
 ];
 
 const ReportSmartService = () => {
@@ -117,32 +197,40 @@ const ReportSmartService = () => {
   const [duspFilter, setDuspFilter] = useState<string | number | null>(null);
   const [nadiFilter, setNadiFilter] = useState<string | number | null>(null);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
-  const [pillarFilter, setPillarFilter] = useState<string | number | null>(null);
-  const [programFilter, setProgramFilter] = useState<string | number | null>(null);
+  const [pillarFilter, setPillarFilter] = useState<string | number | null>(
+    null
+  );
+  const [programFilter, setProgramFilter] = useState<string | number | null>(
+    null
+  );
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>("2025"); // Default to current year
 
   // Calculate totals
-  const totalPrograms = programsAndParticipantsData.reduce((sum, item) => sum + item.programs, 0);
-  const totalParticipants = programsAndParticipantsData.reduce((sum, item) => sum + item.participants, 0);
+  const totalPrograms = programsAndParticipantsData.reduce(
+    (sum, item) => sum + item.programs,
+    0
+  );
+  const totalParticipants = programsAndParticipantsData.reduce(
+    (sum, item) => sum + item.participants,
+    0
+  );
 
-  const hasActiveFiltersPhase = 
-    duspFilter !== null || 
-    phaseFilter !== null || 
-    monthFilter !== null || 
+  const hasActiveFiltersPhase =
+    duspFilter !== null ||
+    phaseFilter !== null ||
+    monthFilter !== null ||
     yearFilter !== "2025";
 
-  const hasActiveFiltersPillar = 
-    nadiFilter !== null || 
-    pillarFilter !== null || 
-    programFilter !== null || 
-    monthFilter !== null || 
+  const hasActiveFiltersPillar =
+    nadiFilter !== null ||
+    pillarFilter !== null ||
+    programFilter !== null ||
+    monthFilter !== null ||
     yearFilter !== "2025";
-    
-  const hasActiveFiltersMonth = 
-    nadiFilter !== null || 
-    monthFilter !== null || 
-    yearFilter !== "2025";
+
+  const hasActiveFiltersMonth =
+    nadiFilter !== null || monthFilter !== null || yearFilter !== "2025";
 
   const resetFilters = () => {
     setDuspFilter(null);
@@ -155,32 +243,42 @@ const ReportSmartService = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Smart Services</h1>
-            <p className="text-gray-500 mt-1">View and analyze smart service programs and participation data</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze smart service programs and participation data
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload Excel
             </Button> */}
-            <Button variant="secondary" className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+            >
               <Download className="h-4 w-4" />
               Download
             </Button>
           </div>
         </div>
 
-        <Tabs defaultValue="phase" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          defaultValue="phase"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
           <TabsList className="grid w-[550px] grid-cols-3">
             <TabsTrigger value="phase">By Phase</TabsTrigger>
             <TabsTrigger value="pillar">Pillar by Programme</TabsTrigger>
             <TabsTrigger value="month">By Month</TabsTrigger>
           </TabsList>
-          
+
           {/* By Phase Tab */}
           <TabsContent value="phase" className="mt-4">
             {/* Filters Row for Phase tab */}
@@ -208,13 +306,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setDuspFilter(option.id === duspFilter ? null : option.id);
+                              setDuspFilter(
+                                option.id === duspFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                duspFilter === option.id ? "opacity-100" : "opacity-0"
+                                duspFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -249,13 +351,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setPhaseFilter(option.id === phaseFilter ? null : option.id);
+                              setPhaseFilter(
+                                option.id === phaseFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                phaseFilter === option.id ? "opacity-100" : "opacity-0"
+                                phaseFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -290,13 +396,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setMonthFilter(option.id === monthFilter ? null : option.id);
+                              setMonthFilter(
+                                option.id === monthFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                monthFilter === option.id ? "opacity-100" : "opacity-0"
+                                monthFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -331,13 +441,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setYearFilter(option.id === yearFilter ? null : option.id);
+                              setYearFilter(
+                                option.id === yearFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                yearFilter === option.id ? "opacity-100" : "opacity-0"
+                                yearFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -348,27 +462,39 @@ const ReportSmartService = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Spacer */}
               <div className="flex-1"></div>
-              
+
               {/* Reset Button */}
-              <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Reset Filters
               </Button>
             </div>
-            
+
             {/* Active Filters */}
             {hasActiveFiltersPhase && (
               <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100 mb-6">
                 <div className="mr-1 flex items-center">
                   <Filter className="h-4 w-4 text-slate-500 mr-1" />
-                  <span className="text-sm font-medium text-slate-500">Active filters:</span>
+                  <span className="text-sm font-medium text-slate-500">
+                    Active filters:
+                  </span>
                 </div>
                 {duspFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>DUSP: {duspOptions.find(d => d.id === duspFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      DUSP:{" "}
+                      {duspOptions.find((d) => d.id === duspFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setDuspFilter(null)}
@@ -376,8 +502,14 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {phaseFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Phase: {phaseOptions.find(p => p.id === phaseFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Phase:{" "}
+                      {phaseOptions.find((p) => p.id === phaseFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setPhaseFilter(null)}
@@ -385,8 +517,14 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {monthFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Month: {monthOptions.find(m => m.id === monthFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Month:{" "}
+                      {monthOptions.find((m) => m.id === monthFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setMonthFilter(null)}
@@ -394,7 +532,10 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {yearFilter !== "2025" && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
                     <span>Year: {yearFilter}</span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
@@ -409,7 +550,9 @@ const ReportSmartService = () => {
             <div className="w-full">
               <Card className="shadow-sm border border-gray-200 overflow-hidden">
                 <CardHeader className="p-4 bg-white border-b">
-                  <CardTitle className="text-lg font-medium text-gray-800">Programs and Participants with NADI Involvement</CardTitle>
+                  <CardTitle className="text-lg font-medium text-gray-800">
+                    Programs and Participants with NADI Involvement
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 bg-white">
                   <ResponsiveContainer width="100%" height={400}>
@@ -428,16 +571,34 @@ const ReportSmartService = () => {
                       <YAxis yAxisId="right" orientation="right" />
                       <Tooltip />
                       <Legend />
-                      <Bar yAxisId="left" dataKey="programs" name="Number of Programs" fill="#4f46e5" />
-                      <Bar yAxisId="left" dataKey="participants" name="Number of Participants" fill="#ef4444" />
-                      <Line yAxisId="right" type="monotone" dataKey="nadiInvolved" name="Total NADI Involved" stroke="#10b981" strokeWidth={2} activeDot={{ r: 8 }} />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="programs"
+                        name="Number of Programs"
+                        fill="#4f46e5"
+                      />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="participants"
+                        name="Number of Participants"
+                        fill="#ef4444"
+                      />
+                      <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="nadiInvolved"
+                        name="Total NADI Involved"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        activeDot={{ r: 8 }}
+                      />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
-          
+
           {/* By Pillar & Programme Tab */}
           <TabsContent value="pillar" className="mt-4">
             {/* Filters Row for Pillar & Programme tab */}
@@ -465,13 +626,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setNadiFilter(option.id === nadiFilter ? null : option.id);
+                              setNadiFilter(
+                                option.id === nadiFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                nadiFilter === option.id ? "opacity-100" : "opacity-0"
+                                nadiFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -506,13 +671,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setPillarFilter(option.id === pillarFilter ? null : option.id);
+                              setPillarFilter(
+                                option.id === pillarFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                pillarFilter === option.id ? "opacity-100" : "opacity-0"
+                                pillarFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -523,7 +692,7 @@ const ReportSmartService = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Program Filter */}
               <Popover>
                 <PopoverTrigger asChild>
@@ -547,13 +716,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setProgramFilter(option.id === programFilter ? null : option.id);
+                              setProgramFilter(
+                                option.id === programFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                programFilter === option.id ? "opacity-100" : "opacity-0"
+                                programFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -588,13 +761,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setMonthFilter(option.id === monthFilter ? null : option.id);
+                              setMonthFilter(
+                                option.id === monthFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                monthFilter === option.id ? "opacity-100" : "opacity-0"
+                                monthFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -629,13 +806,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setYearFilter(option.id === yearFilter ? null : option.id);
+                              setYearFilter(
+                                option.id === yearFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                yearFilter === option.id ? "opacity-100" : "opacity-0"
+                                yearFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -646,12 +827,16 @@ const ReportSmartService = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Spacer */}
               <div className="flex-1"></div>
-              
+
               {/* Reset Button */}
-              <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Reset Filters
               </Button>
@@ -662,11 +847,19 @@ const ReportSmartService = () => {
               <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100 mb-6">
                 <div className="mr-1 flex items-center">
                   <Filter className="h-4 w-4 text-slate-500 mr-1" />
-                  <span className="text-sm font-medium text-slate-500">Active filters:</span>
+                  <span className="text-sm font-medium text-slate-500">
+                    Active filters:
+                  </span>
                 </div>
                 {nadiFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>NADI: {nadiOptions.find(n => n.id === nadiFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      NADI:{" "}
+                      {nadiOptions.find((n) => n.id === nadiFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setNadiFilter(null)}
@@ -674,8 +867,14 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {pillarFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Pillar: {pillarOptions.find(p => p.id === pillarFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Pillar:{" "}
+                      {pillarOptions.find((p) => p.id === pillarFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setPillarFilter(null)}
@@ -683,8 +882,17 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {programFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Program: {programOptions.find(p => p.id === programFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Program:{" "}
+                      {
+                        programOptions.find((p) => p.id === programFilter)
+                          ?.label
+                      }
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setProgramFilter(null)}
@@ -692,8 +900,14 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {monthFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Month: {monthOptions.find(m => m.id === monthFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Month:{" "}
+                      {monthOptions.find((m) => m.id === monthFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setMonthFilter(null)}
@@ -701,7 +915,10 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {yearFilter !== "2025" && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
                     <span>Year: {yearFilter}</span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
@@ -711,20 +928,26 @@ const ReportSmartService = () => {
                 )}
               </div>
             )}
-            
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <Card className="shadow-sm border border-gray-200 overflow-hidden">
                 <CardHeader className="p-4 bg-white border-b">
-                  <CardTitle className="text-lg font-medium text-gray-800">Number of Program</CardTitle>
+                  <CardTitle className="text-lg font-medium text-gray-800">
+                    Number of Program
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 bg-white">
                   <div className="flex flex-col items-center">
                     <div className="p-2 rounded-full bg-indigo-50 mb-1">
                       <CalendarDays className="h-6 w-6 text-indigo-500" />
                     </div>
-                    <div className="text-3xl font-bold text-gray-800 mt-1">48</div>
-                    <div className="text-gray-600 text-sm">Total active programs</div>
+                    <div className="text-3xl font-bold text-gray-800 mt-1">
+                      48
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Total active programs
+                    </div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-100 w-full">
                     <div className="grid grid-cols-3 gap-1 text-sm">
@@ -744,18 +967,24 @@ const ReportSmartService = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="shadow-sm border border-gray-200 overflow-hidden">
                 <CardHeader className="p-4 bg-white border-b">
-                  <CardTitle className="text-lg font-medium text-gray-800">Number of Participants</CardTitle>
+                  <CardTitle className="text-lg font-medium text-gray-800">
+                    Number of Participants
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 bg-white">
                   <div className="flex flex-col items-center">
                     <div className="p-2 rounded-full bg-purple-50 mb-1">
                       <Users className="h-6 w-6 text-purple-500" />
                     </div>
-                    <div className="text-3xl font-bold text-gray-800 mt-1">624</div>
-                    <div className="text-gray-600 text-sm">Total program participants</div>
+                    <div className="text-3xl font-bold text-gray-800 mt-1">
+                      624
+                    </div>
+                    <div className="text-gray-600 text-sm">
+                      Total program participants
+                    </div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-gray-100 w-full">
                     <div className="flex justify-between text-sm">
@@ -777,7 +1006,9 @@ const ReportSmartService = () => {
             {/* Program Table */}
             <Card className="shadow-sm border border-gray-200 overflow-hidden">
               <CardHeader className="p-4 bg-white border-b">
-                <CardTitle className="text-lg font-medium text-gray-800">Program Details</CardTitle>
+                <CardTitle className="text-lg font-medium text-gray-800">
+                  Program Details
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-0 bg-white">
                 <Table>
@@ -795,7 +1026,9 @@ const ReportSmartService = () => {
                     {programTableData.map((program) => (
                       <TableRow key={program.id}>
                         <TableCell>{program.id}</TableCell>
-                        <TableCell className="font-medium">{program.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {program.name}
+                        </TableCell>
                         <TableCell>{program.date}</TableCell>
                         <TableCell>{program.channel}</TableCell>
                         <TableCell>{program.format}</TableCell>
@@ -835,13 +1068,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setNadiFilter(option.id === nadiFilter ? null : option.id);
+                              setNadiFilter(
+                                option.id === nadiFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                nadiFilter === option.id ? "opacity-100" : "opacity-0"
+                                nadiFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -876,13 +1113,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setMonthFilter(option.id === monthFilter ? null : option.id);
+                              setMonthFilter(
+                                option.id === monthFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                monthFilter === option.id ? "opacity-100" : "opacity-0"
+                                monthFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -917,13 +1158,17 @@ const ReportSmartService = () => {
                             key={option.id}
                             value={option.label}
                             onSelect={() => {
-                              setYearFilter(option.id === yearFilter ? null : option.id);
+                              setYearFilter(
+                                option.id === yearFilter ? null : option.id
+                              );
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                yearFilter === option.id ? "opacity-100" : "opacity-0"
+                                yearFilter === option.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {option.label}
@@ -934,12 +1179,16 @@ const ReportSmartService = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              
+
               {/* Spacer */}
               <div className="flex-1"></div>
-              
+
               {/* Reset Button */}
-              <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+              <Button
+                variant="outline"
+                onClick={resetFilters}
+                className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Reset Filters
               </Button>
@@ -950,11 +1199,19 @@ const ReportSmartService = () => {
               <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100 mb-6">
                 <div className="mr-1 flex items-center">
                   <Filter className="h-4 w-4 text-slate-500 mr-1" />
-                  <span className="text-sm font-medium text-slate-500">Active filters:</span>
+                  <span className="text-sm font-medium text-slate-500">
+                    Active filters:
+                  </span>
                 </div>
                 {nadiFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>NADI: {nadiOptions.find(n => n.id === nadiFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      NADI:{" "}
+                      {nadiOptions.find((n) => n.id === nadiFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setNadiFilter(null)}
@@ -962,8 +1219,14 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {monthFilter !== null && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                    <span>Month: {monthOptions.find(m => m.id === monthFilter)?.label}</span>
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
+                    <span>
+                      Month:{" "}
+                      {monthOptions.find((m) => m.id === monthFilter)?.label}
+                    </span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
                       onClick={() => setMonthFilter(null)}
@@ -971,7 +1234,10 @@ const ReportSmartService = () => {
                   </Badge>
                 )}
                 {yearFilter !== "2025" && (
-                  <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+                  <Badge
+                    variant="outline"
+                    className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+                  >
                     <span>Year: {yearFilter}</span>
                     <X
                       className="h-3.5 w-3.5 text-muted-foreground cursor-pointer"
@@ -985,7 +1251,9 @@ const ReportSmartService = () => {
             {/* Main Content for Month tab - Bar Chart  */}
             <Card className="shadow-sm border border-gray-200 overflow-hidden">
               <CardHeader className="p-4 bg-white border-b">
-                <CardTitle className="text-lg font-medium text-gray-800">Programs and Participants</CardTitle>
+                <CardTitle className="text-lg font-medium text-gray-800">
+                  Programs and Participants
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-6 bg-white">
                 <ResponsiveContainer width="100%" height={400}>
@@ -1003,8 +1271,16 @@ const ReportSmartService = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="programs" name="Number of Programs" fill="#4f46e5" />
-                    <Bar dataKey="participants" name="Number of Participants" fill="#ef4444" />
+                    <Bar
+                      dataKey="programs"
+                      name="Number of Programs"
+                      fill="#4f46e5"
+                    />
+                    <Bar
+                      dataKey="participants"
+                      name="Number of Participants"
+                      fill="#ef4444"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -1012,7 +1288,7 @@ const ReportSmartService = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

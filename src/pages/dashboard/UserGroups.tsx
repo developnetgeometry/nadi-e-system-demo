@@ -3,10 +3,10 @@ import { UserGroupList } from "@/components/user-groups/UserGroupList";
 
 export default function UserGroupsPage() {
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl py-6">
+    <div>
+      <div className="space-y-1">
         <UserGroupList />
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

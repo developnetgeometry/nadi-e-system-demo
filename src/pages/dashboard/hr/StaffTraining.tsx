@@ -190,7 +190,7 @@ const StaffTraining = () => {
       ? userTrainingModules.filter((m) => m.status === "Completed")
       : userTrainingModules.filter((m) => m.status === "Not completed");
   return (
-    <DashboardLayout>
+    <div>
       <div>
         <Card className="relative overflow-hidden animate-fade-in shadow">
           <div
@@ -463,7 +463,7 @@ const StaffTraining = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 export default StaffTraining;
