@@ -3,7 +3,7 @@ import { ReportList } from "@/components/reports/ReportList";
 
 const ComplianceReports = () => {
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold">Compliance Reports</h1>
@@ -13,7 +13,7 @@ const ComplianceReports = () => {
         </div>
         <ReportList />
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

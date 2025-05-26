@@ -71,7 +71,7 @@ export default function AnnouncementSettings() {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">Announcement Settings</h1>
 
@@ -146,6 +146,6 @@ export default function AnnouncementSettings() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

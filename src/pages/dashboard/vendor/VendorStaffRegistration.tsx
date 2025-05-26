@@ -119,7 +119,7 @@ const VendorStaffRegistration = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <div className="flex items-center mb-6">
           <Button variant="ghost" size="sm" asChild className="mr-4">
@@ -297,7 +297,7 @@ const VendorStaffRegistration = () => {
           </form>
         </Form>
       </PageContainer>
-    </DashboardLayout>
+    </div>
   );
 };
 

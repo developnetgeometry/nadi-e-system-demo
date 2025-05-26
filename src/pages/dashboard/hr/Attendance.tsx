@@ -56,7 +56,7 @@ const Attendance = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div>
         <h1 className="text-xl font-bold mb-6">Attendance Management</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -166,7 +166,7 @@ const Attendance = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

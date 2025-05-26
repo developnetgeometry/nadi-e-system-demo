@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 
 const CommunityDashboard = () => {
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -21,7 +21,7 @@ const CommunityDashboard = () => {
         </div>
         <PostList />
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -194,19 +194,19 @@ const ProgrammesDashboard = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <div>
         <PageContainer>
           <div className="flex items-center justify-center h-96">
             <Loader2 className="w-8 h-8 animate-spin" />
             <span className="ml-2">Loading dashboard data...</span>
           </div>
         </PageContainer>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <div className="flex justify-between items-start mb-8">
           <div>
@@ -331,7 +331,7 @@ const ProgrammesDashboard = () => {
           </CardContent>
         </Card>
       </PageContainer>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -87,7 +87,7 @@ const VendorStaff = () => {
   );
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <div className="flex justify-between items-center mb-6">
           <PageHeader
@@ -172,7 +172,7 @@ const VendorStaff = () => {
           </CardContent>
         </Card>
       </PageContainer>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -20,85 +20,82 @@ const SiteManagement = () => {
   // UserGroup: 9 = Site
   // UserType: "super_admin" = Super Admin
 
-
-
-  if (userType === "super_admin") { // Super Admin
+  if (userType === "super_admin") {
+    // Super Admin
     return (
-      <DashboardLayout>
+      <div>
         <SiteDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (!userGroup) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="flex items-center justify-center p-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
-  
-  if (userGroup === 1) { // DUSP
+
+  if (userGroup === 1) {
+    // DUSP
     return (
-      <DashboardLayout>
+      <div>
         <SiteDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
-  
-  if (userGroup === 2) { // MCMC
+
+  if (userGroup === 2) {
+    // MCMC
     return (
-      <DashboardLayout>
+      <div>
         <SiteDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
-  
-  if (userGroup === 3) { // TP
+
+  if (userGroup === 3) {
+    // TP
     return (
-      <DashboardLayout>
+      <div>
         <SiteDashboard />
-      </DashboardLayout>
+      </div>
     );
   }
 
-  if (userGroup === 4) { // SSO
-    return (
-      <NoAccess />
-    );
+  if (userGroup === 4) {
+    // SSO
+    return <NoAccess />;
   }
 
-  if (userGroup === 5) { // Vendor
-    return (
-      <NoAccess />
-    );
+  if (userGroup === 5) {
+    // Vendor
+    return <NoAccess />;
   }
 
-  if (userGroup === 6) { // Staff
-    return (
-      <NoAccess />
-    );
+  if (userGroup === 6) {
+    // Staff
+    return <NoAccess />;
   }
 
-  if (userGroup === 7) { // Member
-    return (
-      <NoAccess />
-    );
+  if (userGroup === 7) {
+    // Member
+    return <NoAccess />;
   }
 
-  if (userGroup === 9) { // Site
+  if (userGroup === 9) {
+    // Site
     return (
-      <DashboardLayout>
+      <div>
         <SiteDetail siteId={siteId} />
-      </DashboardLayout>
+      </div>
     );
   }
 
-  return (
-    <NoAccess />
-  );
+  return <NoAccess />;
 };
 
 export default SiteManagement;

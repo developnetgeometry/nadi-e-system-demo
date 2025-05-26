@@ -184,7 +184,7 @@ export default function CreateAnnouncement() {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Create New Announcement</h1>
@@ -317,6 +317,6 @@ export default function CreateAnnouncement() {
           </Form>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

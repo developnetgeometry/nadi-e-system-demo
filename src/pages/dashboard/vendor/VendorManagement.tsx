@@ -76,7 +76,7 @@ const VendorManagement = () => {
   ];
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <div className="flex justify-between items-center mb-6">
           <PageHeader
@@ -166,7 +166,7 @@ const VendorManagement = () => {
           </Card>
         </div>
       </PageContainer>
-    </DashboardLayout>
+    </div>
   );
 };
 

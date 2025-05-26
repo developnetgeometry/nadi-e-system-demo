@@ -24,7 +24,7 @@ const FinancialTransactions = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold">Transactions</h1>
@@ -44,13 +44,19 @@ const FinancialTransactions = () => {
                 <div className="space-y-2">
                   <p>
                     <span className="font-medium">Amount:</span>{" "}
-                    {transaction.amount?.toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
+                    {transaction.amount?.toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "USD",
                     })}
                   </p>
-                  <p><span className="font-medium">Type:</span> {transaction.type}</p>
-                  <p><span className="font-medium">Status:</span> {transaction.status}</p>
+                  <p>
+                    <span className="font-medium">Type:</span>{" "}
+                    {transaction.type}
+                  </p>
+                  <p>
+                    <span className="font-medium">Status:</span>{" "}
+                    {transaction.status}
+                  </p>
                   <p>
                     <span className="font-medium">Date:</span>{" "}
                     {new Date(transaction.created_at).toLocaleString()}
@@ -61,7 +67,7 @@ const FinancialTransactions = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

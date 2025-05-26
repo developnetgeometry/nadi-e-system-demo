@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SiteManagementDashboard = () => {
   return (
-    <DashboardLayout>
+    <div>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">NADI Staff Dashboard</h1>
 
@@ -57,7 +57,7 @@ const SiteManagementDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

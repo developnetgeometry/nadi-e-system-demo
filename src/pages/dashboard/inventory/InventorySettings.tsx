@@ -26,7 +26,7 @@ const InventorySettings = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Inventory Management Settings</h1>
         <Card>
@@ -94,7 +94,7 @@ const InventorySettings = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

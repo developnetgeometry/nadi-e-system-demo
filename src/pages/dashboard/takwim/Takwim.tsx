@@ -212,7 +212,7 @@ export default function Takwim() {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -497,6 +497,6 @@ export default function Takwim() {
         programmes={programmes}
         modules={modules}
       />
-    </DashboardLayout>
+    </div>
   );
 }

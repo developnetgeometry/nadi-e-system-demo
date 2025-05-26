@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,19 +41,20 @@ const SmartServicesNadi4U = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch event statuses for filter
         const { data: statusData, error: statusError } = await supabase
-          .from('nd_event_status')
-          .select('id, name');
-          
+          .from("nd_event_status")
+          .select("id, name");
+
         if (statusError) throw statusError;
         setStatuses(statusData);
-        
+
         // Fetch programs where category_id is 1 (NADI 4U Programs)
         const { data: programData, error: programError } = await supabase
-          .from('nd_event')
-          .select(`
+          .from("nd_event")
+          .select(
+            `
             id,
             program_name,
             location_event,
@@ -62,36 +62,39 @@ const SmartServicesNadi4U = () => {
             end_datetime,
             created_by,
             nd_event_status:status_id(id, name)
-          `)
-          .eq('category_id', 1);
-          
+          `
+          )
+          .eq("category_id", 1);
+
         if (programError) throw programError;
-        
+
         // Format data
-        const formattedData = await Promise.all(programData.map(async (program) => {
-          // Get creator's name if possible
-          let creatorName = "Unknown";
-          if (program.created_by) {
-            const { data: userData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', program.created_by)
-              .single();
-              
-            creatorName = userData?.full_name || "Unknown";
-          }
-          
-          return {
-            id: program.id,
-            title: program.program_name || "Untitled Program",
-            location: program.location_event || "No Location",
-            date: program.start_datetime || new Date().toISOString(),
-            createdBy: creatorName,
-            status: program.nd_event_status?.name?.toLowerCase() || "draft",
-            statusId: program.nd_event_status?.id
-          };
-        }));
-        
+        const formattedData = await Promise.all(
+          programData.map(async (program) => {
+            // Get creator's name if possible
+            let creatorName = "Unknown";
+            if (program.created_by) {
+              const { data: userData } = await supabase
+                .from("profiles")
+                .select("full_name")
+                .eq("id", program.created_by)
+                .single();
+
+              creatorName = userData?.full_name || "Unknown";
+            }
+
+            return {
+              id: program.id,
+              title: program.program_name || "Untitled Program",
+              location: program.location_event || "No Location",
+              date: program.start_datetime || new Date().toISOString(),
+              createdBy: creatorName,
+              status: program.nd_event_status?.name?.toLowerCase() || "draft",
+              statusId: program.nd_event_status?.id,
+            };
+          })
+        );
+
         setProgrammes(formattedData);
       } catch (error) {
         console.error("Error fetching program data:", error);
@@ -99,7 +102,7 @@ const SmartServicesNadi4U = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -152,7 +155,7 @@ const SmartServicesNadi4U = () => {
       programme.location.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
-      statusFilter === "all" || 
+      statusFilter === "all" ||
       String(programme.statusId) === statusFilter ||
       programme.status === statusFilter;
 
@@ -166,19 +169,19 @@ const SmartServicesNadi4U = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="container mx-auto py-6">
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin" />
             <span className="ml-2">Loading programs...</span>
           </div>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <div className="container mx-auto py-6">
           <div className="flex justify-between items-center mb-6">
@@ -208,7 +211,7 @@ const SmartServicesNadi4U = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    {statuses.map(status => (
+                    {statuses.map((status) => (
                       <SelectItem key={status.id} value={String(status.id)}>
                         {status.name}
                       </SelectItem>
@@ -238,28 +241,39 @@ const SmartServicesNadi4U = () => {
                       </TableRow>
                     ) : (
                       filteredProgrammes.map((programme) => (
-                        <TableRow key={programme.id} className="cursor-pointer hover:bg-gray-50">
-                          <TableCell 
+                        <TableRow
+                          key={programme.id}
+                          className="cursor-pointer hover:bg-gray-50"
+                        >
+                          <TableCell
                             className="font-medium"
                             onClick={() => handleViewDetails(programme.id)}
                           >
                             {programme.title}
                           </TableCell>
-                          <TableCell onClick={() => handleViewDetails(programme.id)}>
+                          <TableCell
+                            onClick={() => handleViewDetails(programme.id)}
+                          >
                             {programme.location}
                           </TableCell>
-                          <TableCell onClick={() => handleViewDetails(programme.id)}>
+                          <TableCell
+                            onClick={() => handleViewDetails(programme.id)}
+                          >
                             {formatDate(programme.date)}
                           </TableCell>
-                          <TableCell onClick={() => handleViewDetails(programme.id)}>
+                          <TableCell
+                            onClick={() => handleViewDetails(programme.id)}
+                          >
                             {programme.createdBy}
                           </TableCell>
-                          <TableCell onClick={() => handleViewDetails(programme.id)}>
+                          <TableCell
+                            onClick={() => handleViewDetails(programme.id)}
+                          >
                             {getStatusBadge(programme.status)}
                           </TableCell>
                           <TableCell>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => handleViewDetails(programme.id)}
                             >
@@ -274,15 +288,15 @@ const SmartServicesNadi4U = () => {
               </div>
             </CardContent>
           </Card>
-          
-          <EventDetailsDialog 
+
+          <EventDetailsDialog
             eventId={selectedEventId}
             open={isDetailsOpen}
             onClose={() => setIsDetailsOpen(false)}
           />
         </div>
       </ErrorBoundary>
-    </DashboardLayout>
+    </div>
   );
 };
 

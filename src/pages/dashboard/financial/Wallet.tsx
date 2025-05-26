@@ -25,7 +25,7 @@ const FinancialWallet = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Wallet</h1>
@@ -42,15 +42,15 @@ const FinancialWallet = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {wallet?.balance?.toLocaleString('en-US', {
-                style: 'currency',
-                currency: wallet?.currency || 'USD'
+              {wallet?.balance?.toLocaleString("en-US", {
+                style: "currency",
+                currency: wallet?.currency || "USD",
               })}
             </p>
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

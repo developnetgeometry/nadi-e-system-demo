@@ -50,7 +50,7 @@ const AccessControl = () => {
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Access Control</h1>
@@ -70,7 +70,7 @@ const AccessControl = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -90,7 +90,7 @@ const InventoryDashboard = () => {
   ];
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -126,7 +126,7 @@ const InventoryDashboard = () => {
           onOpenChange={setIsDialogOpen}
         />
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

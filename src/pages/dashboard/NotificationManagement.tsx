@@ -12,7 +12,7 @@ const NotificationManagement = () => {
   const [activeTab, setActiveTab] = useState("templates");
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto max-w-6xl py-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ const NotificationManagement = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

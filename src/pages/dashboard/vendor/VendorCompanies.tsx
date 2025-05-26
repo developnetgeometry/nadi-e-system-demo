@@ -92,7 +92,7 @@ const VendorCompanies = () => {
   );
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <div className="flex justify-between items-center mb-6">
           <PageHeader
@@ -181,7 +181,7 @@ const VendorCompanies = () => {
           </CardContent>
         </Card>
       </PageContainer>
-    </DashboardLayout>
+    </div>
   );
 };
 

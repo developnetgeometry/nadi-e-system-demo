@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const NotificationUsage = () => {
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto max-w-6xl py-6">
         <div className="flex items-center gap-3 mb-4">
           <Bell className="h-6 w-6 text-primary" />
@@ -140,7 +140,7 @@ const NotificationUsage = () => {
           <NotificationUsageGuide />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

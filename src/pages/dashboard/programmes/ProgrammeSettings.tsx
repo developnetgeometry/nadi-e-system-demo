@@ -146,7 +146,7 @@ const ProgrammeSettings = () => {
     toast.success("Settings saved successfully");
   };
   return (
-    <DashboardLayout>
+    <div>
       <div className="p-6 mx-auto space-y-6 w-full max-w-none overflow-x-auto">
         <div className="flex flex-col gap-1">
           <h1 className="font-bold text-xl">Programmes Settings</h1>
@@ -1448,7 +1448,7 @@ const ProgrammeSettings = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 export default ProgrammeSettings;

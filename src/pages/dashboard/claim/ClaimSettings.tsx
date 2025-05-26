@@ -25,7 +25,7 @@ const ClaimSettings = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <h1 className="text-xl font-bold">Claim Management Settings</h1>
         <Card>
@@ -60,7 +60,10 @@ const ClaimSettings = () => {
                 type="number"
                 value={settings.autoApprovalLimit}
                 onChange={(e) =>
-                  setSettings({ ...settings, autoApprovalLimit: e.target.value })
+                  setSettings({
+                    ...settings,
+                    autoApprovalLimit: e.target.value,
+                  })
                 }
               />
             </div>
@@ -78,7 +81,7 @@ const ClaimSettings = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

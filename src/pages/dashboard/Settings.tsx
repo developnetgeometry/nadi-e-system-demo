@@ -54,18 +54,18 @@ const Settings = () => {
   // Allow access if user is either super_admin or has manage_settings permission
   if (!isSuperAdmin && !canManageSettings) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-700">
             You don't have permission to access system settings
           </h2>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto max-w-6xl">
         <SettingsHeader />
 
@@ -83,7 +83,7 @@ const Settings = () => {
           <SystemSettings />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

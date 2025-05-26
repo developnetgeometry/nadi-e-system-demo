@@ -109,7 +109,7 @@ export default function AnnouncementsList() {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <PageHeader
           title="Announcements"
@@ -197,6 +197,6 @@ export default function AnnouncementsList() {
         open={modalOpen}
         onOpenChange={setModalOpen}
       />
-    </DashboardLayout>
+    </div>
   );
 }

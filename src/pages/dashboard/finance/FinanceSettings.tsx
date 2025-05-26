@@ -20,12 +20,13 @@ const FinanceSettings = () => {
     console.log("Saving finance settings:", settings);
     toast({
       title: "Settings Saved",
-      description: "Finance management settings have been updated successfully.",
+      description:
+        "Finance management settings have been updated successfully.",
     });
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <h1 className="text-xl font-bold">Finance Management Settings</h1>
         <Card>
@@ -44,23 +45,33 @@ const FinanceSettings = () => {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="enableLatePaymentReminders">Late Payment Reminders</Label>
+              <Label htmlFor="enableLatePaymentReminders">
+                Late Payment Reminders
+              </Label>
               <Switch
                 id="enableLatePaymentReminders"
                 checked={settings.enableLatePaymentReminders}
                 onCheckedChange={(checked) =>
-                  setSettings({ ...settings, enableLatePaymentReminders: checked })
+                  setSettings({
+                    ...settings,
+                    enableLatePaymentReminders: checked,
+                  })
                 }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="defaultPaymentTerms">Default Payment Terms (days)</Label>
+              <Label htmlFor="defaultPaymentTerms">
+                Default Payment Terms (days)
+              </Label>
               <Input
                 id="defaultPaymentTerms"
                 type="number"
                 value={settings.defaultPaymentTerms}
                 onChange={(e) =>
-                  setSettings({ ...settings, defaultPaymentTerms: e.target.value })
+                  setSettings({
+                    ...settings,
+                    defaultPaymentTerms: e.target.value,
+                  })
                 }
               />
             </div>
@@ -78,7 +89,7 @@ const FinanceSettings = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

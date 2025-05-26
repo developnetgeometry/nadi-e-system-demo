@@ -115,18 +115,16 @@ const MemberManagement = () => {
     return date.toLocaleDateString();
   };
 
-
   const handleAddNewMember = () => {
     setIsDialogOpen(true); // Open the dialog
   };
-
 
   const handleViewDetailsClick = (userId: string) => {
     navigate(`/member-management/profile?id=${userId}`);
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-6">
         <div>
           <h1 className="text-xl font-bold">Member Management</h1>
@@ -239,7 +237,6 @@ const MemberManagement = () => {
                 Add New Member
               </Button>
             )}
-
           </div>
         </div>
 
@@ -470,7 +467,7 @@ const MemberManagement = () => {
           />
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

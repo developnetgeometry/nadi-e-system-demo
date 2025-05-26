@@ -3,13 +3,12 @@ import { NMSHeader } from "@/components/site/nms/NMSHeader";
 import NMSDynamic from "@/components/site/nms/NMSDynamic";
 
 const NMS = () => {
-
-    return (
-        <DashboardLayout>
-            <NMSHeader />
-            <NMSDynamic />
-        </DashboardLayout>
-    );
+  return (
+    <div>
+      <NMSHeader />
+      <NMSDynamic />
+    </div>
+  );
 };
 
 export default NMS;

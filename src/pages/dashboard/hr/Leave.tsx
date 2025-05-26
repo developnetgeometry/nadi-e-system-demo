@@ -20,17 +20,17 @@ export default function LeaveManagement() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <div>
         <div className="container mx-auto py-8">
           <LoadingSpinner />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       {isStaffView ? <StaffLeaveManagement /> : <AdminLeaveManagement />}
-    </DashboardLayout>
+    </div>
   );
 }

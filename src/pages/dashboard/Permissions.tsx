@@ -55,14 +55,14 @@ const Permissions = () => {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <div>
         <div>Loading permissions...</div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="container mx-auto max-w-6xl space-y-6">
         <div className="flex items-center gap-2">
           <Button
@@ -94,7 +94,7 @@ const Permissions = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

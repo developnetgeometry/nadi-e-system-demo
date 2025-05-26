@@ -64,7 +64,7 @@ const ProgrammeRegistration = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <div>
         <PageContainer className="h-full flex items-center justify-center">
           <div className="flex flex-col items-center">
             <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
@@ -73,12 +73,12 @@ const ProgrammeRegistration = () => {
             </p>
           </div>
         </PageContainer>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer className="h-full overflow-hidden flex flex-col">
         <div className="flex items-center mb-6">
           <Button variant="ghost" size="sm" asChild className="mr-4">
@@ -104,7 +104,7 @@ const ProgrammeRegistration = () => {
           />
         </ScrollArea>
       </PageContainer>
-    </DashboardLayout>
+    </div>
   );
 };
 
