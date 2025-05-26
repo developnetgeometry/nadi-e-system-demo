@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useSiteManagementData } from "@/hooks/report/use-site-management-data";
@@ -43,12 +43,17 @@ const yearOptions = [
 
 const ReportSiteManagement = () => {
   // Filter states
-  const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
+  const [duspFilterState, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
-  const [nadiFilter, setNadiFilter] = useState<(string | number)[]>([]);
-  const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
+  const [nadiFilterState, setNadiFilter] = useState<(string | number)[]>([]);
+  const [tpFilterState, setTpFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
-  const [yearFilter, setYearFilter] = useState<string | number | null>(null); // Default to null instead of current year
+  const [yearFilter, setYearFilter] = useState<string | number | null>(null);
+
+  // Memoized filters to ensure stable references
+  const duspFilter = useMemo(() => duspFilterState, [duspFilterState]);
+  const nadiFilter = useMemo(() => nadiFilterState, [nadiFilterState]);
+  const tpFilter = useMemo(() => tpFilterState, [tpFilterState]);
 
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
@@ -113,6 +118,7 @@ const ReportSiteManagement = () => {
               duspFilter={duspFilter}
               phaseFilter={phaseFilter}
               nadiFilter={nadiFilter}
+              tpFilter={tpFilter}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}

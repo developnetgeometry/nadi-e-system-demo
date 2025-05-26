@@ -89,7 +89,7 @@ export function useSiteManagementPdfData(
     });
     setLoading(false);
     setError(null);
-  }, []); // Only run once on mount
+  }, [duspFilter,phaseFilter,nadiFilter,monthFilter,yearFilter,tpFilter]);
 
   return { ...data, loading, error };
 }
