@@ -1,4 +1,5 @@
 import { Asset } from "@/types/asset";
+import { Vendor } from "./vendor";
 
 export interface MaintenanceRequest {
   id: number;
@@ -17,6 +18,8 @@ export interface MaintenanceRequest {
   maintenance_date?: string;
   priority_type_id?: number;
   logs?: MaintenanceLogs[];
+  vendor_id?: number;
+  vendor?: Vendor;
   frequency?: number;
   created_at?: string;
   updated_at?: string;

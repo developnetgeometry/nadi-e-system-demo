@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchUserProfileNameById } from "@/hooks/auth/utils/profile-handler";
 import { toast } from "@/hooks/use-toast";
+import { useVendors } from "@/hooks/use-vendor";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -323,16 +324,11 @@ export const ViewMaintenanceDetailsDialog = ({
   function UpdateVendor() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const vendors = [
-      {
-        id: 1,
-        name: "Vendor 1",
-      },
-      {
-        id: 2,
-        name: "Vendor 2",
-      },
-    ];
+    const {
+      data: vendors,
+      loading: isVendorLoading,
+      error: vendorError,
+    } = useVendors();
 
     const handleUpdateVendor = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -354,7 +350,7 @@ export const ViewMaintenanceDetailsDialog = ({
         const { error: updateError } = await supabase
           .from("nd_maintenance_request")
           .update({
-            // vendor_id: Number(selectedSLA),
+            vendor_id: Number(selectedVendor),
             status: MaintenanceStatus.Issued,
             logs: logs,
             updates: null,
@@ -385,16 +381,17 @@ export const ViewMaintenanceDetailsDialog = ({
       <form className="space-y-4" onSubmit={handleUpdateVendor}>
         <div className="space-y-2">
           <Label className="text-sm font-medium text-gray-500">Vendor</Label>
-          <Select name="vendor" required>
+          <Select name="vendor" required disabled={isVendorLoading}>
             <SelectTrigger>
               <SelectValue placeholder="Select Vendor" />
             </SelectTrigger>
             <SelectContent>
-              {vendors.map((type, index) => (
-                <SelectItem key={index} value={type.id.toString()}>
-                  {type?.name}
-                </SelectItem>
-              ))}
+              {vendors &&
+                vendors.map((vendor) => (
+                  <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                    {vendor.business_name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
@@ -825,6 +822,15 @@ export const ViewMaintenanceDetailsDialog = ({
                   >
                     {maintenanceRequest?.sla?.name || "Not set"}{" "}
                   </Badge>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Vendor
+                </Label>
+                <div className="mt-1">
+                  {maintenanceRequest?.vendor?.business_name || "Not assigned"}
                 </div>
               </div>
 

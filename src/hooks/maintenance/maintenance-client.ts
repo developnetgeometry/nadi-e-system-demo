@@ -12,19 +12,21 @@ export const maintenanceClient = {
     type?: string,
     statuses?: MaintenanceStatus[],
     organizationId?: string | null,
-    siteId?: string | null
+    siteId?: string | null,
+    vendorId?: number | null
   ): Promise<MaintenanceRequest[]> => {
     let query = supabase
       .from("nd_maintenance_request")
       .select(
         `*,
-      nd_type_maintenance ( id, name ),
-      sla:nd_sla_categories ( id, name, min_day, max_day ),
-      asset:nd_asset (
-        id,
-        name,
-        site_id
-      )`
+        nd_type_maintenance ( id, name ),
+        sla:nd_sla_categories ( id, name, min_day, max_day ),
+        asset:nd_asset (
+          id,
+          name,
+          site_id
+        ),
+        vendor:nd_vendor_profile ( id, business_name, registration_number, business_type, phone_number )`
       )
       .order("updated_at", { ascending: false });
 
@@ -46,6 +48,10 @@ export const maintenanceClient = {
 
     if (siteId) {
       query = query.eq("nd_asset.site_id", siteId);
+    }
+
+    if (vendorId) {
+      query = query.eq("vendor_id", vendorId);
     }
 
     const { data, error } = await query;
@@ -91,7 +97,8 @@ export const maintenanceClient = {
           id,
           name,
           site_id
-        )`
+        ),
+        vendor:nd_vendor_profile ( id, business_name, registration_number, business_type, phone_number )`
       )
       .eq("id", id)
       .single();
