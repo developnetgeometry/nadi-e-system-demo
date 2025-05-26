@@ -18,6 +18,8 @@ import { ModularReportFilters } from "@/components/reports/filters";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import ReportCMByNadi from "./Tab/ReportCM-ByNadi";
 import ReportCMByPhase from "./Tab/ReportCM-ByPhase";
+import { CMByNadiReportDownloadButton } from "@/components/reports/pdftemplate/components/CMByNadiReportDownloadButton";
+import { useDuspLogo, useMcmcLogo } from "@/hooks/use-brand";
 
 const monthOptions = [
   { id: 1, label: "January" },
@@ -60,8 +62,11 @@ const ReportCM = () => {
   const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null) // Default to current year
+  
+  // PDF generation states
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
-  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
+  const { dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
 
   // Reset all filters
   const resetFilters = () => {
@@ -72,6 +77,24 @@ const ReportCM = () => {
     setMonthFilter(null);
     setYearFilter(null);
   };
+
+  // Get MCMC and DUSP logos for the PDF report
+  const mcmcLogo = useMcmcLogo();
+  const duspLogo = useDuspLogo();
+
+  // Handle PDF generation events
+  const handleGenerationStart = () => {
+    setIsGeneratingPdf(true);
+  };
+
+  const handleGenerationComplete = (success: boolean) => {
+    setIsGeneratingPdf(false);
+    if (!success) {
+      console.error("Failed to generate PDF");
+      // Could add toast notification here
+    }
+  };
+
 
   return (
     <DashboardLayout>
@@ -87,14 +110,25 @@ const ReportCM = () => {
               Upload Excel
             </Button> */}
             {activeTab === "nadi" ? (
-              <Button
-                variant="secondary"
-                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download NADI
-              </Button>
-            ) : (
+              <CMByNadiReportDownloadButton
+                duspLabel={duspFilter.length === 1
+                  ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
+                    ? `${duspFilter.length} DUSPs selected`
+                    : ""}
+
+                periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+                periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+                duspFilter={duspFilter}
+                nadiFilter={nadiFilter}
+                monthFilter={monthFilter}
+                yearFilter={yearFilter}
+                mcmcLogo={mcmcLogo}
+                duspLogo={duspLogo}
+                onGenerationStart={handleGenerationStart}
+                onGenerationComplete={handleGenerationComplete}
+              />
+            ) : activeTab === 'phase' ? (
               <Button
                 variant="secondary"
                 className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
@@ -102,7 +136,7 @@ const ReportCM = () => {
                 <Download className="h-4 w-4" />
                 Download Phase
               </Button>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -139,7 +173,6 @@ const ReportCM = () => {
 
             // Filter data
             dusps={dusps}
-            phases={phases}
             monthOptions={monthOptions}
             yearOptions={yearOptions}
             tpOptions={tpProviders}
@@ -147,7 +180,7 @@ const ReportCM = () => {
             // Loading state
             isLoading={filtersLoading}
           />
-          
+
           {/* By NADI Tab */}
           <TabsContent value="nadi" className="mt-4">
             {/* Main Content for NADI tab */}
