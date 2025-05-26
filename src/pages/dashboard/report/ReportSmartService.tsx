@@ -1,32 +1,14 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { X, Filter, RotateCcw, Building, Calendar, Download, Upload, ChevronsUpDown, Check, Users, CalendarDays, BookOpen } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ModularReportFilters } from "@/components/reports/filters";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import ReportSmartServiceByPhase from "./Tab/ReportSmartService-ByPhase";
 import ReportSmartServicePillarByProgramme from "./Tab/ReportSmartService-PillarByProgramme";
 import ReportSmartServiceByMonth from "./Tab/ReportSmartService-ByMonth";
+import { SmartServiceByPhaseReportDownloadButton } from "@/components/reports/pdftemplate/components/SmartServiceByPhaseReportDownloadButton";
+import { useDuspLogo, useMcmcLogo } from "@/hooks/use-brand";
 
 // Define month options
 const monthOptions = [
@@ -53,15 +35,6 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
-// Dummy data for programs and participants
-const singleNadiData = [
-  { category: 'Entrepreneur', programs: 6, participants: 94 },
-  { category: 'Lifelong Learning', programs: 8, participants: 31 },
-  { category: 'Wellbeing', programs: 6, participants: 61 },
-  { category: 'Awareness', programs: 3, participants: 76 },
-  { category: 'Govt Initiative', programs: 9, participants: 57 },
-];
-
 const ReportSmartService = () => {
   // Tab state
   const [activeTab, setActiveTab] = useState("phase");
@@ -74,6 +47,9 @@ const ReportSmartService = () => {
   const [programFilter, setprogramFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null)
+
+  // PDF generation states
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
   // Use unified report filter data
   const {
@@ -96,6 +72,25 @@ const ReportSmartService = () => {
     setPillarFilter([]);
     setprogramFilter([]);
   };
+
+
+
+  // Get MCMC and DUSP logos for the PDF report
+  const mcmcLogo = useMcmcLogo();
+  const duspLogo = useDuspLogo();
+
+  // Handle PDF generation events
+  const handleGenerationStart = () => {
+    setIsGeneratingPdf(true);
+  };
+
+  const handleGenerationComplete = (success: boolean) => {
+    setIsGeneratingPdf(false);
+    if (!success) {
+      console.error("Failed to generate PDF");
+      // Could add toast notification here
+    }
+  }
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -110,30 +105,75 @@ const ReportSmartService = () => {
               Upload Excel
             </Button> */}
             {activeTab === "phase" ? (
-              <Button
-                variant="secondary"
-                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download Phase
-              </Button>
+
+              <SmartServiceByPhaseReportDownloadButton
+                duspLabel={duspFilter.length === 1
+                  ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
+                    ? `${duspFilter.length} DUSPs selected`
+                    : ""}
+                phaseLabel={phaseFilter !== null
+                  ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+                  : "All Phases"}
+                periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+                periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+                duspFilter={duspFilter}
+                tpFilter={tpFilter}
+                phaseFilter={phaseFilter}
+                monthFilter={monthFilter}
+                yearFilter={yearFilter}
+                mcmcLogo={mcmcLogo}
+                duspLogo={duspLogo}
+                onGenerationStart={handleGenerationStart}
+                onGenerationComplete={handleGenerationComplete}
+              />
             ) : activeTab === "pillar" ? (
-              <Button
-                variant="secondary"
-                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download Pillar
-              </Button>
+              <></>
+              // <SmartServicePillarByProgrammeReportDownloadButton
+
+              //   duspLabel={duspFilter.length === 1
+              //     ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+              //     : duspFilter.length > 1
+              //       ? `${duspFilter.length} DUSPs selected`
+              //       : ""}
+              //   phaseLabel={phaseFilter !== null
+              //     ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+              //     : "All Phases"}
+              //   periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+              //   periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+              //   duspFilter={duspFilter}
+              //   tpFilter={tpFilter}
+              //   phaseFilter={phaseFilter}
+              //   monthFilter={monthFilter}
+              //   yearFilter={yearFilter}
+              //   mcmcLogo={mcmcLogo}
+              //   duspLogo={duspLogo}
+              //   onGenerationStart={handleGenerationStart}
+              //   onGenerationComplete={handleGenerationComplete}
             ) : activeTab === "month" ? (
-              <Button
-                variant="secondary"
-                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download Monthly
-              </Button>
-            ): null}
+              <></>
+              // <SmartServiceByMonthReportDownloadButton
+
+              //   duspLabel={duspFilter.length === 1
+              //     ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+              //     : duspFilter.length > 1
+              //       ? `${duspFilter.length} DUSPs selected`
+              //       : ""}
+              //   phaseLabel={phaseFilter !== null
+              //     ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+              //     : "All Phases"}
+              //   periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+              //   periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+              //   duspFilter={duspFilter}
+              //   tpFilter={tpFilter}
+              //   phaseFilter={phaseFilter}
+              //   monthFilter={monthFilter}
+              //   yearFilter={yearFilter}
+              //   mcmcLogo={mcmcLogo}
+              //   duspLogo={duspLogo}
+              //   onGenerationStart={handleGenerationStart}
+              //   onGenerationComplete={handleGenerationComplete}
+            ) : null}
           </div>
         </div>
 
@@ -226,7 +266,7 @@ const ReportSmartService = () => {
               tpFilter={tpFilter}
               monthFilter={monthFilter}
               yearFilter={yearFilter}
-            
+
             />
           </TabsContent>
         </Tabs>
