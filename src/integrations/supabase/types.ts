@@ -1435,6 +1435,7 @@ export type Database = {
           created_by: string | null;
           date_paid: string | null;
           id: number;
+          item_ids: number[] | null;
           month: number | null;
           payment_status: boolean | null;
           phase_id: number | null;
@@ -1452,6 +1453,7 @@ export type Database = {
           created_by?: string | null;
           date_paid?: string | null;
           id?: number;
+          item_ids?: number[] | null;
           month?: number | null;
           payment_status?: boolean | null;
           phase_id?: number | null;
@@ -1469,6 +1471,7 @@ export type Database = {
           created_by?: string | null;
           date_paid?: string | null;
           id?: number;
+          item_ids?: number[] | null;
           month?: number | null;
           payment_status?: boolean | null;
           phase_id?: number | null;
@@ -1759,6 +1762,13 @@ export type Database = {
             columns: ["claim_id"];
             isOneToOne: false;
             referencedRelation: "nd_claim_application";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_claim_log_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
           {
@@ -2513,6 +2523,7 @@ export type Database = {
           duration: number | null;
           end_datetime: string | null;
           id: string;
+          is_group_event: boolean | null;
           location_event: string | null;
           module_id: number | null;
           program_id: number | null;
@@ -2527,7 +2538,7 @@ export type Database = {
           target_participant: number | null;
           total_new_member: number | null;
           total_participant: number | null;
-          trainer_organization: string | null;
+          trainer_name: string;
           updated_at: string | null;
           updated_by: string | null;
         };
@@ -2539,6 +2550,7 @@ export type Database = {
           duration?: number | null;
           end_datetime?: string | null;
           id?: string;
+          is_group_event?: boolean | null;
           location_event?: string | null;
           module_id?: number | null;
           program_id?: number | null;
@@ -2553,7 +2565,7 @@ export type Database = {
           target_participant?: number | null;
           total_new_member?: number | null;
           total_participant?: number | null;
-          trainer_organization?: string | null;
+          trainer_name: string;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -2565,6 +2577,7 @@ export type Database = {
           duration?: number | null;
           end_datetime?: string | null;
           id?: string;
+          is_group_event?: boolean | null;
           location_event?: string | null;
           module_id?: number | null;
           program_id?: number | null;
@@ -2579,7 +2592,7 @@ export type Database = {
           target_participant?: number | null;
           total_new_member?: number | null;
           total_participant?: number | null;
-          trainer_organization?: string | null;
+          trainer_name?: string;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -2644,36 +2657,44 @@ export type Database = {
       };
       nd_event_attachment: {
         Row: {
-          created_at: string | null;
+          created_at: string;
           created_by: string | null;
-          event_id: number | null;
+          event_id: string | null;
           file_path: string | null;
-          id: number;
+          id: string;
           remarks: string | null;
           updated_at: string | null;
           updated_by: string | null;
         };
         Insert: {
-          created_at?: string | null;
+          created_at?: string;
           created_by?: string | null;
-          event_id?: number | null;
+          event_id?: string | null;
           file_path?: string | null;
-          id: number;
+          id?: string;
           remarks?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
         Update: {
-          created_at?: string | null;
+          created_at?: string;
           created_by?: string | null;
-          event_id?: number | null;
+          event_id?: string | null;
           file_path?: string | null;
-          id?: number;
+          id?: string;
           remarks?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_attachment_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_event";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_event_category: {
         Row: {
@@ -2712,7 +2733,7 @@ export type Database = {
         Row: {
           created_at: string | null;
           created_by: string | null;
-          event_id: number | null;
+          event_id: string | null;
           id: number;
           name: string | null;
           organization: string | null;
@@ -2723,8 +2744,8 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           created_by?: string | null;
-          event_id?: number | null;
-          id: number;
+          event_id?: string | null;
+          id?: number;
           name?: string | null;
           organization?: string | null;
           position?: string | null;
@@ -2734,7 +2755,7 @@ export type Database = {
         Update: {
           created_at?: string | null;
           created_by?: string | null;
-          event_id?: number | null;
+          event_id?: string | null;
           id?: number;
           name?: string | null;
           organization?: string | null;
@@ -2742,7 +2763,15 @@ export type Database = {
           updated_at?: string | null;
           updated_by?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_guest_nd_event_fk";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_event";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_event_log: {
         Row: {
@@ -2840,7 +2869,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           event_id?: string | null;
-          id: number;
+          id?: number;
           member_id?: number | null;
           updated_at?: string | null;
           updated_by?: string | null;
@@ -3347,6 +3376,7 @@ export type Database = {
       nd_inventory: {
         Row: {
           barcode: string | null;
+          category_id: number | null;
           created_at: string | null;
           created_by: string | null;
           deleted_at: string | null;
@@ -3363,6 +3393,7 @@ export type Database = {
         };
         Insert: {
           barcode?: string | null;
+          category_id?: number | null;
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -3379,6 +3410,7 @@ export type Database = {
         };
         Update: {
           barcode?: string | null;
+          category_id?: number | null;
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -3407,6 +3439,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "nd_inventory_type";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_inventory_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_inventory_category";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -3415,8 +3454,8 @@ export type Database = {
           created_at: string | null;
           created_by: string | null;
           file_path: string | null;
-          id: number;
-          inventory_id: number | null;
+          id: string;
+          inventory_id: string | null;
           updated_at: string | null;
           updated_by: string | null;
         };
@@ -3424,8 +3463,8 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           file_path?: string | null;
-          id: number;
-          inventory_id?: number | null;
+          id?: string;
+          inventory_id?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -3433,8 +3472,43 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           file_path?: string | null;
+          id?: string;
+          inventory_id?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fk_nd_inventory_attachment_inventory";
+            columns: ["inventory_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_inventory";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      nd_inventory_category: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          id: number;
+          name: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
           id?: number;
-          inventory_id?: number | null;
+          name?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          name?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -5510,26 +5584,38 @@ export type Database = {
       };
       nd_phases: {
         Row: {
+          contract_end: string | null;
+          contract_start: string | null;
           created_at: string | null;
           created_by: string | null;
           id: number;
+          is_active: boolean | null;
           name: string | null;
+          remark: string | null;
           updated_at: string | null;
           updated_by: string | null;
         };
         Insert: {
+          contract_end?: string | null;
+          contract_start?: string | null;
           created_at?: string | null;
           created_by?: string | null;
           id?: never;
+          is_active?: boolean | null;
           name?: string | null;
+          remark?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
         Update: {
+          contract_end?: string | null;
+          contract_start?: string | null;
           created_at?: string | null;
           created_by?: string | null;
           id?: never;
+          is_active?: boolean | null;
           name?: string | null;
+          remark?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -6090,7 +6176,7 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           deleted_at?: string | null;
-          id: number;
+          id?: number;
           name?: string | null;
           unit?: string | null;
           updated_at?: string | null;
@@ -7831,6 +7917,7 @@ export type Database = {
           position_id: number | null;
           resign_date: string | null;
           site_id: number | null;
+          site_refid_mcmc: string | null;
           staff_id: string | null;
           updated_at: string | null;
           updated_by: string | null;
@@ -7844,6 +7931,7 @@ export type Database = {
           position_id?: number | null;
           resign_date?: string | null;
           site_id?: number | null;
+          site_refid_mcmc?: string | null;
           staff_id?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
@@ -7857,11 +7945,19 @@ export type Database = {
           position_id?: number | null;
           resign_date?: string | null;
           site_id?: number | null;
+          site_refid_mcmc?: string | null;
           staff_id?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "nd_staff_job_nd_position_fk";
+            columns: ["position_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_position";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "nd_staff_job_nd_site_profile_fk";
             columns: ["site_id"];
@@ -8026,16 +8122,16 @@ export type Database = {
           basic_pay: number | null;
           basic_rate: number | null;
           created_at: string | null;
-          created_by: string;
+          created_by: string | null;
           epf_deduction: number | null;
           gross_pay: number | null;
-          id: number;
+          id: string;
           net_pay: number | null;
           pay_info_id: number | null;
           payroll_date: string | null;
           staff_eis: number | null;
           staff_epf: number | null;
-          staff_id: number | null;
+          staff_id: string | null;
           staff_socso: number | null;
           updated_at: string | null;
           updated_by: string | null;
@@ -8044,16 +8140,16 @@ export type Database = {
           basic_pay?: number | null;
           basic_rate?: number | null;
           created_at?: string | null;
-          created_by: string;
+          created_by?: string | null;
           epf_deduction?: number | null;
           gross_pay?: number | null;
-          id: number;
+          id?: string;
           net_pay?: number | null;
           pay_info_id?: number | null;
           payroll_date?: string | null;
           staff_eis?: number | null;
           staff_epf?: number | null;
-          staff_id?: number | null;
+          staff_id?: string | null;
           staff_socso?: number | null;
           updated_at?: string | null;
           updated_by?: string | null;
@@ -8062,16 +8158,16 @@ export type Database = {
           basic_pay?: number | null;
           basic_rate?: number | null;
           created_at?: string | null;
-          created_by?: string;
+          created_by?: string | null;
           epf_deduction?: number | null;
           gross_pay?: number | null;
-          id?: number;
+          id?: string;
           net_pay?: number | null;
           pay_info_id?: number | null;
           payroll_date?: string | null;
           staff_eis?: number | null;
           staff_epf?: number | null;
-          staff_id?: number | null;
+          staff_id?: string | null;
           staff_socso?: number | null;
           updated_at?: string | null;
           updated_by?: string | null;
@@ -8082,6 +8178,13 @@ export type Database = {
             columns: ["pay_info_id"];
             isOneToOne: false;
             referencedRelation: "nd_staff_pay_info";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_nd_staff_profile_fk";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_staff_profile";
             referencedColumns: ["id"];
           }
         ];
@@ -8857,11 +8960,11 @@ export type Database = {
           is_active: boolean | null;
           location: string | null;
           online_link: string | null;
-          program_mode_id: string | null;
+          program_mode_id: number | null;
           start_date: string | null;
           title: string | null;
           trainer_name: string | null;
-          type: number | null;
+          training_type_id: number | null;
           updated_at: string | null;
           updated_by: string | null;
         };
@@ -8870,15 +8973,15 @@ export type Database = {
           created_by?: string | null;
           description?: string | null;
           end_date?: string | null;
-          id: number;
+          id?: number;
           is_active?: boolean | null;
           location?: string | null;
           online_link?: string | null;
-          program_mode_id?: string | null;
+          program_mode_id?: number | null;
           start_date?: string | null;
           title?: string | null;
           trainer_name?: string | null;
-          type?: number | null;
+          training_type_id?: number | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
@@ -8891,20 +8994,27 @@ export type Database = {
           is_active?: boolean | null;
           location?: string | null;
           online_link?: string | null;
-          program_mode_id?: string | null;
+          program_mode_id?: number | null;
           start_date?: string | null;
           title?: string | null;
           trainer_name?: string | null;
-          type?: number | null;
+          training_type_id?: number | null;
           updated_at?: string | null;
           updated_by?: string | null;
         };
         Relationships: [
           {
             foreignKeyName: "nd_training_nd_program_mode_fk";
-            columns: ["id"];
-            isOneToOne: true;
+            columns: ["program_mode_id"];
+            isOneToOne: false;
             referencedRelation: "nd_program_mode";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_training_nd_training_type_fk";
+            columns: ["training_type_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_training_type";
             referencedColumns: ["id"];
           }
         ];
@@ -8921,7 +9031,7 @@ export type Database = {
         Insert: {
           created_at?: string | null;
           created_by?: string | null;
-          id: number;
+          id?: number;
           name?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
