@@ -96,7 +96,7 @@ const Profile = () => {
 
   return (
     <div>
-      <div className="container mx-auto py-8">
+      <div className="space-y-1">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <div className="flex items-center space-x-4">

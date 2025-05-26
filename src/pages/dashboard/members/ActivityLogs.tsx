@@ -19,7 +19,7 @@ const ActivityLogs = () => {
 
   return (
     <div>
-      <div className="container mx-auto py-8">
+      <div className="space-y-1">
         <MemberActivityHeader
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}

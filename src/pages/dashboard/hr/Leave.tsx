@@ -21,7 +21,7 @@ export default function LeaveManagement() {
   if (isLoading) {
     return (
       <div>
-        <div className="container mx-auto py-8">
+        <div className="space-y-1">
           <LoadingSpinner />
         </div>
       </div>
