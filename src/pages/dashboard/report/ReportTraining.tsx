@@ -2,7 +2,8 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
-  Download
+  Download,
+  Train
 } from "lucide-react";
 import { TotalNadiCard } from "@/components/reports/component/training/TotalNadiCard";
 import { NumberEmployeeCard } from "@/components/reports/component/training/NumberEmployeeCard";
@@ -12,6 +13,9 @@ import { ModularReportFilters } from "@/components/reports/filters";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useTrainingData } from "@/hooks/report/use-training-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
+import { T } from "vitest/dist/chunks/reporters.d.DG9VKi4m.js";
+import { TrainingReportDownloadButton } from "@/components/reports/pdftemplate/components/TrainingReportDownloadButton";
+import { useDuspLogo, useMcmcLogo } from "@/hooks/use-brand";
 
 // Define month options
 const monthOptions = [
@@ -44,18 +48,38 @@ const ReportTraining = () => {
 
   const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
- const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
+  const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null);
+
+  // PDF generation states
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
 
   const { phases, dusps, tpProviders, loading: filtersLoading } = useReportFilters();
 
   // Fetch training data based on filters 
-  const { 
-    trainingData, 
-    loading: trainingLoading 
-  } = useTrainingData(duspFilter,phaseFilter,monthFilter,yearFilter,tpFilter);
+  const {
+    trainingData,
+    loading: trainingLoading
+  } = useTrainingData(duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter);
+
+  // Get MCMC and DUSP logos for the PDF report
+  const mcmcLogo = useMcmcLogo();
+  const duspLogo = useDuspLogo();
+
+  // Handle PDF generation events
+  const handleGenerationStart = () => {
+    setIsGeneratingPdf(true);
+  };
+
+  const handleGenerationComplete = (success: boolean) => {
+    setIsGeneratingPdf(false);
+    if (!success) {
+      console.error("Failed to generate PDF");
+      // Could add toast notification here
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -66,14 +90,28 @@ const ReportTraining = () => {
             <p className="text-gray-500 mt-1">View and analyze NADI staff training data across all sites</p>
           </div>
           <div className="flex items-center gap-2">
-            {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Upload Excel
-            </Button> */}
-            <Button variant="secondary" className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Download
-            </Button>
+            <TrainingReportDownloadButton
+
+              duspLabel={duspFilter.length === 1
+                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+                : duspFilter.length > 1
+                  ? `${duspFilter.length} DUSPs selected`
+                  : ""}
+              phaseLabel={phaseFilter !== null
+                ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+                : "All Phases"}
+              periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+              duspFilter={duspFilter}
+              phaseFilter={phaseFilter}
+              monthFilter={monthFilter}
+              yearFilter={yearFilter}
+              mcmcLogo={mcmcLogo}
+              duspLogo={duspLogo}
+              onGenerationStart={handleGenerationStart}
+              onGenerationComplete={handleGenerationComplete}
+
+            />
           </div>
         </div>
 
