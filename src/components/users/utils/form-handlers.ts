@@ -24,7 +24,6 @@ export const handleCreateUser = async (data: UserFormData): Promise<any> => {
           phoneNumber: data.phone_number || null,
           icNumber: data.ic_number,
           password: data.password!,
-          // createdBy:
         },
       });
 
