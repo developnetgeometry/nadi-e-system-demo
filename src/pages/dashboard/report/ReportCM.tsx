@@ -1,25 +1,13 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { X, Filter, RotateCcw, Building, Calendar, Download, Upload, ChevronsUpDown, Check, ClipboardList } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ModularReportFilters } from "@/components/reports/filters";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import ReportCMByNadi from "./Tab/ReportCM-ByNadi";
 import ReportCMByPhase from "./Tab/ReportCM-ByPhase";
 import { CMByNadiReportDownloadButton } from "@/components/reports/pdftemplate/components/CMByNadiReportDownloadButton";
 import { useDuspLogo, useMcmcLogo } from "@/hooks/use-brand";
+import { CMByPhaseReportDownloadButton } from "@/components/reports/pdftemplate/components/CMByPhaseReportDownloadButton";
 
 const monthOptions = [
   { id: 1, label: "January" },
@@ -44,14 +32,6 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
-// Dummy data for docket status
-const docketStatusData = [
-  { status: 'Existing', minor: 21, major: 18 },
-  { status: 'New', minor: 19, major: 33 },
-  { status: 'Close', minor: 21, major: 19 },
-  { status: 'Pending', minor: 14, major: 38 },
-];
-
 const ReportCM = () => {
   // Tab state
   const [activeTab, setActiveTab] = useState("nadi");
@@ -62,11 +42,11 @@ const ReportCM = () => {
   const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>(null) // Default to current year
-  
+
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
-  const { dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
+  const { dusps, nadiSites,phases, tpProviders, loading: filtersLoading } = useReportFilters();
 
   // Reset all filters
   const resetFilters = () => {
@@ -129,13 +109,26 @@ const ReportCM = () => {
                 onGenerationComplete={handleGenerationComplete}
               />
             ) : activeTab === 'phase' ? (
-              <Button
-                variant="secondary"
-                className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download Phase
-              </Button>
+              <CMByPhaseReportDownloadButton
+                duspLabel={duspFilter.length === 1
+                  ? dusps.find(d => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
+                    ? `${duspFilter.length} DUSPs selected`
+                    : ""}
+                phaseLabel={phaseFilter !== null
+                  ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
+                  : "All Phases"}
+                periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
+                periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
+                duspFilter={duspFilter}
+                phaseFilter={phaseFilter}
+                monthFilter={monthFilter}
+                yearFilter={yearFilter}
+                mcmcLogo={mcmcLogo}
+                duspLogo={duspLogo}
+                onGenerationStart={handleGenerationStart}
+                onGenerationComplete={handleGenerationComplete}
+              />
             ) : null}
           </div>
         </div>
@@ -173,6 +166,7 @@ const ReportCM = () => {
 
             // Filter data
             dusps={dusps}
+            phases={phases}
             monthOptions={monthOptions}
             yearOptions={yearOptions}
             tpOptions={tpProviders}
