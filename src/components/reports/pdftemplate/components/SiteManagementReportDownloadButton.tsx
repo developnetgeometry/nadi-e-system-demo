@@ -15,7 +15,6 @@ interface SiteManagementReportDownloadButtonProps {
   totalSites?: number; // Optional, can be derived
   mcmcLogo: string;
   duspLogo: string;
-  fileName?: string;
   monthFilter?: string | number | null;
   yearFilter?: string | number | null;
   duspFilter?: (string | number)[];
@@ -54,6 +53,8 @@ export const SiteManagementReportDownloadButton = ({
     yearFilter,
     tpFilter
   );
+
+  
 
   // Map data for PDF (same as previously done in the page)
   const mappedSites = pdfData.sites.map(site => ({
@@ -102,7 +103,6 @@ export const SiteManagementReportDownloadButton = ({
     program_date: prog.date || '',
     status: prog.status || '',
   }));
-
   const fileName=`site-management-report-${new Date().toISOString().split('T')[0]}.pdf`
   const generateAndDownloadPDF = async () => {
     setIsGenerating(true);

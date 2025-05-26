@@ -16,6 +16,8 @@ import {
     PDFAppendixTitlePage,
     PDFPhaseQuarterInfo
 } from "../../components/PDFComponents";
+import { Site } from "@/types/site";
+import { Agreement, Audit, AwarenessProgram, Insurance, LocalAuthority, Utility } from "@/hooks/report/use-site-management-pdf-data";
 
 // PDF styles for Site Management report
 const styles = StyleSheet.create({
@@ -59,57 +61,7 @@ const styles = StyleSheet.create({
 });
 
 // Define data types for the Site Management Report
-type Site = {
-    standard_code: string; // Standard code instead of refid
-    name: string;  // Site Name
-    state: string; // State where site is located
-};
 
-type Utility = {
-    site_id: string;
-    site_name: string;
-    state: string;
-    has_water?: boolean;
-    has_electricity?: boolean;
-    has_sewerage?: boolean;
-    type_name?: string;
-    amount_bill?: number;
-};
-
-type Insurance = {
-    standard_code: string; // Standard code instead of refid
-    site_name: string;
-    state: string;
-    duration: string;
-};
-
-type Audit = {
-    standard_code: string; // Standard code instead of refid
-    site_name: string;
-    state: string;
-};
-
-type Agreement = {
-    standard_code: string; // Standard code instead of refid
-    site_name: string;
-    state: string;
-};
-
-type AwarenessProgram = {
-    standard_code: string; // Standard code instead of refid
-    site_name: string;
-    state: string;
-    program_name: string;
-    program_date: string;
-    status: string;
-};
-
-type LocalAuthority = {
-    standard_code: string; // Standard code instead of refid
-    site_name: string;
-    state: string;
-
-};
 
 // Props for the Site Management Report PDF
 type SiteManagementReportProps = {
@@ -123,12 +75,12 @@ type SiteManagementReportProps = {
 
     // Data arrays
     sites: Site[];
-    utilities: Utility[];
-    insurance: Insurance[];
+    utilities?: Utility[];
+    insurance?: Insurance[];
     localAuthority?: LocalAuthority[];
-    audits: Audit[];
-    agreements: Agreement[];
-    programmes: AwarenessProgram[];
+    audits?: Audit[];
+    agreements?: Agreement[];
+    programmes?: AwarenessProgram[];
 };
 
 // The main PDF component for Site Management Report
