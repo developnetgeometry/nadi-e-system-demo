@@ -70,7 +70,7 @@ const MaintenanceDashboard = () => {
   const displayRequests = isStaffUser && !siteId ? [] : maintenanceRequests;
 
   return (
-    <DashboardLayout>
+    <div>
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
@@ -116,7 +116,7 @@ const MaintenanceDashboard = () => {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
       />
-    </DashboardLayout>
+    </div>
   );
 };
 

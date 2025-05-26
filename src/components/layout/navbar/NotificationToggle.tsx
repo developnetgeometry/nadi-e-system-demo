@@ -60,6 +60,9 @@ export const NotificationToggle = () => {
   useEffect(() => {
     fetchNotifications();
 
+    let channel: any;
+    const audio = new Audio("/sounds/notification.mp3");
+
     // Subscribe to real-time notifications
     const setupRealtimeSubscription = async () => {
       const { data: session } = await supabase.auth.getSession();
@@ -67,7 +70,7 @@ export const NotificationToggle = () => {
 
       if (!userId) return;
 
-      const channel = supabase
+      channel = supabase
         .channel("notification_changes")
         .on(
           "postgres_changes",
@@ -89,22 +92,25 @@ export const NotificationToggle = () => {
             table: "notifications",
             filter: `user_id=eq.${userId}`,
           },
-          () => {
+          (payload) => {
             fetchNotifications();
+            audio.play().catch((err) => {
+              console.warn("Sound play blocked or failed:", err);
+            });
+            toast({
+              title: "New Notification",
+              description: payload.new.title,
+            });
           }
         )
         .subscribe();
-
-      return channel;
     };
 
-    const channel = setupRealtimeSubscription();
+    setupRealtimeSubscription();
 
     // Cleanup subscription on unmount
     return () => {
-      channel.then((channel) => {
-        if (channel) supabase.removeChannel(channel);
-      });
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 

@@ -1,10 +1,9 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { MenuVisibilitySettings } from "@/components/settings/MenuVisibility";
 
 export default function MenuVisibility() {
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-1">
         <h1 className="text-xl font-bold">Menu Visibility Management</h1>
         <p className="text-muted-foreground pb-6">
@@ -12,6 +11,6 @@ export default function MenuVisibility() {
         </p>
         <MenuVisibilitySettings />
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

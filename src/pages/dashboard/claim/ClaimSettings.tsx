@@ -25,14 +25,14 @@ const ClaimSettings = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <h1 className="text-xl font-bold">Claim Management Settings</h1>
         <Card>
           <CardHeader>
             <CardTitle>General Settings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-1">
             <div className="flex items-center justify-between">
               <Label htmlFor="requireAttachments">Require Attachments</Label>
               <Switch
@@ -60,7 +60,10 @@ const ClaimSettings = () => {
                 type="number"
                 value={settings.autoApprovalLimit}
                 onChange={(e) =>
-                  setSettings({ ...settings, autoApprovalLimit: e.target.value })
+                  setSettings({
+                    ...settings,
+                    autoApprovalLimit: e.target.value,
+                  })
                 }
               />
             </div>
@@ -78,7 +81,7 @@ const ClaimSettings = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

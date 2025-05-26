@@ -1,12 +1,11 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { OrganizationDetails as OrgDetails } from "@/components/organizations/OrganizationDetails";
 
 const OrganizationDetails = () => {
   return (
-    <DashboardLayout>
+    <div>
       <OrgDetails />
-    </DashboardLayout>
+    </div>
   );
 };
 

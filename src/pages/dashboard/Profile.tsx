@@ -89,14 +89,14 @@ const Profile = () => {
 
   if (!profile)
     return (
-      <DashboardLayout>
+      <div>
         <div>Loading...</div>
-      </DashboardLayout>
+      </div>
     );
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-8">
+    <div>
+      <div className="space-y-1">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <div className="flex items-center space-x-4">
@@ -152,7 +152,7 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -1,492 +1,689 @@
 import React, { useState, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import {
-  CalendarIcon,
-  MapPin,
-  Users,
-  Video,
-  File,
-  Clock,
-  UserCheck,
-  Vote,
-} from "lucide-react";
+  supabase,
+  BUCKET_NAME_UTILITIES,
+} from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { DateInput } from "@/components/ui/date-input";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import TimeInput from "@/components/ui/TimePicker";
 import { useFileUpload } from "@/hooks/use-file-upload";
-import { getDuration } from "@/components/site/utils/duration";
+import { useAuth } from "@/hooks/useAuth";
+import { Checkbox } from "@/components/ui/checkbox";
+import TimeInput from "@/components/ui/TimePicker";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { formatDuration } from "@/utils/date-utils";
+import { format } from "date-fns";
+import { BadgeInfo, Vote, Users, Video, Info, CircleUser } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import dynamic from "next/dynamic";
 
-// Mock data for dropdowns - in a real app, these would come from an API
-const CATEGORIES = [
-  { value: "technical", label: "Technical Skills" },
-  { value: "soft-skills", label: "Soft Skills" },
-  { value: "digital", label: "Digital Literacy" },
-  { value: "entrepreneurship", label: "Entrepreneurship" },
-];
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+// Import Quill styles if not already imported globally
+import "react-quill/dist/quill.snow.css";
 
-const PILLARS = [
-  {
-    value: "technical-1",
-    label: "Programming & Development",
-    categoryId: "technical",
-  },
-  {
-    value: "technical-2",
-    label: "Network & Security",
-    categoryId: "technical",
-  },
-  { value: "soft-1", label: "Communication", categoryId: "soft-skills" },
-  { value: "soft-2", label: "Leadership", categoryId: "soft-skills" },
-  { value: "digital-1", label: "Basic Computer Skills", categoryId: "digital" },
-  {
-    value: "digital-2",
-    label: "Internet & Social Media",
-    categoryId: "digital",
-  },
-  {
-    value: "entrepreneur-1",
-    label: "Business Planning",
-    categoryId: "entrepreneurship",
-  },
-  {
-    value: "entrepreneur-2",
-    label: "Marketing",
-    categoryId: "entrepreneurship",
-  },
-];
-
-const PROGRAMMES = [
-  {
-    value: "web-dev",
-    label: "Web Development Fundamentals",
-    pillarId: "technical-1",
-  },
-  {
-    value: "mobile-dev",
-    label: "Mobile App Development",
-    pillarId: "technical-1",
-  },
-  {
-    value: "cyber-security",
-    label: "Cybersecurity Basics",
-    pillarId: "technical-2",
-  },
-  {
-    value: "network-admin",
-    label: "Network Administration",
-    pillarId: "technical-2",
-  },
-  { value: "public-speaking", label: "Public Speaking", pillarId: "soft-1" },
-  { value: "business-writing", label: "Business Writing", pillarId: "soft-1" },
-  { value: "team-management", label: "Team Management", pillarId: "soft-2" },
-  {
-    value: "project-management",
-    label: "Project Management",
-    pillarId: "soft-2",
-  },
-  { value: "computer-basics", label: "Computer Basics", pillarId: "digital-1" },
-  { value: "email-basics", label: "Email Essentials", pillarId: "digital-1" },
-  {
-    value: "social-media",
-    label: "Social Media for Business",
-    pillarId: "digital-2",
-  },
-  {
-    value: "online-research",
-    label: "Online Research Techniques",
-    pillarId: "digital-2",
-  },
-  {
-    value: "business-plan",
-    label: "Business Plan Creation",
-    pillarId: "entrepreneur-1",
-  },
-  {
-    value: "financial-planning",
-    label: "Financial Planning",
-    pillarId: "entrepreneur-1",
-  },
-  {
-    value: "digital-marketing",
-    label: "Digital Marketing",
-    pillarId: "entrepreneur-2",
-  },
-  { value: "branding", label: "Branding Strategy", pillarId: "entrepreneur-2" },
-];
-
-const MODULES = [
-  { value: "html-css", label: "HTML & CSS Basics", programmeId: "web-dev" },
-  {
-    value: "javascript",
-    label: "JavaScript Fundamentals",
-    programmeId: "web-dev",
-  },
-  {
-    value: "react-intro",
-    label: "Introduction to React",
-    programmeId: "web-dev",
-  },
-  {
-    value: "android-basics",
-    label: "Android Development Basics",
-    programmeId: "mobile-dev",
-  },
-  {
-    value: "ios-basics",
-    label: "iOS Development Basics",
-    programmeId: "mobile-dev",
-  },
-  {
-    value: "react-native",
-    label: "React Native Development",
-    programmeId: "mobile-dev",
-  },
-  // More modules would be added here
-];
-
-const TARGET_PARTICIPANTS = [
-  { value: "beginners", label: "Beginners" },
-  { value: "intermediates", label: "Intermediates" },
-  { value: "advanced", label: "Advanced" },
-  { value: "professionals", label: "Professionals" },
-  { value: "seniors", label: "Senior Citizens" },
-  { value: "youth", label: "Youth" },
-  { value: "entrepreneurs", label: "Entrepreneurs" },
-];
-
-const EVENT_TYPES = [
-  { value: "workshop", label: "Workshop" },
-  { value: "seminar", label: "Seminar" },
-  { value: "conference", label: "Conference" },
-  { value: "training", label: "Training" },
-  { value: "webinar", label: "Webinar" },
-  { value: "hackathon", label: "Hackathon" },
-  { value: "course", label: "Course" },
-];
-
-const FormSchema = z.object({
-  programmeName: z.string().min(3, {
-    message: "Programme name must be at least 3 characters.",
-  }),
-  programmeCode: z.string().min(2, {
-    message: "Programme code must be at least 2 characters.",
-  }),
-  description: z.string().min(10, {
-    message: "Description must be at least 10 characters.",
-  }),
-  startDate: z.date({
-    required_error: "Start date is required.",
-  }),
-  endDate: z
-    .date({
-      required_error: "End date is required.",
-    })
-    .optional(),
-  location: z
-    .string()
-    .min(3, {
-      message: "Location must be at least 3 characters.",
-    })
-    .optional(),
-  maxParticipants: z.string().refine((val) => !isNaN(Number(val)), {
-    message: "Maximum participants must be a number.",
-  }),
-  isActive: z.boolean().default(true),
-
-  // New fields
-  category: z.string({
-    required_error: "Category is required.",
-  }),
-  pillar: z.string({
-    required_error: "Pillar is required.",
-  }),
-  programme: z.string({
-    required_error: "Programme is required.",
-  }),
-  module: z.string().optional(),
-  startTime: z.string({
-    required_error: "Start time is required.",
-  }),
-  endTime: z.string({
-    required_error: "End time is required.",
-  }),
-  eventType: z.string({
-    required_error: "Event type is required.",
-  }),
-  isGroupEvent: z.boolean().default(false),
-  mode: z.enum(["Online", "Physical"], {
-    required_error: "Mode is required.",
-  }),
-  targetParticipant: z.string({
-    required_error: "Target participant is required.",
-  }),
-  trainerName: z.string().min(3, {
-    message: "Trainer name must be at least 3 characters.",
-  }),
+// Form validation schema
+const formSchema = z.object({
+  title: z.string().min(1, { message: "Programme name is required" }),
+  description: z.string().optional(),
+  location: z.string().optional(),
+  start_date: z.string().min(1, { message: "Start date is required" }),
+  end_date: z.string().min(1, { message: "End date is required" }),
+  trainer_name: z.string().optional(),
+  files: z.any().optional(),
+  category: z.string().min(1, { message: "Category is required" }),
+  pillar: z.string().min(1, { message: "Pillar is required" }),
+  programme: z.string().min(1, { message: "Programme is required" }),
+  module: z.string().min(1, { message: "Module is required" }),
+  start_time: z.string().min(1, { message: "Start time is required" }),
+  end_time: z.string().min(1, { message: "End time is required" }),
+  event_type: z.string().min(1, { message: "Event type is required" }),
+  is_group_event: z.boolean().default(false),
+  target_participants: z
+    .enum(["umum", "komuniti_madani", "both"])
+    .default("umum"),
+  mode: z.enum(["Physical", "Online"]),
+  max_participants: z.string().optional(),
+  is_active: z.boolean().default(true),
 });
 
-type FormValues = z.infer<typeof FormSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
-const RegisterProgrammeForm: React.FC = () => {
+interface ProgrammeData {
+  id: string;
+  program_name: string;
+  description: string | null;
+  location_event: string | null;
+  start_datetime: string;
+  end_datetime: string;
+  duration: number;
+  trainer_name: string;
+  category_id: string;
+  subcategory_id: string;
+  program_id: string;
+  module_id: string;
+  program_mode: number;
+  is_group_event: boolean;
+  total_participant: number | null;
+  target_participants: boolean;
+  status_id: number;
+}
+
+interface RegisterProgrammeFormProps {
+  programmeData?: ProgrammeData | null;
+  isEditMode?: boolean;
+}
+
+const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
+  programmeData = null,
+  isEditMode = false,
+}) => {
   const { toast } = useToast();
-  const { uploadFile, isUploading } = useFileUpload();
-  const [files, setFiles] = useState<File[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  const [filteredPillars, setFilteredPillars] = useState(PILLARS);
-  const [filteredProgrammes, setFilteredProgrammes] = useState(PROGRAMMES);
-  const [filteredModules, setFilteredModules] = useState(MODULES);
-  const [duration, setDuration] = useState<string>("");
+  const navigate = useNavigate();
+  const { isUploading, uploadFile } = useFileUpload();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [duration, setDuration] = useState("");
 
+  // States for database values
+  const [eventCategories, setEventCategories] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [pillars, setPillars] = useState<
+    { value: string; label: string; categoryId: string }[]
+  >([]);
+  const [programmes, setProgrammes] = useState<
+    { value: string; label: string; pillarId: string }[]
+  >([]);
+  const [modules, setModules] = useState<
+    { value: string; label: string; programmeId: string }[]
+  >([]);
+  const [existingAttachments, setExistingAttachments] = useState<
+    { id: string; file_path: string }[]
+  >([]);
+
+  // Event types
+  const eventTypes = [
+    { value: "webinar", label: "Webinar", color: "bg-blue-500" },
+    { value: "workshop", label: "Workshop", color: "bg-green-500" },
+    { value: "conference", label: "Conference", color: "bg-purple-500" },
+    { value: "training", label: "Training", color: "bg-yellow-500" },
+    { value: "meetup", label: "Meetup", color: "bg-red-500" },
+  ];
+
+  // Filtered options based on selections
+  const [filteredPillars, setFilteredPillars] = useState<
+    { value: string; label: string; categoryId: string }[]
+  >([]);
+  const [filteredProgrammes, setFilteredProgrammes] = useState<
+    { value: string; label: string; pillarId: string }[]
+  >([]);
+  const [filteredModules, setFilteredModules] = useState<
+    { value: string; label: string; programmeId: string }[]
+  >([]);
+
+  // Initialize form with default values or existing programme data
   const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      programmeName: "",
-      programmeCode: "",
+      title: "",
       description: "",
       location: "",
-      maxParticipants: "50",
-      isActive: true,
-      isGroupEvent: false,
+      start_date: "",
+      end_date: "",
+      trainer_name: "",
+      files: undefined,
+      category: "",
+      pillar: "",
+      programme: "",
+      module: "",
+      start_time: "",
+      end_time: "",
+      event_type: "",
+      is_group_event: false,
+      target_participants: "umum",
       mode: "Physical",
+      max_participants: "",
+      is_active: true,
     },
   });
 
+  // Fetch data from Supabase
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data: categoryData, error: categoryError } = await supabase
+          .from("nd_event_category")
+          .select("id, name")
+          .eq("is_active", true);
+
+        if (categoryError) throw categoryError;
+
+        const formattedCategories = categoryData.map((cat) => ({
+          value: cat.id.toString(),
+          label: cat.name,
+        }));
+
+        setEventCategories(formattedCategories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    const fetchPillars = async () => {
+      try {
+        const { data: pillarData, error: pillarError } = await supabase
+          .from("nd_event_subcategory")
+          .select("id, name, category_id")
+          .eq("is_active", true);
+
+        if (pillarError) throw pillarError;
+
+        const formattedPillars = pillarData.map((pillar) => ({
+          value: pillar.id.toString(),
+          label: pillar.name,
+          categoryId: pillar.category_id.toString(),
+        }));
+
+        setPillars(formattedPillars);
+      } catch (error) {
+        console.error("Error fetching pillars:", error);
+      }
+    };
+
+    const fetchProgrammes = async () => {
+      try {
+        const { data: programmeData, error: programmeError } = await supabase
+          .from("nd_event_program")
+          .select("id, name, subcategory_id")
+          .eq("is_active", true);
+
+        if (programmeError) throw programmeError;
+
+        const formattedProgrammes = programmeData.map((programme) => ({
+          value: programme.id.toString(),
+          label: programme.name,
+          pillarId: programme.subcategory_id.toString(),
+        }));
+
+        setProgrammes(formattedProgrammes);
+      } catch (error) {
+        console.error("Error fetching programmes:", error);
+      }
+    };
+
+    const fetchModules = async () => {
+      try {
+        const { data: moduleData, error: moduleError } = await supabase
+          .from("nd_event_module")
+          .select("id, name, program_id")
+          .eq("is_active", true);
+
+        if (moduleError) throw moduleError;
+
+        const formattedModules = moduleData.map((module) => ({
+          value: module.id.toString(),
+          label: module.name,
+          programmeId: module.program_id.toString(),
+        }));
+
+        setModules(formattedModules);
+      } catch (error) {
+        console.error("Error fetching modules:", error);
+      }
+    };
+
+    fetchCategories();
+    fetchPillars();
+    fetchProgrammes();
+    fetchModules();
+  }, []);
+
+  // Fetch attachments if in edit mode
+  useEffect(() => {
+    if (isEditMode && programmeData) {
+      const fetchAttachments = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("nd_event_attachment")
+            .select("id, file_path")
+            .eq("event_id", programmeData.id);
+
+          if (error) throw error;
+          setExistingAttachments(data || []);
+        } catch (error) {
+          console.error("Error fetching attachments:", error);
+        }
+      };
+
+      fetchAttachments();
+    }
+  }, [isEditMode, programmeData]);
+
+  // Populate form with existing data if in edit mode
+  useEffect(() => {
+    if (isEditMode && programmeData) {
+      const startDateTime = new Date(programmeData.start_datetime);
+      const endDateTime = new Date(programmeData.end_datetime);
+
+      form.reset({
+        title: programmeData.program_name || "",
+        description: programmeData.description || "",
+        location: programmeData.location_event || "",
+        start_date: format(startDateTime, "yyyy-MM-dd"),
+        end_date: format(endDateTime, "yyyy-MM-dd"),
+        start_time: format(startDateTime, "HH:mm"),
+        end_time: format(endDateTime, "HH:mm"),
+        trainer_name: programmeData.trainer_name || "",
+        category: programmeData.category_id?.toString() || "",
+        pillar: programmeData.subcategory_id?.toString() || "",
+        programme: programmeData.program_id?.toString() || "",
+        module: programmeData.module_id?.toString() || "",
+        event_type: "webinar", // This would need to be mapped from your data if available
+        is_group_event: programmeData.is_group_event || false,
+        target_participants: programmeData.target_participants || false,
+        mode: programmeData.program_mode === 1 ? "Online" : "Physical",
+        max_participants: programmeData.total_participant?.toString() || "",
+        is_active: programmeData.status_id === 1, // Assuming status_id 1 is active
+      });
+
+      // Update filtered options based on loaded values
+      if (programmeData.category_id) {
+        const filteredPillars = pillars.filter(
+          (pillar) => pillar.categoryId === programmeData.category_id.toString()
+        );
+        setFilteredPillars(filteredPillars);
+
+        if (programmeData.subcategory_id) {
+          const filteredProgrammes = programmes.filter(
+            (prog) => prog.pillarId === programmeData.subcategory_id.toString()
+          );
+          setFilteredProgrammes(filteredProgrammes);
+
+          if (programmeData.program_id) {
+            const filteredModules = modules.filter(
+              (mod) => mod.programmeId === programmeData.program_id.toString()
+            );
+            setFilteredModules(filteredModules);
+          }
+        }
+      }
+    }
+  }, [isEditMode, programmeData, pillars, programmes, modules, form]);
+
+  // Watch form fields to calculate duration and filter options
   const watchCategory = form.watch("category");
   const watchPillar = form.watch("pillar");
   const watchProgramme = form.watch("programme");
+  const watchStartDate = form.watch("start_date");
+  const watchEndDate = form.watch("end_date");
+  const watchStartTime = form.watch("start_time");
+  const watchEndTime = form.watch("end_time");
   const watchMode = form.watch("mode");
-  const watchStartTime = form.watch("startTime");
-  const watchEndTime = form.watch("endTime");
-  const watchStartDate = form.watch("startDate");
-  const watchEndDate = form.watch("endDate");
 
-  // Calculate duration whenever start or end time changes
+  // Calculate duration when dates and times change
   useEffect(() => {
-    if (watchStartTime && watchEndTime) {
-      const startDateTime = watchStartDate
-        ? `${format(watchStartDate, "yyyy-MM-dd")}T${watchStartTime}:00`
-        : `2023-01-01T${watchStartTime}:00`;
+    if (watchStartDate && watchEndDate && watchStartTime && watchEndTime) {
+      const startDateTime = new Date(`${watchStartDate}T${watchStartTime}`);
+      const endDateTime = new Date(`${watchEndDate}T${watchEndTime}`);
 
-      const endDateTime = watchEndDate
-        ? `${format(watchEndDate, "yyyy-MM-dd")}T${watchEndTime}:00`
-        : watchStartDate
-        ? `${format(watchStartDate, "yyyy-MM-dd")}T${watchEndTime}:00`
-        : `2023-01-01T${watchEndTime}:00`;
+      // Calculate duration in milliseconds
+      const durationMs = endDateTime.getTime() - startDateTime.getTime();
 
-      setDuration(getDuration(startDateTime, endDateTime));
+      // Convert to hours
+      const durationHours = durationMs / (1000 * 60 * 60);
+
+      // Format the duration
+      const formattedDuration = formatDuration(durationHours);
+      setDuration(formattedDuration);
+    } else {
+      setDuration("");
     }
-  }, [watchStartTime, watchEndTime, watchStartDate, watchEndDate]);
+  }, [watchStartDate, watchEndDate, watchStartTime, watchEndTime]);
 
-  // Filter pillars when category changes
+  // Filter pillars based on selected category
   useEffect(() => {
     if (watchCategory) {
-      const filtered = PILLARS.filter(
+      const filtered = pillars.filter(
         (pillar) => pillar.categoryId === watchCategory
       );
       setFilteredPillars(filtered);
-      form.setValue("pillar", "");
-      form.setValue("programme", "");
-      form.setValue("module", "");
+      if (!isEditMode || !programmeData) {
+        form.setValue("pillar", "");
+        form.setValue("programme", "");
+        form.setValue("module", "");
+      }
+    } else {
+      setFilteredPillars(pillars);
     }
-  }, [watchCategory, form]);
+  }, [watchCategory, pillars, form, isEditMode, programmeData]);
 
-  // Filter programmes when pillar changes
+  // Filter programmes based on selected pillar
   useEffect(() => {
     if (watchPillar) {
-      const filtered = PROGRAMMES.filter(
+      const filtered = programmes.filter(
         (programme) => programme.pillarId === watchPillar
       );
       setFilteredProgrammes(filtered);
-      form.setValue("programme", "");
-      form.setValue("module", "");
+      if (!isEditMode || !programmeData) {
+        form.setValue("programme", "");
+        form.setValue("module", "");
+      }
+    } else {
+      setFilteredProgrammes(programmes);
     }
-  }, [watchPillar, form]);
+  }, [watchPillar, programmes, form, isEditMode, programmeData]);
 
-  // Filter modules when programme changes
+  // Filter modules based on selected programme
   useEffect(() => {
     if (watchProgramme) {
-      const filtered = MODULES.filter(
+      const filtered = modules.filter(
         (module) => module.programmeId === watchProgramme
       );
       setFilteredModules(filtered);
-      form.setValue("module", "");
-    }
-  }, [watchProgramme, form]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
-    }
-  };
-
-  const handleFileUpload = async () => {
-    try {
-      const uploadPromises = files.map((file) =>
-        uploadFile(file, "programme-attachments")
-      );
-
-      const results = await Promise.all(uploadPromises);
-      const successfulUploads = results.filter(Boolean) as string[];
-
-      if (successfulUploads.length > 0) {
-        setUploadedFiles((prev) => [...prev, ...successfulUploads]);
-        toast({
-          title: "Files uploaded successfully",
-          description: `${successfulUploads.length} files have been uploaded.`,
-        });
-        setFiles([]);
+      if (!isEditMode || !programmeData) {
+        form.setValue("module", "");
       }
+    } else {
+      setFilteredModules(modules);
+    }
+  }, [watchProgramme, modules, form, isEditMode, programmeData]);
+
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
+    try {
+      // Calculate duration
+      const startDateTime = new Date(`${data.start_date}T${data.start_time}`);
+      const endDateTime = new Date(`${data.end_date}T${data.end_time}`);
+      const durationHours =
+        (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+
+      // Prepare event data
+      const eventData = {
+        program_name: data.title,
+        description: data.description || "",
+        location_event: data.location || "",
+        start_datetime: startDateTime.toISOString(),
+        end_datetime: endDateTime.toISOString(),
+        duration: durationHours,
+        trainer_name: data.trainer_name || "",
+        created_by: user?.id,
+        requester_id: user?.id,
+        category_id: data.category,
+        subcategory_id: data.pillar,
+        program_id: data.programme,
+        module_id: data.module,
+        program_mode: data.mode === "Online" ? 1 : 2, // Assuming 1=Online, 2=Physical
+        total_participant: data.max_participants
+          ? parseInt(data.max_participants)
+          : null,
+        status_id: data.is_active ? 1 : 2, // Assuming 1=Active, 2=Inactive
+        is_group_event: data.is_group_event,
+        target_participants: data.target_participants,
+        updated_by: user?.id,
+      };
+
+      let eventId;
+
+      if (isEditMode && programmeData) {
+        // Update existing event
+        const { data: updatedEvent, error: updateError } = await supabase
+          .from("nd_event")
+          .update(eventData)
+          .eq("id", programmeData.id)
+          .select();
+
+        if (updateError) throw updateError;
+        eventId = programmeData.id;
+
+        toast({
+          title: "Success",
+          description: "Programme updated successfully",
+          variant: "default",
+        });
+      } else {
+        // Insert new event
+        const { data: newEvent, error: insertError } = await supabase
+          .from("nd_event")
+          .insert(eventData)
+          .select();
+
+        if (insertError) throw insertError;
+        eventId = newEvent?.[0]?.id;
+
+        toast({
+          title: "Success",
+          description: "Programme registered successfully",
+          variant: "default",
+        });
+      }
+
+      // Handle file uploads if any files are present
+      const fileInput = document.getElementById("files") as HTMLInputElement;
+      if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        // Upload all files and track their paths
+        const attachmentPromises = Array.from(fileInput.files).map(
+          async (file) => {
+            const filePath = await uploadFile(file, "program-attachments");
+
+            if (filePath) {
+              // Save attachment reference in nd_event_attachment table
+              return supabase.from("nd_event_attachment").insert({
+                event_id: eventId,
+                file_path: filePath,
+                created_by: user?.id,
+              });
+            }
+          }
+        );
+
+        // Wait for all attachment uploads to complete
+        await Promise.all(attachmentPromises);
+      }
+
+      // Redirect to programmes listing after successful submission
+      navigate("/programmes");
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error submitting form:", error);
       toast({
-        title: "Upload failed",
-        description: "There was a problem uploading your files.",
+        title: "Error",
+        description: "Failed to register programme. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  async function onSubmit(data: FormValues) {
-    // Process file uploads first if there are any
-    if (files.length > 0) {
-      await handleFileUpload();
-    }
-
-    // Add duration to the data
-    const submissionData = {
-      ...data,
-      duration,
-      attachments: uploadedFiles,
-    };
-
-    console.log("Form submitted:", submissionData);
-    toast({
-      title: "Programme registered successfully",
-      description: `${data.programmeName} has been registered.`,
-    });
-  }
+  // Helper for label with tooltip
+  const LabelWithTooltip = ({
+    label,
+    tooltip,
+    children,
+  }: {
+    label: string;
+    tooltip: string;
+    children?: React.ReactNode;
+  }) => (
+    <div className="flex items-center gap-1">
+      <span>{label}</span>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span tabIndex={0}>
+              <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <span className="text-xs">{tooltip}</span>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {children}
+    </div>
+  );
 
   return (
+    // Form Title : Programme Creation
+
     <div className=" mx-auto p-6 bg-white rounded-lg shadow-md">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Program Categorization Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Basic Information</h3>
+            <h3 className="text-lg font-medium flex items-center mb-2">
+              <Vote className="h-5 w-5 mr-2" />
+              Program Categorization
+            </h3>
+            {/* Mode and Location/URL */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="programmeName"
+                name="mode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Programme Name*</FormLabel>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Mode*"
+                        tooltip="Select whether the programme is held physically or online."
+                      />
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter programme name" {...field} />
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex flex-row gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Physical" id="physical" />
+                          <label
+                            htmlFor="physical"
+                            className="text-sm font-normal"
+                          >
+                            Physical
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="Online" id="online" />
+                          <label
+                            htmlFor="online"
+                            className="text-sm font-normal"
+                          >
+                            Online
+                          </label>
+                        </div>
+                      </RadioGroup>
                     </FormControl>
-                    <FormDescription>
-                      The name of the programme as it will appear to users.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="programmeCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Programme Code*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. NADI-2025" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      A unique code to identify this programme.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {watchMode === "Physical" && (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="Location"
+                          tooltip="Specify the physical location where the programme will be held."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Programme location" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              {watchMode === "Online" && (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="Online URL"
+                          tooltip="Provide the online meeting link or URL for the programme."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Programme online URL" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center">
-              <Vote className="h-5 w-5 mr-2" />
-              Categorization
-            </h3>
+            {/* Category and Pillar */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category*</FormLabel>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Category*"
+                        tooltip="Select the main category for this programme."
+                      />
+                    </FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 border rounded-md"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
                       >
-                        <option value="">Select a category</option>
-                        {CATEGORIES.map((category) => (
+                        <option value="">Select Category</option>
+                        {eventCategories.map((category) => (
                           <option key={category.value} value={category.value}>
                             {category.label}
                           </option>
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>
-                      The main category of the programme.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="pillar"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Pillar (Sub-category)*</FormLabel>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Pillar (Sub-category)*"
+                        tooltip="Choose the pillar or sub-category under the selected category."
+                      />
+                    </FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 border rounded-md"
-                        disabled={!watchCategory}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
+                        disabled={!watchCategory}
                       >
-                        <option value="">Select a pillar</option>
+                        <option value="">Select Pillar</option>
                         {filteredPillars.map((pillar) => (
                           <option key={pillar.value} value={pillar.value}>
                             {pillar.label}
@@ -494,27 +691,31 @@ const RegisterProgrammeForm: React.FC = () => {
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>
-                      The pillar/sub-category of the programme.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+            </div>
+            {/* Programme and Module */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="programme"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Programme*</FormLabel>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Programme*"
+                        tooltip="Select the specific programme under the chosen pillar."
+                      />
+                    </FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 border rounded-md"
-                        disabled={!watchPillar}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
+                        disabled={!watchPillar}
                       >
-                        <option value="">Select a programme</option>
+                        <option value="">Select Programme</option>
                         {filteredProgrammes.map((programme) => (
                           <option key={programme.value} value={programme.value}>
                             {programme.label}
@@ -522,25 +723,28 @@ const RegisterProgrammeForm: React.FC = () => {
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>The specific programme.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="module"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Module</FormLabel>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Module*"
+                        tooltip="Select the module associated with this programme."
+                      />
+                    </FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 border rounded-md"
-                        disabled={!watchProgramme}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
+                        disabled={!watchProgramme}
                       >
-                        <option value="">Select a module</option>
+                        <option value="">Select Module</option>
                         {filteredModules.map((module) => (
                           <option key={module.value} value={module.value}>
                             {module.label}
@@ -548,202 +752,385 @@ const RegisterProgrammeForm: React.FC = () => {
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>
-                      Optional: The specific module within the programme.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
           </div>
-
+          {/* Event Details Section */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center">
-              <Clock className="h-5 w-5 mr-2" />
-              Date & Time
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Start Date*</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Select date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormDescription>
-                      The date when the programme starts.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>End Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Select date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value || undefined}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            form.getValues("startDate") &&
-                            date < form.getValues("startDate")
-                          }
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormDescription>
-                      Optional: The date when the programme ends.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="startTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Time*</FormLabel>
-                    <FormControl>
-                      <TimeInput
-                        id="start-time"
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The time when the programme starts.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="endTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Time*</FormLabel>
-                    <FormControl>
-                      <TimeInput
-                        id="end-time"
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The time when the programme ends.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Duration Display */}
-              <div className="col-span-2">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium">Duration:</span>
-                  <span className="text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                    {duration || "Please select start and end times"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center">
+            <h3 className="text-lg font-medium flex items-center mb-2">
               <Video className="h-5 w-5 mr-2" />
               Event Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="eventType"
+                name="event_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Event Type*</FormLabel>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Event Type*"
+                        tooltip="Choose the type of event (e.g., Webinar, Workshop, etc.)."
+                      />
+                    </FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 border rounded-md"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
                       >
-                        <option value="">Select event type</option>
-                        {EVENT_TYPES.map((type) => (
+                        <option value="">Select Event Type</option>
+                        {eventTypes.map((type) => (
                           <option key={type.value} value={type.value}>
                             {type.label}
                           </option>
                         ))}
                       </select>
                     </FormControl>
-                    <FormDescription>The type of event.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
-                name="isGroupEvent"
+                name="is_group_event"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormItem>
+                    <div className="flex items-center justify-between border rounded-md bg-white px-4 py-3 h-12">
+                      <div className="flex items-center">
+                        <CircleUser className="mr-2 h-5 w-5 text-muted-foreground" />
+                        <LabelWithTooltip
+                          label="Group Event"
+                          tooltip="Enable if this event is intended for a group rather than individuals."
+                        />
+                      </div>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="scale-125"
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="start_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Start Date*"
+                        tooltip="Select the date when the programme will start."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="end_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="End Date*"
+                        tooltip="Select the date when the programme will end."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="start_time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Start Time*"
+                        tooltip="Specify the time the programme will begin."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <TimeInput
+                        id="start_time"
+                        value={field.value}
+                        onChange={field.onChange}
+                        disallowSameAsValue=""
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="end_time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="End Time*"
+                        tooltip="Specify the time the programme will end."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <TimeInput
+                        id="end_time"
+                        value={field.value}
+                        onChange={field.onChange}
+                        disallowSameAsValue=""
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium leading-none flex items-center gap-1">
+                Duration (Hours)
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={0}>
+                        <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <span className="text-xs">
+                        This field is auto-calculated based on the start and end
+                        date/time.
+                      </span>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </label>
+              <div className="h-10 px-3 py-2 rounded-md border border-input bg-background text-sm text-gray-500 flex items-center">
+                {duration || "Will be calculated"}
+              </div>
+            </div>
+          </div>
+          {/* Program Information Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium flex items-center mb-2">
+              <BadgeInfo className="h-5 w-5 mr-2" />
+              Program Information
+            </h3>
+            <div className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Programme Name*"
+                        tooltip="Enter the official name of the programme."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter programme name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Description"
+                        tooltip="Provide a brief description or summary of the programme."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <div className="min-h-[120px] w-full">
+                        <ReactQuill
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          theme="snow"
+                          placeholder="Enter programme description"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+          {/* Trainer/Organizer And Participants Detail Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium flex items-center mb-2">
+              <Users className="h-5 w-5 mr-2" />
+              Trainer/Organizer And Participants Detail
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="trainer_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Trainer/Organizer Name"
+                        tooltip="Enter the name of the trainer or organizing entity."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="Trainer name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="target_participants"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Target Participants*"
+                        tooltip="Select the intended audience for this programme."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex flex-row gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="umum" id="umum" />
+                          <label htmlFor="umum" className="text-sm font-normal">
+                            Umum
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem
+                            value="komuniti_madani"
+                            id="komuniti_madani"
+                          />
+                          <label
+                            htmlFor="komuniti_madani"
+                            className="text-sm font-normal"
+                          >
+                            Komuniti Madani
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="both" id="both" />
+                          <label htmlFor="both" className="text-sm font-normal">
+                            Both
+                          </label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="max_participants"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Maximum Participants"
+                        tooltip="Specify the maximum number of participants allowed."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Maximum number of participants"
+                        min="1"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isEditMode && existingAttachments.length > 0 && (
+                <div className="space-y-2 col-span-2">
+                  <h3 className="text-sm font-medium">Existing Attachments</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {existingAttachments.map((attachment) => (
+                      <div
+                        key={attachment.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                      >
+                        <span className="text-sm truncate">
+                          {attachment.file_path.split("/").pop()}
+                        </span>
+                        <a
+                          href={`${BUCKET_NAME_UTILITIES}/${attachment.file_path}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          View
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <FormField
+                control={form.control}
+                name="files"
+                render={({ field: { onChange, onBlur, name, ref } }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {isEditMode ? "Add More Attachments" : "Attachments"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        id="files"
+                        type="file"
+                        multiple
+                        onChange={(e) => {
+                          onChange(e.target.files);
+                        }}
+                        onBlur={onBlur}
+                        name={name}
+                        ref={ref}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md col-span-2">
                     <FormControl>
                       <Checkbox
                         checked={field.value}
@@ -751,289 +1138,30 @@ const RegisterProgrammeForm: React.FC = () => {
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>Group Event</FormLabel>
-                      <FormDescription>Is this a group event?</FormDescription>
+                      <FormLabel className="font-normal">
+                        This programme is active
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Active programmes will be visible to users and can be
+                        registered for.
+                      </p>
                     </div>
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="mode"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Mode*</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Physical" id="physical" />
-                          <label htmlFor="physical">Physical</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="Online" id="online" />
-                          <label htmlFor="online">Online</label>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormDescription>
-                      Is this programme conducted physically or online?
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {watchMode === "Physical" && (
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location*</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <MapPin className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="e.g. Kuala Lumpur"
-                            className="pl-8"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormDescription>
-                        Where the programme will take place.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
             </div>
           </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center">
-              <Users className="h-5 w-5 mr-2" />
-              Participants & Instructor
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="maxParticipants"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Maximum Participants*</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        placeholder="50"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      The maximum number of participants allowed.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="targetParticipant"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Target Participant*</FormLabel>
-                    <FormControl>
-                      <select
-                        className="w-full p-2 border rounded-md"
-                        {...field}
-                      >
-                        <option value="">Select target participants</option>
-                        {TARGET_PARTICIPANTS.map((target) => (
-                          <option key={target.value} value={target.value}>
-                            {target.label}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>
-                      The target audience for this programme.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="trainerName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trainer / Organization Name*</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserCheck className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Enter trainer name"
-                          className="pl-8"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      Name of the trainer or organization running this
-                      programme.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description*</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter programme description"
-                    className="min-h-[120px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Detailed description of the programme.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* File Upload Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center">
-              <File className="h-5 w-5 mr-2" />
-              File Attachments
-            </h3>
-            <div className="border border-dashed rounded-lg p-6">
-              <div className="flex flex-col items-center justify-center gap-4">
-                <File className="h-10 w-10 text-gray-400" />
-                <div className="text-center">
-                  <p className="text-sm text-gray-500">
-                    Drop files here or click to upload
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    PDF, DOCX, XLSX, JPG, PNG up to 10MB each
-                  </p>
-                </div>
-                <Input
-                  type="file"
-                  className="max-w-sm"
-                  multiple
-                  onChange={handleFileChange}
-                />
-              </div>
-            </div>
-
-            {/* Display selected files */}
-            {files.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Selected files:</p>
-                <ul className="text-sm space-y-1">
-                  {files.map((file, index) => (
-                    <li key={index} className="flex items-center">
-                      <span>
-                        {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="ml-2 h-6 p-0 text-red-500"
-                        onClick={() => {
-                          setFiles(files.filter((_, i) => i !== index));
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Display uploaded files */}
-            {uploadedFiles.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Uploaded files:</p>
-                <ul className="text-sm space-y-1">
-                  {uploadedFiles.map((url, index) => (
-                    <li key={index} className="flex items-center">
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-blue-500 hover:underline"
-                      >
-                        {url.split("/").pop()}
-                      </a>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="ml-2 h-6 p-0 text-red-500"
-                        onClick={() => {
-                          setUploadedFiles(
-                            uploadedFiles.filter((_, i) => i !== index)
-                          );
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <FormField
-            control={form.control}
-            name="isActive"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Active</FormLabel>
-                  <FormDescription>
-                    This programme will be visible and open for registration.
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-end space-x-4">
-            <Button variant="outline" type="button">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isUploading}>
-              {isUploading ? "Uploading files..." : "Register Programme"}
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={isSubmitting || isUploading}
+              className="w-full md:w-auto"
+            >
+              {isSubmitting || isUploading
+                ? "Submitting..."
+                : isEditMode
+                ? "Update Programme"
+                : "Register Programme"}
             </Button>
           </div>
         </form>

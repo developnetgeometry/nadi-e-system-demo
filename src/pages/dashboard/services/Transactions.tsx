@@ -25,8 +25,8 @@ const ServiceTransactions = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div>
           <h1 className="text-xl font-bold">Service Transactions</h1>
           <p className="text-muted-foreground mt-2">
@@ -45,13 +45,19 @@ const ServiceTransactions = () => {
                 <div className="space-y-2">
                   <p>
                     <span className="font-medium">Amount:</span>{" "}
-                    {transaction.amount?.toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
+                    {transaction.amount?.toLocaleString("en-US", {
+                      style: "currency",
+                      currency: "USD",
                     })}
                   </p>
-                  <p><span className="font-medium">Type:</span> {transaction.type}</p>
-                  <p><span className="font-medium">Category:</span> {transaction.category}</p>
+                  <p>
+                    <span className="font-medium">Type:</span>{" "}
+                    {transaction.type}
+                  </p>
+                  <p>
+                    <span className="font-medium">Category:</span>{" "}
+                    {transaction.category}
+                  </p>
                   <p>
                     <span className="font-medium">Date:</span>{" "}
                     {new Date(transaction.date).toLocaleDateString()}
@@ -68,7 +74,7 @@ const ServiceTransactions = () => {
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

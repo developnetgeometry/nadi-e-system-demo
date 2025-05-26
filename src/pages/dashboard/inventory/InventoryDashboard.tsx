@@ -90,8 +90,8 @@ const InventoryDashboard = () => {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Inventory Management</h1>
@@ -126,7 +126,7 @@ const InventoryDashboard = () => {
           onOpenChange={setIsDialogOpen}
         />
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

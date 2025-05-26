@@ -1,12 +1,12 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout"
-import { BookingManagementDetail } from "@/components/site/BookingManagementDetail"
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { BookingManagementDetail } from "@/components/site/BookingManagementDetail";
 
 const BookingManagement = () => {
-    return (
-        <DashboardLayout>
-            <BookingManagementDetail />
-        </DashboardLayout>
-    )
-}
+  return (
+    <div>
+      <BookingManagementDetail />
+    </div>
+  );
+};
 
 export default BookingManagement;

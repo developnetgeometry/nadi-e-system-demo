@@ -33,7 +33,7 @@ const POSDashboard = () => {
     totalTransactions: 0,
     transactionsGrowth: 0,
     totalProducts: 0,
-    productsGrowth: 0
+    productsGrowth: 0,
   });
 
   // Get user metadata
@@ -44,7 +44,7 @@ const POSDashboard = () => {
 
   // Fetch dashboard statistics
   const { data: statsData, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: ["dashboard-stats"],
     queryFn: async () => {
       // You would replace this with actual API calls to get your dashboard stats
       // For now, using dummy data that matches the screenshot
@@ -54,28 +54,43 @@ const POSDashboard = () => {
         totalTransactions: 2,
         transactionsGrowth: 4,
         totalProducts: 7,
-        productsGrowth: 1
+        productsGrowth: 1,
       };
-    }
+    },
   });
 
   // Fetch site performance data
   const { data: performanceData, isLoading: performanceLoading } = useQuery({
-    queryKey: ['site-performance'],
+    queryKey: ["site-performance"],
     queryFn: async () => {
       // Mock data for site performance - replace with actual API call
       return [
-        { site: "Nadi Site 1", transactionCount: 2, totalSales: 234.95, productCount: 2 },
-        { site: "Nadi Site 2", transactionCount: 2, totalSales: 189.97, productCount: 2 },
-        { site: "Nadi Site 3", transactionCount: 1, totalSales: 59.99, productCount: 1 },
+        {
+          site: "Nadi Site 1",
+          transactionCount: 2,
+          totalSales: 234.95,
+          productCount: 2,
+        },
+        {
+          site: "Nadi Site 2",
+          transactionCount: 2,
+          totalSales: 189.97,
+          productCount: 2,
+        },
+        {
+          site: "Nadi Site 3",
+          transactionCount: 1,
+          totalSales: 59.99,
+          productCount: 1,
+        },
       ];
     },
-    enabled: !isTPSiteUser // Only fetch if user is not a TP site user
+    enabled: !isTPSiteUser, // Only fetch if user is not a TP site user
   });
 
   // Fetch top selling products
   const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ['top-products'],
+    queryKey: ["top-products"],
     queryFn: async () => {
       // Mock data for top selling products - replace with actual API call
       return [
@@ -83,7 +98,7 @@ const POSDashboard = () => {
         { product: "Smart Watch", sales: "35 units" },
         { product: "USB-C Charger", sales: "28 units" },
       ];
-    }
+    },
   });
 
   useEffect(() => {
@@ -103,13 +118,13 @@ const POSDashboard = () => {
   };
 
   const filteredSiteData = searchTerm
-    ? sitePerformanceData.filter(site =>
+    ? sitePerformanceData.filter((site) =>
         site.site.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : sitePerformanceData;
 
   return (
-    <DashboardLayout>
+    <div>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">POS Dashboard</h1>
@@ -123,13 +138,15 @@ const POSDashboard = () => {
               {/* <TrendingUp className="h-4 w-4 text-muted-foreground" /> */}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${dashboardStats.totalSales}</div>
+              <div className="text-2xl font-bold">
+                ${dashboardStats.totalSales}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +{dashboardStats.salesGrowth}% from last month
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -138,11 +155,15 @@ const POSDashboard = () => {
               {/* <ShoppingCart className="h-4 w-4 text-muted-foreground" /> */}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardStats.totalTransactions}</div>
-              <p className="text-xs text-muted-foreground">+{dashboardStats.transactionsGrowth}% from yesterday</p>
+              <div className="text-2xl font-bold">
+                {dashboardStats.totalTransactions}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                +{dashboardStats.transactionsGrowth}% from yesterday
+              </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -151,8 +172,12 @@ const POSDashboard = () => {
               {/* <Package className="h-4 w-4 text-muted-foreground" /> */}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardStats.totalProducts}</div>
-              <p className="text-xs text-muted-foreground">+{dashboardStats.productsGrowth} new this week</p>
+              <div className="text-2xl font-bold">
+                {dashboardStats.totalProducts}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                +{dashboardStats.productsGrowth} new this week
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -172,7 +197,7 @@ const POSDashboard = () => {
                 />
               </div>
             </div>
-            
+
             <div className="rounded-md border">
               <div className="grid grid-cols-4 p-4 font-medium border-b text-sm text-muted-foreground">
                 <div>Site Name</div>
@@ -180,9 +205,12 @@ const POSDashboard = () => {
                 <div>Total Sales</div>
                 <div>Product Count</div>
               </div>
-              
+
               {filteredSiteData.map((site, index) => (
-                <div key={index} className="grid grid-cols-4 p-4 border-b last:border-0 text-sm">
+                <div
+                  key={index}
+                  className="grid grid-cols-4 p-4 border-b last:border-0 text-sm"
+                >
                   <div className="font-semibold text-md">{site.site}</div>
                   <div>{site.transactionCount}</div>
                   <div>${site.totalSales.toFixed(2)}</div>
@@ -196,15 +224,18 @@ const POSDashboard = () => {
         {/* Top Selling Products Card */}
         <Card className="p-6">
           <h2 className="text-xl font-bold mb-4">Top Selling Products</h2>
-          
+
           <div className="rounded-md">
             <div className="grid grid-cols-2 p-4 text-sm font-medium text-muted-foreground border-b">
               <div>Product</div>
               <div className="text-right">Sales</div>
             </div>
-            
+
             {topSellingProducts.map((product, index) => (
-              <div key={index} className="grid grid-cols-2 p-4 border-b last:border-0">
+              <div
+                key={index}
+                className="grid grid-cols-2 p-4 border-b last:border-0"
+              >
                 <div className="font-medium">{product.product}</div>
                 <div className="text-right">{product.sales}</div>
               </div>
@@ -212,7 +243,7 @@ const POSDashboard = () => {
           </div>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

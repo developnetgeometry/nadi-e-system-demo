@@ -385,7 +385,7 @@ const SiteStaff = () => {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <div>
         <StaffToolbar
           selectedStaff={getSelectedStaffObjects()}
@@ -460,7 +460,7 @@ const SiteStaff = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -207,3 +207,11 @@ export const bookingItems = [
   { title: "Booking Management", path: "/booking" },
   { title: "Booking Settings", path: "/booking/settings" },
 ];
+
+export const vendorManagementItems = [
+  { title: "Vendor Dashboard", path: "/vendor" },
+  { title: "Vendor Companies", path: "/vendor/companies" },
+  { title: "Vendor Staff", path: "/vendor/staff" },
+  { title: "Contracts", path: "/vendor/contracts" },
+  { title: "Reports", path: "/vendor/reports" },
+];

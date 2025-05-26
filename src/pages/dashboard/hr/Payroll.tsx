@@ -30,7 +30,7 @@ export default function PayrollPage() {
   }, [userMetadata]);
 
   if (userMetadata === null) {
-    return <DashboardLayout>Loading…</DashboardLayout>;
+    return <div>Loading…</div>;
   }
 
   // 4. pick the right page
@@ -60,5 +60,5 @@ export default function PayrollPage() {
     }
   };
 
-  return <DashboardLayout>{renderDashboard()}</DashboardLayout>;
+  return <div>{renderDashboard()}</div>;
 }

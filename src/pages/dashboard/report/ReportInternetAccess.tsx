@@ -33,7 +33,8 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
-const ReportInternetAccess = () => {  // Filter states
+const ReportInternetAccess = () => {
+  // Filter states
   const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [tpFilter, setTpFilter] = useState<(string | number)[]>([]);
@@ -43,7 +44,13 @@ const ReportInternetAccess = () => {  // Filter states
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   // Fetch filter options from API
-  const { phases, dusps, nadiSites, tpProviders, loading: filtersLoading } = useReportFilters();
+  const {
+    phases,
+    dusps,
+    nadiSites,
+    tpProviders,
+    loading: filtersLoading,
+  } = useReportFilters();
   // Fetch internet access data based on filters
   const {
     sites,
@@ -52,8 +59,14 @@ const ReportInternetAccess = () => {  // Filter states
     sitesWithoutInternet,
     connectionTypes,
     providers,
-    loading: dataLoading
-  }  = useInternetAccessData(duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter);
+    loading: dataLoading,
+  } = useInternetAccessData(
+    duspFilter,
+    phaseFilter,
+    monthFilter,
+    yearFilter,
+    tpFilter
+  );
 
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
@@ -77,8 +90,8 @@ const ReportInternetAccess = () => {  // Filter states
   const dataStableLoading = useStableLoading(dataLoading);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Internet Access</h1>
@@ -86,18 +99,28 @@ const ReportInternetAccess = () => {  // Filter states
               View and analyze internet connectivity data across all NADI sites
             </p>
           </div>
-          <div className="flex items-center gap-2">            
+          <div className="flex items-center gap-2">
             <InternetAccessReportDownloadButton
-              duspLabel={duspFilter.length === 1
-                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
-                : duspFilter.length > 1
+              duspLabel={
+                duspFilter.length === 1
+                  ? dusps.find((d) => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
                   ? `${duspFilter.length} DUSPs selected`
-                  : ""}
-              phaseLabel={phaseFilter !== null
-                ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
-                : "All Phases"}
+                  : ""
+              }
+              phaseLabel={
+                phaseFilter !== null
+                  ? phases.find((p) => p.id === phaseFilter)?.name ||
+                    "All Phases"
+                  : "All Phases"
+              }
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}              monthFilter={monthFilter}
+              periodValue={
+                monthFilter
+                  ? `${monthFilter || ""} / ${yearFilter || ""}`
+                  : "All Records"
+              }
+              monthFilter={monthFilter}
               yearFilter={yearFilter}
               duspFilter={duspFilter}
               phaseFilter={phaseFilter}
@@ -108,21 +131,25 @@ const ReportInternetAccess = () => {  // Filter states
               connectionTypes={connectionTypes}
               providers={providers}
               mcmcLogo={mcmcLogo}
-              duspLogo={duspLogo}              
-              fileName={`internet-access-report-${new Date().toISOString().split('T')[0]}.pdf`}
+              duspLogo={duspLogo}
+              fileName={`internet-access-report-${
+                new Date().toISOString().split("T")[0]
+              }.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>        {/* Filters */}        <ModularReportFilters
+        </div>{" "}
+        {/* Filters */}{" "}
+        <ModularReportFilters
           // Show relevant filters for Internet Access report
           showFilters={{
             dusp: true,
             phase: true,
             nadi: false,
             date: true,
-            tp: true
-          }}          // Filter state
+            tp: true,
+          }} // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
           phaseFilter={phaseFilter}
@@ -133,7 +160,6 @@ const ReportInternetAccess = () => {  // Filter states
           setYearFilter={setYearFilter}
           tpFilter={tpFilter}
           setTpFilter={setTpFilter}
-
           // Filter data
           dusps={dusps}
           phases={phases}
@@ -141,10 +167,10 @@ const ReportInternetAccess = () => {  // Filter states
           tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
-
           // Loading state
           isLoading={filtersLoading}
-        />        {/* Internet Access Card */}
+        />{" "}
+        {/* Internet Access Card */}
         <div className="w-full max-w-3xl">
           <InternetAccessCard
             loading={dataStableLoading}
@@ -153,7 +179,7 @@ const ReportInternetAccess = () => {  // Filter states
           />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

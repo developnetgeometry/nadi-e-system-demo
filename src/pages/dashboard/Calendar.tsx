@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,8 +14,14 @@ const CalendarPage = () => {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   const timeSlots = [
-    "09:00", "10:00", "11:00", "12:00",
-    "14:00", "15:00", "16:00", "17:00"
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
   ];
 
   const handleDateSelect = (selectedDate: Date | undefined) => {
@@ -35,8 +40,8 @@ const CalendarPage = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl">
+    <div>
+      <div className="space-y-1  ">
         <div className="flex items-center gap-4 mb-8">
           <CalendarIcon className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold">Calendar</h1>
@@ -77,7 +82,8 @@ const CalendarPage = () => {
                     onClick={() => handleSlotSelect(slot)}
                     className={cn(
                       "w-full justify-center",
-                      selectedSlot === slot && "bg-primary text-primary-foreground"
+                      selectedSlot === slot &&
+                        "bg-primary text-primary-foreground"
                     )}
                   >
                     {slot}
@@ -96,7 +102,7 @@ const CalendarPage = () => {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

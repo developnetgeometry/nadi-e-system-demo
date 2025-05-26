@@ -3,12 +3,12 @@ import { UsageHeader } from "@/components/site/usage/UsageHeader";
 import UsageDynamic from "@/components/site/usage/UsageDynamic";
 
 const Usage = () => {
-    return (
-        <DashboardLayout>
-            <UsageHeader />
-            <UsageDynamic />
-        </DashboardLayout>
-    );
+  return (
+    <div>
+      <UsageHeader />
+      <UsageDynamic />
+    </div>
+  );
 };
 
 export default Usage;

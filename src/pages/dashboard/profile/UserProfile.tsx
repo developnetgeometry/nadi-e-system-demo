@@ -20,12 +20,12 @@ const UserProfile = () => {
 
   if (userType === "super_admin") {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <SuperAdminProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
@@ -33,101 +33,99 @@ const UserProfile = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>);
+      </div>
+    );
   }
 
   if (userGroup === 7) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <MemberProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 6) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <StaffProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 2) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <McmcProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 1) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <DuspProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 4) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <SsoProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 3) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <TpProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (userGroup === 5) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <VendorProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
-    if (userGroup === 9) {
+  if (userGroup === 9) {
     return (
-      <DashboardLayout>
+      <div>
         <ProfileHeader />
         <div className="space-y-8">
           <SiteProfileSettings />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
-
-  return (
-    <NoAccess />
-  );
+  return <NoAccess />;
 };
 
 export default UserProfile;
