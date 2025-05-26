@@ -242,20 +242,21 @@ export const PDFInfoTable = ({
 }) => {
   const infoTableStyles = StyleSheet.create({
     container: {
-      width: "100%",
+      width: "85%", // Reduced width to add margin on both sides
       borderWidth: 1,
       borderColor: "#000",
       marginBottom: 20,
+      marginHorizontal: "auto", // Center the table
     },
     titleContainer: {
       backgroundColor: "#000",
-      padding: 8,
+      padding: 6, // Slightly reduced padding
       width: "100%",
       textAlign: "center",
     },
     title: {
       color: "#fff",
-      fontSize: 10,
+      fontSize: 9, // Reduced font size
       fontWeight: "bold",
       textTransform: "uppercase",
     },
@@ -266,18 +267,18 @@ export const PDFInfoTable = ({
     },
     labelCell: {
       backgroundColor: "#fff",
-      padding: 6,
+      padding: 5, // Slightly reduced padding
       width: "30%",
       borderRightWidth: 1,
       borderRightColor: "#000",
-      fontSize: 10,
+      fontSize: 8, // Reduced font size
       fontWeight: "bold",
       textTransform: "uppercase",
     },
     valueCell: {
-      padding: 6,
+      padding: 5, // Slightly reduced padding
       width: "70%",
-      fontSize: 10,
+      fontSize: 8, // Reduced font size
     }
   });
 
