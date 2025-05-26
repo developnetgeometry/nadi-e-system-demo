@@ -3,55 +3,62 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, CreditCard, ChartBar, Receipt, Wallet, FileText } from "lucide-react";
+import {
+  DollarSign,
+  CreditCard,
+  ChartBar,
+  Receipt,
+  Wallet,
+  FileText,
+} from "lucide-react";
 import { format } from "date-fns";
 
 const FinanceDashboard = () => {
   const { data: transactions } = useQuery({
-    queryKey: ['transactions'],
+    queryKey: ["transactions"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('financial_transactions')
-        .select('*')
-        .order('date', { ascending: false })
+        .from("financial_transactions")
+        .select("*")
+        .order("date", { ascending: false })
         .limit(5);
-      
+
       if (error) throw error;
       return data;
-    }
+    },
   });
 
   const { data: budgets } = useQuery({
-    queryKey: ['budgets'],
+    queryKey: ["budgets"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('budgets')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("budgets")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(5);
-      
+
       if (error) throw error;
       return data;
-    }
+    },
   });
 
   const { data: invoices } = useQuery({
-    queryKey: ['invoices'],
+    queryKey: ["invoices"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('invoices')
-        .select('*')
-        .order('due_date', { ascending: true })
+        .from("invoices")
+        .select("*")
+        .order("due_date", { ascending: true })
         .limit(5);
-      
+
       if (error) throw error;
       return data;
-    }
+    },
   });
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div>
           <h1 className="text-xl font-bold">Finance Management</h1>
           <p className="text-muted-foreground mt-2">
@@ -70,9 +77,12 @@ const FinanceDashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">
                 {transactions
-                  ?.filter(t => t.type === 'income')
+                  ?.filter((t) => t.type === "income")
                   ?.reduce((sum, t) => sum + Number(t.amount), 0)
-                  ?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) || '$0'}
+                  ?.toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }) || "$0"}
               </div>
             </CardContent>
           </Card>
@@ -87,9 +97,12 @@ const FinanceDashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold">
                 {transactions
-                  ?.filter(t => t.type === 'expense')
+                  ?.filter((t) => t.type === "expense")
                   ?.reduce((sum, t) => sum + Number(t.amount), 0)
-                  ?.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) || '$0'}
+                  ?.toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }) || "$0"}
               </div>
             </CardContent>
           </Card>
@@ -115,7 +128,9 @@ const FinanceDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {invoices?.filter(i => i.status === 'sent' || i.status === 'overdue').length || 0}
+                {invoices?.filter(
+                  (i) => i.status === "sent" || i.status === "overdue"
+                ).length || 0}
               </div>
             </CardContent>
           </Card>
@@ -134,21 +149,28 @@ const FinanceDashboard = () => {
                 <Card key={transaction.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      {transaction.description || 'Unnamed Transaction'}
+                      {transaction.description || "Unnamed Transaction"}
                     </CardTitle>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      transaction.type === 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        transaction.type === "income"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
                       {transaction.type}
                     </span>
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between items-center">
                       <span className="text-2xl font-bold">
-                        {Number(transaction.amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                        {Number(transaction.amount).toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(transaction.date), 'MMM dd, yyyy')}
+                        {format(new Date(transaction.date), "MMM dd, yyyy")}
                       </span>
                     </div>
                   </CardContent>
@@ -162,16 +184,24 @@ const FinanceDashboard = () => {
               {budgets?.map((budget) => (
                 <Card key={budget.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{budget.name}</CardTitle>
-                    <span className="text-sm text-muted-foreground">{budget.category}</span>
+                    <CardTitle className="text-sm font-medium">
+                      {budget.name}
+                    </CardTitle>
+                    <span className="text-sm text-muted-foreground">
+                      {budget.category}
+                    </span>
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between items-center">
                       <span className="text-2xl font-bold">
-                        {Number(budget.amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                        {Number(budget.amount).toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(budget.start_date), 'MMM dd')} - {format(new Date(budget.end_date), 'MMM dd, yyyy')}
+                        {format(new Date(budget.start_date), "MMM dd")} -{" "}
+                        {format(new Date(budget.end_date), "MMM dd, yyyy")}
                       </span>
                     </div>
                   </CardContent>
@@ -188,21 +218,29 @@ const FinanceDashboard = () => {
                     <CardTitle className="text-sm font-medium">
                       {invoice.client_name} - #{invoice.invoice_number}
                     </CardTitle>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                      invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        invoice.status === "paid"
+                          ? "bg-green-100 text-green-800"
+                          : invoice.status === "overdue"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
                       {invoice.status}
                     </span>
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between items-center">
                       <span className="text-2xl font-bold">
-                        {Number(invoice.amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                        {Number(invoice.amount).toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        Due: {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
+                        Due:{" "}
+                        {format(new Date(invoice.due_date), "MMM dd, yyyy")}
                       </span>
                     </div>
                   </CardContent>
@@ -212,7 +250,7 @@ const FinanceDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

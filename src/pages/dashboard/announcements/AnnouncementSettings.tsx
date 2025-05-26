@@ -71,8 +71,8 @@ export default function AnnouncementSettings() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-6">
+    <div>
+      <div className="space-y-1 py-6">
         <h1 className="text-2xl font-bold mb-6">Announcement Settings</h1>
 
         <div className="grid gap-6">
@@ -146,6 +146,6 @@ export default function AnnouncementSettings() {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

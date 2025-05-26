@@ -25,16 +25,18 @@ const AssetSettings = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <h1 className="text-xl font-bold">Asset Management Settings</h1>
         <Card>
           <CardHeader>
             <CardTitle>General Settings</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-1">
             <div className="flex items-center justify-between">
-              <Label htmlFor="enableDepreciation">Enable Depreciation Calculation</Label>
+              <Label htmlFor="enableDepreciation">
+                Enable Depreciation Calculation
+              </Label>
               <Switch
                 id="enableDepreciation"
                 checked={settings.enableDepreciation}
@@ -44,7 +46,9 @@ const AssetSettings = () => {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="maintenanceReminders">Maintenance Reminders</Label>
+              <Label htmlFor="maintenanceReminders">
+                Maintenance Reminders
+              </Label>
               <Switch
                 id="maintenanceReminders"
                 checked={settings.maintenanceReminders}
@@ -54,24 +58,34 @@ const AssetSettings = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="defaultDepreciationRate">Default Depreciation Rate (%)</Label>
+              <Label htmlFor="defaultDepreciationRate">
+                Default Depreciation Rate (%)
+              </Label>
               <Input
                 id="defaultDepreciationRate"
                 type="number"
                 value={settings.defaultDepreciationRate}
                 onChange={(e) =>
-                  setSettings({ ...settings, defaultDepreciationRate: e.target.value })
+                  setSettings({
+                    ...settings,
+                    defaultDepreciationRate: e.target.value,
+                  })
                 }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="maintenanceInterval">Default Maintenance Interval (days)</Label>
+              <Label htmlFor="maintenanceInterval">
+                Default Maintenance Interval (days)
+              </Label>
               <Input
                 id="maintenanceInterval"
                 type="number"
                 value={settings.maintenanceInterval}
                 onChange={(e) =>
-                  setSettings({ ...settings, maintenanceInterval: e.target.value })
+                  setSettings({
+                    ...settings,
+                    maintenanceInterval: e.target.value,
+                  })
                 }
               />
             </div>
@@ -79,7 +93,7 @@ const AssetSettings = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

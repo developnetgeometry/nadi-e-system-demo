@@ -23,6 +23,7 @@ import {
   announcementsItems,
   takwimItems,
   bookingItems,
+  vendorManagementItems,
 } from "@/components/layout/sidebar/menu-items";
 
 export const menuGroups = [
@@ -137,11 +138,15 @@ export const menuGroups = [
     route: "/takwim",
     items: takwimItems,
   },
-
   {
     label: "Booking Management",
     route: "/booking",
     items: bookingItems,
+  },
+  {
+    label: "Vendor Management",
+    route: "/vendor",
+    items: vendorManagementItems,
   },
   // {
   //   label: "PC Booking Management",

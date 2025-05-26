@@ -109,7 +109,7 @@ export default function AnnouncementsList() {
   };
 
   return (
-    <DashboardLayout>
+    <div>
       <PageContainer>
         <PageHeader
           title="Announcements"
@@ -117,7 +117,7 @@ export default function AnnouncementsList() {
         />
 
         <Card className="mt-6">
-          <CardContent className="pt-6 space-y-6">
+          <CardContent className="pt-6 space-y-1">
             {loading ? (
               <div className="py-12 text-center text-muted-foreground">
                 Loading announcements...
@@ -197,6 +197,6 @@ export default function AnnouncementsList() {
         open={modalOpen}
         onOpenChange={setModalOpen}
       />
-    </DashboardLayout>
+    </div>
   );
 }

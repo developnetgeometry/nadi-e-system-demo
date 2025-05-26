@@ -68,6 +68,9 @@ import WorkflowDashboard from "@/pages/workflow/WorkflowDashboard";
 import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
+import ProgrammeEdit from "@/pages/dashboard/programmes/ProgrammeRegistration";
+
+import { vendorRoutes } from "@/routes/module-routes/module.vendor.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -265,6 +268,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
       <ProgrammeRegistration />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/programmes/edit/:id",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <ProgrammeEdit />
       // </ProtectedRoute>
     ),
   },
@@ -656,4 +667,5 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
+  ...vendorRoutes,
 ];

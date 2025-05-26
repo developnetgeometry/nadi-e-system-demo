@@ -3,8 +3,8 @@ import { UsageSessionList } from "@/components/usage/UsageSessionList";
 
 const UsageSessions = () => {
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div>
           <h1 className="text-3xl font-bold">Usage Sessions</h1>
           <p className="text-muted-foreground mt-2">
@@ -13,7 +13,7 @@ const UsageSessions = () => {
         </div>
         <UsageSessionList />
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -1,19 +1,37 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  X, Filter, RotateCcw, Users, Building, Calendar, Download, Upload, ChevronsUpDown, Check,
-  BookOpen, GraduationCap, RefreshCcw, UserPlus
+import {
+  X,
+  Filter,
+  RotateCcw,
+  Users,
+  Building,
+  Calendar,
+  Download,
+  Upload,
+  ChevronsUpDown,
+  Check,
+  BookOpen,
+  GraduationCap,
+  RefreshCcw,
+  UserPlus,
 } from "lucide-react";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
 const duspOptions = [
@@ -59,10 +77,10 @@ const ReportTraining = () => {
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
   const [yearFilter, setYearFilter] = useState<string | number | null>("2025"); // Default to current year
 
-  const hasActiveFilters = 
-    duspFilter !== null || 
-    phaseFilter.length > 0 || 
-    monthFilter !== null || 
+  const hasActiveFilters =
+    duspFilter !== null ||
+    phaseFilter.length > 0 ||
+    monthFilter !== null ||
     (yearFilter !== null && yearFilter !== "2025");
 
   const resetFilters = () => {
@@ -73,19 +91,24 @@ const ReportTraining = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Training</h1>
-            <p className="text-gray-500 mt-1">View and analyze NADI staff training data across all sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze NADI staff training data across all sites
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Upload Excel
             </Button> */}
-            <Button variant="secondary" className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+            >
               <Download className="h-4 w-4" />
               Download
             </Button>
@@ -115,12 +138,16 @@ const ReportTraining = () => {
                     {duspOptions.map((dusp) => (
                       <CommandItem
                         key={dusp.id}
-                        onSelect={() => setDuspFilter(duspFilter === dusp.id ? null : dusp.id)}
+                        onSelect={() =>
+                          setDuspFilter(duspFilter === dusp.id ? null : dusp.id)
+                        }
                       >
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            duspFilter === dusp.id ? "bg-primary border-primary" : "opacity-50"
+                            duspFilter === dusp.id
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {duspFilter === dusp.id && (
@@ -160,7 +187,7 @@ const ReportTraining = () => {
                         onSelect={() => {
                           setPhaseFilter(
                             phaseFilter.includes(phase.id)
-                              ? phaseFilter.filter(id => id !== phase.id)
+                              ? phaseFilter.filter((id) => id !== phase.id)
                               : [...phaseFilter, phase.id]
                           );
                         }}
@@ -168,7 +195,9 @@ const ReportTraining = () => {
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            phaseFilter.includes(phase.id) ? "bg-primary border-primary" : "opacity-50"
+                            phaseFilter.includes(phase.id)
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {phaseFilter.includes(phase.id) && (
@@ -205,12 +234,18 @@ const ReportTraining = () => {
                     {monthOptions.map((month) => (
                       <CommandItem
                         key={month.id}
-                        onSelect={() => setMonthFilter(monthFilter === month.id ? null : month.id)}
+                        onSelect={() =>
+                          setMonthFilter(
+                            monthFilter === month.id ? null : month.id
+                          )
+                        }
                       >
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            monthFilter === month.id ? "bg-primary border-primary" : "opacity-50"
+                            monthFilter === month.id
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {monthFilter === month.id && (
@@ -247,12 +282,16 @@ const ReportTraining = () => {
                     {yearOptions.map((year) => (
                       <CommandItem
                         key={year.id}
-                        onSelect={() => setYearFilter(yearFilter === year.id ? null : year.id)}
+                        onSelect={() =>
+                          setYearFilter(yearFilter === year.id ? null : year.id)
+                        }
                       >
                         <div
                           className={cn(
                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
-                            yearFilter === year.id ? "bg-primary border-primary" : "opacity-50"
+                            yearFilter === year.id
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
                           )}
                         >
                           {yearFilter === year.id && (
@@ -270,9 +309,13 @@ const ReportTraining = () => {
 
           {/* Spacer */}
           <div className="flex-1"></div>
-          
+
           {/* Reset Button */}
-          <Button variant="outline" onClick={resetFilters} className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100">
+          <Button
+            variant="outline"
+            onClick={resetFilters}
+            className="flex items-center gap-2 h-10 text-sm px-4 shadow-sm hover:bg-slate-100"
+          >
             <RotateCcw className="h-4 w-4" />
             Reset Filters
           </Button>
@@ -283,11 +326,19 @@ const ReportTraining = () => {
           <div className="flex flex-wrap gap-3 items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
             <div className="mr-1 flex items-center">
               <Filter className="h-4 w-4 text-slate-500 mr-1" />
-              <span className="text-xs font-medium text-slate-500">Active Filters:</span>
+              <span className="text-xs font-medium text-slate-500">
+                Active Filters:
+              </span>
             </div>
             {duspFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">DUSP: {duspOptions.find(opt => opt.id === duspFilter)?.label}</span>
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
+                <span className="font-medium">
+                  DUSP:{" "}
+                  {duspOptions.find((opt) => opt.id === duspFilter)?.label}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -299,7 +350,10 @@ const ReportTraining = () => {
               </Badge>
             )}
             {phaseFilter.length > 0 && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
                 <span className="font-medium">Phase: {phaseFilter.length}</span>
                 <Button
                   variant="ghost"
@@ -312,8 +366,14 @@ const ReportTraining = () => {
               </Badge>
             )}
             {monthFilter !== null && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
-                <span className="font-medium">Month: {monthOptions.find(opt => opt.id === monthFilter)?.label}</span>
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
+                <span className="font-medium">
+                  Month:{" "}
+                  {monthOptions.find((opt) => opt.id === monthFilter)?.label}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -325,7 +385,10 @@ const ReportTraining = () => {
               </Badge>
             )}
             {yearFilter !== null && yearFilter !== "2025" && (
-              <Badge variant="outline" className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50">
+              <Badge
+                variant="outline"
+                className="gap-2 px-3 py-1 h-7 bg-white shadow-sm hover:bg-slate-50"
+              >
                 <span className="font-medium">Year: {yearFilter}</span>
                 <Button
                   variant="ghost"
@@ -345,7 +408,9 @@ const ReportTraining = () => {
           {/* Total NADI Card */}
           <Card className="overflow-hidden shadow-sm border border-gray-200">
             <CardHeader className="p-4 bg-white border-b">
-              <CardTitle className="text-lg font-medium text-gray-800">Total NADI</CardTitle>
+              <CardTitle className="text-lg font-medium text-gray-800">
+                Total NADI
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6 bg-white flex flex-col items-center">
               <div className="mt-4 flex flex-col items-center">
@@ -361,7 +426,9 @@ const ReportTraining = () => {
           {/* Number of Employees Card */}
           <Card className="overflow-hidden shadow-sm border border-gray-200">
             <CardHeader className="p-4 bg-white border-b">
-              <CardTitle className="text-lg font-medium text-gray-800">Number of Employees</CardTitle>
+              <CardTitle className="text-lg font-medium text-gray-800">
+                Number of Employees
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6 bg-white flex flex-col items-center">
               <div className="mt-4 flex flex-col items-center">
@@ -377,7 +444,9 @@ const ReportTraining = () => {
           {/* Upscaling Training Card */}
           <Card className="overflow-hidden shadow-sm border border-gray-200">
             <CardHeader className="p-4 bg-white border-b">
-              <CardTitle className="text-lg font-medium text-gray-800">Upscaling Training</CardTitle>
+              <CardTitle className="text-lg font-medium text-gray-800">
+                Upscaling Training
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6 bg-white">
               <div className="flex items-center justify-between mb-3">
@@ -385,7 +454,9 @@ const ReportTraining = () => {
                   <div className="p-1.5 rounded-full bg-blue-50">
                     <GraduationCap className="h-5 w-5 text-blue-500" />
                   </div>
-                  <span className="text-gray-600 font-medium">Trained Staff</span>
+                  <span className="text-gray-600 font-medium">
+                    Trained Staff
+                  </span>
                 </div>
               </div>
               <ul className="space-y-2 text-sm">
@@ -412,7 +483,9 @@ const ReportTraining = () => {
           {/* Refresh Training Card */}
           <Card className="overflow-hidden shadow-sm border border-gray-200">
             <CardHeader className="p-4 bg-white border-b">
-              <CardTitle className="text-lg font-medium text-gray-800">Refresh Training</CardTitle>
+              <CardTitle className="text-lg font-medium text-gray-800">
+                Refresh Training
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-6 bg-white">
               <div className="flex items-center justify-between mb-3">
@@ -420,7 +493,9 @@ const ReportTraining = () => {
                   <div className="p-1.5 rounded-full bg-green-50">
                     <RefreshCcw className="h-5 w-5 text-green-500" />
                   </div>
-                  <span className="text-gray-600 font-medium">Refresher Stats</span>
+                  <span className="text-gray-600 font-medium">
+                    Refresher Stats
+                  </span>
                 </div>
               </div>
               <ul className="space-y-2 text-sm">
@@ -445,7 +520,7 @@ const ReportTraining = () => {
           </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

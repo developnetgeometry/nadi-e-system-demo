@@ -180,8 +180,8 @@ const Users = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl py-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex items-center gap-3">
           <UserCog className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold">User Management</h1>
@@ -260,7 +260,7 @@ const Users = () => {
           refetch();
         }}
       />
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -229,8 +229,8 @@ const StaffEdit = () => {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="container mx-auto max-w-4xl py-8">
+      <div>
+        <div className="space-y-1 max-w-4xl py-8">
           <div className="flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
           </div>
@@ -238,13 +238,13 @@ const StaffEdit = () => {
             Loading staff details...
           </p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-4xl py-6">
+    <div>
+      <div className="space-y-1 max-w-4xl py-6">
         <div className="mb-6 flex items-center">
           <Button
             variant="outline"
@@ -265,7 +265,7 @@ const StaffEdit = () => {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
+                className="space-y-1"
               >
                 <FormField
                   control={form.control}
@@ -409,7 +409,7 @@ const StaffEdit = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

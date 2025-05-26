@@ -15,9 +15,9 @@ const SiteDetails = () => {
   }
 
   return (
-    <DashboardLayout>
+    <div>
       <SiteDetail siteId={siteId} />
-    </DashboardLayout>
+    </div>
   );
 };
 

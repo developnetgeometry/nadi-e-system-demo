@@ -1,4 +1,3 @@
-
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LookupAgeGroup } from "@/components/lookup/LookupAgeGroup";
@@ -38,8 +37,8 @@ import { LookupTechnology } from "@/components/lookup/LookupTechnology";
 
 const LookupSettingsPage = () => {
   return (
-    <DashboardLayout>
-      <div className="container mx-auto max-w-6xl">
+    <div>
+      <div className="space-y-1  ">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Lookup Data Management</h1>
           <p className="text-muted-foreground mt-2">
@@ -56,10 +55,14 @@ const LookupSettingsPage = () => {
             <TabsTrigger value="building-type">Building Type</TabsTrigger>
             <TabsTrigger value="category-area">Category Area</TabsTrigger>
             <TabsTrigger value="city">City</TabsTrigger>
-            <TabsTrigger value="closure-affect-area">Closure Affect Area</TabsTrigger>
+            <TabsTrigger value="closure-affect-area">
+              Closure Affect Area
+            </TabsTrigger>
             <TabsTrigger value="closure-category">Closure Category</TabsTrigger>
             <TabsTrigger value="closure-status">Closure Status</TabsTrigger>
-            <TabsTrigger value="closure-subcategory">Closure Subcategory</TabsTrigger>
+            <TabsTrigger value="closure-subcategory">
+              Closure Subcategory
+            </TabsTrigger>
             <TabsTrigger value="district">District</TabsTrigger>
             <TabsTrigger value="dun">DUN</TabsTrigger>
             <TabsTrigger value="education">Education</TabsTrigger>
@@ -84,31 +87,31 @@ const LookupSettingsPage = () => {
             <TabsTrigger value="state">State</TabsTrigger>
             <TabsTrigger value="technology">Technology</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="age-group">
             <LookupAgeGroup />
           </TabsContent>
-          
+
           <TabsContent value="bandwidth">
             <LookupBandwidth />
           </TabsContent>
-          
+
           <TabsContent value="bank-list">
             <LookupBankList />
           </TabsContent>
-          
+
           <TabsContent value="building-level">
             <LookupBuildingLevel />
           </TabsContent>
-          
+
           <TabsContent value="building-type">
             <LookupBuildingType />
           </TabsContent>
-          
+
           <TabsContent value="category-area">
             <LookupCategoryArea />
           </TabsContent>
-          
+
           <TabsContent value="city">
             <LookupCity />
           </TabsContent>
@@ -144,27 +147,27 @@ const LookupSettingsPage = () => {
           <TabsContent value="ethnics">
             <LookupEthnics />
           </TabsContent>
-          
+
           <TabsContent value="genders">
             <LookupGenders />
           </TabsContent>
-          
+
           <TabsContent value="ict-knowledge">
             <LookupICTKnowledge />
           </TabsContent>
-          
+
           <TabsContent value="income-level">
             <LookupIncomeLevel />
           </TabsContent>
-          
+
           <TabsContent value="leave-off-type">
             <LookupLeaveOffType />
           </TabsContent>
-          
+
           <TabsContent value="leave-status">
             <LookupLeaveStatus />
           </TabsContent>
-          
+
           <TabsContent value="leave-type">
             <LookupLeaveType />
           </TabsContent>
@@ -172,15 +175,15 @@ const LookupSettingsPage = () => {
           <TabsContent value="maintenance-type">
             <LookupMaintenanceType />
           </TabsContent>
-          
+
           <TabsContent value="marital-status">
             <LookupMaritalStatus />
           </TabsContent>
-          
+
           <TabsContent value="mukim">
             <LookupMukim />
           </TabsContent>
-          
+
           <TabsContent value="nationality">
             <LookupNationality />
           </TabsContent>
@@ -222,7 +225,7 @@ const LookupSettingsPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
