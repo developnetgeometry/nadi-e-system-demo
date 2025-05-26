@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { usePermissions } from "@/hooks/use-permissions";
 import { SettingsLoading } from "@/components/settings/SettingsLoading";
 import { SettingsHeader } from "@/components/settings/SettingsHeader";
@@ -66,7 +65,7 @@ const Settings = () => {
 
   return (
     <div>
-      <div className="container mx-auto max-w-6xl">
+      <div className="space-y-1 ">
         <SettingsHeader />
 
         <div className="flex items-center justify-end mb-6 gap-4">

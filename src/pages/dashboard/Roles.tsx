@@ -55,7 +55,7 @@ const Roles = () => {
 
   return (
     <div>
-      <div className="container mx-auto max-w-6xl space-y-8">
+      <div className="space-y-1 max-w-6xl space-y-8">
         <div className="flex justify-between items-center">
           <RoleHeader onCreateRole={() => setIsCreateDialogOpen(true)} />
           <Button

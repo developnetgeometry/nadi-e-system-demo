@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 const NotificationUsage = () => {
   return (
     <div>
-      <div className="container mx-auto max-w-6xl py-6">
+      <div className="space-y-1 max-w-6xl py-6">
         <div className="flex items-center gap-3 mb-4">
           <Bell className="h-6 w-6 text-primary" />
           <h1 className="text-3xl font-bold">Notification Usage Guide</h1>

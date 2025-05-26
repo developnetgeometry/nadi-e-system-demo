@@ -170,7 +170,7 @@ const OthersProgrammes = () => {
   if (loading) {
     return (
       <div>
-        <div className="container mx-auto py-6">
+        <div className="space-y-1 py-6">
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin" />
             <span className="ml-2">Loading programs...</span>
@@ -183,7 +183,7 @@ const OthersProgrammes = () => {
   return (
     <div>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <div className="container mx-auto py-6">
+        <div className="space-y-1 py-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Other Programs</h1>
             <Button asChild>

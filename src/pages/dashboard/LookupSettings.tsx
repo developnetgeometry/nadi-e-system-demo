@@ -38,7 +38,7 @@ import { LookupTechnology } from "@/components/lookup/LookupTechnology";
 const LookupSettingsPage = () => {
   return (
     <div>
-      <div className="container mx-auto max-w-6xl">
+      <div className="space-y-1 max-w-6xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Lookup Data Management</h1>
           <p className="text-muted-foreground mt-2">

@@ -213,7 +213,7 @@ export default function Takwim() {
 
   return (
     <div>
-      <div className="container mx-auto py-6">
+      <div className="space-y-1 py-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Takwim</h1>

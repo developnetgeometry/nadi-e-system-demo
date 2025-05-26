@@ -181,7 +181,7 @@ const Users = () => {
 
   return (
     <div>
-      <div className="container mx-auto max-w-6xl py-6">
+      <div className="space-y-1 max-w-6xl py-6">
         <div className="flex items-center gap-3">
           <UserCog className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold">User Management</h1>
