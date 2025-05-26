@@ -70,7 +70,7 @@ import { RouteObject } from "react-router-dom";
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
 import ProgrammeEdit from "@/pages/dashboard/programmes/ProgrammeRegistration";
 
-import { vendorRoutes } from "@/routes/module.vendor.routes";
+import { vendorRoutes } from "@/routes/module-routes/module.vendor.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
