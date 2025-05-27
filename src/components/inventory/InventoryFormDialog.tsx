@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FileUpload } from "@/components/ui/file-upload";
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import { useInventories } from "@/hooks/use-inventories";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useInventoryImage  } from "./hooks/use-inventory-image";
 import { supabase } from "@/integrations/supabase/client";
 import { Inventory } from "@/types/inventory";
 import { Site } from "@/types/site";
@@ -27,6 +29,7 @@ import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
 import { Textarea } from "../ui/textarea";
+import { X, Upload, Loader2 } from "lucide-react";
 
 export interface InventoryFormDialogProps {
   open: boolean;
@@ -44,6 +47,15 @@ export const InventoryFormDialog = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    imageFile,
+    previewUrl,
+    isUploading,
+    handleImageChange,
+    handleRemoveImage,
+    uploadImage
+  } = useInventoryImage();
 
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
@@ -77,7 +89,7 @@ export const InventoryFormDialog = ({
   const { data: sites = [], isLoading: sitesIsLoading } = useQuery({
     queryKey: ["sites", organizationId],
     queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
+    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser || isStaffUser,
   });
 
   // TODO: use real data
@@ -87,8 +99,8 @@ export const InventoryFormDialog = ({
     { id: 3, name: "Retail Type 3" },
   ];
 
-  const [inventoryId, setInventoryId] = useState<string>(
-    String(inventory?.id || null)
+  const [inventoryId, setInventoryId] = useState<string | null>(
+    inventory?.id || null
   );
   const [inventoryName, setInventoryName] = useState<string>(
     String(inventory?.name || "")
@@ -129,7 +141,7 @@ export const InventoryFormDialog = ({
 
   useEffect(() => {
     if (inventory) {
-      setInventoryId(String(inventory.id));
+      setInventoryId(inventory.id);
       setInventoryName(String(inventory.name));
       setRetailType(String(inventory.retail_type));
       setInventoryPrice(String(inventory.price));
@@ -165,7 +177,7 @@ export const InventoryFormDialog = ({
 
   useEffect(() => {
     if (!open) {
-      setInventoryId("");
+      setInventoryId(null);
       setInventoryName("");
       setInventoryType("");
       setInventoryDescription("");
@@ -176,8 +188,9 @@ export const InventoryFormDialog = ({
       setDuspId("");
       setTpId("");
       setSiteId("");
+      handleRemoveImage();
     }
-  }, [open]);
+  }, [open, handleRemoveImage]);
 
   useEffect(() => {
     const fetchSite = async () => {
@@ -196,10 +209,19 @@ export const InventoryFormDialog = ({
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-
     setIsSubmitting(true);
 
-    if (!siteId && !isStaffUser) {
+    if (!inventoryType) {
+      toast({
+        title: "Error",
+        description: "Please select an Inventory Type.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!siteId) {
       toast({
         title: "Error",
         description: "Please select a Site.",
@@ -220,7 +242,7 @@ export const InventoryFormDialog = ({
     //   barcode: formData.get("barcode"),
     // };
 
-    const inventory: Partial<Inventory> = {
+    const inventoryData: Partial<Inventory> = {
       name: String(formData.get("name") || ""),
       // Convert string values to numbers for numeric fields
       type_id: inventoryType ? parseInt(inventoryType) : null,
@@ -233,32 +255,77 @@ export const InventoryFormDialog = ({
     };
 
     try {
+      let inventoryRecordId: string | null = inventoryId;
+      
       if (inventoryId) {
-        console.log("Updating existing inventory:", inventory);
+        console.log("Updating existing inventory:", inventoryData);
         const { error: updateError } = await supabase
           .from("nd_inventory")
-          .update({ ...inventory, updated_at: new Date().toISOString() })
+          .update({ ...inventoryData, updated_at: new Date().toISOString() })
           .eq("id", inventoryId);
 
         if (updateError) throw updateError;
-
-        toast({
-          title: "Inventory updated successfully",
-          description: "The inventory has been updated in the system.",
-        });
       } else {
-        console.log("Creating new inventory:", inventory);
-        const { error: insertError } = await supabase
+        console.log("Creating new inventory:", inventoryData);
+        const { data: insertData, error: insertError } = await supabase
           .from("nd_inventory")
-          .insert([{ ...inventory, created_at: new Date().toISOString() }]);
+          .insert([{ ...inventoryData, created_at: new Date().toISOString() }])
+          .select("id")
+          .single();
 
         if (insertError) throw insertError;
-
-        toast({
-          title: "Inventory added successfully",
-          description: "The new inventory has been added to the system.",
-        });
+        inventoryRecordId = insertData.id;
       }
+
+      // Handle image upload and attachment record
+      if (imageFile && inventoryRecordId) {
+        console.log("Uploading new image...");
+        const imageUrl = await uploadImage();
+        
+        if (imageUrl) {
+          const { data: userData } = await supabase.auth.getUser();
+          const userId = userData.user?.id;
+
+          // If updating existing inventory, first delete old attachment
+          if (inventoryId) {
+            await supabase
+              .from("nd_inventory_attachment")
+              .delete()
+              .eq("inventory_id", inventoryId);
+          }
+
+          // Insert new attachment record
+          const { error: attachmentError } = await supabase
+            .from("nd_inventory_attachment")
+            .insert([{
+              inventory_id: inventoryRecordId,
+              file_path: imageUrl,
+              created_by: userId,
+              created_at: new Date().toISOString()
+            }]);
+
+          if (attachmentError) {
+            console.error("Error saving attachment:", attachmentError);
+            throw attachmentError;
+          }
+
+          console.log("Image attachment saved successfully");
+        }
+      }
+      // If image was removed in edit mode
+      else if (!previewUrl && inventoryId) {
+        await supabase
+          .from("nd_inventory_attachment")
+          .delete()
+          .eq("inventory_id", inventoryId);
+      }
+
+      toast({
+        title: inventoryId ? "Inventory updated successfully" : "Inventory added successfully",
+        description: inventoryId 
+          ? "The inventory has been updated in the system." 
+          : "The new inventory has been added to the system.",
+      });
 
       queryClient.invalidateQueries({ queryKey: ["inventories"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-stats"] });
@@ -374,7 +441,7 @@ export const InventoryFormDialog = ({
                 </div>
               )}
 
-              {(isSuperAdmin || isDUSPUser || isTPUser) && (
+              {(isSuperAdmin || isDUSPUser || isTPUser || isStaffUser) && (
                 <div className="space-y-2">
                   <Label htmlFor="type">Site</Label>
                   <Select
@@ -490,6 +557,40 @@ export const InventoryFormDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Inventory Image</Label>
+                {previewUrl ? (
+                  <div className="relative w-40 h-40 border rounded-md overflow-hidden bg-muted/30 flex items-center justify-center group">
+                    <img
+                      src={previewUrl}
+                      alt="Logo preview"
+                      className="object-contain w-full h-full p-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <FileUpload
+                    acceptedFileTypes="image/png,image/jpeg,image/webp,image/svg+xml"
+                    maxFiles={1}
+                    maxSizeInMB={2}
+                    onFilesSelected={handleImageChange}
+                    buttonText={isUploading ? "Uploading..." : "Upload Image"}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      "Upload Inventory Image"
+                    )}
+                  </FileUpload>
+                )}
               </div>
 
               <Button type="submit" disabled={isSubmitting} className="w-full">

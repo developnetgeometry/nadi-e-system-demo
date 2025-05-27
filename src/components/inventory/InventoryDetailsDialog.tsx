@@ -24,8 +24,12 @@ export const InventoryDetailsDialog = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [requestedByName, setRequestedByName] = useState("N/A");
+
+  // Get the inventory image URL
+  const inventoryImageUrl = inventory?.nd_inventory_attachment?.find(
+    attachment => attachment.file_path
+  )?.file_path || null;
 
   useEffect(() => {
     if (!open) {
@@ -50,9 +54,9 @@ export const InventoryDetailsDialog = ({
   if (!inventory) return null;
 
   // TODO: Submit to DUSP
-  const handleSubmitToDusp = async () => {
-    return new Error("Function not implemented.");
-  };
+  // const handleSubmitToDusp = async () => {
+  //   return new Error("Function not implemented.");
+  // };
 
   const handleSubmitForApproval = async () => {
     return new Error("Function not implemented.");
@@ -72,6 +76,26 @@ export const InventoryDetailsDialog = ({
           <DialogTitle>Inventory Details</DialogTitle>
         </DialogHeader>
         <div className="flex flex-wrap gap-4">
+
+          {inventoryImageUrl && (
+            <div className="w-full mb-4">
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold">Inventory Image</span>
+                <div className="w-48 h-48 border rounded-md overflow-hidden bg-muted/30 flex items-center justify-center">
+                  <img
+                    src={inventoryImageUrl}
+                    alt={`${inventory.name} image`}
+                    className="object-contain w-full h-full p-2"
+                    onError={(e) => {
+                      // Hide image if it fails to load
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex-1 space-y-4">
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Item Name</span>
@@ -107,7 +131,7 @@ export const InventoryDetailsDialog = ({
           </div>
         </div>
         <div className="flex justify-end space-x-2">
-          <Button
+          {/* <Button
             type="button"
             variant="default"
             onClick={() => {
@@ -115,7 +139,7 @@ export const InventoryDetailsDialog = ({
             }}
           >
             Submit to DUSP
-          </Button>
+          </Button> */}
           {/* {inventory.is_active && (
             <Button
               type="button"
