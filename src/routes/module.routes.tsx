@@ -69,6 +69,7 @@ import WorkflowDashboard from "@/pages/workflow/WorkflowDashboard";
 import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
+import ClaimRegister from "@/pages/dashboard/claim/ClaimRegister";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
