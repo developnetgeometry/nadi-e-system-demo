@@ -63,8 +63,6 @@ export const BookingCalendar = ({
     onChangeFilter,
     isLoading
 }: BookingCalendarProp) => {
-    console.log("isMember from pc asset calendar", isMember)
-    console.log("isMember from pc asset calendar", isMember)
     const [formattedBookingData, setFormattedBookingData] = useState<BodyTableData[]>([]);
     const [assetTypeName, setAssetTypeName] = useState<string>(`all ${bookingType}`);
     const [searchInput, setSearchInput] = useState("");
