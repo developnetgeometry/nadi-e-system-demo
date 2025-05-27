@@ -15,19 +15,10 @@ import {
   PDFTable,
   PDFPhaseQuarterInfo
 } from "../../components/PDFComponents";
+import { InternetServiceSite } from "@/hooks/report/use-internet-access-pdf-data";
 
 // Define Interface for Site data
-interface InternetAccessSite {
-  id?: string;
-  standard_code?: string;
-  sitename?: string;
-  phase_name?: string;
-  has_internet?: boolean;
-  connection_type?: string;
-  provider?: string;
-  speed?: string;
-  status?: string;
-}
+
 
 // Define props for the PDF Report
 interface InternetAccessReportPDFProps {
@@ -38,17 +29,12 @@ interface InternetAccessReportPDFProps {
   periodValue?: string;
 
   // Data for reports
-  sites: InternetAccessSite[];
-  totalSites: number;
-  sitesWithInternet: number;
-  sitesWithoutInternet: number;
-  connectionTypes: { type: string; count: number }[];
-  providers: { name: string; count: number }[];
+  internetSite?: InternetServiceSite[];
 
   // Logos
   mcmcLogo?: string;
   duspLogo?: string;
-  
+
   // Filter values
   monthFilter?: string | number | null;
   yearFilter?: string | number | null;
@@ -94,7 +80,7 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRightWidth: 1,
     borderRightColor: "#fff",
-    color: "#fff", 
+    color: "#fff",
     fontWeight: "bold",
   },
   tableRow: {
@@ -103,12 +89,12 @@ const styles = StyleSheet.create({
     borderTopColor: "#000",
   },
   contentBox: {
-    borderWidth: 1, 
-    borderColor: "#000", 
-    padding: 20, 
-    alignItems: "center", 
-    justifyContent: "center", 
-    marginTop: 10, 
+    borderWidth: 1,
+    borderColor: "#000",
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
     minHeight: 300
   },
   warningText: {
@@ -122,16 +108,11 @@ const styles = StyleSheet.create({
 });
 
 export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = ({
-  duspLabel = "",
-  phaseLabel = "All Phases",
-  periodType = "All Time",
-  periodValue = "All Records",
-  sites = [],
-  totalSites = 0,
-  sitesWithInternet = 0,
-  sitesWithoutInternet = 0,
-  connectionTypes = [],
-  providers = [],
+  duspLabel ,
+  phaseLabel ,
+  periodType,
+  periodValue ,
+  internetSite= [],
   mcmcLogo = "",
   duspLogo = "",
   monthFilter = null,
@@ -139,30 +120,7 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
   currentMonth = null,
   currentYear = new Date().getFullYear()
 }) => {
-  // Format sites data for the table
-  const sitesTableData = sites.map((site, index) => ({
-    no: (index + 1).toString(),
-    nadi: site.sitename || "",
-    state: site.phase_name || "",
-    technology: site.connection_type || "ADSL",
-    bandwidth: site.speed || "100Mbps",
-  }));
-
-  // Get month display name for reporting period
-  const getMonthName = (month: string | number | null) => {
-    if (month === null) return "";
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    if (typeof month === 'number' && month >= 1 && month <= 12) {
-      return monthNames[month - 1];
-    }
-    return month.toString();
-  };
-
-  // Determine quarter and year display
-  const quarter = monthFilter ? Math.ceil(Number(monthFilter) / 3) : "";
-  const year = yearFilter || currentYear || new Date().getFullYear();
-  const quarterText = quarter ? `${quarter} / ${year}` : `${year}`;
-  const monthName = getMonthName(monthFilter || currentMonth);
+  
 
   return (
     <Document>
@@ -173,76 +131,62 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
         />
-        
+
         {/* Report metadata section */}
         <PDFMetaSection
           reportTitle="4.0 Internet Access"
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-        />   
+        />
 
         {/* Section 1: Managed Internet Services */}
-        <View style={{ marginBottom: 20 }}>
-          <View style={styles.sectionTitle}>
-            <Text style={styles.sectionTitleText}>4.1 MANAGED INTERNET SERVICES</Text>
-          </View>
-
-          {/* Total NADI box */}
-          <View style={styles.totalBox}>
-            <Text style={{ fontWeight: 'bold' }}>Total NADI</Text>
-            <Text style={{ fontWeight: 'bold', marginTop: 5 }}>{totalSites}</Text>
-          </View>
-
-          {/* Sites Table */}
-          <View style={{ borderWidth: 1, borderColor: '#000' }}>
-            <View style={styles.tableHeader}>
-              <View style={{ width: '5%', ...styles.tableHeaderCell }}>
-                <Text>NO</Text>
-              </View>
-              <View style={{ width: '35%', ...styles.tableHeaderCell }}>
-                <Text>NADI</Text>
-              </View>
-              <View style={{ width: '20%', ...styles.tableHeaderCell }}>
-                <Text>STATE</Text>
-              </View>
-              <View style={{ width: '20%', ...styles.tableHeaderCell }}>
-                <Text>TECHNOLOGY</Text>
-              </View>
-              <View style={{ width: '20%', ...styles.tableHeaderCell, borderRightWidth: 0 }}>
-                <Text>BANDWIDTH</Text>
-              </View>
-            </View>
-            
-            {sitesTableData.length > 0 ? (
-              sitesTableData.map((site, index) => (
-                <View key={index} style={styles.tableRow}>
-                  <View style={{ width: '5%', ...styles.tableCell }}>
-                    <Text>{site.no}</Text>
-                  </View>
-                  <View style={{ width: '35%', ...styles.tableCell }}>
-                    <Text>{site.nadi}</Text>
-                  </View>
-                  <View style={{ width: '20%', ...styles.tableCell }}>
-                    <Text>{site.state}</Text>
-                  </View>
-                  <View style={{ width: '20%', ...styles.tableCell }}>
-                    <Text>{site.technology}</Text>
-                  </View>
-                  <View style={{ width: '20%', ...styles.tableCell, borderRightWidth: 0 }}>
-                    <Text>{site.bandwidth}</Text>
-                  </View>
-                </View>
-              ))
-            ) : (
-              <View style={{ padding: 10 }}>
-                <Text>No data available</Text>
-              </View>
-            )}
-          </View>
+        <View style={styles.sectionTitle}>
+          <Text style={styles.sectionTitleText}>4.1 MANAGED INTERNET SERVICES</Text>
         </View>
 
-        <PDFFooter customText="This document is system-generated from e-System." />
+        {/* Total NADI box */}
+        <View style={styles.totalBox}>
+          <Text style={{ fontWeight: 'bold' }}>Total NADI</Text>
+          <Text style={{ fontWeight: 'bold', marginTop: 5 }}>{internetSite.length}</Text>
+        </View>
+
+        {/* Sites Table */}
+        {internetSite && internetSite.length > 0 ? (
+          <PDFTable
+            data={internetSite}
+            columns={[
+              {
+                key: (_, i) => `${i + 1}.`,
+                header: "NO",
+                width: "5%"
+              },
+              {
+                key: "sitename",
+                header: "NADI",
+              },
+              {
+                key: "state",
+                header: "STATE",
+                width: "20%"
+              },
+              {
+                key: "technology",
+                header: "QTY CMS PC CLIENT",
+                width: "20%"
+              },
+              {
+                key: "bandwidth",
+                header: "DATE INSTALL",
+                width: "20%"
+              }
+            ]}
+          />
+        ) : (
+          <Text>No CMS data available</Text>
+        )}
+
+        <PDFFooter />
       </Page>
 
       {/* Page 2: NMS */}
@@ -253,10 +197,9 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
           <View style={styles.sectionTitle}>
             <Text style={styles.sectionTitleText}>4.2 NMS</Text>
           </View>
-          
+
           <View style={styles.contentBox}>
-            <Text style={styles.warningText}>1. TP will upload a report as attachment</Text>
-            <Text style={styles.warningText}>2. Report display here</Text>
+            <Text style={styles.warningText}>Attachment NMS</Text>
           </View>
         </View>
 
@@ -271,10 +214,9 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
           <View style={styles.sectionTitle}>
             <Text style={styles.sectionTitleText}>4.3 MONITORING & REPORTING</Text>
           </View>
-          
+
           <View style={styles.contentBox}>
-            <Text style={styles.warningText}>1. TP will upload a report as attachment</Text>
-            <Text style={styles.warningText}>2. Report display here</Text>
+            <Text style={styles.warningText}>Attachment MONITORING & REPORTING</Text>
           </View>
         </View>
 
