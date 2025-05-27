@@ -36,6 +36,7 @@ import NadiDashboard from "@/pages/dashboard/NadiDashboard";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import POSSales from "@/pages/dashboard/pos/POSSales";
 import Products from "@/pages/dashboard/pos/Products";
+import POSPickupDropOff from "@/pages/dashboard/pos/POSPickupDropOff";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import OthersProgrammesPage from "@/pages/dashboard/programmes/OthersProgrammes";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
@@ -68,10 +69,6 @@ import WorkflowDashboard from "@/pages/workflow/WorkflowDashboard";
 import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
-import ClaimRegister from "@/pages/dashboard/claim/ClaimRegister";
-import ProgrammeEdit from "@/pages/dashboard/programmes/ProgrammeRegistration";
-
-import { vendorRoutes } from "@/routes/module-routes/module.vendor.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -172,14 +169,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/pos/PUDO",
-  //   element: (
-  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
-  //     <PUDO />
-  //     // </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/pos/pudo",
+    element: (
+      // <ProtectedRoute requiredPermission="view_pos_transactions">
+      <POSPickupDropOff />
+      // </ProtectedRoute>
+    ),
+  },
   // Claim Routes
   {
     path: "/claim",
@@ -277,14 +274,6 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
       <ProgrammeRegistration />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/edit/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeEdit />
       // </ProtectedRoute>
     ),
   },
@@ -676,5 +665,4 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  ...vendorRoutes,
 ];
