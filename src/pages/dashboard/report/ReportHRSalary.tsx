@@ -96,7 +96,6 @@ const ReportHRSalary = () => {    // Filter states
     const dataStableLoading = useStableLoading(dataLoading);
 
     return (
-        <DashboardLayout>
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
                     <div>
@@ -211,7 +210,6 @@ const ReportHRSalary = () => {    // Filter states
                     </div>
                 </div>
             </div>
-        </DashboardLayout>
     );
 };
 
