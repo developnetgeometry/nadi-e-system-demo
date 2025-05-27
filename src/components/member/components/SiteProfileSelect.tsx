@@ -1,21 +1,9 @@
-
-import * as React from "react";
+import React from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { SiteProfile } from "../hook/useSiteProfile";
 
 interface SiteProfileSelectProps {
@@ -26,54 +14,33 @@ interface SiteProfileSelectProps {
 }
 
 export function SiteProfileSelect({
-  profiles = [], // Default empty array
+  profiles = [],
   value,
   onValueChange,
   disabled = false,
 }: SiteProfileSelectProps) {
   const [open, setOpen] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("");
+  const [search, setSearch] = React.useState("");
 
-  // Ensure profiles is always an array
-  const safeProfiles = Array.isArray(profiles) ? profiles : [];
-
-  // Find the selected profile
-  const selectedProfile = React.useMemo(
-    () => safeProfiles.find((profile) => profile.id === value),
-    [safeProfiles, value]
+  // Filter profiles based on the search query
+  const filteredProfiles = profiles.filter((profile) =>
+    [profile.sitename, profile.fullname, profile.standard_code]
+      .filter(Boolean) // Remove null/undefined values
+      .some((field) => field.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Debounce search query
+  // Get the selected profile
+  const selectedProfile = profiles.find((profile) => profile.id === value);
+  const selectedLabel = selectedProfile
+    ? `${selectedProfile.sitename || ""} - ${selectedProfile.fullname || ""}`
+    : "Select NADI site...";
+
+  // Automatically select the only profile if the length is 1
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 500); // 500ms debounce
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [searchQuery]);
-
-  // Filter profiles based on debounced search query
-  const filteredProfiles = React.useMemo(() => {
-    const query = debouncedSearchQuery ? debouncedSearchQuery.toLowerCase() : "";
-    
-    if (!query) return safeProfiles.slice(0, 8); // Limit to 8 items when not searching
-    
-    return safeProfiles.filter(
-      (profile) =>
-        profile.id.toString().includes(query) ||
-        (profile.sitename?.toLowerCase().includes(query) ?? false) ||
-        (profile.fullname?.toLowerCase().includes(query) ?? false) ||
-        (profile.standard_code?.toLowerCase().includes(query) ?? false)
-    ).slice(0, 8); // Limit to 8 items
-  }, [safeProfiles, debouncedSearchQuery]);
-
-  // Handle search query changes safely
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchQuery(value || "");
-  }, []);
+    if (profiles.length === 1 && value !== profiles[0].id) {
+      onValueChange(profiles[0].id);
+    }
+  }, [profiles, value, onValueChange]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -82,24 +49,22 @@ export function SiteProfileSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          className="w-full justify-between border-gray-300 text-black dark:text-white font-normal hover:bg-gray-50 hover:text-black dark:hover:bg-gray-700"
           disabled={disabled}
-          className="w-full justify-between"
         >
-          {selectedProfile
-            ? `${selectedProfile.sitename || ''} - ${selectedProfile.fullname || ''}`
-            : "Select NADI site..."}
+          <span className="truncate overflow-hidden whitespace-nowrap">{selectedLabel}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
-        <Command shouldFilter={false} className="w-full">
-          <CommandInput 
-            placeholder="Search site profiles..." 
-            value={searchQuery}
-            onValueChange={handleSearchChange}
+        <Command>
+          <CommandInput
+            placeholder="Search NADI site..."
+            value={search}
+            onValueChange={setSearch}
             className="h-9"
           />
-          <CommandList className="max-h-64 overflow-auto">
+          <CommandList>
             {filteredProfiles.length === 0 ? (
               <CommandEmpty>No profiles found.</CommandEmpty>
             ) : (
@@ -107,7 +72,7 @@ export function SiteProfileSelect({
                 {filteredProfiles.map((profile) => (
                   <CommandItem
                     key={profile.id}
-                    value={profile.id.toString()}
+                    value={`${profile.sitename || ""} ${profile.fullname || ""} ${profile.standard_code || ""}`.toLowerCase()}
                     onSelect={() => {
                       onValueChange(profile.id);
                       setOpen(false);
@@ -119,12 +84,9 @@ export function SiteProfileSelect({
                         value === profile.id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <div>
-                      <div className="font-medium">{profile.sitename || 'No site name'}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {profile.fullname || 'No full name'} {profile.standard_code ? `(${profile.standard_code})` : ''}
-                      </div>
-                    </div>
+                    <span className="truncate overflow-hidden whitespace-nowrap">
+                      {profile.sitename || "No site name"} - {profile.fullname || "No full name"}
+                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>

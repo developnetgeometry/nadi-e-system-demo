@@ -61,7 +61,6 @@ export function PersonalForm({
             Full Name <span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
-            autoFocus
             required
             type="text"
             name="fullname"
@@ -149,6 +148,7 @@ export function PersonalForm({
           <Select
             value={status_membership || ""}
             onValueChange={(value) => updateFields({ status_membership: value })}
+            disabled
           >
             <SelectTrigger>
               <SelectValue placeholder="Select status membership" />
