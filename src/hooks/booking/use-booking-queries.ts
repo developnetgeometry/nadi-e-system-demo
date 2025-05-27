@@ -129,6 +129,13 @@ export const useBookingQueries = () => {
             queryFn: () => bookingClient.getAllState(regionId)
         })
 
+    const useUserProfileByName = (full_name: string) =>
+        useQuery({
+            queryKey: ["userProfile", full_name],
+            queryFn: () => bookingClient.getUserProfilesByName(full_name),
+            enabled: full_name.trim().length > 0
+        })
+
     return {
         useBookingQuery,
         useBookingAssetBrandQuery,
@@ -143,6 +150,7 @@ export const useBookingQueries = () => {
         useSpacesBySite,
         useAllRegion,
         useTpsSitesWithPagination,
-        useAllState
+        useAllState,
+        useUserProfileByName
     };
 };
