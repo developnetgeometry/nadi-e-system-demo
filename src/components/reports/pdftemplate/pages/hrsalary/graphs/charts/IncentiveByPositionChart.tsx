@@ -13,14 +13,10 @@ import {
 import { SALARY_CHART_COLORS, getDefaultColor } from "../utils/colorUtils";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
 
-export interface IncentiveData {
-  position: string;
-  incentive: number;
-  color?: string;
-}
+import { FormattedIncentiveData } from '../ChartGenerator';
 
 interface IncentiveByPositionChartProps {
-  data: IncentiveData[];
+  data: FormattedIncentiveData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;

@@ -44,7 +44,6 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
   tpFilter,
   mcmcLogo = "",
   duspLogo = "",
-  fileName = "hr-salary-report.pdf",
   onGenerationStart,
   onGenerationComplete,
   className
@@ -101,10 +100,9 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
           const root = createRoot(chartGeneratorElement);
           root.render(
             <ChartGenerator
-              employeeDistribution={pdfData.employeeDistribution}
-              vacancies={pdfData.vacancies}
-              staff={pdfData.staff}
-              incentiveDistribution={pdfData.incentiveDistribution}
+              staffSalary={pdfData.staffSalary}
+              staffPerformanceIncentive={pdfData.staffPerformanceIncentive}
+              staffVacancy={pdfData.staffVacancy}
               onChartsReady={onChartReady}
             />
           );
@@ -122,20 +120,14 @@ export const HRSalaryReportDownloadButton: React.FC<HRSalaryReportDownloadButton
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-          staff={pdfData.staff}
-          totalStaff={pdfData.totalStaff}
-          activeNadiSites={pdfData.activeNadiSites}
-          sitesWithIncentives={pdfData.sitesWithIncentives}
-          averageSalary={pdfData.averageSalary}
-          averageIncentive={pdfData.averageIncentive}
-          employeeDistribution={pdfData.employeeDistribution}
-          vacancies={pdfData.vacancies}
-          turnoverRates={pdfData.turnoverRates}
-          averageTurnoverRate={pdfData.averageTurnoverRate}
+          staffSalary={pdfData.staffSalary}
+          staffPerformanceIncentive={pdfData.staffPerformanceIncentive}
+          staffVacancy={pdfData.staffVacancy}
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
           monthFilter={monthFilter}
           yearFilter={yearFilter}
+
           staffDistributionChart={charts.staffDistributionChart}
           salaryChart={charts.salaryChart}
           vacancyChart={charts.vacancyChart}

@@ -30,7 +30,7 @@ export function useNadiESystemPdfData(
   yearFilter: string | number | null,
   tpFilter?: (string | number)[] | null,
 ): NadiESystemPdfData {
-  
+
   const [data, setData] = useState<NadiESystemPdfData>({
     cms: [],
     portalwebservice: [],
@@ -42,27 +42,27 @@ export function useNadiESystemPdfData(
         {
           id: "1",
           siteId: "site1",
-          standard_code: "SC001",
-          sitename: "Site One",
-          state: "State A",
+          standard_code: "S06N001",
+          sitename: "NADI Batu Payung",
+          state: "Sabah",
           pc_client_count: 10,
           date_install: "2023-01-01"
         },
         {
           id: "2",
           siteId: "site2",
-          standard_code: "SC002",
-          sitename: "Site Two",
-          state: "State B",
+          standard_code: "N11N002",
+          sitename: "NADI Felda Pasoh 2",
+          state: "Negeri Sembilan",
           pc_client_count: 5,
           date_install: "2023-02-01"
         },
         {
           id: "3",
           siteId: "site3",
-          standard_code: "SC003",
-          sitename: "Site Three",
-          state: "State C",
+          standard_code: "Q10N005",
+          sitename: "NADI PPR Taman Dahlia",
+          state: "Sarawak",
           pc_client_count: 8,
           date_install: "2023-03-01"
         }
@@ -71,23 +71,24 @@ export function useNadiESystemPdfData(
         {
           id: "1",
           siteId: "site1",
-          standard_code: "SC001",
-          sitename: "Site One",
-          state: "State A",
-          url_portal: "https://portal.siteone.com",
-          email_staff: ["m.puncak@nadi.my","am.puncak@nadi.my"]
+          standard_code: "S06N001",
+          sitename: "NADI Batu Payung",
+          state: "Sabah",
+          url_portal: "https://portal.batupayung.com",
+          email_staff: ["yap.jia.hui@batupayung.my","muhammad.luqman@batupayung.my"]
         },
         {
           id: "2",
           siteId: "site2",
-          standard_code: "SC002",
-          sitename: "Site Two",
-          state: "State B",
-          url_portal: "https://portal.sitetwo.com",
-          email_staff: ["m.puncak@nadi.my","am.puncak@nadi.my"]
+          standard_code: "Q10N005",
+          sitename: "NADI PPR Taman Dahlia",
+          state: "Sarawak",
+          url_portal: "https://portal.PPRTamanDahlia.com",
+          email_staff: ["sim.mei.hui@PPRTamanDahlia.my","mazlan.shah@PPRTamanDahlia.my"]
         },
 
       ],
+
     });
   }, []); // Only run once on mount
 
