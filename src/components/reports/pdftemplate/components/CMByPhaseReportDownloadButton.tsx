@@ -99,7 +99,7 @@ export const CMByPhaseReportDownloadButton = ({
                     const root = createRoot(chartGeneratorElement);
                     root.render(
                         <ChartGenerator
-                            docketStatusData={pdfData.docketStatusData}
+                            maintainanceData={pdfData.maintainanceData}
                             onChartsReady={onChartReady}
                         />
                     );
@@ -121,6 +121,7 @@ export const CMByPhaseReportDownloadButton = ({
                     duspLogo={duspLogo}
                     monthFilter={monthFilter}
                     yearFilter={yearFilter}
+
                     maintainanceData={pdfData?.maintainanceData}
                     docketStatusChart={charts.docketStatusChart}
                 />

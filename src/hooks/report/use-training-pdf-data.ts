@@ -54,9 +54,9 @@ export function useTrainingPdfData(
                 {
                     id: "1",
                     site_id: "101",
-                    sitename: "Site Alpha",
-                    state: "Selangor",
-                    phase_name: "Phase 1",
+                    sitename: "NADI Felda Kahang Timur",
+                    state: "Johor",
+                    phase_name: "Felda",
                     fullname: "Ahmad Bin Ali",
                     position: "Manager",
                     programme_name: "Upskilling 2025",
@@ -67,9 +67,9 @@ export function useTrainingPdfData(
                 {
                     id: "2",
                     site_id: "102",
-                    sitename: "Site Beta",
-                    state: "Johor",
-                    phase_name: "Phase 2",
+                    sitename: "NADI Gurun",
+                    state: "Kedah",
+                    phase_name: "Clawback 2013",
                     fullname: "Siti Nurhaliza",
                     position: "Assistant Manager",
                     programme_name: "Upskilling 2025",
@@ -82,10 +82,10 @@ export function useTrainingPdfData(
                 {
                     id: "1",
                     site_id: "101",
-                    sitename: "Abu Epic",
+                    sitename: "NADI Sungai Sireh Tanjung Karang",
                     state: "Selangor",
-                    phase_name: "Phase 1",
-                    fullname: "Abu la Hassan Epic",
+                    phase_name: "Phase 2",
+                    fullname: "Abu Hassan",
                     position: "Manager",
                     programme_name: "Upskilling 2025",
                     programme_method: "Online",
@@ -95,9 +95,9 @@ export function useTrainingPdfData(
                 {
                     id: "2",
                     site_id: "101",
-                    sitename: "Abu Epic",
-                    state: "Johor",
-                    phase_name: "Phase 2",
+                    sitename: "NADI Pekan Kampung Lalang",
+                    state: "Kedah",
+                    phase_name: "Pilot",
                     fullname: "Siti Nurhaliza",
                     position: "Assistant Manager",
                     programme_name: "Upskilling 2025",
@@ -105,6 +105,7 @@ export function useTrainingPdfData(
                     programme_venue: "Johor Convention Centre",
                     programme_date: "2025-05-10"
                 }
+
             ]
         });
         setLoading(false);
