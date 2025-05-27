@@ -17,7 +17,7 @@ const HRSettings = () => {
   const [activeTab, setActiveTab] = useState("offdays");
 
   return (
-    <DashboardLayout>
+    <div>
       <div>
         <div className="mb-8">
           <h1 className="text-2xl font-bold">HR Settings</h1>
@@ -88,7 +88,7 @@ const HRSettings = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

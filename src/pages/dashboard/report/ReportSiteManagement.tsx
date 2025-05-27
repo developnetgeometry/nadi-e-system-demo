@@ -12,7 +12,7 @@ import {
   AgreementCard,
   UtilitiesCard,
   LocalAuthorityCard,
-  AwarenessProgrammeCard
+  AwarenessProgrammeCard,
 } from "@/components/reports/component/sitemanagement";
 
 // Define month options
@@ -94,18 +94,21 @@ const ReportSiteManagement = () => {
   const dataStableLoading = useStableLoading(dataLoading);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Site Management Report</h1>
-            <p className="text-gray-500 mt-1">View and analyze site management data across all NADI sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze site management data across all NADI sites
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <SiteManagementReportDownloadButton
-              duspLabel={duspFilter.length === 1
-                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
-                : duspFilter.length > 1
+              duspLabel={
+                duspFilter.length === 1
+                  ? dusps.find((d) => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
                   ? `${duspFilter.length} DUSPs selected`
                   : ""}              phaseLabel={phaseFilter !== null
                 ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
@@ -124,13 +127,13 @@ const ReportSiteManagement = () => {
               yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-        
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
         </div>
         {/* Filters */}
+
         <ModularReportFilters
           // Show all filters for site management report
           showFilters={{
@@ -138,9 +141,8 @@ const ReportSiteManagement = () => {
             phase: true,
             nadi: true,
             tp: true,
-            date: true
+            date: true,
           }}
-
           // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
@@ -156,16 +158,17 @@ const ReportSiteManagement = () => {
           setYearFilter={setYearFilter}
 
           // Filter data
+
           dusps={dusps}
           phases={phases}
           nadiSites={nadiSites}
           tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
-
           // Loading state
           isLoading={filtersLoading}
-        />        {/* Statistics Cards Grid */}        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        />        {/* Statistics Cards Grid */}        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <LocalAuthorityCard
             loading={dataStableLoading}
             siteCount={sites?.length || 0}
@@ -200,7 +203,6 @@ const ReportSiteManagement = () => {
               ...(utilities.filter(u => u.has_electricity).length > 0 ? ['Electricity'] : []),
               ...(utilities.filter(u => u.has_sewerage).length > 0 ? ['Sewerage'] : [])
             ] : []}          />
-          
           <AwarenessProgrammeCard
             loading={dataStableLoading}
             siteCount={sites?.length || 0}
@@ -209,7 +211,7 @@ const ReportSiteManagement = () => {
           />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

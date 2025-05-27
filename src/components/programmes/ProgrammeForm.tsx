@@ -46,7 +46,11 @@ interface ProgrammeFormProps {
   onCancel?: () => void;
 }
 
-export function ProgrammeForm({ programme, onSuccess, onCancel }: ProgrammeFormProps) {
+export function ProgrammeForm({
+  programme,
+  onSuccess,
+  onCancel,
+}: ProgrammeFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -55,8 +59,12 @@ export function ProgrammeForm({ programme, onSuccess, onCancel }: ProgrammeFormP
       title: programme?.title || "",
       description: programme?.description || "",
       status: programme?.status || "draft",
-      start_date: programme?.start_date ? new Date(programme.start_date).toISOString().split('T')[0] : "",
-      end_date: programme?.end_date ? new Date(programme.end_date).toISOString().split('T')[0] : "",
+      start_date: programme?.start_date
+        ? new Date(programme.start_date).toISOString().split("T")[0]
+        : "",
+      end_date: programme?.end_date
+        ? new Date(programme.end_date).toISOString().split("T")[0]
+        : "",
       location: programme?.location || "",
       capacity: programme?.capacity || undefined,
     },
@@ -66,7 +74,7 @@ export function ProgrammeForm({ programme, onSuccess, onCancel }: ProgrammeFormP
     setIsLoading(true);
     try {
       console.log("Submitting programme data:", data);
-      
+
       if (programme) {
         // Update existing programme
         const { error } = await supabase
@@ -85,13 +93,11 @@ export function ProgrammeForm({ programme, onSuccess, onCancel }: ProgrammeFormP
         });
       } else {
         // Create new programme
-        const { error } = await supabase
-          .from("programmes")
-          .insert({
-            ...data,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+        const { error } = await supabase.from("programmes").insert({
+          ...data,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
 
         if (error) throw error;
 
@@ -227,7 +233,11 @@ export function ProgrammeForm({ programme, onSuccess, onCancel }: ProgrammeFormP
                 <Input
                   type="number"
                   {...field}
-                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value ? parseInt(e.target.value) : undefined
+                    )
+                  }
                   disabled={isLoading}
                 />
               </FormControl>
@@ -246,7 +256,11 @@ export function ProgrammeForm({ programme, onSuccess, onCancel }: ProgrammeFormP
             Cancel
           </Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : programme ? "Update Programme" : "Create Programme"}
+            {isLoading
+              ? "Saving..."
+              : programme
+              ? "Update Programme"
+              : "Create Programme"}
           </Button>
         </div>
       </form>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModularReportFilters } from "@/components/reports/filters";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
@@ -62,6 +61,9 @@ const ReportSmartService = () => {
     loading: filtersLoading,
   } = useReportFilters();
 
+  const hasActiveFiltersMonth =
+    nadiFilter !== null || monthFilter !== null || yearFilter !== "2025";
+
   const resetFilters = () => {
     setDuspFilter([]);
     setPhaseFilter(null);
@@ -92,12 +94,14 @@ const ReportSmartService = () => {
     }
   }
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Smart Services</h1>
-            <p className="text-gray-500 mt-1">View and analyze smart service programs and participation data</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze smart service programs and participation data
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
@@ -183,7 +187,6 @@ const ReportSmartService = () => {
             <TabsTrigger value="pillar">Pillar by Programme</TabsTrigger>
             <TabsTrigger value="month">By Month</TabsTrigger>
           </TabsList>
-
           <ModularReportFilters
             showFilters={{
               dusp: true,
@@ -243,7 +246,6 @@ const ReportSmartService = () => {
 
           {/* By Pillar & Programme Tab */}
           <TabsContent value="pillar" className="mt-4">
-
             {/* Summary Cards */}
             <ReportSmartServicePillarByProgramme
               duspFilter={duspFilter}
@@ -258,7 +260,6 @@ const ReportSmartService = () => {
 
           {/* By Month Tab */}
           <TabsContent value="month" className="mt-4">
-
             {/* Main Content for Month tab - Bar Chart  */}
             <ReportSmartServiceByMonth
               duspFilter={duspFilter}
@@ -271,7 +272,7 @@ const ReportSmartService = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

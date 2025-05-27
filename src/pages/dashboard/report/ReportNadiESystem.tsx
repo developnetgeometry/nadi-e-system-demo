@@ -9,7 +9,7 @@ import { useMcmcLogo, useDuspLogo } from "@/hooks/use-brand";
 import {
   CmsCard,
   WebsiteMigrationCard,
-  EmailMigrationCard
+  EmailMigrationCard,
 } from "@/components/reports/component/nadiesystem";
 
 // Define month options
@@ -39,7 +39,8 @@ const yearOptions = [
   { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
-const ReportNadiESystem = () => {  // Filter states  
+const ReportNadiESystem = () => {
+  // Filter states
   const [duspFilter, setDuspFilter] = useState<(string | number)[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string | number | null>(null);
   const [monthFilter, setMonthFilter] = useState<string | number | null>(null);
@@ -57,8 +58,14 @@ const ReportNadiESystem = () => {  // Filter states
     sitesWithCms,
     sitesWithWebsiteMigration,
     sitesWithEmailMigration,
-    loading: dataLoading
-  } = useNadiESystemData(duspFilter, phaseFilter, monthFilter, yearFilter, tpFilter);
+    loading: dataLoading,
+  } = useNadiESystemData(
+    duspFilter,
+    phaseFilter,
+    monthFilter,
+    yearFilter,
+    tpFilter
+  );
 
   // Get MCMC and DUSP logos for the PDF report
   const mcmcLogo = useMcmcLogo();
@@ -82,8 +89,8 @@ const ReportNadiESystem = () => {  // Filter states
   const dataStableLoading = useStableLoading(dataLoading);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">NADI e-System</h1>
@@ -91,14 +98,19 @@ const ReportNadiESystem = () => {  // Filter states
           </div>          
           <div className="flex items-center gap-2">
             <NadiESystemReportDownloadButton
-              duspLabel={duspFilter.length === 1
-                ? dusps.find(d => d.id === duspFilter[0])?.name || ""
-                : duspFilter.length > 1
+              duspLabel={
+                duspFilter.length === 1
+                  ? dusps.find((d) => d.id === duspFilter[0])?.name || ""
+                  : duspFilter.length > 1
                   ? `${duspFilter.length} DUSPs selected`
-                  : ""}
-              phaseLabel={phaseFilter !== null
-                ? phases.find(p => p.id === phaseFilter)?.name || "All Phases"
-                : "All Phases"}
+                  : ""
+              }
+              phaseLabel={
+                phaseFilter !== null
+                  ? phases.find((p) => p.id === phaseFilter)?.name ||
+                    "All Phases"
+                  : "All Phases"
+              }
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
               periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
               duspFilter={duspFilter}
@@ -108,7 +120,9 @@ const ReportNadiESystem = () => {  // Filter states
               yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-              fileName={`nadi-e-system-report-${new Date().toISOString().split('T')[0]}.pdf`}
+              fileName={`nadi-e-system-report-${
+                new Date().toISOString().split("T")[0]
+              }.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />
@@ -123,9 +137,8 @@ const ReportNadiESystem = () => {  // Filter states
             phase: true,
             nadi: false,
             date: true,
-            tp: true
+            tp: true,
           }}
-
           // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
@@ -144,11 +157,9 @@ const ReportNadiESystem = () => {  // Filter states
           monthOptions={monthOptions}
           yearOptions={yearOptions}
           tpOptions={tpProviders}
-
           // Loading state
           isLoading={filtersLoading}
         />
-        
         {/* Statistics Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <CmsCard
@@ -170,7 +181,7 @@ const ReportNadiESystem = () => {  // Filter states
           />
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

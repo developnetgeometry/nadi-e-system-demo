@@ -14,32 +14,32 @@ import {
   VacancyCard,
   TurnoverRateCard,
   VacancyAnalysisCard,
-  TurnoverTrendCard
+  TurnoverTrendCard,
 } from "@/components/reports/component/hrsalary";
 
 // Define month options
 const monthOptions = [
-    { id: 1, label: "January" },
-    { id: 2, label: "February" },
-    { id: 3, label: "March" },
-    { id: 4, label: "April" },
-    { id: 5, label: "May" },
-    { id: 6, label: "June" },
-    { id: 7, label: "July" },
-    { id: 8, label: "August" },
-    { id: 9, label: "September" },
-    { id: 10, label: "October" },
-    { id: 11, label: "November" },
-    { id: 12, label: "December" },
+  { id: 1, label: "January" },
+  { id: 2, label: "February" },
+  { id: 3, label: "March" },
+  { id: 4, label: "April" },
+  { id: 5, label: "May" },
+  { id: 6, label: "June" },
+  { id: 7, label: "July" },
+  { id: 8, label: "August" },
+  { id: 9, label: "September" },
+  { id: 10, label: "October" },
+  { id: 11, label: "November" },
+  { id: 12, label: "December" },
 ];
 
 // Define year options (current year plus 3 years back)
 const currentYear = new Date().getFullYear();
 const yearOptions = [
-    { id: currentYear, label: currentYear.toString() },
-    { id: currentYear - 1, label: (currentYear - 1).toString() },
-    { id: currentYear - 2, label: (currentYear - 2).toString() },
-    { id: currentYear - 3, label: (currentYear - 3).toString() },
+  { id: currentYear, label: currentYear.toString() },
+  { id: currentYear - 1, label: (currentYear - 1).toString() },
+  { id: currentYear - 2, label: (currentYear - 2).toString() },
+  { id: currentYear - 3, label: (currentYear - 3).toString() },
 ];
 
 // TP options will be fetched from the useReportFilters hook

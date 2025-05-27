@@ -1,4 +1,3 @@
-
 import { LandingNavbar } from "@/components/landing/LandingNavbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
@@ -13,12 +12,13 @@ const Landing = () => {
       <LandingNavbar />
       <HeroSection />
       <FeaturesSection />
-      
-      <div className="container mx-auto py-8 px-4 text-center">
+
+      <div className="space-y-1 px-4 text-center">
         <div className="max-w-md mx-auto bg-card p-6 rounded-lg shadow-md border">
           <h2 className="text-2xl font-bold mb-4">UI Components Library</h2>
           <p className="text-muted-foreground mb-6">
-            Explore our collection of reusable UI components for your application development needs.
+            Explore our collection of reusable UI components for your
+            application development needs.
           </p>
           <Button asChild>
             <Link to="/ui-components">
@@ -27,7 +27,7 @@ const Landing = () => {
           </Button>
         </div>
       </div>
-      
+
       <CTASection />
     </div>
   );

@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 import { useEffect, useState, useMemo } from "react";
 
@@ -45,6 +46,13 @@ const POSSales = () => {
   const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPUser =
+    parsedMetadata?.user_group_name === "TP" &&
+    !!parsedMetadata?.organization_id;
+
   const [cartItems, setCartItems] = useState<Array<{
     id: string | number;
     type_id: string | number;
@@ -55,6 +63,7 @@ const POSSales = () => {
     barcode: string | number;
     description?: string;
     isPrintingService?: boolean;
+    image_url?: string;
   }>>([]);
 
   const paymentMethodOption = [
@@ -64,11 +73,39 @@ const POSSales = () => {
 
   // Fetch inventory data
   const { data: inventorys, isLoading: loadingInventorys } = useQuery({
-    queryKey: ['inventorys', searchItem],
+    queryKey: ['inventorys', searchItem, parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
     queryFn: async () => {
       let query = supabase
         .from('nd_inventory')
-        .select('*')
+        .select(`
+          *,
+          nd_inventory_attachment!left(file_path)
+        `);
+
+      // If not super admin, filter by site_id
+      if (!isSuperAdmin) {
+        const siteProfileId = parsedMetadata?.group_profile?.site_profile_id || null;
+        
+        if (!siteProfileId) {
+          console.warn("No site_profile_id found in user metadata");
+          return [];
+        }
+
+        // Get the site_id from nd_site table using site_profile_id
+        const { data: siteData, error: siteError } = await supabase
+          .from('nd_site')
+          .select('id')
+          .eq('site_profile_id', siteProfileId)
+          .single();
+
+        if (siteError || !siteData) {
+          console.error("Error fetching site:", siteError);
+          return [];
+        }
+
+        const siteId = siteData.id;
+        query = query.eq('site_id', siteId);
+      }
 
       if (searchItem) {
         query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%,barcode.ilike.%${searchItem}%`)
@@ -81,7 +118,14 @@ const POSSales = () => {
         console.error("Error fetching inventories:", error);
         throw error;
       }
-      return data;
+
+      // Process the data to include the first image
+      const processedData = data?.map(item => ({
+        ...item,
+        image_url: item.nd_inventory_attachment?.[0]?.file_path || null
+      })) || [];
+      
+      return processedData;
     },
   });
 
@@ -159,7 +203,10 @@ const POSSales = () => {
     if (inventory) {
       // Check if it's a printing service
       if (inventory.name.toLowerCase().includes('printing')) {
-        setPrintingItem(inventory);
+        setPrintingItem({
+          ...inventory,
+          image_url: inventory.image_url
+        });
         setIsPrintDialogOpen(true);
         return;
       }
@@ -202,7 +249,8 @@ const POSSales = () => {
           name: inventory.name,
           quantity: itemQuantity,
           price: inventory.price,
-          total: itemQuantity * inventory.price
+          total: itemQuantity * inventory.price,
+          image_url: inventory.image_url
         };
         setCartItems([...cartItems, newItem]);
 
@@ -426,7 +474,8 @@ const POSSales = () => {
         quantity: 1,
         price: printOptions.subtotal,
         total: printOptions.subtotal,
-        isPrintingService: true
+        isPrintingService: true,
+        image_url: printingItem.image_url
       };
       
       if (editingCartItemIndex !== null && editingCartItemIndex >= 0) {
@@ -468,7 +517,7 @@ const POSSales = () => {
   }, [isPaymentAmountDialogOpen]);
 
   return (
-    <DashboardLayout>
+    <>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">POS Management</h1>
@@ -494,7 +543,14 @@ const POSSales = () => {
                 {inventorys && inventorys.length > 0 ? (
                   inventorys.map((inventory) => (
                   <Card key={inventory.id} className="hover:cursor-pointer border hover:border-[#5147dd]" onClick={() => addToCart(inventory)}>
-                    <img src="/200x200.svg" alt="" className="w-full h-32 object-cover" />
+                    <img 
+                      src={inventory.image_url || "/200x200.svg"} 
+                      alt={inventory.name} 
+                      className="w-full h-32 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "/200x200.svg";
+                      }}
+                    />
                     <div className="p-2">
                       <p className="font-medium text-sm truncate">{inventory.name}</p>
                       <div className="flex items-center justify-between mt-1">
@@ -544,7 +600,14 @@ const POSSales = () => {
                     <TableRow key={item.id}>
                       <TableCell>
                         <div className="flex items-start gap-3">
-                          <img src="/200x200.svg" alt="" className="w-12 h-12 object-cover rounded-md" />
+                          <img 
+                            src={item.image_url || "/200x200.svg"} 
+                            alt={item.name} 
+                            className="w-12 h-12 object-cover rounded-md"
+                            onError={(e) => {
+                              e.currentTarget.src = "/200x200.svg";
+                            }}
+                          />
                           <div className="space-y-1">
                             <div className="font-medium">
                               {item.name}
@@ -607,6 +670,7 @@ const POSSales = () => {
                                       barcode: item.barcode,
                                       price: item.price,
                                       quantity: item.quantity,
+                                      image_url: item.image_url
                                     } as Inventory);
                                     
                                     setIsPrintDialogOpen(true);
@@ -842,7 +906,14 @@ const POSSales = () => {
                     <div key={index} className="flex flex-col gap-3 pb-2">
                       <div className="grid grid-cols-8">
                         <div className="flex col-span-5 gap-2">
-                          <img src="/200x200.svg" alt="" className="w-12 h-12 object-cover rounded" />
+                          <img 
+                            src={item.image_url || "/200x200.svg"} 
+                            alt={item.name} 
+                            className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = "/200x200.svg";
+                            }}
+                          />
                           <div>
                             <p className="font-medium text-sm">{item.name}</p>
                             {item.isPrintingService && item.description && (
@@ -1020,7 +1091,7 @@ const POSSales = () => {
         </Dialog>
 
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

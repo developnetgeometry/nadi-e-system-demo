@@ -82,12 +82,14 @@ const ReportTraining = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Training</h1>
-            <p className="text-gray-500 mt-1">View and analyze NADI staff training data across all sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze NADI staff training data across all sites
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <TrainingReportDownloadButton
@@ -151,7 +153,6 @@ const ReportTraining = () => {
 
         {/* Statistics Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Total NADI Card */}
           <TotalNadiCard />
 
           {/* Number of Employees Card */}
@@ -162,9 +163,10 @@ const ReportTraining = () => {
 
           {/* Refresh Training Card */}
           <RefreshTrainingCard />
+
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

@@ -47,7 +47,8 @@ const InventoryDashboard = () => {
     return <div>Error fetching inventories</div>;
   }
 
-  const displayInventories = isStaffUser && !siteId ? [] : inventories;
+  // const displayInventories = isStaffUser && !siteId ? [] : inventories;
+  const displayInventories = inventories;
 
   if (!isLoadingInventories && inventories) {
     if (displayInventories.length > 0) {

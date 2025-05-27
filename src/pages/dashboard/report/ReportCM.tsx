@@ -9,6 +9,7 @@ import { CMByNadiReportDownloadButton } from "@/components/reports/pdftemplate/c
 import { useDuspLogo, useMcmcLogo } from "@/hooks/use-brand";
 import { CMByPhaseReportDownloadButton } from "@/components/reports/pdftemplate/components/CMByPhaseReportDownloadButton";
 
+
 const monthOptions = [
   { id: 1, label: "January" },
   { id: 2, label: "February" },
@@ -77,12 +78,14 @@ const ReportCM = () => {
 
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">Comprehensive Maintenance</h1>
-            <p className="text-gray-500 mt-1">View and analyze maintenance dockets across all sites</p>
+            <p className="text-gray-500 mt-1">
+              View and analyze maintenance dockets across all sites
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {/* <Button variant="secondary" className="bg-green-500 hover:bg-green-600 text-white flex items-center gap-2">
@@ -192,7 +195,6 @@ const ReportCM = () => {
 
           {/* By Phase Tab */}
           <TabsContent value="phase" className="mt-4">
-
             {/* Main Content for Phase tab */}
             <ReportCMByPhase
               duspFilter={duspFilter}
@@ -205,7 +207,7 @@ const ReportCM = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 

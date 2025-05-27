@@ -24,8 +24,8 @@ const CommunityModeration = () => {
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div>
+      <div className="space-y-1">
         <div>
           <h1 className="text-xl font-bold">Community Moderation</h1>
           <p className="text-muted-foreground mt-2">
@@ -39,15 +39,22 @@ const CommunityModeration = () => {
                 <CardTitle>{flag.content_type}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p><span className="font-medium">Reason:</span> {flag.reason}</p>
-                <p><span className="font-medium">Status:</span> {flag.status}</p>
-                <p><span className="font-medium">Reported:</span> {new Date(flag.created_at).toLocaleString()}</p>
+                <p>
+                  <span className="font-medium">Reason:</span> {flag.reason}
+                </p>
+                <p>
+                  <span className="font-medium">Status:</span> {flag.status}
+                </p>
+                <p>
+                  <span className="font-medium">Reported:</span>{" "}
+                  {new Date(flag.created_at).toLocaleString()}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 };
 
