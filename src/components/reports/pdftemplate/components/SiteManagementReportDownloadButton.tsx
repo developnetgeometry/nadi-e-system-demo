@@ -12,7 +12,6 @@ interface SiteManagementReportDownloadButtonProps {
   phaseLabel?: string;
   periodType?: string;
   periodValue?: string;
-  totalSites?: number; // Optional, can be derived
   mcmcLogo: string;
   duspLogo: string;
   monthFilter?: string | number | null;
