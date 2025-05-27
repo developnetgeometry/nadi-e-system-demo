@@ -143,6 +143,7 @@ const ReportSiteManagement = () => {
             tp: true,
             date: true,
           }}
+          
           // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
@@ -167,7 +168,11 @@ const ReportSiteManagement = () => {
           yearOptions={yearOptions}
           // Loading state
           isLoading={filtersLoading}
-        />        {/* Statistics Cards Grid */}        
+        />       
+        
+        
+        
+         {/* Statistics Cards Grid */}        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <LocalAuthorityCard
             loading={dataStableLoading}
@@ -203,6 +208,8 @@ const ReportSiteManagement = () => {
               ...(utilities.filter(u => u.has_electricity).length > 0 ? ['Electricity'] : []),
               ...(utilities.filter(u => u.has_sewerage).length > 0 ? ['Sewerage'] : [])
             ] : []}          />
+
+
           <AwarenessProgrammeCard
             loading={dataStableLoading}
             siteCount={sites?.length || 0}
