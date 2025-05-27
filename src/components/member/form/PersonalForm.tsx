@@ -6,7 +6,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { debounce } from "lodash"; // Import lodash debounce
 import { SiteProfileSelect } from "../components/SiteProfileSelect";
 import { useSiteProfiles } from "../hook/useSiteProfile";
-import { DialogTitle } from "@/components/ui/dialog";
 
 type PersonalData = {
   fullname: string;
@@ -53,7 +52,7 @@ export function PersonalForm({
 
   return (
     <>
-      <DialogTitle className="mb-4">Personal Information</DialogTitle>
+      <div className="mb-4">Personal Information</div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Full Name */}

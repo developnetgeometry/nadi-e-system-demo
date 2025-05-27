@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DialogTitle } from "@/components/ui/dialog";
 
 type AccountData = {
   email: string;
@@ -27,7 +26,7 @@ export function AccountForm({
 
   return (
     <>
-      <DialogTitle className="mb-4">Account Information</DialogTitle>
+      <div className="mb-4">Account Information</div>
 
       {/* Username */}
       <div className="space-y-2 mb-4">
