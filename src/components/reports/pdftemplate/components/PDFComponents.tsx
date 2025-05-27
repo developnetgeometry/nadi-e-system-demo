@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "#aaa",
     opacity: 0.3,
-    marginBottom: 4,
+    marginBottom: 10,
   },
   footerText: { 
     fontSize: 9, 
@@ -521,11 +521,29 @@ export const PDFFooter = ({
   customText 
 }: { 
   customText?: string 
-}) => (
-  <View style={styles.footer}>
-    <View style={styles.footerLine} />
-    <Text style={styles.footerText}>
-      {customText || "This document is system-generated from e-System."}
-    </Text>
-  </View>
-);
+}) => {
+  // Get current date and time
+  const now = new Date();
+  const formattedDateTime = now.toLocaleString('en-MY', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+  
+  return (    <View style={styles.footer}>
+      <View style={styles.footerLine} />
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Text style={styles.footerText}>
+          {"This document is system-generated from NADI e-System."}
+        </Text>
+        <Text style={styles.footerText}>
+          Generated on: {formattedDateTime}
+        </Text>
+      </View>
+    </View>
+  );
+};
