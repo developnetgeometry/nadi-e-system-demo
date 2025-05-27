@@ -90,7 +90,6 @@ export function AddressForm({
       <div className="space-y-2 mb-4">
         <Label className="flex items-center">Address Line 1 <span className="text-red-500 ml-1">*</span></Label>
         <Input
-          autoFocus
           required
           type="text"
           value={address1}

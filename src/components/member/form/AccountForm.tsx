@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 type AccountData = {
-  email: string;
+  identity_no: string;
   password: string;
   confirmPassword: string;
 };
@@ -14,7 +14,7 @@ type AccountFormProps = AccountData & {
 };
 
 export function AccountForm({
-  email,
+  identity_no,
   password,
   confirmPassword,
   updateFields,
@@ -33,7 +33,7 @@ export function AccountForm({
         <Label className="flex items-center">Username</Label>
         <Input
           type="text"
-          value={email}
+          value={identity_no}
           readOnly
           className="bg-gray-100 cursor-not-allowed"
         />
