@@ -123,12 +123,10 @@ export const useMemberProfileByUserId = (userId: string) => {
       .eq("user_id", userId)
       .single();
 
-    if (photoError) {
-      throw new Error(photoError.message);
-    }
-
-    // Construct the file_path
-    const file_path = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME_PROFILEIMAGE}/${photoData.photo}`;
+    // If there's an error or no photo, use an empty string
+    const file_path = photoData?.photo
+      ? `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME_PROFILEIMAGE}/${photoData.photo}`
+      : "";
 
     // Combine the profile data with the file_path
     return { ...profile, file_path };

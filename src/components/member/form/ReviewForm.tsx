@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText, MapPin, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 type ReviewData = {
   fullname: string;
@@ -154,8 +155,8 @@ export function ReviewForm({
   };
 
   return (
-    <>
-      <DialogTitle className="mb-4">Review Details</DialogTitle>
+    <div >
+      <div className="mb-4">Review Details</div>
 
       <div className="border rounded-md p-4">
         <h3 className="font-semibold mb-2 flex items-center">
@@ -511,14 +512,21 @@ export function ReviewForm({
       {/* Agree Declaration */}
       <div className="space-y-2 flex items-center mt-4">
         <Dialog open={isAgreeDialogOpen} onOpenChange={setIsAgreeDialogOpen}>
-          <DialogTrigger asChild>
-            <Checkbox
-              id="agree_declare_checkbox"
-              checked={agree_declare || false}
-              className="ml-2 cursor-pointer"
-            />
-          </DialogTrigger>
+
+          <input
+            type="checkbox"
+            id="agree_declare_checkbox"
+            checked={agree_declare || false}
+            readOnly // Prevent manual toggling
+            onClick={() => setIsAgreeDialogOpen(true)} // Manually open dialog
+            className="ml-2 cursor-pointer w-4 h-4"
+          />
+
           <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Term Of Services</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
             <div
               className="max-h-96 overflow-y-auto"
               onScroll={(e) => handleScroll(e, setAgreeScrolled)}
@@ -587,14 +595,20 @@ export function ReviewForm({
       {/* PDPA Declaration */}
       <div className="space-y-2 flex items-center">
         <Dialog open={isPdpaDialogOpen} onOpenChange={setIsPdpaDialogOpen}>
-          <DialogTrigger asChild>
-            <Checkbox
-              id="pdpa_declare_checkbox"
-              checked={pdpa_declare || false}
-              className="ml-2 cursor-pointer"
-            />
-          </DialogTrigger>
+          <input
+            type="checkbox"
+            id="pdpa_declare_checkbox"
+            checked={pdpa_declare || false}
+            readOnly // Prevent manual toggling
+            onChange={() => setIsPdpaDialogOpen(true)} // Opens the dialog
+            className="ml-2 cursor-pointer w-4 h-4"
+          />
+
           <DialogContent>
+            <DialogHeader>
+              <DialogTitle>PDPA Declaration</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
             <div
               className="max-h-96 overflow-y-auto"
               onScroll={(e) => handleScroll(e, setPdpaScrolled)}
@@ -659,6 +673,6 @@ export function ReviewForm({
           </span>
         </Label>
       </div>
-    </>
+    </div>
   );
 }

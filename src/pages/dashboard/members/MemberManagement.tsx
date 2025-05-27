@@ -1,25 +1,16 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import {
   Users,
   UserPlus,
-  Activity,
-  UserCheck,
   Search,
-  Edit,
-  Eye,
   Download,
-  House,
-  Grid2X2Icon,
-  Calendar,
-  RotateCcw,
   Filter,
+  UserCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Profile } from "@/types/auth";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,7 +24,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { TableRowNumber } from "@/components/ui/TableRowNumber";
 import Registration from "./Registration";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
@@ -46,31 +36,41 @@ const MemberManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(
-    null
-  );
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const pageSize = 20;
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // State to manage dialog visibility
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Fetch members data
+  // Fetch members data from nd_member_profile
   const { data: membersData, isLoading } = useQuery({
     queryKey: ["members", searchTerm, sortField, sortDirection, currentPage],
     queryFn: async () => {
       let query = supabase
-        .from("profiles")
-        .select("*", { count: "exact" })
-        .eq("user_type", "member");
+        .from("nd_member_profile")
+        .select(
+          `
+          id,
+          ref_id (id, fullname),
+          community_status,
+          fullname,
+          email,
+          status_membership (id, name),
+          status_entrepreneur,
+          user_id
+        `,
+          { count: "exact" }
+        )
+        .not("user_id", "is", null); // Ensure user_id is not null
 
       if (searchTerm) {
         query = query.or(
-          `full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
+          `fullname.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
         );
       }
 
       if (sortField && sortDirection) {
         query = query.order(sortField, { ascending: sortDirection === "asc" });
       } else {
-        query = query.order("created_at", { ascending: false });
+        query = query.order("id", { ascending: false });
       }
 
       query = query.range(
@@ -85,19 +85,20 @@ const MemberManagement = () => {
         throw error;
       }
 
-      return { data: data as Profile[], count: count || 0 };
+      return { data, count: count || 0 };
     },
   });
 
-  // Mock data for statistics
+  // Statistics
   const stats = {
     totalMembers: membersData?.count || 0,
-    premiumMembers: 0,
-    activeMembers: membersData?.data?.length || 0,
+    premiumMembers: membersData?.data?.filter((member) => member.community_status).length || 0,
+    activeMembers:
+      membersData?.data?.filter(
+        (member) => member.status_membership?.name === "Active"
+      ).length || 0,
     lastRegistration:
-      membersData && membersData.data.length > 0
-        ? new Date(membersData.data[0].created_at).toLocaleString()
-        : "N/A",
+      membersData?.data?.filter((member) => member.status_entrepreneur).length || 0,
   };
 
   const handleSort = (field: string) => {
@@ -113,15 +114,8 @@ const MemberManagement = () => {
   const totalPages = Math.ceil((membersData?.count || 0) / pageSize);
   const paginatedMembers = membersData?.data || [];
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
   const handleAddNewMember = () => {
-    setIsDialogOpen(true); // Open the dialog
+     navigate(`/member-management/registration`);
   };
 
   const handleViewDetailsClick = (userId: string) => {
@@ -144,7 +138,6 @@ const MemberManagement = () => {
             <div>
               <h3 className="text-l text-gray-600">Total Members</h3>
               <p className="text-3xl font-bold">{stats.totalMembers}</p>
-              <p className="text-sm text-green-500">↑ 8% vs last month</p>
             </div>
             <div className="bg-blue-100 p-3 rounded-full">
               <Users className="h-6 w-6 text-blue-600" />
@@ -153,9 +146,8 @@ const MemberManagement = () => {
 
           <Card className="p-6 flex items-start justify-between">
             <div>
-              <h3 className="text-l text-gray-600">MADANI Community</h3>
+              <h3 className="text-l text-gray-600">MADANI Members</h3>
               <p className="text-3xl font-bold">{stats.premiumMembers}</p>
-              {/* <p className="text-sm text-green-500">↑ 12% vs last month</p> */}
             </div>
             <div className="bg-purple-100 p-3 rounded-full">
               <Users className="h-6 w-6 text-purple-600" />
@@ -166,7 +158,6 @@ const MemberManagement = () => {
             <div>
               <h3 className="text-l text-gray-600">Active Members</h3>
               <p className="text-3xl font-bold">{stats.activeMembers}</p>
-              {/* <p className="text-sm text-green-500">↑ 5% vs last month</p> */}
             </div>
             <div className="bg-green-100 p-3 rounded-full">
               <UserCheck className="h-6 w-6 text-green-600" />
@@ -176,10 +167,7 @@ const MemberManagement = () => {
           <Card className="p-6 flex items-start justify-between">
             <div>
               <h3 className="text-l text-gray-600">Entrepreneur Members</h3>
-              <p className="text-3xl font-bold">0</p>
-              <p className="text-sm text-gray-500">
-                Last registration: 15 minutes ago
-              </p>
+              <p className="text-3xl font-bold">{stats.lastRegistration}</p>
             </div>
             <div className="bg-amber-100 p-3 rounded-full">
               <Users className="h-6 w-6 text-amber-600" />
@@ -199,7 +187,6 @@ const MemberManagement = () => {
             />
             <div className="absolute left-3 top-2.5 text-gray-400">
               <Search className="h-4 w-4" />
-
             </div>
           </div>
           <div className="flex gap-2">
@@ -219,42 +206,6 @@ const MemberManagement = () => {
           </div>
         </div>
 
-        {/* Registration Dialog */}
-        <Registration
-          isOpen={isDialogOpen}
-          onClose={() => setIsDialogOpen(false)} // Close the dialog
-        />
-
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap justify-between gap-2">
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
-              <House className="h-4 w-4" />
-              Site
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Grid2X2Icon className="h-4 w-4" />
-              Phase
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Grid2X2Icon className="h-4 w-4" />
-              State
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-
-              Date Registered
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-          <Button variant="default" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Apply Filters
-          </Button>
-        </div>
 
         {/* Members Table */}
         <div className="rounded-md shadow overflow-hidden">
@@ -268,10 +219,10 @@ const MemberManagement = () => {
                   <TableHead className="w-[60px]">ID</TableHead>
                   <TableHead
                     className="cursor-pointer"
-                    onClick={() => handleSort("full_name")}
+                    onClick={() => handleSort("fullname")}
                   >
                     Name
-                    {sortField === "full_name" && (
+                    {sortField === "fullname" && (
                       <span className="ml-2">
                         {sortDirection === "asc" ? "↑" : "↓"}
                       </span>
@@ -288,17 +239,14 @@ const MemberManagement = () => {
                       </span>
                     )}
                   </TableHead>
-                  <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Join Date</TableHead>
-                  <TableHead>Reg. Date</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-10">
+                    <TableCell colSpan={6} className="text-center py-10">
                       <div className="flex justify-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
                       </div>
@@ -307,7 +255,7 @@ const MemberManagement = () => {
                   </TableRow>
                 ) : paginatedMembers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-10">
+                    <TableCell colSpan={6} className="text-center py-10">
                       <p className="text-gray-500">
                         No members found matching your criteria
                       </p>
@@ -324,26 +272,23 @@ const MemberManagement = () => {
                           (currentPage - 1) * pageSize + index + 1
                         ).padStart(3, "0")}`}
                       </TableCell>
-                      <TableCell>{member.full_name || "N/A"}</TableCell>
+                      <TableCell>{member.fullname || "N/A"}</TableCell>
                       <TableCell>{member.email || "N/A"}</TableCell>
-                      <TableCell>{member.phone_number || "N/A"}</TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
                           className="bg-green-50 text-green-700 border-green-200"
                         >
-                          Active
+                          {member.status_membership?.name || "N/A"}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatDate(member.created_at)}</TableCell>
-                      <TableCell>{formatDate(member.created_at)}</TableCell>
                       <TableCell>
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => handleViewDetailsClick(member.id)} // Add view details button
+                          onClick={() => handleViewDetailsClick(String(member.user_id))}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Users className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>

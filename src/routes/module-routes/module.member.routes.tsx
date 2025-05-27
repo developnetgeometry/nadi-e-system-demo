@@ -5,15 +5,15 @@ import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 import MemberManagement from "@/pages/dashboard/members/MemberManagement";
-import Registration from "@/pages/dashboard/members/Registration";
 import ActivityLogs from "@/pages/dashboard/members/ActivityLogs";
 import MemberProfile from "@/pages/dashboard/members/MemberProfilePages";
+import MemberRegister from "@/pages/dashboard/members/MemberRegister";
 
 // Implement lazy loading for the Dashboard component
 const MemberManagementPage = lazy(() => Promise.resolve({ default: MemberManagement }));
-const RegistrationPage = lazy(() => Promise.resolve({ default: Registration }));
 const ActivityLogsPage = lazy(() => Promise.resolve({ default: ActivityLogs }));
 const MemberProfilePage = lazy(() => Promise.resolve({ default: MemberProfile }));
+const MemberRegisterPage = lazy(() => Promise.resolve({ default: MemberRegister }));
 
 export const memberRoutes = [
   {
@@ -41,7 +41,7 @@ export const memberRoutes = [
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <RegistrationPage />
+        <MemberRegisterPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

@@ -95,6 +95,7 @@ export const workflowItems = [
 
 export const memberManagementItems = [
   { title: "Member Management", path: "/member-management" },
+  { title: "Member Registration", path: "/member-management/registration" },
   { title: "Activity Logs", path: "/member-management/activity" },
 ];
 
