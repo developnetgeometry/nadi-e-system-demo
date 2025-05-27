@@ -3,83 +3,105 @@ import { useState, useEffect } from 'react';
 import {
   StaffDistribution,
   StaffVacancy,
-  HRStaffMember
+  HRStaffMember,
+  IncentiveDistributionData
 } from "@/hooks/report/use-hr-salary-data";
-import { ChartImageRenderer } from './ChartImageRenderer';
+import { StaffDistributionChart } from './charts/StaffDistributionChart';
+import { SalaryByPositionChart } from './charts/SalaryByPositionChart';
+import { VacancyDistributionChart } from './charts/VacancyDistributionChart';
+import { IncentiveByPositionChart } from './charts/IncentiveByPositionChart';
+import { IncentiveDistributionChart } from './charts/IncentiveDistributionChart';
+
+// Define chart bundle type
+export interface ChartBundle {
+  staffDistributionChart: string;
+  salaryChart: string;
+  vacancyChart: string;
+  incentiveChart: string;
+  incentiveDistributionChart: string;
+}
+
+// Define salary data type used by SalaryByPositionChart
+export interface SalaryData {
+  position: string;
+  salary: number;
+  color?: string;
+}
 
 interface ChartGeneratorProps {
   employeeDistribution: StaffDistribution[];
   vacancies: StaffVacancy[];
   staff: HRStaffMember[];
-  onChartsReady: (charts: {
-    staffDistributionChart: string;
-    salaryChart: string;
-    vacancyChart: string;
-  }) => void;
+  incentiveDistribution: IncentiveDistributionData[];
+  onChartsReady: (charts: ChartBundle) => void;
 }
 
 const ChartGenerator: React.FC<ChartGeneratorProps> = ({
   employeeDistribution,
   vacancies,
   staff,
+  incentiveDistribution,
   onChartsReady
 }) => {
-  const [staffDistributionChart, setStaffDistributionChart] = useState<string | null>(null);
-  const [salaryChart, setSalaryChart] = useState<string | null>(null);
-  const [vacancyChart, setVacancyChart] = useState<string | null>(null);
-  
-  // Prepare salary data for chart
-  const salaryData = employeeDistribution.map(item => {
-    // Find average salary for this position
-    const staffWithPosition = staff.filter(s => 
-      s.position?.toUpperCase().includes(item.position.toUpperCase())
-    );
-    
-    const avgSalary = staffWithPosition.length > 0
-      ? staffWithPosition.reduce((sum, s) => sum + (s.salary || 0), 0) / staffWithPosition.length
-      : 0;
-    
-    return {
-      position: item.position,
-      salary: avgSalary,
-      color: item.color
-    };
-  });
+  const [charts, setCharts] = useState<Partial<ChartBundle>>({});
+
+  // Handle individual chart ready events
+  const handleChartReady = (type: keyof ChartBundle, base64Image: string) => {
+    setCharts(prevCharts => ({
+      ...prevCharts,
+      [type]: base64Image
+    }));
+  };
 
   useEffect(() => {
     // When all charts are ready, notify parent component
-    if (staffDistributionChart && salaryChart && vacancyChart) {
-      onChartsReady({
-        staffDistributionChart,
-        salaryChart,
-        vacancyChart
-      });
+    if (
+      charts.staffDistributionChart &&
+      charts.salaryChart &&
+      charts.vacancyChart &&
+      charts.incentiveChart &&
+      charts.incentiveDistributionChart
+    ) {
+      onChartsReady(charts as ChartBundle);
     }
-  }, [staffDistributionChart, salaryChart, vacancyChart, onChartsReady]);
-  
-  // Component doesn't render anything visible
+  }, [charts, onChartsReady]);
+
+  // TODO: Fetch and process salaryData, incentiveData, etc. from your database here
+  const salaryData: SalaryData[] = [];
+  const incentiveData: { position: string; incentive: number; color?: string }[] = [];
+
+  // Render all chart components directly with image generation and style
   return (
     <>
-      <ChartImageRenderer
-        type="staffDistribution"
+      <StaffDistributionChart
         data={employeeDistribution}
-        onReady={setStaffDistributionChart}
         width={520}
         height={380}
+        onReady={(img) => handleChartReady('staffDistributionChart', img)}
       />
-      <ChartImageRenderer
-        type="salaryByPosition"
+      <SalaryByPositionChart
         data={salaryData}
-        onReady={setSalaryChart}
         width={650}
         height={420}
+        onReady={(img) => handleChartReady('salaryChart', img)}
       />
-      <ChartImageRenderer
-        type="vacancyDistribution"
+      <VacancyDistributionChart
         data={vacancies}
-        onReady={setVacancyChart}
         width={520}
         height={380}
+        onReady={(img) => handleChartReady('vacancyChart', img)}
+      />
+      <IncentiveByPositionChart
+        data={incentiveData}
+        width={650}
+        height={420}
+        onReady={(img) => handleChartReady('incentiveChart', img)}
+      />
+      <IncentiveDistributionChart
+        data={incentiveDistribution}
+        width={520}
+        height={380}
+        onReady={(img) => handleChartReady('incentiveDistributionChart', img)}
       />
     </>
   );
