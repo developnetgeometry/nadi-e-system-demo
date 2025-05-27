@@ -4,57 +4,22 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { SelectOne } from "@/components/ui/SelectOne";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger, } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, } from "@/components/ui/dialog";
 
 import { Inventory } from "@/types/inventory";
 import { Transaction } from "@/types/transaction";
 // import { Profile } from "@/types/auth";
 
-import {
-  User,
-  Search,
-  CreditCard,
-  Trash2,
-  Plus,
-  QrCode,
-  Banknote,
-  Minus,
-  Receipt,
-  FileText,
-  Printer,
-} from "lucide-react";
+import { User, Search, CreditCard, Trash2, Plus, QrCode, Banknote, Minus, Receipt, FileText, Printer } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 import { useEffect, useState, useMemo } from "react";
 
@@ -63,68 +28,124 @@ const POSSales = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMember, setSelectedMember] = useState(null);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
-  const [isPaymentAmountDialogOpen, setIsPaymentAmountDialogOpen] =
-    useState(false);
+  const [isPaymentAmountDialogOpen, setIsPaymentAmountDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Inventory | null>(null);
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [cashAmount, setCashAmount] = useState<number>();
   const [remarks, setRemarks] = useState<string>("");
+  const [siteName, setSiteName] = useState("Unknown Site");
+  const [creatorName, setCreatorName] = useState("Unknown");
   const [receipt, setReceipt] = useState(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    string | number | null
-  >("cash");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<(string | number | null)>('cash');
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [printOptions, setPrintOptions] = useState({
-    type: "bw", // 'bw' or 'color'
-    pricePerPage: 0.1,
+    type: 'bw', // 'bw' or 'color'
+    pricePerPage: 0.10,
     numberOfPages: 1,
-    subtotal: 0.1,
+    subtotal: 0.10
   });
   const [printingItem, setPrintingItem] = useState<Inventory | null>(null);
-  const [editingCartItemIndex, setEditingCartItemIndex] = useState<
-    number | null
-  >(null);
+  const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
+  const [showSearchOptions, setShowSearchOptions] = useState(false);
+  const [selectedSearchFilter, setSelectedSearchFilter] = useState<'all' | 'items' | 'services'>('all');
   const { toast } = useToast();
 
-  const [cartItems, setCartItems] = useState<
-    Array<{
-      id: string | number;
-      type_id: string | number;
-      name: string;
-      quantity: number;
-      price: number;
-      total: number;
-      barcode: string | number;
-      description?: string;
-      isPrintingService?: boolean;
-    }>
-  >([]);
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPUser =
+    parsedMetadata?.user_group_name === "TP" &&
+    !!parsedMetadata?.organization_id;
+
+  const [cartItems, setCartItems] = useState<Array<{
+    id: string | number;
+    type_id: string | number;
+    name: string;
+    quantity: number;
+    price: number;
+    total: number;
+    barcode: string | number;
+    description?: string;
+    isPrintingService?: boolean;
+    image_url?: string;
+  }>>([]);
 
   const paymentMethodOption = [
-    { id: "cash", label: "Cash" },
-    { id: "qr", label: "QR" },
+    { id: 'cash', label: 'Cash' },
+    { id: 'qr', label: 'QR' }
   ];
+
+  const formatInvoiceId = (createdAt) => {
+    const date = new Date(createdAt);
+    const timestamp = Math.floor(date.getTime() / 1000); // Unix timestamp
+    return `t${timestamp}`;
+  };
 
   // Fetch inventory data
   const { data: inventorys, isLoading: loadingInventorys } = useQuery({
-    queryKey: ["inventorys", searchItem],
+    queryKey: ['inventorys', searchItem, selectedSearchFilter, parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
     queryFn: async () => {
-      let query = supabase.from("nd_inventory").select("*");
+      let query = supabase
+        .from('nd_inventory')
+        .select(`
+          *,
+          nd_inventory_attachment!left(file_path)
+        `);
 
-      if (searchItem) {
-        query = query.or(
-          `name.ilike.%${searchItem}%,description.ilike.%${searchItem}%,barcode.ilike.%${searchItem}%`
-        );
+      // If not super admin, filter by site_id
+      if (!isSuperAdmin) {
+        const siteProfileId = parsedMetadata?.group_profile?.site_profile_id || null;
+        
+        if (!siteProfileId) {
+          console.warn("No site_profile_id found in user metadata");
+          return [];
+        }
+
+        // Get the site_id from nd_site table using site_profile_id
+        const { data: siteData, error: siteError } = await supabase
+          .from('nd_site')
+          .select('id')
+          .eq('site_profile_id', siteProfileId)
+          .single();
+
+        if (siteError || !siteData) {
+          console.error("Error fetching site:", siteError);
+          return [];
+        }
+
+        const siteId = siteData.id;
+        query = query.eq('site_id', siteId);
       }
 
-      query = query.order("created_at", { ascending: false });
+      if (selectedSearchFilter === 'services') {
+        query = query.eq('category_id', 1);
+      } else if (selectedSearchFilter === 'items') {
+        query = query.in('category_id', [2, 3, 4, 5]);
+      }
+
+      if (searchItem && searchItem.length > 0) {
+        query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%,barcode.ilike.%${searchItem}%`);
+      } else if (selectedSearchFilter === 'all') {
+        query = query.limit(10);
+      }
+
+      query = query.order('created_at', { ascending: false });
       const { data, error } = await query;
 
+      console.log(data);
+      
       if (error) {
         console.error("Error fetching inventories:", error);
         throw error;
       }
-      return data;
+
+      // Process the data to include the first image
+      const processedData = data?.map(item => ({
+        ...item,
+        image_url: item.nd_inventory_attachment?.[0]?.file_path || null
+      })) || [];
+      
+      return processedData;
     },
   });
 
@@ -134,16 +155,14 @@ const POSSales = () => {
     queryFn: async () => {
       let query = supabase
         .from("nd_member_profile")
-        .select("*", { count: "exact" });
-      // .eq('user_type', 'member')
+        .select("*", { count: 'exact' })
+        // .eq('user_type', 'member')
 
       if (searchTerm) {
-        query = query.or(
-          `fullname.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,identity_no.ilike.%${searchTerm}%`
-        );
+        query = query.or(`fullname.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,identity_no.ilike.%${searchTerm}%`)
       }
 
-      query = query.order("created_at", { ascending: false });
+      query = query.order('created_at', { ascending: false });
       const { data, error, count } = await query;
 
       if (error) {
@@ -158,7 +177,7 @@ const POSSales = () => {
     setCartItems([]);
     setSelectedMember(null);
     setSearchTerm("");
-    setSelectedPaymentMethod("cash");
+    setSelectedPaymentMethod('cash');
     setRemarks("");
   };
 
@@ -167,20 +186,17 @@ const POSSales = () => {
   };
 
   const getInventoryStock = (itemId: string | number) => {
-    const inventoryItem = inventorys?.find((inv) => inv.id === itemId);
+    const inventoryItem = inventorys?.find(inv => inv.id === itemId);
     return inventoryItem ? inventoryItem.quantity : 0;
-  };
+  }
 
-  const updateCartItemQuantity = (
-    itemId: string | number,
-    newQuantity: number
-  ) => {
+  const updateCartItemQuantity = (itemId: string | number, newQuantity: number) => {
     if (newQuantity < 1) return;
 
-    const inventoryItem = inventorys?.find((inv) => inv.id === itemId);
-    if (!inventoryItem) return;
+    const inventoryItem = inventorys?.find(inv => inv.id === itemId);
+    if(!inventoryItem) return;
 
-    if (newQuantity > inventoryItem.quantity) {
+    if(newQuantity > inventoryItem.quantity) {
       toast({
         title: "Quantity limit exceeded",
         description: `Only ${inventoryItem.quantity} items available in stock.`,
@@ -189,39 +205,40 @@ const POSSales = () => {
       return;
     }
 
-    const updatedItems = cartItems.map((item) => {
-      if (item.id === itemId) {
+    const updatedItems = cartItems.map(item => {
+      if(item.id === itemId) {
         return {
           ...item,
           quantity: newQuantity,
-          total: newQuantity * item.price,
+          total: newQuantity * item.price
         };
       }
       return item;
     });
 
     setCartItems(updatedItems);
-  };
+  }
 
   const addToCart = (inventory: Inventory) => {
     if (inventory) {
       // Check if it's a printing service
-      if (inventory.name.toLowerCase().includes("printing")) {
-        setPrintingItem(inventory);
+      if (inventory.name.toLowerCase().includes('printing')) {
+        setPrintingItem({
+          ...inventory,
+          image_url: inventory.image_url
+        });
         setIsPrintDialogOpen(true);
         return;
       }
 
       // Check if item already exists in cart
-      const existingItemIndex = cartItems.findIndex(
-        (item) => item.id === inventory.id
-      );
-
+      const existingItemIndex = cartItems.findIndex(item => item.id === inventory.id);
+      
       if (existingItemIndex >= 0) {
         // Calculate how many more items can be added based on what's already in cart
         const currentQtyInCart = cartItems[existingItemIndex].quantity;
         const availableQtyToAdd = inventory.quantity - currentQtyInCart;
-
+        
         // If there's not enough quantity available, show an error
         if (availableQtyToAdd < itemQuantity) {
           toast({
@@ -235,9 +252,7 @@ const POSSales = () => {
         // Update quantity if item already exists
         const updatedItems = [...cartItems];
         updatedItems[existingItemIndex].quantity += itemQuantity;
-        updatedItems[existingItemIndex].total =
-          updatedItems[existingItemIndex].quantity *
-          updatedItems[existingItemIndex].price;
+        updatedItems[existingItemIndex].total = updatedItems[existingItemIndex].quantity * updatedItems[existingItemIndex].price;
         setCartItems(updatedItems);
 
         toast({
@@ -255,6 +270,7 @@ const POSSales = () => {
           quantity: itemQuantity,
           price: inventory.price,
           total: itemQuantity * inventory.price,
+          image_url: inventory.image_url
         };
         setCartItems([...cartItems, newItem]);
 
@@ -269,7 +285,7 @@ const POSSales = () => {
   };
 
   const handleRemoveCartItem = (itemId: string | number, itemName: string) => {
-    setCartItems(cartItems.filter((item) => item.id !== itemId));
+    setCartItems(cartItems.filter(item => item.id !== itemId));
 
     toast({
       title: `${itemName} removed successfully`,
@@ -279,7 +295,7 @@ const POSSales = () => {
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    return cartItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   };
 
   const calculateTotal = (subtotal: number) => {
@@ -295,20 +311,20 @@ const POSSales = () => {
   }, [subtotal, 0]);
 
   const handlePayment = () => {
-    if (cartItems.length === 0) {
+    if(cartItems.length === 0) {
       toast({
-        title: "Please add items to the cart",
+        title: 'Please add items to the cart',
       });
       return;
     }
     setIsPaymentAmountDialogOpen(true);
-  };
+  }
 
   const handlePaySales = async () => {
     try {
       let userId = null;
       try {
-        const storedUserMetadata = localStorage.getItem("user_metadata");
+        const storedUserMetadata = localStorage.getItem('user_metadata');
         if (storedUserMetadata) {
           const userData = JSON.parse(storedUserMetadata);
           userId = userData.group_profile?.user_id || null;
@@ -326,13 +342,12 @@ const POSSales = () => {
         updated_by: null,
         updated_at: null,
         remarks: remarks || null,
-      };
+      }
 
-      const { data: transactionResult, error: insertTransactionError } =
-        await supabase
-          .from("nd_pos_transaction")
-          .insert([transactionData])
-          .select(); // To select the data to get the ID
+      const { data: transactionResult, error: insertTransactionError } = await supabase
+        .from("nd_pos_transaction")
+        .insert([transactionData])
+        .select(); // To select the data to get the ID
 
       if (insertTransactionError) {
         throw insertTransactionError;
@@ -355,7 +370,7 @@ const POSSales = () => {
           created_by: userId,
           created_at: new Date().toISOString(),
           updated_by: null,
-          updated_at: null,
+          updated_at: null
         };
 
         const { error: insertTransactionItemError } = await supabase
@@ -380,18 +395,16 @@ const POSSales = () => {
         const newQuantity = currentQuantity - item.quantity;
 
         if (newQuantity < 0) {
-          throw new Error(
-            `Not enough inventory for ${item.name}. Available: ${currentQuantity}`
-          );
+          throw new Error(`Not enough inventory for ${item.name}. Available: ${currentQuantity}`);
         }
 
         // Update the inventory
         const { error: updateInventoryError } = await supabase
           .from("nd_inventory")
-          .update({
+          .update({ 
             quantity: newQuantity,
             updated_by: userId,
-            updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .eq("id", item.id);
 
@@ -399,13 +412,11 @@ const POSSales = () => {
           throw updateInventoryError;
         }
 
-        console.log(
-          `Updated inventory for item ${item.id}: ${currentQuantity} → ${newQuantity}`
-        );
+        console.log(`Updated inventory for item ${item.id}: ${currentQuantity} → ${newQuantity}`);
       }
 
       setReceipt({
-        id: transactionId,
+        id: formatInvoiceId(transactionResult[0].created_at),
         date: transactionResult[0].transaction_date,
         items: cartItems,
         customer: selectedMember,
@@ -416,13 +427,11 @@ const POSSales = () => {
         total: total,
         paymentAmount: cashAmount,
         balance: cashAmount - total,
+        creatorName: creatorName,
+        siteName: siteName
       });
 
-      toast({
-        title: "Payment completed succesfully",
-        variant: "success",
-      });
-
+      setIsReceiptDialogOpen(true);
       resetSale();
     } catch (error) {
       console.error("Error processing payment:", error);
@@ -433,64 +442,47 @@ const POSSales = () => {
         variant: "destructive",
       });
     }
-  };
+  }
 
   const formatReceiptDate = (dateString: string) => {
     const date = new Date(dateString);
-    return (
-      date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }) +
-      " at " +
-      date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      })
-    );
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }) + ' at ' + date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const handlePrintOptionsChange = (field: string, value: any) => {
-    setPrintOptions((prev) => {
+    setPrintOptions(prev => {
       const updated = { ...prev, [field]: value };
-
+      
       // Calculate subtotal
-      if (
-        field === "type" ||
-        field === "pricePerPage" ||
-        field === "numberOfPages"
-      ) {
-        const price =
-          field === "type"
-            ? value === "color"
-              ? 0.1
-              : 0.1
-            : field === "pricePerPage"
-            ? value
-            : prev.pricePerPage;
-
-        const pages = field === "numberOfPages" ? value : prev.numberOfPages;
+      if (field === 'type' || field === 'pricePerPage' || field === 'numberOfPages') {
+        const price = field === 'type' ? 
+          (value === 'color' ? 0.10 : 0.10) :
+          (field === 'pricePerPage' ? value : prev.pricePerPage);
+        
+        const pages = field === 'numberOfPages' ? value : prev.numberOfPages;
         updated.subtotal = parseFloat((price * pages).toFixed(2));
-
-        if (field === "type") {
-          updated.pricePerPage = value === "color" ? 0.1 : 0.1;
+        
+        if (field === 'type') {
+          updated.pricePerPage = value === 'color' ? 0.10 : 0.10;
         }
       }
-
+      
       return updated;
     });
   };
 
   const addPrintingToCart = () => {
     if (printingItem) {
-      const description = `${
-        printOptions.type === "bw" ? "B&W" : "Color"
-      } - RM${printOptions.pricePerPage.toFixed(2)}/page × ${
-        printOptions.numberOfPages
-      } pages`;
-
+      const description = `${printOptions.type === 'bw' ? 'B&W' : 'Color'} - RM${printOptions.pricePerPage.toFixed(2)}/page × ${printOptions.numberOfPages} pages`;
+      
       const newItem = {
         id: printingItem.id,
         type_id: printingItem.type_id,
@@ -501,30 +493,31 @@ const POSSales = () => {
         price: printOptions.subtotal,
         total: printOptions.subtotal,
         isPrintingService: true,
+        image_url: printingItem.image_url
       };
-
+      
       if (editingCartItemIndex !== null && editingCartItemIndex >= 0) {
         const updatedCartItems = [...cartItems];
         updatedCartItems[editingCartItemIndex] = newItem;
         setCartItems(updatedCartItems);
-
+        
         toast({
           title: `${printingItem.name} updated successfully`,
           variant: "success",
         });
-
+        
         setEditingCartItemIndex(null);
-      }
+      } 
       // If adding a new item
       else {
         setCartItems([...cartItems, newItem]);
-
+        
         toast({
           title: `${printingItem.name} added successfully`,
           variant: "success",
         });
       }
-
+      
       setIsPrintDialogOpen(false);
       setPrintingItem(null);
       setSearchItem("");
@@ -536,23 +529,86 @@ const POSSales = () => {
   };
 
   useEffect(() => {
-    if (!isPaymentAmountDialogOpen) {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.relative.flex-1')) {
+        setShowSearchOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if(!isPaymentAmountDialogOpen) {
       setCashAmount(null);
     }
   }, [isPaymentAmountDialogOpen]);
 
+  useEffect(() => {
+    const fetchSiteName = async () => {
+      if (!isSuperAdmin && parsedMetadata?.group_profile?.site_profile_id) {
+        try {
+          const { data: siteProfileData, error } = await supabase
+            .from('nd_site_profile')
+            .select('sitename')
+            .eq('id', parsedMetadata.group_profile.site_profile_id)
+            .single();
+
+          if (!error && siteProfileData) {
+            setSiteName(siteProfileData.sitename);
+          }
+        } catch (error) {
+          console.error("Error fetching site name:", error);
+        }
+      }
+    };
+
+    fetchSiteName();
+  }, [parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin]);
+
+  useEffect(() => {
+    const fetchCreatorName = async () => {
+      try {
+        const storedUserMetadata = localStorage.getItem('user_metadata');
+        if (storedUserMetadata) {
+          const userData = JSON.parse(storedUserMetadata);
+          const userId = userData.group_profile?.user_id;
+          
+          if (userId) {
+            const { data: profileData, error } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', userId)
+              .single();
+
+            if (!error && profileData?.full_name) {
+              setCreatorName(profileData.full_name);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching creator name:", error);
+      }
+    };
+
+    fetchCreatorName();
+  }, []);
+
   return (
-    <div>
+    <>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">POS Management</h1>
-          <p className="text-muted-foreground">
-            Manage point of sale transactions
-          </p>
+          <p className="text-muted-foreground">Manage point of sale transactions</p>
         </div>
       </div>
 
       <div className="flex w-full space-x-6 mt-6">
+        
         <div className="w-8/12 space-y-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -560,57 +616,82 @@ const POSSales = () => {
               placeholder="Enter item name or scan barcode"
               value={searchItem}
               onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => setShowSearchOptions(true)}
               className="pl-9"
             />
+
+            {/* Search Filter Options */}
+            {showSearchOptions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-md shadow-lg z-10">
+                <div className="p-2 space-y-1">
+                  <div 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${selectedSearchFilter === 'all' ? 'bg-blue-50 text-blue-700' : ''}`}
+                    onClick={() => {
+                      setSelectedSearchFilter('all');
+                      setShowSearchOptions(false);
+                    }}
+                  >
+                    <span className="text-sm font-medium">All Items</span>
+                  </div>
+                  <div 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${selectedSearchFilter === 'items' ? 'bg-blue-50 text-blue-700' : ''}`}
+                    onClick={() => {
+                      setSelectedSearchFilter('items');
+                      setShowSearchOptions(false);
+                    }}
+                  >
+                    <span className="text-sm font-medium">Items (Electronics, Accessories, Stationery, Computer)</span>
+                  </div>
+                  <div 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${selectedSearchFilter === 'services' ? 'bg-blue-50 text-blue-700' : ''}`}
+                    onClick={() => {
+                      setSelectedSearchFilter('services');
+                      setShowSearchOptions(false);
+                    }}
+                  >
+                    <span className="text-sm font-medium">Services</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {searchItem.length > 0 && (
-            <Card className="p-4 rounded-lg shadow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <Card className="p-4 rounded-lg shadow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {inventorys && inventorys.length > 0 ? (
                 inventorys.map((inventory) => (
-                  <Card
-                    key={inventory.id}
-                    className="hover:cursor-pointer border hover:border-[#5147dd]"
-                    onClick={() => addToCart(inventory)}
-                  >
-                    <img
-                      src="/200x200.svg"
-                      alt=""
-                      className="w-full h-32 object-cover"
-                    />
-                    <div className="p-2">
-                      <p className="font-medium text-sm truncate">
-                        {inventory.name}
-                      </p>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-sm font-semibold">
-                          RM{inventory.price}
-                        </span>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(inventory);
-                          }}
-                        >
-                          +
-                        </Button>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>
-                          {inventory.type_id == 1 ? "Physical" : "Digital"}
-                        </span>
-                        <span>Stock: {inventory.quantity}</span>
-                      </div>
+                <Card key={inventory.id} className="hover:cursor-pointer border hover:border-[#5147dd]" onClick={() => addToCart(inventory)}>
+                  <img 
+                    src={inventory.image_url || "/200x200.svg"} 
+                    alt={inventory.name} 
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "/200x200.svg";
+                    }}
+                  />
+                  <div className="p-2">
+                    <p className="font-medium text-sm truncate">{inventory.name}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm font-semibold">RM{inventory.price}</span>
+                      <Button onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(inventory);
+                      }}>
+                        +
+                      </Button>
                     </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
-                  No items found matching "{searchItem}"
-                </div>
-              )}
-            </Card>
-          )}
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>{inventory.type_id == 1 ? 'Physical' : 'Digital'}</span>
+                      <span>Stock: {inventory.quantity}</span>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                {searchItem ? `No items found matching "${searchItem}"` : 'No items available'}
+              </div>
+            )}
+          </Card>
 
           <Card>
             <Table>
@@ -626,31 +707,32 @@ const POSSales = () => {
               <TableBody>
                 {cartItems.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-center text-muted-foreground py-4"
-                    >
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-4">
                       No items in cart
                     </TableCell>
                   </TableRow>
                 ) : (
-                  cartItems.map((item) => (
+                  cartItems.map(item => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <div className="flex items-start gap-3">
-                          <img
-                            src="/200x200.svg"
-                            alt=""
+                          <img 
+                            src={item.image_url || "/200x200.svg"} 
+                            alt={item.name} 
                             className="w-12 h-12 object-cover rounded-md"
+                            onError={(e) => {
+                              e.currentTarget.src = "/200x200.svg";
+                            }}
                           />
                           <div className="space-y-1">
-                            <div className="font-medium">{item.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Category:{" "}
-                              {item.type_id == 1 ? "Physical" : "Digital"}
+                            <div className="font-medium">
+                              {item.name}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              Barcode: {item.barcode ? item.barcode : "-"}
+                              Category: {item.type_id == 1 ? 'Physical' : 'Digital'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Barcode: {item.barcode ? item.barcode : '-'}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               Stock: {getInventoryStock(item.id)}
@@ -658,73 +740,45 @@ const POSSales = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        RM{item.price}
-                      </TableCell>
+                      <TableCell className="text-right">RM{item.price}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex flex-col justify-end space-y-2">
                           <div className="space-x-2">
-                            <Button
-                              variant="secondary"
-                              className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
-                              onClick={() =>
-                                updateCartItemQuantity(
-                                  item.id,
-                                  item.quantity - 1
-                                )
-                              }
+                            <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
+                              onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
                               disabled={item.quantity <= 1}
                             >
                               <Minus className="h-5 w-5" />
                             </Button>
                             <span>{item.quantity}</span>
-                            <Button
-                              variant="secondary"
-                              className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
-                              onClick={() =>
-                                updateCartItemQuantity(
-                                  item.id,
-                                  item.quantity + 1
-                                )
-                              }
-                              disabled={
-                                item.quantity >= getInventoryStock(item.id)
-                              }
+                            <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
+                              onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
+                              disabled={item.quantity >= getInventoryStock(item.id)}
                             >
                               <Plus className="h-5 w-5" />
                             </Button>
                           </div>
                           <div>
                             {item.isPrintingService && item.description && (
-                              <Button
-                                variant="secondary"
-                                className="text-xs py-0 px-2 inline-flex hover:bg-[#5147dd] hover:text-white border"
+                              <Button variant="secondary" className="text-xs py-0 px-2 inline-flex hover:bg-[#5147dd] hover:text-white border"
                                 onClick={() => {
                                   // Find the index of this item in the cart
-                                  const itemIndex = cartItems.findIndex(
-                                    (cartItem) => cartItem.id === item.id
-                                  );
+                                  const itemIndex = cartItems.findIndex(cartItem => cartItem.id === item.id);
                                   if (itemIndex !== -1) {
                                     setEditingCartItemIndex(itemIndex);
-
-                                    const description = item.description || "";
-                                    const isBW = description.includes("B&W");
-                                    const priceMatch =
-                                      description.match(/RM([\d.]+)\/page/);
-                                    const pagesMatch =
-                                      description.match(/(\d+) pages/);
-
+                                    
+                                    const description = item.description || '';
+                                    const isBW = description.includes('B&W');
+                                    const priceMatch = description.match(/RM([\d.]+)\/page/);
+                                    const pagesMatch = description.match(/(\d+) pages/);
+                                    
                                     setPrintOptions({
-                                      type: isBW ? "bw" : "color",
-                                      pricePerPage: priceMatch
-                                        ? parseFloat(priceMatch[1])
-                                        : 0.1,
-                                      numberOfPages: pagesMatch
-                                        ? parseInt(pagesMatch[1])
-                                        : 1,
-                                      subtotal: item.price,
+                                      type: isBW ? 'bw' : 'color',
+                                      pricePerPage: priceMatch ? parseFloat(priceMatch[1]) : 0.10,
+                                      numberOfPages: pagesMatch ? parseInt(pagesMatch[1]) : 1,
+                                      subtotal: item.price
                                     });
-
+                                    
                                     setPrintingItem({
                                       id: item.id,
                                       type_id: item.type_id,
@@ -732,31 +786,27 @@ const POSSales = () => {
                                       barcode: item.barcode,
                                       price: item.price,
                                       quantity: item.quantity,
+                                      image_url: item.image_url
                                     } as Inventory);
-
+                                    
                                     setIsPrintDialogOpen(true);
                                   }
                                 }}
                               >
-                                <Printer className="h-5 w-5" />{" "}
-                                {item.description}
+                                <Printer className="h-5 w-5" /> {item.description}
                               </Button>
                             )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        RM{item.total}
-                      </TableCell>
+                      <TableCell className="text-right">RM{item.total}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button
                             variant="outline"
                             size="icon"
                             className="text-destructive"
-                            onClick={() =>
-                              handleRemoveCartItem(item.id, item.name)
-                            }
+                            onClick={() => handleRemoveCartItem(item.id, item.name)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -771,11 +821,10 @@ const POSSales = () => {
         </div>
 
         <Card className="w-4/12 p-6 rounded-lg shadow flex flex-col">
+
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="" className="text-sm font-medium">
-                Find Customer
-              </label>
+              <label htmlFor="" className="text-sm font-medium">Find Customer</label>
               <div className="relative flex-1">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -787,32 +836,24 @@ const POSSales = () => {
               </div>
 
               {/* Customer dropdown */}
-              {searchTerm &&
-                membersData?.data &&
-                membersData.data.length > 0 && (
-                  <div className="max-h-40 overflow-y-auto border rounded-md bg-background">
-                    {membersData.data.map((member) => (
-                      <div
-                        key={member.id}
-                        className="p-2 hover:bg-accent cursor-pointer border-b last:border-b-0"
-                        onClick={() => {
-                          setSelectedMember(member);
-                          setSearchTerm("");
-                        }}
-                      >
-                        <div className="font-medium text-sm">
-                          {member.fullname || "No name"}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {member.email || "No email"}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {member.identity_no || "No ID"}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              {searchTerm && membersData?.data && membersData.data.length > 0 && (
+                <div className="max-h-40 overflow-y-auto border rounded-md bg-background">
+                  {membersData.data.map((member) => (
+                    <div
+                      key={member.id}
+                      className="p-2 hover:bg-accent cursor-pointer border-b last:border-b-0"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setSearchTerm("");
+                      }}
+                    >
+                      <div className="font-medium text-sm">{member.fullname || 'No name'}</div>
+                      <div className="text-xs text-muted-foreground">{member.email || 'No email'}</div>
+                      <div className="text-xs text-muted-foreground">{member.identity_no || 'No ID'}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="border p-3 rounded-lg">
@@ -821,25 +862,17 @@ const POSSales = () => {
                   <h3 className="text-sm font-medium mb-1">Customer</h3>
                   {selectedMember ? (
                     <div>
-                      <p className="text-sm font-medium">
-                        {selectedMember.fullname || "No name"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedMember.email || "No email"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedMember.identity_no || "No ID"}
-                      </p>
+                      <p className="text-sm font-medium">{selectedMember.fullname || 'No name'}</p>
+                      <p className="text-xs text-muted-foreground">{selectedMember.email || 'No email'}</p>
+                      <p className="text-xs text-muted-foreground">{selectedMember.identity_no || 'No ID'}</p>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No customer selected
-                    </p>
+                    <p className="text-sm text-muted-foreground">No customer selected</p>
                   )}
                 </div>
                 {selectedMember && (
-                  <Button
-                    variant="outline"
+                  <Button 
+                    variant="outline" 
                     size="sm"
                     onClick={() => setSelectedMember(null)}
                   >
@@ -852,9 +885,7 @@ const POSSales = () => {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm">Total Items</span>
-                <span className="font-medium">
-                  {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                </span>
+                <span className="font-medium">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
               </div>
               <div className="flex justify-between items-center text-lg font-medium border-t pt-2 mt-4">
                 <span>Total</span>
@@ -863,13 +894,8 @@ const POSSales = () => {
             </div>
 
             <div>
-              <label htmlFor="" className="block text-sm font-medium mb-1">
-                Remarks
-              </label>
-              <textarea
-                name=""
-                id="remarks"
-                placeholder="Add any notes about this sale"
+              <label htmlFor="" className="block text-sm font-medium mb-1">Remarks</label>
+              <textarea name="" id="remarks" placeholder="Add any notes about this sale" 
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background 
@@ -890,23 +916,13 @@ const POSSales = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-4">
-            <Button onClick={handlePayment}>
-              <CreditCard className="h-5 w-5" /> Payment
-            </Button>
-            <Button
-              onClick={() => setIsReceiptDialogOpen(true)}
-              disabled={!receipt}
-            >
-              <Receipt className="h-5 w-5" /> Receipt
-            </Button>
+            <Button onClick={handlePayment}><CreditCard className="h-5 w-5"/> Payment</Button>
+            <Button onClick={() => setIsReceiptDialogOpen(true)} disabled={!receipt}><Receipt className="h-5 w-5" /> Receipt</Button>
           </div>
         </Card>
 
         {/* Payment Dialog */}
-        <Dialog
-          open={isPaymentAmountDialogOpen}
-          onOpenChange={setIsPaymentAmountDialogOpen}
-        >
+        <Dialog open={isPaymentAmountDialogOpen} onOpenChange={setIsPaymentAmountDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Payment</DialogTitle>
@@ -914,10 +930,10 @@ const POSSales = () => {
             <div className="space-y-5 py-2">
               <div className="space-y-2">
                 <Label htmlFor="cashAmount">Payment Amount:</Label>
-                <Input
-                  id="cashAmount"
-                  type="number"
-                  placeholder="Enter payment amount"
+                <Input 
+                  id="cashAmount" 
+                  type="number" 
+                  placeholder="Enter payment amount" 
                   className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   value={cashAmount}
                   onChange={(e) => {
@@ -937,28 +953,26 @@ const POSSales = () => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <p className="text-sm">Balance:</p>
-                    <p
-                      className={`text-sm font-semibold ${
-                        cashAmount && cashAmount - total < 0
-                          ? "text-danger"
-                          : "text-success"
-                      }`}
-                    >
-                      RM {cashAmount ? (cashAmount - total).toFixed(2) : 0}
-                    </p>
+                    <p className={`text-sm font-semibold ${
+                      cashAmount && (cashAmount - total) < 0 
+                        ? 'text-danger' 
+                        : 'text-success'
+                    }`}>
+                      RM { cashAmount ? (cashAmount - total).toFixed(2) : 0}
+                      </p>
                   </div>
                 )}
               </div>
             </div>
-
+            
             <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="outline"
+              <Button 
+                variant="outline" 
                 onClick={() => setIsPaymentAmountDialogOpen(false)}
               >
                 Back
               </Button>
-              <Button
+              <Button 
                 variant="default"
                 onClick={() => {
                   setIsPaymentAmountDialogOpen(false);
@@ -973,42 +987,50 @@ const POSSales = () => {
         </Dialog>
 
         {/* Receipt Dialog */}
-        <Dialog
-          open={isReceiptDialogOpen}
-          onOpenChange={setIsReceiptDialogOpen}
-        >
+        <Dialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen}>
           <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center justify-center gap-2">
-                <FileText className="h-5 w-5" /> Receipt
-              </DialogTitle>
+              <DialogTitle className="flex items-center justify-center gap-2"><FileText className="h-5 w-5"/> Receipt</DialogTitle>
             </DialogHeader>
             {receipt && (
               <div className="space-y-4 py-4">
                 {/* Receipt Header */}
                 <div className="text-center border-b pb-4">
                   <h3 className="font-bold text-lg">NADI 2.0 POS</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Kuala Lumpur, Malaysia
-                  </p>
+                  <p className="text-sm text-muted-foreground">Kuala Lumpur, Malaysia</p>
                 </div>
 
-                {/* Customer Info */}
-                {receipt.customer && (
-                  <div className="border-b pb-2 flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">Receipt No:</p>
-                      <p className="text-sm">{receipt.id}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">Date:</p>
-                      <p className="text-sm">
-                        {formatReceiptDate(receipt.date)}
-                      </p>
-                    </div>
+                {/* Transaction Info */}
+                <div className="border-b pb-2 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Invoice No:</p>
+                    <p className="text-sm">{receipt.id}</p>
                   </div>
-                )}
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Date:</p>
+                    <p className="text-sm">{formatReceiptDate(receipt.date)}</p>
+                  </div>
+
+                  {/* Customer Info - Only show if customer exists */}
+                  {receipt.customer && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Customer:</p>
+                      <p className="text-sm">{receipt.customer.fullname || 'Walk-in Customer'}</p>
+                    </div>
+                  )}
+
+                  {/* Site Info */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Site:</p>
+                    <p className="text-sm">{receipt.siteName}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Handled By:</p>
+                    <p className="text-sm">{receipt.creatorName}</p>
+                  </div>
+                </div>
 
                 {/* Items */}
                 <div className="space-y-3">
@@ -1017,17 +1039,18 @@ const POSSales = () => {
                     <div key={index} className="flex flex-col gap-3 pb-2">
                       <div className="grid grid-cols-8">
                         <div className="flex col-span-5 gap-2">
-                          <img
-                            src="/200x200.svg"
-                            alt=""
+                          <img 
+                            src={item.image_url || "/200x200.svg"} 
+                            alt={item.name} 
                             className="w-12 h-12 object-cover rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = "/200x200.svg";
+                            }}
                           />
                           <div>
                             <p className="font-medium text-sm">{item.name}</p>
                             {item.isPrintingService && item.description && (
-                              <p className="text-xs text-muted-foreground">
-                                {item.description}
-                              </p>
+                              <p className="text-xs text-muted-foreground">{item.description}</p>
                             )}
                           </div>
                         </div>
@@ -1035,9 +1058,7 @@ const POSSales = () => {
                           <p className="text-sm text-right">{item.quantity}x</p>
                         </div>
                         <div className="col-span-2">
-                          <p className="text-sm text-right">
-                            RM {item.total.toFixed(2)}
-                          </p>
+                          <p className="text-sm text-right">RM {item.total.toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
@@ -1072,9 +1093,7 @@ const POSSales = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Balance:</span>
-                    <span className="text-success">
-                      RM {receipt.balance.toFixed(2)}
-                    </span>
+                    <span className="text-success">RM {receipt.balance.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -1082,9 +1101,7 @@ const POSSales = () => {
                 {receipt.remarks && (
                   <div className="border-t pt-4">
                     <p className="text-sm font-medium">Remarks:</p>
-                    <p className="text-sm text-muted-foreground">
-                      {receipt.remarks}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{receipt.remarks}</p>
                   </div>
                 )}
 
@@ -1095,16 +1112,16 @@ const POSSales = () => {
               </div>
             )}
             <div className="flex justify-end gap-2 mt-4">
-              <Button
+              <Button 
                 variant="secondary"
                 className="border print:hidden"
                 onClick={handlePrint}
               >
-                <Printer className="h-5 w-5" />
+                <Printer className="h-5 w-5"/>
                 Print
               </Button>
-              <Button
-                variant="default"
+              <Button 
+                variant="default" 
                 onClick={() => setIsReceiptDialogOpen(false)}
               >
                 Close
@@ -1114,15 +1131,12 @@ const POSSales = () => {
         </Dialog>
 
         {/* Printing Options Dialog */}
-        <Dialog
-          open={isPrintDialogOpen}
-          onOpenChange={(open) => {
-            setIsPrintDialogOpen(open);
-            if (!open) {
-              setEditingCartItemIndex(null);
-            }
-          }}
-        >
+        <Dialog open={isPrintDialogOpen} onOpenChange={(open) => {
+          setIsPrintDialogOpen(open);
+          if (!open) {
+            setEditingCartItemIndex(null);
+          }
+        }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Printing Options</DialogTitle>
@@ -1135,8 +1149,8 @@ const POSSales = () => {
                     <input
                       type="radio"
                       id="bw"
-                      checked={printOptions.type === "bw"}
-                      onChange={() => handlePrintOptionsChange("type", "bw")}
+                      checked={printOptions.type === 'bw'}
+                      onChange={() => handlePrintOptionsChange('type', 'bw')}
                       className="h-4 w-4 rounded-full"
                     />
                     <Label htmlFor="bw">Black & White</Label>
@@ -1145,8 +1159,8 @@ const POSSales = () => {
                     <input
                       type="radio"
                       id="color"
-                      checked={printOptions.type === "color"}
-                      onChange={() => handlePrintOptionsChange("type", "color")}
+                      checked={printOptions.type === 'color'}
+                      onChange={() => handlePrintOptionsChange('type', 'color')}
                       className="h-4 w-4 rounded-full"
                     />
                     <Label htmlFor="color">Color</Label>
@@ -1161,12 +1175,7 @@ const POSSales = () => {
                   type="number"
                   step="0.01"
                   value={printOptions.pricePerPage}
-                  onChange={(e) =>
-                    handlePrintOptionsChange(
-                      "pricePerPage",
-                      parseFloat(e.target.value)
-                    )
-                  }
+                  onChange={(e) => handlePrintOptionsChange('pricePerPage', parseFloat(e.target.value))}
                   className="mt-1"
                 />
               </div>
@@ -1174,14 +1183,9 @@ const POSSales = () => {
               <div>
                 <Label className="mb-2 block">Number of Pages</Label>
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      handlePrintOptionsChange(
-                        "numberOfPages",
-                        Math.max(1, printOptions.numberOfPages - 1)
-                      )
-                    }
+                  <Button 
+                    size="sm" 
+                    onClick={() => handlePrintOptionsChange('numberOfPages', Math.max(1, printOptions.numberOfPages - 1))}
                     disabled={printOptions.numberOfPages <= 1}
                   >
                     <Minus className="h-5 w-5" />
@@ -1191,21 +1195,11 @@ const POSSales = () => {
                     min="1"
                     className="text-center"
                     value={printOptions.numberOfPages}
-                    onChange={(e) =>
-                      handlePrintOptionsChange(
-                        "numberOfPages",
-                        parseInt(e.target.value) || 1
-                      )
-                    }
+                    onChange={(e) => handlePrintOptionsChange('numberOfPages', parseInt(e.target.value) || 1)}
                   />
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      handlePrintOptionsChange(
-                        "numberOfPages",
-                        printOptions.numberOfPages + 1
-                      )
-                    }
+                  <Button 
+                    size="sm" 
+                    onClick={() => handlePrintOptionsChange('numberOfPages', printOptions.numberOfPages + 1)}
                   >
                     <Plus className="h-5 w-5" />
                   </Button>
@@ -1217,12 +1211,9 @@ const POSSales = () => {
                 <span>RM{printOptions.subtotal.toFixed(2)}</span>
               </div>
             </div>
-
+            
             <div className="flex justify-end gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsPrintDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsPrintDialogOpen(false)}>
                 Cancel
               </Button>
               <Button variant="default" onClick={addPrintingToCart}>
@@ -1231,8 +1222,9 @@ const POSSales = () => {
             </div>
           </DialogContent>
         </Dialog>
+
       </div>
-    </div>
+    </>
   );
 };
 

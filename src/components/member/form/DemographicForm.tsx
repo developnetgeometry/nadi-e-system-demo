@@ -7,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DialogTitle } from "@/components/ui/dialog";
 
 type DemographicData = {
   nationality_id: string;
@@ -59,7 +58,7 @@ export function DemographicForm({
 }: DemographicFormProps) {
   return (
     <>
-      <DialogTitle className="mb-4">Demographic Information</DialogTitle>
+      <div className="mb-4">Demographic Information</div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Nationality */}

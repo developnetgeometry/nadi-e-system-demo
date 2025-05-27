@@ -50,14 +50,8 @@ const ReportNadiESystem = () => {
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   // Fetch filter options from API
-  const {
-    phases,
-    dusps,
-    nadiSites,
-    tpProviders,
-    loading: filtersLoading,
-  } = useReportFilters();
-  // Fetch NADI e-System data based on filters
+  const { phases, dusps, tpProviders, loading: filtersLoading } = useReportFilters();
+    // Fetch NADI e-System data based on filters
   const {
     sites,
     totalSites,
@@ -100,10 +94,8 @@ const ReportNadiESystem = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">NADI e-System</h1>
-            <p className="text-gray-500 mt-1">
-              View and analyze NADI e-System data across all sites
-            </p>
-          </div>{" "}
+            <p className="text-gray-500 mt-1">View and analyze NADI e-System data across all sites</p>
+          </div>          
           <div className="flex items-center gap-2">
             <NadiESystemReportDownloadButton
               duspLabel={
@@ -120,20 +112,12 @@ const ReportNadiESystem = () => {
                   : "All Phases"
               }
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={
-                monthFilter
-                  ? `${monthFilter || ""} / ${yearFilter || ""}`
-                  : "All Records"
-              }
-              monthFilter={monthFilter}
-              yearFilter={yearFilter}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
               duspFilter={duspFilter}
               phaseFilter={phaseFilter}
-              sites={sites}
-              totalSites={totalSites}
-              sitesWithCms={sitesWithCms}
-              sitesWithWebsiteMigration={sitesWithWebsiteMigration}
-              sitesWithEmailMigration={sitesWithEmailMigration}
+              tpFilter={tpFilter}
+              monthFilter={monthFilter}
+              yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
               fileName={`nadi-e-system-report-${
@@ -143,7 +127,8 @@ const ReportNadiESystem = () => {
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>{" "}
+        </div>        
+        
         {/* Filters */}
         <ModularReportFilters
           // Show only relevant filters for NADI e-System report
@@ -159,17 +144,16 @@ const ReportNadiESystem = () => {
           setDuspFilter={setDuspFilter}
           phaseFilter={phaseFilter}
           setPhaseFilter={setPhaseFilter}
-          nadiFilter={[]} // Not used in this report
-          setNadiFilter={() => {}} // Not used in this report
           monthFilter={monthFilter}
           setMonthFilter={setMonthFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
           tpFilter={tpFilter}
-          setTpFilter={setTpFilter} // Filter data
+          setTpFilter={setTpFilter}         
+          
+          // Filter data
           dusps={dusps}
           phases={phases}
-          nadiSites={nadiSites}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
           tpOptions={tpProviders}

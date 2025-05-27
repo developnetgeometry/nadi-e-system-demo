@@ -3,184 +3,158 @@ import { pdf } from "@react-pdf/renderer";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteManagementReportPDF } from "../pages/sitemanagement/SiteManagementReport";
-
-// Types for Site Management Report
-type Site = {
-    standard_code: string;
-    name: string;
-    state: string;
-};
-
-type Utility = {
-    site_id: string;
-    site_name: string;
-    state: string;
-    has_water?: boolean;
-    has_electricity?: boolean;
-    has_sewerage?: boolean;
-    type_name?: string;
-    amount_bill?: number;
-};
-
-type Insurance = {
-    standard_code: string;
-    site_name: string;
-    state: string;
-    duration: string;
-};
-
-type Audit = {
-    standard_code: string;
-    site_name: string;
-    state: string;
-};
-
-type Agreement = {
-    standard_code: string;
-    site_name: string;
-    state: string;
-};
-
-type AwarenessProgram = {
-    standard_code: string;
-    site_name: string;
-    state: string;
-    program_name: string;
-    program_date: string;
-    status: string;
-};
-
-type LocalAuthority = {
-    standard_code: string;
-    site_name: string;
-    state: string;
-};
+import { useSiteManagementPdfData } from '@/hooks/report/use-site-management-pdf-data';
 
 // Props for the Site Management Report Download Button
-type SiteManagementReportDownloadButtonProps = {
-    duspLabel?: string;
-    phaseLabel?: string;
-    periodType?: string;
-    periodValue?: string;
-    totalSites: number;
-    mcmcLogo: string;
-    duspLogo: string;
-    sites: Site[];
-    utilities: Utility[];
-    insurance: Insurance[];
-    localAuthority?: LocalAuthority[];
-    audits: Audit[];
-    agreements: Agreement[];
-    programmes: AwarenessProgram[];
-    buttonText?: string;
-    fileName?: string;
-    monthFilter?: string | number | null;
-    yearFilter?: string | number | null;
-    duspFilter?: (string | number)[];
-    phaseFilter?: string | number | null;
-    nadiFilter?: (string | number)[];
-    onGenerationStart?: () => void;
-    onGenerationComplete?: (success: boolean) => void;
-};
+// Only accept filter/config props, not mapped arrays
+interface SiteManagementReportDownloadButtonProps {
+  duspLabel?: string;
+  phaseLabel?: string;
+  periodType?: string;
+  periodValue?: string;
+  totalSites?: number; // Optional, can be derived
+  mcmcLogo: string;
+  duspLogo: string;
+  monthFilter?: string | number | null;
+  yearFilter?: string | number | null;
+  duspFilter?: (string | number)[];
+  phaseFilter?: string | number | null;
+  nadiFilter?: (string | number)[];
+  tpFilter?: (string | number)[];
+  onGenerationStart?: () => void;
+  onGenerationComplete?: (success: boolean) => void;
+}
 
-// Helper component for rendering the download button with improved UX
 export const SiteManagementReportDownloadButton = ({
-    duspLabel,
-    phaseLabel,
-    periodType,
-    periodValue,
-    totalSites,
-    mcmcLogo,
-    duspLogo,
-    sites,
-    utilities,
-    insurance,
-    localAuthority = [],
-    audits,
-    agreements,
-    programmes,
-    fileName = "site-management-report.pdf",
-    monthFilter = null,
-    yearFilter = null,
-    duspFilter = [],
-    phaseFilter = null,
-    nadiFilter = [],
-    onGenerationStart,
-    onGenerationComplete
-}: SiteManagementReportDownloadButtonProps) => {    
-    // Track loading state internally    
-    const [isGenerating, setIsGenerating] = useState(false);
-    
-    // Function to generate and download PDF
-    const generateAndDownloadPDF = async () => {
-        setIsGenerating(true);
-        onGenerationStart?.();
-        
-        try {
-            // Create the PDF document
-            const blob = await pdf(
-                <SiteManagementReportPDF
-                    duspLabel={duspLabel}
-                    phaseLabel={phaseLabel}
-                    periodType={periodType}
-                    periodValue={periodValue}
-                    totalSites={totalSites}
-                    mcmcLogo={mcmcLogo}
-                    duspLogo={duspLogo}
-                    sites={sites}
-                    utilities={utilities}
-                    localAuthority={localAuthority}
-                    insurance={insurance}
-                    audits={audits}
-                    agreements={agreements}
-                    programmes={programmes}
-                />
-            ).toBlob();
-            
-            // Create a URL for the blob
-            const url = URL.createObjectURL(blob);
-            
-            // Create and click a temporary download link
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Clean up the URL
-            URL.revokeObjectURL(url);
-            
-            // Signal completion
-            setIsGenerating(false);
-            onGenerationComplete?.(true);
-        } catch (error) {
-            console.error("Error generating PDF:", error);
-            setIsGenerating(false);
-            onGenerationComplete?.(false);
-        }
-    };
+  duspLabel,
+  phaseLabel,
+  periodType,
+  periodValue,
 
-    return (
-        <Button
-            disabled={isGenerating}
-            variant="secondary"
-            className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
-            onClick={generateAndDownloadPDF}
-        >
-            {isGenerating ? (
-                <>
-                    <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Downloading...
-                </>
-            ) : (
-                <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                </>
-            )}
-        </Button>
-    );
+  mcmcLogo,
+  duspLogo,
+
+  monthFilter = null,
+  yearFilter = null,
+  duspFilter = [],
+  phaseFilter = null,
+  nadiFilter = [],
+  tpFilter = [],
+  onGenerationStart,
+  onGenerationComplete
+}: SiteManagementReportDownloadButtonProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  // Fetch all PDF data internally
+  const pdfData = useSiteManagementPdfData(
+    duspFilter,
+    phaseFilter,
+    nadiFilter,
+    monthFilter,
+    yearFilter,
+    tpFilter
+  );
+  const fileName = `site-management-report-${new Date().toISOString().split('T')[0]}.pdf`;  const generateAndDownloadPDF = async () => {
+    setIsGenerating(true);
+    onGenerationStart?.();
+    try {
+      // Check if data is still loading
+      if (pdfData.loading) {
+        console.warn("Data is still loading. Waiting for data to be available...");
+        // Wait a bit before continuing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // Debug data before PDF generation
+      console.log('PDF DATA CHECK:', {
+        sitesCount: pdfData.sites?.length || 0,
+        utilitiesCount: pdfData.utilities?.length || 0, 
+        insuranceCount: pdfData.insurance?.length || 0,
+        localAuthorityCount: pdfData.localAuthority?.length || 0,
+        auditsCount: pdfData.audits?.length || 0,
+        agreementsCount: pdfData.agreements?.length || 0,
+        programmeCount: pdfData.awarenessPromotion?.length || 0,
+        filters: { monthFilter, yearFilter, duspFilter, phaseFilter, nadiFilter, tpFilter }
+      });
+      
+      const blob = await pdf(
+        <SiteManagementReportPDF
+          duspLabel={duspLabel}
+          phaseLabel={phaseLabel}
+          periodType={periodType}
+          periodValue={periodValue}
+          mcmcLogo={mcmcLogo}
+          duspLogo={duspLogo}
+          sites={pdfData.sites || []}
+          utilities={pdfData.utilities || []}
+          localAuthority={pdfData.localAuthority || []}
+          insurance={pdfData.insurance || []}
+          audits={pdfData.audits || []}
+          agreements={pdfData.agreements || []}
+          programmes={pdfData.awarenessPromotion || []}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setIsGenerating(false);
+      onGenerationComplete?.(true);    } catch (error) {
+      console.error('Error generating PDF:', error);
+      
+      // Provide more detailed error info
+      if (error instanceof Error) {
+        console.error(`Error details: ${error.name}: ${error.message}`);
+        console.error('Stack trace:', error.stack);
+        
+        // Check common issues
+        if (error.message.includes('undefined')) {
+          console.error('Possible undefined data issue - check if all required data is loaded.');
+        }
+        if (error.message.includes('map') || error.message.includes('is not a function')) {
+          console.error('Possible invalid data structure - ensure arrays are properly initialized.');
+        }
+      }
+      
+      setIsGenerating(false);
+      onGenerationComplete?.(false);
+    }
+  };
+  // Show warning if data is missing
+  const hasMissingData = !pdfData.sites?.length || 
+    (!pdfData.utilities?.length && 
+     !pdfData.insurance?.length && 
+     !pdfData.localAuthority?.length &&
+     !pdfData.audits?.length &&
+     !pdfData.agreements?.length &&
+     !pdfData.awarenessPromotion?.length);
+
+  return (
+    <div className="flex flex-col items-end">
+      <Button
+        disabled={isGenerating}
+        variant="secondary"
+        className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
+        onClick={generateAndDownloadPDF}
+        title={hasMissingData ? "Some data sections may be empty in the report" : "Download PDF report"}
+      >
+        {isGenerating ? (
+          <>
+            <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            Generating PDF...
+          </>
+        ) : (
+          <>
+            <Download className="h-4 w-4 mr-2" />
+            Download Report
+          </>
+        )}
+      </Button>
+    </div>
+  );
 };
 
 export default SiteManagementReportDownloadButton;

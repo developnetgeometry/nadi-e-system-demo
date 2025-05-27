@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, XCircle } from "lucide-react"; // Add this for icons
 
@@ -12,6 +11,8 @@ type ICData = {
   isIcNumberValid: boolean;
   isUnder12: boolean;
   dob?: string;
+  gender?: string;
+
 
   parent_fullname?: string;
   parent_ic_no?: string;
@@ -43,6 +44,7 @@ export function ICForm({
   updateFields,
   identityNoTypes,
   dob,
+  gender,
 
   parent_fullname,
   parent_ic_no,
@@ -109,7 +111,11 @@ export function ICForm({
           .toString()
           .padStart(2, "0")}-${userDay.toString().padStart(2, "0")}`;
 
-        updateFields({ isUnder12: age <= 12, dob: dobString });
+        // Determine gender based on the last digit of the identity number
+        const lastDigit = parseInt(identity_no.charAt(identity_no.length - 1), 10);
+        const gender = lastDigit % 2 === 0 ? "2" : "1"; // Even = Female (2), Odd = Male (1)
+
+        updateFields({ isUnder12: age <= 12, dob: dobString, gender });
       } else if (identity_no_type === "1") {
         updateFields({ isUnder12: false, dob: null });
       }
@@ -119,7 +125,7 @@ export function ICForm({
 
   return (
     <>
-      <DialogTitle className="mb-4">Identity Information</DialogTitle>
+      <div className="mb-4">Identity Information</div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Identity Type */}

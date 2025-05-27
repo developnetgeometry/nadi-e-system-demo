@@ -2,7 +2,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
-import { DialogTitle } from "@/components/ui/dialog";
 
 type AddressData = {
   address1: string;
@@ -73,7 +72,7 @@ export function AddressForm({
 
   return (
     <>
-      <DialogTitle className="mb-4">Address Information</DialogTitle>
+      <div className="mb-4">Address Information</div>
       {isUnder12 && (
         <div className="mb-4">
           <label className="flex items-center space-x-2">

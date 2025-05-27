@@ -668,32 +668,32 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       if (logError) throw logError;
 
       // If the status is "Approved" (3) or "Authorized" (6), update the site profile status
-      if (newStatusId === 3 || newStatusId === 6) {
-        // Get the site profile ID from the closure item
-        const siteProfileId = closureItem.nd_site_profile?.id;
-        if (siteProfileId) {
-          // Update the site profile with both status values
-          const { error: siteProfileUpdateError } = await supabase
-            .from("nd_site_profile")
-            .update({
-              active_status: 3, // Set active_status to 3 for temporarily closed
-            })
-            .eq("id", siteProfileId);
+      // if (newStatusId === 3 || newStatusId === 6) {
+      //   // Get the site profile ID from the closure item
+      //   const siteProfileId = closureItem.nd_site_profile?.id;
+      //   if (siteProfileId) {
+      //     // Update the site profile with both status values
+      //     const { error: siteProfileUpdateError } = await supabase
+      //       .from("nd_site_profile")
+      //       .update({
+      //         active_status: 3, // Set active_status to 3 for temporarily closed
+      //       })
+      //       .eq("id", siteProfileId);
 
-          if (siteProfileUpdateError) {
-            console.error(
-              "Error updating site profile status:",
-              siteProfileUpdateError
-            );
-            // Don't throw error here to prevent blocking the approval process
-            // Instead, we'll just log it and continue
-          } else {
-            console.log(
-              `Site profile ${siteProfileId} status changed to temporarily close with active_status = 3`
-            );
-          }
-        }
-      }
+      //     if (siteProfileUpdateError) {
+      //       console.error(
+      //         "Error updating site profile status:",
+      //         siteProfileUpdateError
+      //       );
+      //       // Don't throw error here to prevent blocking the approval process
+      //       // Instead, we'll just log it and continue
+      //     } else {
+      //       console.log(
+      //         `Site profile ${siteProfileId} status changed to temporarily close with active_status = 3`
+      //       );
+      //     }
+      //   }
+      // }
 
       // Create appropriate success message based on the status
       let successMessage = "Closure request approved successfully";
