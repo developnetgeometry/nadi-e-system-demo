@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Package,
   AlertTriangle,
+  ChevronsUpDown
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +24,14 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const POSDashboard = () => {
@@ -34,6 +43,8 @@ const POSDashboard = () => {
   const [topSellingProducts, setTopSellingProducts] = useState([]);
   const [siteFilter, setSiteFilter] = useState<string>("");
   const [performanceFilter, setPerformanceFilter] = useState<string>("top10");
+  const [sortField, setSortField] = useState<string>('totalSales');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [dashboardStats, setDashboardStats] = useState({
     totalSales: 0,
     salesGrowth: 0,
@@ -273,7 +284,7 @@ const POSDashboard = () => {
 
   // Fetch site performance data
   const { data: performanceData, isLoading: performanceLoading } = useQuery({
-    queryKey: ['site-performance', siteCurrentPage, searchTerm, siteFilter, performanceFilter],
+    queryKey: ['site-performance', siteCurrentPage, searchTerm, siteFilter, performanceFilter, sortField, sortDirection],
     queryFn: async () => {
       try {
         // Get all sites with their inventory and transaction data in fewer queries
@@ -370,6 +381,47 @@ const POSDashboard = () => {
             .sort((a, b) => b.totalSales - a.totalSales)
             .slice(0, 10);
         }
+
+        // Apply sorting
+        if (sortField) {
+          filteredPerformance.sort((a, b) => {
+            let valueA, valueB;
+            
+            switch (sortField) {
+              case "site":
+                valueA = a.site || "";
+                valueB = b.site || "";
+                break;
+              case "transactionCount":
+                valueA = a.transactionCount || 0;
+                valueB = b.transactionCount || 0;
+                break;
+              case "totalSales":
+                valueA = a.totalSales || 0;
+                valueB = b.totalSales || 0;
+                break;
+              case "productCount":
+                valueA = a.productCount || 0;
+                valueB = b.productCount || 0;
+                break;
+              default:
+                valueA = a[sortField] || "";
+                valueB = b[sortField] || "";
+            }
+
+            if (sortDirection === "asc") {
+              return valueA > valueB ? 1 : -1;
+            } else {
+              return valueA < valueB ? 1 : -1;
+            }
+          });
+        }
+
+        // Add ranking based on sorted data
+        const rankedPerformance = filteredPerformance.map((site, index) => ({
+          ...site,
+          ranking: index + 1
+        }));
 
         // Apply pagination to filtered results
         const startIndex = (siteCurrentPage - 1) * sitesPageSize;
@@ -490,6 +542,15 @@ const POSDashboard = () => {
     setSearchTerm(e.target.value);
   };
 
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   useEffect(() => {
     if (statsData) {
       setDashboardStats(statsData);
@@ -512,6 +573,12 @@ const POSDashboard = () => {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">POS Dashboard</h1>
+          <Button 
+            onClick={() => navigate('/pos/sales')}
+            className="flex items-center gap-2"
+          >
+            New Sales
+          </Button>
         </div>
 
         {/* Statistics Cards */}
@@ -593,21 +660,6 @@ const POSDashboard = () => {
                 </div>
                 <div className="relative">
                   <select
-                    value={siteFilter}
-                    onChange={(e) => setSiteFilter(e.target.value)}
-                    className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-w-[150px]"
-                    disabled={isLoadingSites}
-                  >
-                    <option value="">All Sites</option>
-                    {sites.map((site) => (
-                      <option key={site?.id} value={site?.id}>
-                        {site?.sitename}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="relative">
-                  <select
                     value={performanceFilter}
                     onChange={(e) => setPerformanceFilter(e.target.value)}
                     className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-w-[150px]"
@@ -619,35 +671,121 @@ const POSDashboard = () => {
               </div>
             </div>
             
-            <div className="rounded-md border">
-              <div className="grid grid-cols-4 p-4 font-medium border-b text-sm text-muted-foreground">
-                <div>Site Name</div>
-                <div>Transaction Count</div>
-                <div>Total Sales</div>
-                <div>Product Count</div>
-              </div>
-              
-              {performanceLoading ? (
-                <div className="p-10 text-center">
-                  <div className="flex justify-center mb-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                  </div>
-                  <p className="text-gray-500">Loading site...</p>
-                </div>
-              ) : (performanceData?.data || []).length === 0 ? (
-                <div className="p-10 text-center">
-                  <p className="text-gray-500">No sites found</p>
-                </div>
-              ) : (
-                (performanceData?.data || []).map((site, index) => (
-                  <div key={index} className="grid grid-cols-4 p-4 border-b last:border-0 text-sm">
-                    <div className="font-semibold text-md">{site.site}</div>
-                    <div>{site.transactionCount}</div>
-                    <div>RM{site.totalSales.toFixed(2)}</div>
-                    <div>{site.productCount}</div>
-                  </div>
-                ))
-              )}
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead
+                      className="cursor-pointer w-[100px]"
+                      onClick={() => handleSort("ranking")}
+                    >
+                      <div className="flex items-center">
+                        Ranking
+                        {sortField === "ranking" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer w-[200px]"
+                      onClick={() => handleSort("site")}
+                    >
+                      <div className="flex items-center">
+                        Site Name
+                        {sortField === "site" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer w-[150px]"
+                      onClick={() => handleSort("transactionCount")}
+                    >
+                      <div className="flex items-center">
+                        Transaction Count
+                        {sortField === "transactionCount" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer w-[150px]"
+                      onClick={() => handleSort("totalSales")}
+                    >
+                      <div className="flex items-center">
+                        Total Sales
+                        {sortField === "totalSales" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer w-[120px]"
+                      onClick={() => handleSort("productCount")}
+                    >
+                      <div className="flex items-center">
+                        Product Count
+                        {sortField === "productCount" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {performanceLoading ? (
+                    Array(5)
+                      .fill(0)
+                      .map((_, index) => (
+                        <TableRow key={`skeleton-row-${index}`}>
+                          <TableCell><div className="h-4 w-8 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                        </TableRow>
+                      ))
+                  ) : (performanceData?.data || []).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-10">
+                        <p className="text-gray-500">No sites found</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    (performanceData?.data || []).map((site, index) => (
+                      <TableRow key={site.siteId}>
+                        <TableCell className="font-semibold">
+                          {(siteCurrentPage - 1) * sitesPageSize + index + 1}
+                        </TableCell>
+                        <TableCell className="font-semibold">{site.site}</TableCell>
+                        <TableCell>{site.transactionCount}</TableCell>
+                        <TableCell>RM{site.totalSales.toFixed(2)}</TableCell>
+                        <TableCell>{site.productCount}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
 
             {/* Site Performance Pagination */}

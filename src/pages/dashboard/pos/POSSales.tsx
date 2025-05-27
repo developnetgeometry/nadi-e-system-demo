@@ -33,6 +33,8 @@ const POSSales = () => {
   const [itemQuantity, setItemQuantity] = useState<number>(1);
   const [cashAmount, setCashAmount] = useState<number>();
   const [remarks, setRemarks] = useState<string>("");
+  const [siteName, setSiteName] = useState("Unknown Site");
+  const [creatorName, setCreatorName] = useState("Unknown");
   const [receipt, setReceipt] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<(string | number | null)>('cash');
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
@@ -44,6 +46,8 @@ const POSSales = () => {
   });
   const [printingItem, setPrintingItem] = useState<Inventory | null>(null);
   const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
+  const [showSearchOptions, setShowSearchOptions] = useState(false);
+  const [selectedSearchFilter, setSelectedSearchFilter] = useState<'all' | 'items' | 'services'>('all');
   const { toast } = useToast();
 
   const userMetadata = useUserMetadata();
@@ -71,9 +75,15 @@ const POSSales = () => {
     { id: 'qr', label: 'QR' }
   ];
 
+  const formatInvoiceId = (createdAt) => {
+    const date = new Date(createdAt);
+    const timestamp = Math.floor(date.getTime() / 1000); // Unix timestamp
+    return `t${timestamp}`;
+  };
+
   // Fetch inventory data
   const { data: inventorys, isLoading: loadingInventorys } = useQuery({
-    queryKey: ['inventorys', searchItem, parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
+    queryKey: ['inventorys', searchItem, selectedSearchFilter, parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
     queryFn: async () => {
       let query = supabase
         .from('nd_inventory')
@@ -107,12 +117,22 @@ const POSSales = () => {
         query = query.eq('site_id', siteId);
       }
 
-      if (searchItem) {
-        query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%,barcode.ilike.%${searchItem}%`)
+      if (selectedSearchFilter === 'services') {
+        query = query.eq('category_id', 1);
+      } else if (selectedSearchFilter === 'items') {
+        query = query.in('category_id', [2, 3, 4, 5]);
+      }
+
+      if (searchItem && searchItem.length > 0) {
+        query = query.or(`name.ilike.%${searchItem}%,description.ilike.%${searchItem}%,barcode.ilike.%${searchItem}%`);
+      } else if (selectedSearchFilter === 'all') {
+        query = query.limit(10);
       }
 
       query = query.order('created_at', { ascending: false });
       const { data, error } = await query;
+
+      console.log(data);
       
       if (error) {
         console.error("Error fetching inventories:", error);
@@ -396,7 +416,7 @@ const POSSales = () => {
       }
 
       setReceipt({
-        id: transactionId,
+        id: formatInvoiceId(transactionResult[0].created_at),
         date: transactionResult[0].transaction_date,
         items: cartItems,
         customer: selectedMember,
@@ -406,14 +426,12 @@ const POSSales = () => {
         tax: 0,
         total: total,
         paymentAmount: cashAmount,
-        balance: cashAmount - total
+        balance: cashAmount - total,
+        creatorName: creatorName,
+        siteName: siteName
       });
 
-      toast({
-        title: "Payment completed succesfully",
-        variant: "success",
-      });
-
+      setIsReceiptDialogOpen(true);
       resetSale();
     } catch (error) {
       console.error("Error processing payment:", error);
@@ -511,10 +529,74 @@ const POSSales = () => {
   };
 
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.relative.flex-1')) {
+        setShowSearchOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
     if(!isPaymentAmountDialogOpen) {
       setCashAmount(null);
     }
   }, [isPaymentAmountDialogOpen]);
+
+  useEffect(() => {
+    const fetchSiteName = async () => {
+      if (!isSuperAdmin && parsedMetadata?.group_profile?.site_profile_id) {
+        try {
+          const { data: siteProfileData, error } = await supabase
+            .from('nd_site_profile')
+            .select('sitename')
+            .eq('id', parsedMetadata.group_profile.site_profile_id)
+            .single();
+
+          if (!error && siteProfileData) {
+            setSiteName(siteProfileData.sitename);
+          }
+        } catch (error) {
+          console.error("Error fetching site name:", error);
+        }
+      }
+    };
+
+    fetchSiteName();
+  }, [parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin]);
+
+  useEffect(() => {
+    const fetchCreatorName = async () => {
+      try {
+        const storedUserMetadata = localStorage.getItem('user_metadata');
+        if (storedUserMetadata) {
+          const userData = JSON.parse(storedUserMetadata);
+          const userId = userData.group_profile?.user_id;
+          
+          if (userId) {
+            const { data: profileData, error } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', userId)
+              .single();
+
+            if (!error && profileData?.full_name) {
+              setCreatorName(profileData.full_name);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching creator name:", error);
+      }
+    };
+
+    fetchCreatorName();
+  }, []);
 
   return (
     <>
@@ -534,48 +616,82 @@ const POSSales = () => {
               placeholder="Enter item name or scan barcode"
               value={searchItem}
               onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => setShowSearchOptions(true)}
               className="pl-9"
             />
+
+            {/* Search Filter Options */}
+            {showSearchOptions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-md shadow-lg z-10">
+                <div className="p-2 space-y-1">
+                  <div 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${selectedSearchFilter === 'all' ? 'bg-blue-50 text-blue-700' : ''}`}
+                    onClick={() => {
+                      setSelectedSearchFilter('all');
+                      setShowSearchOptions(false);
+                    }}
+                  >
+                    <span className="text-sm font-medium">All Items</span>
+                  </div>
+                  <div 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${selectedSearchFilter === 'items' ? 'bg-blue-50 text-blue-700' : ''}`}
+                    onClick={() => {
+                      setSelectedSearchFilter('items');
+                      setShowSearchOptions(false);
+                    }}
+                  >
+                    <span className="text-sm font-medium">Items (Electronics, Accessories, Stationery, Computer)</span>
+                  </div>
+                  <div 
+                    className={`flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-gray-100 ${selectedSearchFilter === 'services' ? 'bg-blue-50 text-blue-700' : ''}`}
+                    onClick={() => {
+                      setSelectedSearchFilter('services');
+                      setShowSearchOptions(false);
+                    }}
+                  >
+                    <span className="text-sm font-medium">Services</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {searchItem.length > 0 && (
-            <Card className="p-4 rounded-lg shadow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {inventorys && inventorys.length > 0 ? (
-                  inventorys.map((inventory) => (
-                  <Card key={inventory.id} className="hover:cursor-pointer border hover:border-[#5147dd]" onClick={() => addToCart(inventory)}>
-                    <img 
-                      src={inventory.image_url || "/200x200.svg"} 
-                      alt={inventory.name} 
-                      className="w-full h-32 object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = "/200x200.svg";
-                      }}
-                    />
-                    <div className="p-2">
-                      <p className="font-medium text-sm truncate">{inventory.name}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-sm font-semibold">RM{inventory.price}</span>
-                        <Button onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(inventory);
-                        }}>
-                          +
-                        </Button>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>{inventory.type_id == 1 ? 'Physical' : 'Digital'}</span>
-                        <span>Stock: {inventory.quantity}</span>
-                      </div>
+          <Card className="p-4 rounded-lg shadow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {inventorys && inventorys.length > 0 ? (
+                inventorys.map((inventory) => (
+                <Card key={inventory.id} className="hover:cursor-pointer border hover:border-[#5147dd]" onClick={() => addToCart(inventory)}>
+                  <img 
+                    src={inventory.image_url || "/200x200.svg"} 
+                    alt={inventory.name} 
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "/200x200.svg";
+                    }}
+                  />
+                  <div className="p-2">
+                    <p className="font-medium text-sm truncate">{inventory.name}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm font-semibold">RM{inventory.price}</span>
+                      <Button onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(inventory);
+                      }}>
+                        +
+                      </Button>
                     </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
-                  No items found matching "{searchItem}"
-                </div>
-              )}
-            </Card>
-          )}
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>{inventory.type_id == 1 ? 'Physical' : 'Digital'}</span>
+                      <span>Stock: {inventory.quantity}</span>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                {searchItem ? `No items found matching "${searchItem}"` : 'No items available'}
+              </div>
+            )}
+          </Card>
 
           <Card>
             <Table>
@@ -884,20 +1000,37 @@ const POSSales = () => {
                   <p className="text-sm text-muted-foreground">Kuala Lumpur, Malaysia</p>
                 </div>
 
-                {/* Customer Info */}
-                {receipt.customer && (
-                  <div className="border-b pb-2 flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">Receipt No:</p>
-                      <p className="text-sm">{receipt.id}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">Date:</p>
-                      <p className="text-sm">{formatReceiptDate(receipt.date)}</p>
-                    </div>
+                {/* Transaction Info */}
+                <div className="border-b pb-2 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Invoice No:</p>
+                    <p className="text-sm">{receipt.id}</p>
                   </div>
-                )}
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Date:</p>
+                    <p className="text-sm">{formatReceiptDate(receipt.date)}</p>
+                  </div>
+
+                  {/* Customer Info - Only show if customer exists */}
+                  {receipt.customer && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Customer:</p>
+                      <p className="text-sm">{receipt.customer.fullname || 'Walk-in Customer'}</p>
+                    </div>
+                  )}
+
+                  {/* Site Info */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Site:</p>
+                    <p className="text-sm">{receipt.siteName}</p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Handled By:</p>
+                    <p className="text-sm">{receipt.creatorName}</p>
+                  </div>
+                </div>
 
                 {/* Items */}
                 <div className="space-y-3">
