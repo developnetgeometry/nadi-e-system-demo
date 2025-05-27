@@ -395,6 +395,8 @@ export const useSiteClosureForm = (
       // Use the selectedSiteId from formState if available (for TP/SuperAdmin users)
       const effectiveSiteId = formState.selectedSiteId || siteId;
       
+      console.log("sitecodee ", siteCode);
+
       if (editData?.id) {
         const closureData = { 
           site_id: effectiveSiteId, 
