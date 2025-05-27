@@ -4463,6 +4463,7 @@ export type Database = {
           priority_type_id: number | null;
           requester_by: string | null;
           sla_id: number | null;
+          space_id: number | null;
           status: Database["public"]["Enums"]["maintenance_status"] | null;
           type_id: number | null;
           updated_at: string | null;
@@ -4483,6 +4484,7 @@ export type Database = {
           priority_type_id?: number | null;
           requester_by?: string | null;
           sla_id?: number | null;
+          space_id?: number | null;
           status?: Database["public"]["Enums"]["maintenance_status"] | null;
           type_id?: number | null;
           updated_at?: string | null;
@@ -4503,6 +4505,7 @@ export type Database = {
           priority_type_id?: number | null;
           requester_by?: string | null;
           sla_id?: number | null;
+          space_id?: number | null;
           status?: Database["public"]["Enums"]["maintenance_status"] | null;
           type_id?: number | null;
           updated_at?: string | null;
@@ -4510,6 +4513,13 @@ export type Database = {
           updates?: Json | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "fk_space_id";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_space";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "nd_maintenance_request_asset_id_fkey";
             columns: ["asset_id"];
@@ -5346,6 +5356,33 @@ export type Database = {
           }
         ];
       };
+      nd_parcel_delivered_type: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          id: number;
+          name: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          name?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          name?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       nd_parliaments: {
         Row: {
           created_at: string | null;
@@ -5959,6 +5996,120 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [];
+      };
+      nd_pudo_provider: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          id: number;
+          image_url: string | null;
+          name: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          image_url?: string | null;
+          name?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          image_url?: string | null;
+          name?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
+      nd_pudo_record: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          id: number;
+          item_id: string | null;
+          member_id: number | null;
+          paid_amount: number | null;
+          parcel_deliverd_type_id: number | null;
+          pudo_provider_id: number | null;
+          site_profile_id: number | null;
+          tracking_number: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          weight: number | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          item_id?: string | null;
+          member_id?: number | null;
+          paid_amount?: number | null;
+          parcel_deliverd_type_id?: number | null;
+          pudo_provider_id?: number | null;
+          site_profile_id?: number | null;
+          tracking_number?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          weight?: number | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: number;
+          item_id?: string | null;
+          member_id?: number | null;
+          paid_amount?: number | null;
+          parcel_deliverd_type_id?: number | null;
+          pudo_provider_id?: number | null;
+          site_profile_id?: number | null;
+          tracking_number?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          weight?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "nd_pudo_record_nd_member_profile_fk";
+            columns: ["member_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_member_profile";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_pudo_record_nd_parcel_delivered_type_fk";
+            columns: ["parcel_deliverd_type_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_parcel_delivered_type";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_pudo_record_nd_pudo_provider_fk";
+            columns: ["pudo_provider_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_pudo_provider";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_pudo_record_nd_site_profile_fk";
+            columns: ["site_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "nd_pudo_record_nd_site_profile_fk";
+            columns: ["site_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "nd_site_profile_name";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       nd_races: {
         Row: {
@@ -9582,7 +9733,7 @@ export type Database = {
           duration: number | null;
           id: number;
           is_active: boolean | null;
-          registration_number: number | null;
+          registration_number: string | null;
           updated_at: string | null;
           updated_by: string | null;
           user_id: string | null;
@@ -9596,7 +9747,7 @@ export type Database = {
           duration?: number | null;
           id?: number;
           is_active?: boolean | null;
-          registration_number?: number | null;
+          registration_number?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
           user_id?: string | null;
@@ -9610,7 +9761,7 @@ export type Database = {
           duration?: number | null;
           id?: number;
           is_active?: boolean | null;
-          registration_number?: number | null;
+          registration_number?: string | null;
           updated_at?: string | null;
           updated_by?: string | null;
           user_id?: string | null;
@@ -9622,7 +9773,7 @@ export type Database = {
             columns: ["registration_number"];
             isOneToOne: false;
             referencedRelation: "nd_vendor_profile";
-            referencedColumns: ["id"];
+            referencedColumns: ["registration_number"];
           }
         ];
       };
@@ -11311,6 +11462,10 @@ export type Database = {
       };
     };
     Functions: {
+      check_all_contract_statuses: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       check_expired_closures_daily: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;

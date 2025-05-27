@@ -68,37 +68,90 @@ const VendorRegistration = () => {
   const onSubmit = async (data: VendorFormData) => {
     setLoading(true);
     try {
-      // Insert vendor profile
+      console.log("Submitting vendor registration:", data);
+
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // First, get the next available ID for the vendor profile
+      const { data: maxIdResult, error: maxIdError } = await supabase
+        .from("nd_vendor_profile")
+        .select("id")
+        .order("id", { ascending: false })
+        .limit(1);
+
+      if (maxIdError) {
+        console.error("Error getting max ID:", maxIdError);
+        throw new Error(`Failed to get next ID: ${maxIdError.message}`);
+      }
+
+      const nextId =
+        maxIdResult && maxIdResult.length > 0 ? maxIdResult[0].id + 1 : 1;
+
+      // Prepare vendor profile data with explicit ID
+      const vendorProfileData = {
+        id: nextId,
+        business_name: data.business_name,
+        registration_number: data.registration_number,
+        business_type: data.business_type,
+        phone_number: data.phone_number,
+        service_detail: data.service_detail,
+        bank_account_number: data.bank_account_number || null, // Keep as string
+        created_by: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log("Inserting vendor profile:", vendorProfileData);
+
+      // Insert vendor profile with explicit ID
       const { data: vendorProfile, error: profileError } = await supabase
         .from("nd_vendor_profile")
-        .insert({
-          business_name: data.business_name,
-          registration_number: data.registration_number,
-          business_type: data.business_type,
-          phone_number: data.phone_number,
-          service_detail: data.service_detail,
-          bank_account_number: parseInt(data.bank_account_number),
-        })
-        .select()
+        .insert(vendorProfileData)
+        .select("*")
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Vendor profile error:", profileError);
+        throw new Error(
+          `Failed to create vendor profile: ${profileError.message}`
+        );
+      }
 
-      // Insert vendor address
+      console.log("Vendor profile created:", vendorProfile);
+
+      // Insert vendor address with proper types
+      const addressData = {
+        registration_number: data.registration_number,
+        address1: data.address1,
+        address2: data.address2 || null,
+        city: data.city,
+        postcode: data.postcode,
+        state_id: data.state_id || null,
+        district_id: data.district_id || null,
+        is_active: true,
+        created_by: user.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log("Inserting vendor address:", addressData);
+
       const { error: addressError } = await supabase
         .from("nd_vendor_address")
-        .insert({
-          registration_number: data.registration_number,
-          address1: data.address1,
-          address2: data.address2,
-          city: data.city,
-          postcode: data.postcode,
-          state_id: data.state_id,
-          district_id: data.district_id,
-          is_active: true,
-        });
+        .insert(addressData);
 
-      if (addressError) throw addressError;
+      if (addressError) {
+        console.error("Vendor address error:", addressError);
+        throw new Error(
+          `Failed to create vendor address: ${addressError.message}`
+        );
+      }
 
       toast({
         title: "Success",
@@ -106,11 +159,11 @@ const VendorRegistration = () => {
       });
 
       navigate("/vendor/companies");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error registering vendor:", error);
       toast({
         title: "Error",
-        description: "Failed to register vendor company",
+        description: error.message || "Failed to register vendor company",
         variant: "destructive",
       });
     } finally {
