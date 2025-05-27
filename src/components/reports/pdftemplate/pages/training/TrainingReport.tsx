@@ -98,19 +98,19 @@ export const TrainingReportPDF = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Total NADI</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{Array.from(new Set(upscalingTrainingData.map(item => item.sitename))).length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Number of Employee</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{upscalingTrainingData.length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Total Manager</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{upscalingTrainingData.filter(v => v.position === 'Manager').length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Total Assist Manager</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{upscalingTrainingData.filter(v => v.position === 'Assistant Manager').length || 'XX'}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -123,7 +123,7 @@ export const TrainingReportPDF = ({
                 </View>
                 {/* TABLE */}
                 <PDFTable
-                    data={upscalingTrainingData.slice(0, 20)}
+                    data={upscalingTrainingData}
                     columns={[
                         { header: "NO", key: (_, i) => `${i + 1}.`, width: "5%" },
                         { header: "NADI & STATE", key: row => `${row.sitename}, ${row.state}` },
@@ -148,19 +148,19 @@ export const TrainingReportPDF = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Total NADI</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{Array.from(new Set(refreshTrainingData.map(item => item.sitename))).length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Number of Employee</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{refreshTrainingData.length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Total Manager</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{refreshTrainingData.filter(v=>v.position ==="Manager").length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Total Assist Manager</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{refreshTrainingData.filter(v=>v.position ==="Assistant Manager").length || 'XX'}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
