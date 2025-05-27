@@ -27,14 +27,14 @@ const LogTab: React.FC<LogTabProps> = ({ claimData }) => {
               <th className="border border-gray-300 px-4 py-2">Date</th>
               <th className="border border-gray-300 px-4 py-2">Status</th>
               <th className="border border-gray-300 px-4 py-2">Remark</th>
-              <th className="border border-gray-300 px-4 py-2">Created By</th>
+              <th className="border border-gray-300 px-4 py-2">By</th>
             </tr>
           </thead>
           <tbody>
             {logs.map((log, index) => (
               <tr key={log?.id || index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className="border border-gray-300 px-4 py-2">
-                  {log?.created_at ? new Date(log.created_at).toLocaleString("GB") : "N/A"}
+                  {log?.created_at ? new Date(log.created_at).toLocaleString("en-GB") : "N/A"}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">{log?.status_id?.name || "N/A"}</td>
                 <td className="border border-gray-300 px-4 py-2">{log?.remark || "No remark"}</td>

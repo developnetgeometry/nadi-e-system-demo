@@ -10,6 +10,7 @@ interface GeneralTabProps {
     ref_no: string;
     date_paid: string;
     payment_status: boolean;
+    claim_type: string;
     claim_status: { id: number; name: string };
     tp_dusp_id: {
       id: string;
@@ -27,6 +28,7 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ claimData }) => {
     month,
     ref_no,
     date_paid,
+    claim_type,
     payment_status,
     claim_status,
     tp_dusp_id,
@@ -61,14 +63,20 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ claimData }) => {
             <th className="text-left p-2 font-medium">Year</th>
             <td className="p-2">{year ?? "N/A"}</td>
           </tr>
-          <tr className="border-b">
-            <th className="text-left p-2 font-medium">Quarter</th>
-            <td className="p-2">{quarter ?? "N/A"}</td>
-          </tr>
-          <tr className="border-b">
-            <th className="text-left p-2 font-medium">Month</th>
-            <td className="p-2">{month ?? "N/A"}</td>
-          </tr>
+          {claim_type !== "YEARLY" && (
+            <tr className="border-b">
+              <th className="text-left p-2 font-medium">Quarter</th>
+              <td className="p-2">{quarter ? `Q${quarter}` : "N/A"}</td>
+            </tr>
+          )}
+          {claim_type !== "YEARLY" && claim_type !== "QUARTERLY" && (
+            <tr className="border-b">
+              <th className="text-left p-2 font-medium">Month</th>
+              <td className="p-2">
+                {month ? new Date(0, month - 1).toLocaleString('default', { month: 'long' }) : "N/A"}
+              </td>
+            </tr>
+          )}
           <tr className="border-b">
             <th className="text-left p-2 font-medium">Reference Number</th>
             <td className="p-2">{ref_no ?? "N/A"}</td>
@@ -82,14 +90,16 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ claimData }) => {
           <tr className="border-b">
             <th className="text-left p-2 font-medium">Payment Status</th>
             <td className="p-2">
-              <Badge variant={payment_status ? "success" : "default"}>
+              <Badge variant={payment_status ? "success" : "warning"}>
                 {payment_status ? "Paid" : "Unpaid"}
               </Badge>
             </td>
           </tr>
           <tr className="border-b">
             <th className="text-left p-2 font-medium">Date Paid</th>
-            <td className="p-2">{new Date(date_paid).toLocaleDateString() ?? "N/A"}</td>
+            <td className="p-2">
+              {date_paid ? new Date(date_paid).toLocaleDateString() : "N/A"}
+            </td>
           </tr>
           <tr className="border-b">
             <th className="text-left p-2 font-medium">Claim Status</th>

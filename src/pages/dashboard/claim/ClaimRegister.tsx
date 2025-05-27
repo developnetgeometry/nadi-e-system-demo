@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import NoAccess from "@/pages/NoAccess";
 import ClaimFormPage from "@/components/claims/tp/ClaimForm";
@@ -20,9 +19,7 @@ const ClaimRegister = () => {
 
     if (userType === "super_admin") {
         return (
-            <DashboardLayout>
-                <NoAccess />
-            </DashboardLayout>
+            <NoAccess />
         );
     }
 
@@ -35,9 +32,7 @@ const ClaimRegister = () => {
 
     if (userGroup === 3) {
         return (
-            <DashboardLayout>
-                <ClaimFormPage />
-            </DashboardLayout>
+            <ClaimFormPage />
         );
     }
 

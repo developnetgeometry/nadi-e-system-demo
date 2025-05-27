@@ -6,61 +6,58 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { useMultistepFormClaim } from "../hook/useMultipleFormClaim";
 import { ClaimDateForm } from "../form/ClaimDateForm";
 import { ClaimApplicationForm } from "../form/ClaimApplicationForm";
-import { ClaimRequestForm } from "../form/ClaimRequestForm";
-import { ClaimReportGenerateForm } from "../form/ClaimReportGenerateForm";
 import { insertClaimData } from "./hooks/insert-claim";
 import { useNavigate } from "react-router-dom";
 import { useDuspTpData } from "../hook/use-claim-data";
+import { ClaimAttachmentForm } from "../form/ClaimAttachmentForm";
 
-type ItemData = {
-  id: number;
-  name: string;
-  need_support_doc: boolean;
-  need_summary_report: boolean;
-};
 
 type CategoryData = {
   id: number;
   name: string;
-  item_ids: ItemData[];
-};
-
-type ReportData = {
-  category_ids: CategoryData[];
-  report_file: Uint8Array | null; // New state for the report
-  status_item: boolean;
-};
+  item_ids: {
+    id: number;
+    name: string;
+    need_support_doc: boolean;
+    need_summary_report: boolean;
+    summary_report_file: File | null; // New state for the support document
+    suppport_doc_file: File[] | null; // New state for the summary report
+    status_item: boolean;
+    remark: string;
+    site_ids: number[];
+  }[];
+}
 
 type FormData = {
-  phase_id: number;
+  claim_type: string;
   year: number;
   quarter: number;
   month: number;
   ref_no: string;
   tp_dusp_id: string;
-  site_profile_ids: number[];
-  tp_name: string; // additional
-  dusp_name: string; // additional
+  tp_name: string;
+  dusp_name: string;
 
+  phase_id: number;
   category_ids: CategoryData[];
+  is_finished_generate: boolean;
 
-  reports: ReportData[]; // New state for the report
+
 };
 
 const INITIAL_DATA: FormData = {
-  phase_id: null,
+  claim_type: "",
   year: new Date().getFullYear(),
   quarter: null,
   month: null,
   ref_no: "",
   tp_dusp_id: null,
-  site_profile_ids: [],
   tp_name: "",
   dusp_name: "",
 
-  category_ids: [],
-
-  reports: [], // New state for the report
+  phase_id: null,
+  category_ids: [], // Initialize as empty array
+  is_finished_generate: false,
 };
 
 const ClaimFormPage = () => {
@@ -102,16 +99,14 @@ const ClaimFormPage = () => {
 
   const { currentStepIndex, step, isFirstStep, isLastStep, back, next, reset } = useMultistepFormClaim([
     <ClaimDateForm {...data} updateFields={updateFields} />,
-    <ClaimRequestForm {...data} updateFields={updateFields} />,
     <ClaimApplicationForm {...data} updateFields={updateFields} />,
-    <ClaimReportGenerateForm {...data} updateFields={updateFields} />,
+    <ClaimAttachmentForm {...data} updateFields={updateFields} />,
   ]);
 
   const steps = [
-    { label: "Initialization", validate: () => data.year && data.month },
-    { label: "Claim Application", validate: () => data.category_ids.length > 0 },
-    { label: "NADI Sites", validate: () => data.phase_id && data.site_profile_ids.length > 0 },
-    { label: "Report Generator", validate: () => data.reports.length > 0 },
+    { label: "Initialization", validate: () => data.claim_type && data.ref_no },
+    { label: "Claim Application", validate: () => data.phase_id },
+    { label: "Reports and Attachments", validate: () => data.category_ids.length > 0 && data.is_finished_generate },
   ];
 
   function isStepComplete(index: number) {
@@ -120,13 +115,29 @@ const ClaimFormPage = () => {
 
   const handleNext = async () => {
     if (currentStepIndex === 0) {
+      if (!data.claim_type) {
+        showValidationError("Claim type is required");
+        return;
+      }
       if (!data.year) {
         showValidationError("Year is required");
         return;
       }
-      if (!data.month) {
-        showValidationError("Month is required");
+      if (!data.year) {
+        showValidationError("Year is required");
         return;
+      }
+      if (data.claim_type === "QUARTERLY") {
+        if (!data.quarter) {
+          showValidationError("Quarter is required for quarterly claims");
+          return;
+        }
+      }
+      if (data.claim_type === "MONTHLY") {
+        if (!data.month) {
+          showValidationError("Month is required for monthly claims");
+          return;
+        }
       }
       if (!data.tp_dusp_id) {
         showValidationError("TP DUSP ID is required");
@@ -135,29 +146,19 @@ const ClaimFormPage = () => {
     }
 
     if (currentStepIndex === 1) {
-      if (data.category_ids.length === 0) {
-        showValidationError("Item is required");
+      if (!data.phase_id) {
+        showValidationError("Phase is required");
         return;
       }
     }
 
     if (currentStepIndex === 2) {
-      if (!data.phase_id) {
-        showValidationError("Phase is required");
-        return;
-      }
-      if (data.site_profile_ids.length === 0) {
-        showValidationError("Site Profile is required");
+      if (!data.is_finished_generate) {
+        showValidationError("You must finish generating all reports before proceeding.");
         return;
       }
     }
 
-    if (currentStepIndex === 3) {
-      if (data.reports.length === 0) {
-        showValidationError("Report file is required");
-        return;
-      }
-    }
 
     if (!isLastStep) {
       next();
@@ -173,6 +174,14 @@ const ClaimFormPage = () => {
         });
         setData(INITIAL_DATA);
         reset();
+        if (duspTpData) {
+          setData((prev) => ({
+            ...prev,
+            tp_name: duspTpData.name,
+            dusp_name: duspTpData.parent_id?.name,
+            tp_dusp_id: duspTpData.id,
+          }));
+        }
         navigate("/claim/register");
       } catch (error: any) {
         console.error("Error saving data:", error);
