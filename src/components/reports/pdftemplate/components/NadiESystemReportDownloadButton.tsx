@@ -18,7 +18,6 @@ interface NadiESystemReportDownloadButtonProps {
   tpFilter?: (string | number)[];
   mcmcLogo: string;
   duspLogo: string;
-  fileName: string;
   onGenerationStart: () => void;
   onGenerationComplete: (success: boolean) => void;
 }
@@ -35,7 +34,6 @@ export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownload
   tpFilter = [],
   mcmcLogo,
   duspLogo,
-  fileName = "nadi-e-system-report.pdf",
   onGenerationStart,
   onGenerationComplete,
 }) => {
@@ -49,6 +47,8 @@ export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownload
     tpFilter
   );
 
+
+  const fileName = `nadi-e-system-report-${new Date().toISOString().split("T")[0]}.pdf`
   // Function to generate and download PDF
   const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
@@ -60,11 +60,8 @@ export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownload
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-          sites={pdfData.sites}
-          totalSites={pdfData.totalSites}
-          sitesWithCms={pdfData.sitesWithCms}
-          sitesWithWebsiteMigration={pdfData.sitesWithWebsiteMigration}
-          sitesWithEmailMigration={pdfData.sitesWithEmailMigration}
+          cms={pdfData.cms}
+          portalwebservice={pdfData.portalwebservice}
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
         />
