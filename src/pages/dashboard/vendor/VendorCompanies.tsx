@@ -14,9 +14,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  ToggleLeft,
+  ToggleRight,
+  FileText,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import VendorContractDialog from "@/components/vendor/VendorContractDialog";
 
 interface VendorCompany {
   id: number;
@@ -24,14 +49,25 @@ interface VendorCompany {
   registration_number: string;
   business_type: string;
   phone_number: string;
+  service_detail: string;
+  bank_account_number: string;
   staff_count: number;
   contract_status: string;
+  is_active?: boolean;
 }
 
 const VendorCompanies = () => {
   const [companies, setCompanies] = useState<VendorCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState<VendorCompany | null>(
+    null
+  );
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchCompanies();
@@ -46,7 +82,9 @@ const VendorCompanies = () => {
           business_name,
           registration_number,
           business_type,
-          phone_number
+          phone_number,
+          service_detail,
+          bank_account_number
         `);
 
       if (error) throw error;
@@ -69,6 +107,7 @@ const VendorCompanies = () => {
             ...vendor,
             staff_count: staffCount || 0,
             contract_status: contractData?.is_active ? "Active" : "Inactive",
+            is_active: contractData?.is_active || false,
           };
         })
       );
@@ -78,6 +117,102 @@ const VendorCompanies = () => {
       console.error("Error fetching companies:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewDetails = (company: VendorCompany) => {
+    setSelectedCompany(company);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleContractManagement = (company: VendorCompany) => {
+    setSelectedCompany(company);
+    setIsContractDialogOpen(true);
+  };
+
+  const handleToggleActive = async (company: VendorCompany) => {
+    try {
+      const newStatus = !company.is_active;
+
+      // Update the contract status
+      const { error } = await supabase
+        .from("nd_vendor_contract")
+        .update({ is_active: newStatus })
+        .eq("registration_number", company.registration_number);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Vendor company ${
+          newStatus ? "activated" : "deactivated"
+        } successfully`,
+      });
+
+      // Refresh the companies list
+      fetchCompanies();
+    } catch (error: any) {
+      console.error("Error toggling company status:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update company status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteClick = (company: VendorCompany) => {
+    setSelectedCompany(company);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteConfirmation !== "DELETE" || !selectedCompany) return;
+
+    try {
+      // Delete vendor address first (due to foreign key)
+      await supabase
+        .from("nd_vendor_address")
+        .delete()
+        .eq("registration_number", selectedCompany.registration_number);
+
+      // Delete vendor staff
+      await supabase
+        .from("nd_vendor_staff")
+        .delete()
+        .eq("registration_number", selectedCompany.registration_number);
+
+      // Delete vendor contract
+      await supabase
+        .from("nd_vendor_contract")
+        .delete()
+        .eq("registration_number", selectedCompany.registration_number);
+
+      // Finally delete the vendor profile
+      const { error } = await supabase
+        .from("nd_vendor_profile")
+        .delete()
+        .eq("id", selectedCompany.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Vendor company deleted successfully",
+      });
+
+      // Refresh the companies list
+      fetchCompanies();
+      setIsDeleteDialogOpen(false);
+      setSelectedCompany(null);
+      setDeleteConfirmation("");
+    } catch (error: any) {
+      console.error("Error deleting company:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete company",
+        variant: "destructive",
+      });
     }
   };
 
@@ -166,12 +301,44 @@ const VendorCompanies = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to={`/vendor/companies/${company.id}`}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Link>
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => handleViewDetails(company)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleContractManagement(company)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Manage Contract
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleToggleActive(company)}
+                            >
+                              {company.is_active ? (
+                                <ToggleLeft className="mr-2 h-4 w-4" />
+                              ) : (
+                                <ToggleRight className="mr-2 h-4 w-4" />
+                              )}
+                              {company.is_active ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(company)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -180,6 +347,131 @@ const VendorCompanies = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* View Details Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Vendor Company Details</DialogTitle>
+            </DialogHeader>
+            {selectedCompany && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Business Name
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {selectedCompany.business_name}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Registration Number
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {selectedCompany.registration_number}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Business Type
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {selectedCompany.business_type}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Phone Number
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {selectedCompany.phone_number}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Bank Account Number
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {selectedCompany.bank_account_number || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Staff Count
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {selectedCompany.staff_count}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Service Details
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {selectedCompany.service_detail || "No details provided"}
+                  </p>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p>
+                Are you sure you want to delete "
+                {selectedCompany?.business_name}"?
+              </p>
+              <p className="text-sm text-gray-600">
+                This will also delete all associated staff, contracts, and
+                address records. This action cannot be undone.
+              </p>
+              <p className="text-sm font-medium">Type "DELETE" to confirm:</p>
+              <Input
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="DELETE"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setDeleteConfirmation("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteConfirm}
+                disabled={deleteConfirmation !== "DELETE"}
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Contract Management Dialog */}
+        <VendorContractDialog
+          isOpen={isContractDialogOpen}
+          onClose={() => setIsContractDialogOpen(false)}
+          vendorCompany={selectedCompany}
+          onContractUpdated={fetchCompanies}
+        />
       </PageContainer>
     </div>
   );
