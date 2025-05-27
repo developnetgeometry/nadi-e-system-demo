@@ -23,20 +23,13 @@ export const VacancyAnalysisCard: React.FC<VacancyAnalysisCardProps> = ({
   // Transform vacancies data for chart
   const chartData = React.useMemo(() => {
     if (!vacancies || !vacancies.length) {
-      // Default sample data if none provided
-      return [
-        { department: 'Manager', open: 6, filled: 2 },
-        { department: 'Assistant Manager', open: 4, filled: 3 },
-        { department: 'Part Timer', open: 8, filled: 5 },
-        { department: 'Admin', open: 3, filled: 1 },
-        { department: 'IT Support', open: 5, filled: 4 },
-      ];
+      // No data: return empty array
+      return [];
     }
-    
     return vacancies.map(vacancy => ({
       department: vacancy.position,
       open: vacancy.open,
-      filled: vacancy.filled || Math.floor(Math.random() * 3) // Fallback if filled is not provided
+      filled: vacancy.filled || 0
     }));
   }, [vacancies]);
   
@@ -77,10 +70,12 @@ export const VacancyAnalysisCard: React.FC<VacancyAnalysisCardProps> = ({
                 <Bar dataKey="filled" name="In Hiring Process" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
-            <div className="text-xs text-center text-gray-500 mt-2">
-              Total Open Positions: {chartData.reduce((sum, item) => sum + item.open, 0)},
-              In Progress: {chartData.reduce((sum, item) => sum + item.filled, 0)}
-            </div>
+            {chartData.length > 0 && (
+              <div className="text-xs text-center text-gray-500 mt-2">
+                Total Open Positions: {chartData.reduce((sum, item) => sum + item.open, 0)},
+                In Progress: {chartData.reduce((sum, item) => sum + item.filled, 0)}
+              </div>
+            )}
           </>
         )}
       </CardContent>

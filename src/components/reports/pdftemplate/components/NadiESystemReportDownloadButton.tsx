@@ -3,7 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NadiESystemReportPDF } from "../pages/nadiesystem/NadiESystemReport";
-import { NadiESystemSite } from "@/hooks/report/use-nadi-e-system-data";
+import { useNadiESystemPdfData } from "@/hooks/report/use-nadi-e-system-pdf-data";
 
 // Define the interface for the props
 interface NadiESystemReportDownloadButtonProps {
@@ -15,11 +15,7 @@ interface NadiESystemReportDownloadButtonProps {
   yearFilter: string | number | null;
   duspFilter: (string | number)[] | null;
   phaseFilter: string | number | null;
-  sites: NadiESystemSite[];
-  totalSites: number;
-  sitesWithCms: number;
-  sitesWithWebsiteMigration: number;
-  sitesWithEmailMigration: number;
+  tpFilter?: (string | number)[];
   mcmcLogo: string;
   duspLogo: string;
   fileName: string;
@@ -28,66 +24,59 @@ interface NadiESystemReportDownloadButtonProps {
 }
 
 export const NadiESystemReportDownloadButton: React.FC<NadiESystemReportDownloadButtonProps> = ({
-  duspLabel, 
-  phaseLabel, 
+  duspLabel,
+  phaseLabel,
   periodType,
   periodValue,
   monthFilter,
   yearFilter,
   duspFilter,
   phaseFilter,
-  sites,
-  totalSites,
-  sitesWithCms,
-  sitesWithWebsiteMigration,
-  sitesWithEmailMigration,
+  tpFilter = [],
   mcmcLogo,
   duspLogo,
   fileName = "nadi-e-system-report.pdf",
   onGenerationStart,
   onGenerationComplete,
-}) => {  
-  // Track loading state internally    
+}) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  
+  // Fetch all PDF data internally
+  const pdfData = useNadiESystemPdfData(
+    duspFilter,
+    phaseFilter,
+    monthFilter,
+    yearFilter,
+    tpFilter
+  );
+
   // Function to generate and download PDF
   const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
     onGenerationStart?.();
-    
     try {
-      // Create the PDF document
       const blob = await pdf(
         <NadiESystemReportPDF
           duspLabel={duspLabel}
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-          sites={sites}
-          totalSites={totalSites}
-          sitesWithCms={sitesWithCms}
-          sitesWithWebsiteMigration={sitesWithWebsiteMigration}
-          sitesWithEmailMigration={sitesWithEmailMigration}
+          sites={pdfData.sites}
+          totalSites={pdfData.totalSites}
+          sitesWithCms={pdfData.sitesWithCms}
+          sitesWithWebsiteMigration={pdfData.sitesWithWebsiteMigration}
+          sitesWithEmailMigration={pdfData.sitesWithEmailMigration}
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
         />
       ).toBlob();
-      
-      // Create a URL for the blob
       const url = URL.createObjectURL(blob);
-      
-      // Create and click a temporary download link
       const link = document.createElement('a');
       link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      // Clean up the URL
       URL.revokeObjectURL(url);
-      
-      // Signal completion
       setIsGenerating(false);
       onGenerationComplete?.(true);
     } catch (error) {

@@ -44,13 +44,7 @@ const ReportInternetAccess = () => {
   // PDF generation states
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   // Fetch filter options from API
-  const {
-    phases,
-    dusps,
-    nadiSites,
-    tpProviders,
-    loading: filtersLoading,
-  } = useReportFilters();
+  const { phases, dusps, tpProviders, loading: filtersLoading } = useReportFilters();
   // Fetch internet access data based on filters
   const {
     sites,
@@ -115,32 +109,22 @@ const ReportInternetAccess = () => {
                   : "All Phases"
               }
               periodType={monthFilter ? "MONTH / YEAR" : "All Time"}
-              periodValue={
-                monthFilter
-                  ? `${monthFilter || ""} / ${yearFilter || ""}`
-                  : "All Records"
-              }
-              monthFilter={monthFilter}
-              yearFilter={yearFilter}
+              periodValue={monthFilter ? `${monthFilter || ""} / ${yearFilter || ""}` : "All Records"}
               duspFilter={duspFilter}
               phaseFilter={phaseFilter}
-              sites={sites}
-              totalSites={totalSites}
-              sitesWithInternet={sitesWithInternet}
-              sitesWithoutInternet={sitesWithoutInternet}
-              connectionTypes={connectionTypes}
-              providers={providers}
+              tpFilter={tpFilter}
+              monthFilter={monthFilter}
+              yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-              fileName={`internet-access-report-${
-                new Date().toISOString().split("T")[0]
-              }.pdf`}
+              fileName={`internet-access-report-${new Date().toISOString().split('T')[0]}.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />
           </div>
-        </div>{" "}
-        {/* Filters */}{" "}
+        </div>        
+        
+        {/* Filters */}        
         <ModularReportFilters
           // Show relevant filters for Internet Access report
           showFilters={{
@@ -148,8 +132,10 @@ const ReportInternetAccess = () => {
             phase: true,
             nadi: false,
             date: true,
-            tp: true,
-          }} // Filter state
+            tp: true
+          }}          
+          
+          // Filter state
           duspFilter={duspFilter}
           setDuspFilter={setDuspFilter}
           phaseFilter={phaseFilter}
@@ -163,13 +149,12 @@ const ReportInternetAccess = () => {
           // Filter data
           dusps={dusps}
           phases={phases}
-          nadiSites={nadiSites}
           tpOptions={tpProviders}
           monthOptions={monthOptions}
           yearOptions={yearOptions}
           // Loading state
           isLoading={filtersLoading}
-        />{" "}
+        />        
         {/* Internet Access Card */}
         <div className="w-full max-w-3xl">
           <InternetAccessCard

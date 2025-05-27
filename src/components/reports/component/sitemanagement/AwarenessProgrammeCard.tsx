@@ -15,8 +15,6 @@ type AwarenessProgrammeCardProps = {
   siteCount: number;
   programmesSiteCount: number;
   totalProgrammes: number;
-  completedCount: number;
-  upcomingCount: number;
 };
 
 export const AwarenessProgrammeCard = ({
@@ -24,8 +22,6 @@ export const AwarenessProgrammeCard = ({
   siteCount,
   programmesSiteCount,
   totalProgrammes,
-  completedCount,
-  upcomingCount,
 }: AwarenessProgrammeCardProps) => {
   return (
     <Card className="overflow-hidden shadow-sm border border-gray-200">
@@ -36,37 +32,36 @@ export const AwarenessProgrammeCard = ({
         {loading ? (
           <CardSkeleton />
         ) : (
-          <CardStat
-            icon={Zap}
-            iconColor="text-amber-500"
-            iconBgColor="bg-amber-50"
-            title="Total Programmes"
-            value={totalProgrammes}
-            progressValue={programmesSiteCount}
-            progressMax={siteCount}
-            progressColor="bg-amber-500"
-            stats={
-              <>
-                <StatItem 
-                  icon={CheckCircle} 
-                  iconColor="text-green-500" 
-                  label="Completed" 
-                  value={completedCount} 
+          <>
+            <CardStat
+              icon={Zap}
+              iconColor="text-amber-500"
+              iconBgColor="bg-amber-50"
+              title="Sites with Programmes"
+              value={programmesSiteCount}
+              progressValue={programmesSiteCount}
+              progressMax={siteCount}
+              progressColor="bg-amber-500"
+              footer={
+                siteCount ? 
+                  `${Math.round((programmesSiteCount / Math.max(1, siteCount)) * 100)}% Coverage` : 
+                  '0% Coverage'
+              }
+            />
+            
+            {/* <div className="mt-4">
+              <div className="flex justify-between text-sm mb-1">
+                <span>Total Programmes</span>
+                <span className="font-medium">{totalProgrammes}</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div 
+                  className="bg-amber-500 h-2 rounded-full" 
+                  style={{ width: `${Math.min(100, (programmesSiteCount / Math.max(1, siteCount)) * 100)}%` }}
                 />
-                <StatItem 
-                  icon={Clock} 
-                  iconColor="text-blue-500" 
-                  label="Upcoming" 
-                  value={upcomingCount} 
-                />
-              </>
-            }
-            footer={
-              siteCount ? 
-                `${programmesSiteCount} Sites with Programmes` : 
-                '0 Sites with Programmes'
-            }
-          />
+              </div>
+            </div> */}
+          </>
         )}
       </CardContent>
     </Card>
