@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { AcroFormCheckBox, jsPDF } from "jspdf";
+import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { Button } from "@/components/ui/button";
@@ -346,50 +346,36 @@ const GenerateMaintenanceReportCM = ({
         if (data.column.index === 1 && data.row.index === 4) {
           const cellX = data.cell.x;
           const cellY = data.cell.y;
-          const cellWidth = data.cell.width;
           const cellHeight = data.cell.height;
 
-          const checkboxSize = 4; // bigger checkbox size for better visibility
-
-          // Checkbox positions (vertically centered)
+          const checkboxSize = 4;
           const checkboxX1 = cellX + 5;
           const checkboxY = cellY + (cellHeight - checkboxSize) / 2;
+          const checkboxX2 = checkboxX1 + checkboxSize + 30;
 
-          const checkboxX2 = checkboxX1 + checkboxSize + 30; // space between checkboxes
-
-          // Create checkboxes
-          const restorationStatus = new AcroFormCheckBox();
-          restorationStatus.fieldName = "COMPLETED";
-          restorationStatus.value = "On";
-          restorationStatus.appearanceState = "On";
-          restorationStatus.x = checkboxX1;
-          restorationStatus.y = checkboxY;
-          restorationStatus.width = checkboxSize;
-          restorationStatus.height = checkboxSize;
-          restorationStatus.readOnly = true;
-
-          // Draw border around checkbox 1
-          doc.setDrawColor(0, 0, 0); // black border
-          doc.setLineWidth(0.5);
+          // Draw checkbox 1 (COMPLETED)
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.2);
           doc.rect(checkboxX1, checkboxY, checkboxSize, checkboxSize);
 
-          // Draw border around checkbox 2
+          // Draw checkbox 2 (PENDING)
           doc.rect(checkboxX2, checkboxY, checkboxSize, checkboxSize);
 
-          const restorationStatus2 = new AcroFormCheckBox();
-          restorationStatus2.fieldName = "PENDING";
-          restorationStatus2.value = "Off";
-          restorationStatus2.appearanceState = "Off";
-          restorationStatus2.x = checkboxX2;
-          restorationStatus2.y = checkboxY;
-          restorationStatus2.width = checkboxSize;
-          restorationStatus2.height = checkboxSize;
-          restorationStatus2.readOnly = true;
+          const showCompletedTick = true; // change as needed
+          const showPendingTick = false; // change as needed
 
-          doc.addField(restorationStatus);
-          doc.addField(restorationStatus2);
+          doc.setFont("ZapfDingbats");
+          doc.setFontSize(FONT_SIZE + 4);
 
-          // Add labels next to checkboxes
+          if (showCompletedTick) {
+            doc.text("3", checkboxX1 + 0.5, checkboxY + checkboxSize - 0.5);
+          }
+
+          if (showPendingTick) {
+            doc.text("3", checkboxX2 + 0.5, checkboxY + checkboxSize - 0.5);
+          }
+
+          // Add labels
           doc.setFont("Verdana", "normal");
           doc.setFontSize(FONT_SIZE);
           doc.setTextColor(0, 0, 0);
