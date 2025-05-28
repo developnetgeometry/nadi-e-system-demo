@@ -7,15 +7,10 @@ import {
   Cell,
 } from "recharts";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
-
-export interface IncentiveDistributionData {
-  position: string;
-  count: number;
-  color?: string;
-}
+import { FormattedIncentiveData } from '../ChartGenerator';
 
 interface IncentiveDistributionChartProps {
-  data: IncentiveDistributionData[];
+  data: FormattedIncentiveData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;

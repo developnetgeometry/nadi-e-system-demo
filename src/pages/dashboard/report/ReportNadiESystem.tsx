@@ -120,9 +120,6 @@ const ReportNadiESystem = () => {
               yearFilter={yearFilter}
               mcmcLogo={mcmcLogo}
               duspLogo={duspLogo}
-              fileName={`nadi-e-system-report-${
-                new Date().toISOString().split("T")[0]
-              }.pdf`}
               onGenerationStart={handleGenerationStart}
               onGenerationComplete={handleGenerationComplete}
             />

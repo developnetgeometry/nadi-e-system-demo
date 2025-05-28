@@ -11,11 +11,11 @@ import {
   CartesianGrid
 } from "recharts";
 import { SALARY_CHART_COLORS, getDefaultColor } from "../utils/colorUtils";
-import { SalaryData } from "../ChartGenerator";
+import { FormattedSalaryData } from "../ChartGenerator";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
 
 interface SalaryByPositionChartProps {
-  data: SalaryData[];
+  data: FormattedSalaryData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;

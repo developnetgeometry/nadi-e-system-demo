@@ -115,21 +115,22 @@ export const CMByPhaseReportPDF = ({
                     <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0 }}>
                         <Text style={{ fontSize: 8 }}>Total Docket</Text>
                         <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData?.length || 'XX'}</Text>
-                    </View>                        <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
+                    </View>
+                    <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                         <Text style={{ fontSize: 8 }}>Docket Existing</Text>
-                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "Existing").length || 'XX'}</Text>
                     </View>
                     <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                         <Text style={{ fontSize: 8 }}>Docket New</Text>
-                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "New").length || 'XX'}</Text>
                     </View>
                     <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                         <Text style={{ fontSize: 8 }}>Docket Pending</Text>
-                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "Pending").length || 'XX'}</Text>
                     </View>
                     <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                         <Text style={{ fontSize: 8 }}>Docket Close</Text>
-                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "Close").length || 'XX'}</Text>
                     </View>
                 </View>
 
@@ -157,19 +158,19 @@ export const CMByPhaseReportPDF = ({
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket Existing</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "Existing").length|| 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket New</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "New").length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket Pending</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "Pending").length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket Close</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v => v.status === "Close").length || 'XX'}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -188,7 +189,7 @@ export const CMByPhaseReportPDF = ({
                         { header: "TYPE", key: "type" },
                         { header: "ISSUE", key: "issue" },
                         { header: "SLA", key: "SLA" },
-                        { header: "DURATION(DAY)", key: "Duration" },
+                        { header: "DURATION", key: "Duration" },
                         { header: "DOCKET OPEN", key: "Opened" },
                         { header: "DOCKET CLOSE", key: "Closed" },
                     ]}

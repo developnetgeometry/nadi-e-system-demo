@@ -17,7 +17,6 @@ interface InternetAccessReportDownloadButtonProps {
   tpFilter?: (string | number)[];
   mcmcLogo?: string;
   duspLogo?: string;
-  fileName: string;
   onGenerationStart?: () => void;
   onGenerationComplete?: (success: boolean) => void;
 }
@@ -34,7 +33,6 @@ export const InternetAccessReportDownloadButton: React.FC<InternetAccessReportDo
   tpFilter = [],
   mcmcLogo = "",
   duspLogo = "",
-  fileName = "internet-access-report.pdf",
   onGenerationStart,
   onGenerationComplete,
 }) => {
@@ -48,11 +46,7 @@ export const InternetAccessReportDownloadButton: React.FC<InternetAccessReportDo
     tpFilter
   );
 
-  // Calculate percentages for key metrics
-  const internetAccessPercentage = pdfData.totalSites > 0
-    ? ((pdfData.sitesWithInternet / pdfData.totalSites) * 100).toFixed(1)
-    : "0";
-
+  const fileName = `internet-access-report-${new Date().toISOString().split('T')[0]}.pdf`;
   // Function to generate and download PDF
   const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
@@ -64,12 +58,8 @@ export const InternetAccessReportDownloadButton: React.FC<InternetAccessReportDo
           phaseLabel={phaseLabel}
           periodType={periodType}
           periodValue={periodValue}
-          sites={pdfData.sites}
-          totalSites={pdfData.totalSites}
-          sitesWithInternet={pdfData.sitesWithInternet}
-          sitesWithoutInternet={pdfData.sitesWithoutInternet}
-          connectionTypes={pdfData.connectionTypes}
-          providers={pdfData.providers}
+          internetSite={pdfData.internetSite}
+          
           mcmcLogo={mcmcLogo}
           duspLogo={duspLogo}
           monthFilter={monthFilter}

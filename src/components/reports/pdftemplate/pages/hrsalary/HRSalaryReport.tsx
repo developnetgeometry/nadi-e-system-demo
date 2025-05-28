@@ -17,7 +17,7 @@ import {
     PDFPhaseQuarterInfo
 
 } from "../../components/PDFComponents";
-import { StaffDistribution, StaffVacancy, TurnoverRate, HRStaffMember } from "@/hooks/report/use-hr-salary-data";
+import { staffPerformanceIncentive, staffSalary, staffVacancy } from "@/hooks/report/use-hr-salary-pdf-data";
 
 
 // Define props for the PDF Report
@@ -29,16 +29,10 @@ interface HRSalaryReportPDFProps {
     periodValue?: string;
 
     // Data for reports
-    staff: HRStaffMember[];
-    totalStaff: number;
-    activeNadiSites: number;
-    sitesWithIncentives: number;
-    averageSalary: number;
-    averageIncentive: number;
-    employeeDistribution: StaffDistribution[];
-    vacancies: StaffVacancy[];
-    turnoverRates: TurnoverRate[];
-    averageTurnoverRate: number;
+    staffSalary: staffSalary[];
+    staffPerformanceIncentive: staffPerformanceIncentive[];
+    staffVacancy: staffVacancy[];
+   
 
     // Logos
     mcmcLogo?: string;
@@ -54,7 +48,6 @@ interface HRSalaryReportPDFProps {
     staffDistributionChart?: string;
     salaryChart?: string;
     vacancyChart?: string;
-    // Add incentive chart props
     incentiveChart?: string;
     incentiveDistributionChart?: string;
 }
@@ -218,30 +211,26 @@ const styles = StyleSheet.create({
 export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
     duspLabel = "",
     phaseLabel = "PILOT", // Default to match the image
-    periodType = "QUARTER / YEAR",
-    periodValue = "4/2024", // Default to match the image
-    staff = [],
-    totalStaff = 0,
-    activeNadiSites = 0,
-    sitesWithIncentives = 0,
-    averageSalary = 0,
-    averageIncentive = 0,
-    employeeDistribution = [],
-    vacancies = [],
-    turnoverRates = [],
-    averageTurnoverRate = 0,
+    periodType = "All Time", // Default to match the image
+    periodValue = "All Time", // Default to match the image
+
+    staffVacancy = [],
+    staffPerformanceIncentive = [],
+    staffSalary = [],
+
     mcmcLogo = "",
     duspLogo = "",
     monthFilter = null,
     yearFilter = null,
     currentMonth = new Date().getMonth() + 1,
     currentYear = new Date().getFullYear(),
+
     staffDistributionChart = "",
     salaryChart = "",
     vacancyChart = "",
-    // Add incentive chart props
     incentiveChart = "",
-    incentiveDistributionChart = ""
+    incentiveDistributionChart = "",
+
 }) => {
     // Format salary to RM format
     const formatCurrency = (amount: number) => {
@@ -256,7 +245,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 <PDFHeader mcmcLogo={mcmcLogo} duspLogo={duspLogo} />
 
                 <PDFMetaSection
-                    reportTitle="Salary & HR Management"
+                    reportTitle="1.0 Salary & HR Management"
                     phaseLabel={phaseLabel}
                     periodType={periodType}
                     periodValue={periodValue}
@@ -275,14 +264,15 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                     <View style={styles.summaryBoxContainer}>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Number of Employees</Text>
-                            <Text style={styles.summaryValue}>Total : {totalStaff || "XX"}</Text>
+                            <Text style={styles.summaryValue}>Total : {staffSalary.length || "XX"}</Text>
                         </View>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Salary</Text>
-                            <Text style={styles.summaryValue}>Total : RM {formatCurrency((averageSalary * totalStaff) || 0)}</Text>
+                            <Text style={styles.summaryValue}>Total : RM {formatCurrency((staffSalary.reduce((total, staff) => total + (staff.salary || 0), 0)) || 0)}</Text>
                         </View>
                     </View>
-                </View>                {/* Salary Bar Chart */}
+                </View>                
+                {/* Salary Bar Chart */}
                 <View style={styles.barChartPlaceholder}>
                     {salaryChart ? (
                         <Image src={salaryChart} style={{ objectFit: "contain" }} />
@@ -302,7 +292,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Number of Employees</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{totalStaff || "XX"}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffSalary.length || "XX"}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -316,13 +306,13 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 {/* Staff Table */}
                 <PDFTable
-                    data={staff.slice(0, 20)}
+                    data={staffSalary}
                     columns={[
-                        { header: "NO", key: (_, i) => `${i + 1}.` },
+                        { header: "NO", key: (_, i) => `${i + 1}.`,width: "5%"  },
                         { header: "NADI & STATE", key: row => `${row.sitename}, ${row.state}` },
-                        { header: "FULL NAME", key: "fullname" },
+                        { header: "FULL NAME", key: "staffName" },
                         { header: "POSITION", key: "position" },
-                        { header: "JOIN DATE", key: "join_date" },
+                        { header: "JOIN DATE", key: "staffJoiningDate" },
                         { header: "SERVICES PERIOD", key: "service_period" },
                         { header: "SALARY (RM)", key: "salary", render: v => formatCurrency(v || 0) },
                     ]}
@@ -346,11 +336,11 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                     <View style={styles.summaryBoxContainer}>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Number of Employees</Text>
-                            <Text style={styles.summaryValue}>Total : {totalStaff || "XX"}</Text>
+                            <Text style={styles.summaryValue}>Total : {staffPerformanceIncentive.length || "XX"}</Text>
                         </View>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Performance Incentive</Text>
-                            <Text style={styles.summaryValue}>Total : RM {formatCurrency((averageIncentive * totalStaff) || 0)}</Text>
+                            <Text style={styles.summaryValue}>Total : RM {formatCurrency(staffPerformanceIncentive.reduce((total, staff) => total + (staff.incentive || 0), 0))}</Text>
                         </View>
                     </View>
                 </View>
@@ -374,7 +364,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Number of Employees</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{totalStaff || "XX"}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffPerformanceIncentive.length || "XX"}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -388,14 +378,14 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 {/* Performance Incentive Table */}
                 <PDFTable
-                    data={staff.slice(0, 20)}
+                    data={staffPerformanceIncentive}
                     columns={[
-                        { header: "NO", key: (_, i) => `${i + 1}.` },
+                        { header: "NO", key: (_, i) => `${i + 1}.`,width: "5%" },
                         { header: "NADI & STATE", key: row => `${row.sitename}, ${row.state}` },
-                        { header: "FULL NAME", key: "fullname" },
+                        { header: "FULL NAME", key: "staffName" },
                         { header: "POSITION", key: "position" },
-                        { header: "DATE START WORK", key: "date_start_work" },
-                        { header: "DATE END WORK", key: "date_end_work" },
+                        { header: "DATE START WORK", key: "startWorkDate" },
+                        { header: "DATE END WORK", key: "endWorkDate" },
                         { header: "DURATION", key: "duration" },
                     ]}
                 />
@@ -421,13 +411,13 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                           <View style={styles.summaryBox}>
                               <Text style={styles.summaryTitle}>Number of Vacancies</Text>
                               <Text style={styles.summaryValue}>
-                                  {vacancies.reduce((sum, vacancy) => sum + vacancy.open, 0)}
+                                  {staffVacancy.length || "XX"}
                               </Text>
                           </View>
                           <View style={styles.summaryBox}>
                               <Text style={styles.summaryTitle}>Turnover Rate</Text>
                               <Text style={styles.summaryValue}>
-                                  {averageTurnoverRate}%
+                                  {0.4}%
                               </Text>
                           </View>
                     </View>
@@ -444,17 +434,17 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10, position: "relative" }}>
                     <View style={{ flexDirection: "row" }}>
-                          <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
+                          <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0 }}>
                               <Text style={{ fontSize: 8 }}>Number of Vacancies</Text>
-                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{vacancies.reduce((sum, vacancy) => sum + vacancy.open, 0)}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffVacancy.length}</Text>
                           </View>
-                          <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
+                          <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0, marginLeft: 10 }}>
                               <Text style={{ fontSize: 8 }}>Manager</Text>
-                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{vacancies.find(v => v.position === 'Manager')?.open}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffVacancy.filter(v => v.position === 'Manager')?.length}</Text>
                           </View>
-                          <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
+                          <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0, marginLeft: 10 }}>
                               <Text style={{ fontSize: 8 }}>Assistant Manager</Text>
-                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{vacancies.find(v => v.position === 'Assistant Manager')?.open}</Text>
+                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffVacancy.filter(v => v.position === 'Assistant Manager')?.length}</Text>
                           </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -468,12 +458,12 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 {/* Vacancies Table */}
                 <PDFTable
-                    data={vacancies}
+                    data={staffVacancy}
                     columns={[
-                        { header: "NO", key: (_, i) => `${i + 1}.` },
-                        { header: "NADI", key: row => row.position },
-                        { header: "STATE", key: () => "" },
-                        { header: "POSITION", key: row => row.position },
+                        { header: "NO", key: (_, i) => `${i + 1}.`,width: "5%"  },
+                        { header: "NADI", key: "sitename" },
+                        { header: "STATE", key:"state" },
+                        { header: "POSITION", key:"position" },
                     ]}
                 />
 

@@ -13,7 +13,6 @@ import { ModularReportFilters } from "@/components/reports/filters";
 import { useReportFilters } from "@/hooks/report/use-report-filters";
 import { useTrainingData } from "@/hooks/report/use-training-data";
 import { useStableLoading } from "@/hooks/report/use-stable-loading";
-import { T } from "vitest/dist/chunks/reporters.d.DG9VKi4m.js";
 import { TrainingReportDownloadButton } from "@/components/reports/pdftemplate/components/TrainingReportDownloadButton";
 import { useDuspLogo, useMcmcLogo } from "@/hooks/use-brand";
 

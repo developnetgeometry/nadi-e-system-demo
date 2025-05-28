@@ -7,12 +7,12 @@ import {
   Legend,
   Cell,
 } from "recharts";
-import { StaffVacancy } from "@/hooks/report/use-hr-salary-data";
 import { getDefaultColor } from "../utils/colorUtils";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
+import { FormattedVacancyData } from "../ChartGenerator";
 
 interface VacancyDistributionChartProps {
-  data: StaffVacancy[];
+  data: FormattedVacancyData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;
@@ -77,7 +77,7 @@ export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({
       </>
     );
   };
-  const totalVacancies = data.reduce((sum, item) => sum + item.open, 0);
+  const totalVacancies = data.reduce((sum, item) => sum + item.vacant, 0);
 
   // Use image generator only if onReady is provided
   const chartRef = onReady ? useChartImageGenerator({ onImageReady: onReady }) : undefined;
@@ -99,9 +99,9 @@ export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({
               data={data}
               cx="50%"
               cy="55%"
-              dataKey="open"
+              dataKey="vacant"
               nameKey="position"
-              label={createPieLabelRenderer({ data, nameKey: 'position', dataKey: 'open' })}
+              label={createPieLabelRenderer({ data, nameKey: 'position', dataKey: 'vacant' })}
               labelLine={false}
               isAnimationActive={false}
               strokeWidth={2}
@@ -119,8 +119,7 @@ export const VacancyDistributionChart: FC<VacancyDistributionChartProps> = ({
               iconSize={12}
               iconType="circle"
               formatter={(value, entry, index) => {
-                const item = data[index];
-                return `${value} (${item.open})`;
+                const item = data[index];                return `${value} (${item.vacant})`;
               }}
             />
           </PieChart>

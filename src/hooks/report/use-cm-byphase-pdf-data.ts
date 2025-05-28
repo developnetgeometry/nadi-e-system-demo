@@ -6,17 +6,17 @@ export interface MaintenanceData {
     type?: string;
     issue?: string;
     SLA?: string;
+    status?: string; // Added to match the example data
     Duration?: string;
     Opened?: string;
     Closed?: string;
 }
-
-// Interface for docket status data
-export interface DocketStatusData {
+export interface docketStatusData {
     status: string;
     minor: number;
     major: number;
 }
+
 
 export function useCMByPhasePdfData(
     duspFilter: (string | number)[] | null,
@@ -27,12 +27,10 @@ export function useCMByPhasePdfData(
 ) {
     const [data, setData] = useState<{
         maintainanceData: MaintenanceData[];
-        docketStatusData: DocketStatusData[];
 
     }
     >({
         maintainanceData: [],
-        docketStatusData: [],
         
     });
     const [loading, setLoading] = useState<boolean>(true);
@@ -45,19 +43,83 @@ export function useCMByPhasePdfData(
                 id: "M001",
                 type: "Electrical",
                 issue: "Power outage",
-                SLA: "24 hours",
+                SLA: "minor",
                 Duration: "2 hours",
                 Opened: "2023-10-01",
-                Closed: "2023-10-01"
+                Closed: "2023-10-01",
+                status: "Existing"
             },
             {
                 id: "M002",
                 type: "Plumbing",
                 issue: "Leaking pipe",
-                SLA: "48 hours",
+                SLA: "major",
                 Duration: "1 hour",
                 Opened: "2023-10-02",
-                Closed: "2023-10-02"
+                Closed: "2023-10-02",
+                status: "New"
+            }
+            ,
+            {
+                id: "M003",
+                type: "HVAC",
+                issue: "AC not cooling",
+                SLA: "minor",
+                Duration: "3 hours",
+                Opened: "2023-10-03",
+                Closed: "2023-10-03",
+                status: "New"
+            },
+            {
+                id: "M004",
+                type: "IT",
+                issue: "Network down",
+                SLA: "major",
+                Duration: "4 hours",
+                Opened: "2023-10-04",
+                Closed: "2023-10-04",
+                status: "Existing"
+            }
+            ,
+            {
+                id: "M005",
+                type: "Security",
+                issue: "Alarm malfunction",
+                SLA: "minor",
+                Duration: "30 minutes",
+                Opened: "2023-10-05",
+                Closed: "2023-10-05",
+                status: "Pending"
+            },
+            {
+                id: "M006",
+                type: "Cleaning",
+                issue: "Floor cleaning",
+                SLA: "minor",
+                Duration: "1 hour",
+                Opened: "2023-10-06",
+                Closed: "2023-10-06",
+                status: "Close"
+            },
+            {
+                id: "M007",
+                type: "Electrical",
+                issue: "Light bulb replacement",
+                SLA: "minor",
+                Duration: "15 minutes",
+                Opened: "2023-10-07",
+                Closed: "2023-10-07",
+                status: "Pending"
+            },
+            {
+                id: "M008",
+                type: "Plumbing",
+                issue: "Clogged drain",
+                SLA: "major",
+                Duration: "2 hours",
+                Opened: "2023-10-08",
+                Closed: "2023-10-08",
+                status: "Close"
             }
         ];
         
@@ -71,7 +133,6 @@ export function useCMByPhasePdfData(
                                
         setData({
             maintainanceData: maintenanceData,
-            docketStatusData: docketStatusData,
         });
         
         setLoading(false);

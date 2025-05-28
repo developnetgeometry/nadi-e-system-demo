@@ -16,6 +16,7 @@ import {
     PDFAppendixTitlePage,
     PDFPhaseQuarterInfo
 } from "../../components/PDFComponents";
+import { CMSSite, PortalWebServiceSite } from "@/hooks/report/use-nadi-e-system-pdf-data";
 
 // PDF styles for NADI E-System report
 const styles = StyleSheet.create({
@@ -33,36 +34,13 @@ const styles = StyleSheet.create({
     }
 });
 
-// Types
-interface NadiESystemSite {
-    id?: string | number;
-    siteId?: string | number;
-    standard_code?: string;
-    sitename?: string;
-    phase_id?: string | number;
-    phase_name?: string;
-    dusp_id?: string | number;
-    dusp_name?: string;
-    state?: string;
-    has_cms?: boolean;
-    pc_client_count?: number;
-    date_install?: string;
-    website_migrated?: boolean;
-    url_portal?: string;
-    email_migrated?: boolean;
-    email_staff?: string[];
-}
-
 interface NadiESystemReportPDFProps {
     duspLabel: string;
     phaseLabel: string;
     periodType: string;
     periodValue: string;
-    sites: NadiESystemSite[];
-    totalSites: number;
-    sitesWithCms: number;
-    sitesWithWebsiteMigration: number;
-    sitesWithEmailMigration: number;
+    cms: CMSSite[];
+    portalwebservice:PortalWebServiceSite[];
     mcmcLogo: string;
     duspLogo: string;
 }
@@ -72,18 +50,12 @@ export const NadiESystemReportPDF: React.FC<NadiESystemReportPDFProps> = ({
     duspLabel,
     phaseLabel,
     periodType,
-    periodValue, sites,
-    totalSites,
-    sitesWithCms,
-    sitesWithWebsiteMigration,
-    sitesWithEmailMigration,
+    periodValue,
+    cms,
+    portalwebservice,
     mcmcLogo,
     duspLogo,
 }) => {
-    // Calculate percentages
-    const cmsPercentage = totalSites > 0 ? Math.round((sitesWithCms / totalSites) * 100) : 0;
-    const websitePercentage = totalSites > 0 ? Math.round((sitesWithWebsiteMigration / totalSites) * 100) : 0;
-    const emailPercentage = totalSites > 0 ? Math.round((sitesWithEmailMigration / totalSites) * 100) : 0;
 
     return (
         <Document>
@@ -107,11 +79,11 @@ export const NadiESystemReportPDF: React.FC<NadiESystemReportPDFProps> = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Total NADI</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{totalSites}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{cms.length}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
                             <Text style={{ fontSize: 8 }}>Total Installed</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{sitesWithCms}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{cms.reduce((total, site) => total + (Number(site.pc_client_count) || 0), 0)}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -124,9 +96,9 @@ export const NadiESystemReportPDF: React.FC<NadiESystemReportPDFProps> = ({
                 </View>
 
                 {/* CMS Table */}
-                {sites && sites.length > 0 ? (
+                {cms && cms.length > 0 ? (
                     <PDFTable
-                        data={sites.filter(site => site.has_cms)}
+                        data={cms}
                         columns={[
                             {
                                 key: (_, i) => `${i + 1}.`,
@@ -136,22 +108,21 @@ export const NadiESystemReportPDF: React.FC<NadiESystemReportPDFProps> = ({
                             {
                                 key: "sitename",
                                 header: "NADI",
-                                width: "30%"
                             },
                             {
                                 key: "state",
                                 header: "STATE",
-                                width: "15%"
+                                width: "20%"
                             },
                             {
                                 key: "pc_client_count",
                                 header: "QTY CMS PC CLIENT",
-                                width: "25%"
+                                width: "20%"
                             },
                             {
                                 key: "date_install",
                                 header: "DATE INSTALL",
-                                width: "25%"
+                                width: "20%"
                             }
                         ]}
                     />
@@ -171,7 +142,7 @@ export const NadiESystemReportPDF: React.FC<NadiESystemReportPDFProps> = ({
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                         <Text style={{ fontSize: 8 }}>Total NADI</Text>
-                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{totalSites}</Text>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{portalwebservice.length}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
                         <PDFPhaseQuarterInfo
@@ -184,9 +155,9 @@ export const NadiESystemReportPDF: React.FC<NadiESystemReportPDFProps> = ({
 
                 
                 {/* Portal & Email Table */}
-                {sites && sites.length > 0 ? (
+                {portalwebservice && portalwebservice.length > 0 ? (
                     <PDFTable
-                        data={sites.filter(site => site.website_migrated || site.email_migrated)}
+                        data={portalwebservice}
                         columns={[
                             {
                                 key: (_, i) => `${i + 1}.`,
