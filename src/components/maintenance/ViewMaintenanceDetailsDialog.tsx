@@ -762,7 +762,7 @@ export const ViewMaintenanceDetailsDialog = ({
   function TPGenerateReport() {
     return (
       <div className="flex justify-center items-center gap-4">
-        <GenerateMaintenanceReportCM />
+        <GenerateMaintenanceReportCM maintenanceRequest={maintenanceRequest} />
       </div>
     );
   }

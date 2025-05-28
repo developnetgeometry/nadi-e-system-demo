@@ -5,8 +5,15 @@ import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import "@/fonts/Verdana-normal.js";
 import "@/fonts/VerdanaBd-bold.js";
+import { MaintenanceRequest } from "@/types/maintenance";
 
-const GenerateMaintenanceReportCM = () => {
+type MaintenanceReportProps = {
+  maintenanceRequest: MaintenanceRequest;
+};
+
+const GenerateMaintenanceReportCM = ({
+  maintenanceRequest,
+}: MaintenanceReportProps) => {
   const FONT_SIZE = 8;
   const HEADER_BG_COLOR: [number, number, number] = [220, 220, 220];
 
@@ -54,11 +61,12 @@ const GenerateMaintenanceReportCM = () => {
     doc.addImage(mcmcLogo, "JPEG", 15, 10, 30, 30);
     doc.addImage(imageB, "JPEG", 165, 10, 30, 30);
 
-    // Centered Title
     doc.setFont("VerdanaBd", "bold");
     doc.setFontSize(12);
     doc.text("THE NATIONAL INFORMATION", 105, 25, { align: "center" });
     doc.text("DISSEMINATION CENTRE (NADI)", 105, 30, { align: "center" });
+
+    footerNadiDocs(doc, CURRENT_DATE);
 
     const rows1 = [
       [
@@ -96,7 +104,7 @@ const GenerateMaintenanceReportCM = () => {
           },
         },
         {
-          content: "NADI TAMAN CENGAL EMAS",
+          content: maintenanceRequest?.asset?.site?.sitename,
           colSpan: 1,
           styles: {
             fontStyle: "normal",
@@ -114,7 +122,7 @@ const GenerateMaintenanceReportCM = () => {
           },
         },
         {
-          content: "K2C001-0001",
+          content: maintenanceRequest?.no_docket,
           colSpan: 1,
           styles: {
             fontStyle: "normal",
@@ -134,7 +142,7 @@ const GenerateMaintenanceReportCM = () => {
           },
         },
         {
-          content: "PID 37",
+          content: maintenanceRequest?.asset?.site?.nd_phases?.name,
           colSpan: 1,
           styles: {
             fontStyle: "normal",
@@ -152,7 +160,10 @@ const GenerateMaintenanceReportCM = () => {
           },
         },
         {
-          content: "1FONT_SIZE/12/2024 10:00:05 AM",
+          content: format(
+            maintenanceRequest?.created_at,
+            "dd/MM/yyyy hh:mm:ss a"
+          ),
           colSpan: 1,
           styles: {
             fontStyle: "normal",
@@ -423,7 +434,7 @@ const GenerateMaintenanceReportCM = () => {
           content: "COMPANY",
         },
         {
-          content: "MSD DIGITAL INTELLIGENCE SDN BHD",
+          content: maintenanceRequest?.vendor?.business_name,
         },
       ],
       [
@@ -431,7 +442,7 @@ const GenerateMaintenanceReportCM = () => {
           content: "CONTACT NO.",
         },
         {
-          content: "012-3456789",
+          content: maintenanceRequest?.vendor?.phone_number,
         },
       ],
       [
@@ -578,7 +589,74 @@ const GenerateMaintenanceReportCM = () => {
       },
     });
 
+    // add Page 2
+    doc.addPage();
+
+    autoTable(doc, {
+      startY: 10,
+      body: [
+        [
+          {
+            content: "APPENDIX",
+            styles: {
+              halign: "center",
+              fontStyle: "bold",
+              fillColor: HEADER_BG_COLOR,
+              font: "VerdanaBd",
+            },
+          },
+        ],
+      ],
+      theme: "grid",
+      styles: {
+        fontSize: FONT_SIZE,
+        cellPadding: 2,
+        valign: "middle",
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+      },
+      margin: { left: 15, right: 15 },
+      tableWidth: "auto",
+    });
+
     footerNadiDocs(doc, CURRENT_DATE);
+
+    autoTable(doc, {
+      startY: 20,
+      head: [["NO.", "PICTURE", "REMARKS"]],
+      body: [
+        ["1.", "", ""],
+        ["2.", "", ""],
+        ["3.", "", ""],
+      ],
+      theme: "grid",
+      styles: {
+        fontSize: FONT_SIZE,
+        font: "Verdana",
+        cellPadding: 2,
+        valign: "middle",
+        halign: "center",
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
+      },
+      headStyles: {
+        font: "VerdanaBd",
+        fontStyle: "bold",
+        fillColor: HEADER_BG_COLOR,
+      },
+      bodyStyles: {
+        minCellHeight: 50,
+      },
+      margin: { left: 15, right: 15 },
+      tableWidth: "auto",
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 85 },
+        2: { cellWidth: 85 },
+      },
+    });
 
     doc.save("all-in-one-table.pdf");
   };
