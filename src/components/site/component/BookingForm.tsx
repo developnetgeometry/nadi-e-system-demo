@@ -17,11 +17,14 @@ import { toast } from "@/hooks/use-toast";
 import { stringToDateWithTime } from "../utils/stringToDateWithTime";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronRight, Mail, Phone, UserRound } from "lucide-react";
 import { format } from "date-fns";
 import { useMemberSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { bookingClient } from "@/hooks/booking/booking-client";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
+import { Card } from "@/components/ui/card";
 
 interface BookingFormInput {
     pc?: string,
@@ -52,17 +55,12 @@ const BookingForm = ({
     setBookingsData,
     setOpen
 }: BookingFormProps) => {
+    const [userName, setUserName] = useState("");
+    const debouncedUserName = useDebounce(userName, 600);
+    const { useUserProfileByName } = useBookingQueries();
+    const { data: userProfile, isLoading: isUserProfileLoading } = useUserProfileByName(debouncedUserName);
     const { siteId: memberSiteId, isLoading: memberSiteIdLoading } = useMemberSiteId(isMember);
     const { siteId: tpManagerSiteId, isLoading: tpManagerSiteIdLoading } = useTpManagerSiteId(isTpSite);
-    console.log("Member site ID in form", memberSiteId)
-    console.log("Tp manager site ID in form", tpManagerSiteId)
-
-    if (
-        memberSiteIdLoading ||
-        tpManagerSiteIdLoading
-    ) {
-        return <LoadingSpinner />
-    }
 
     // Member or TP Site Site ID
     const siteId =
@@ -73,6 +71,7 @@ const BookingForm = ({
                 : undefined;
 
     const form = useForm<BookingFormInput>({});
+    const {setValue} = form;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { useBookingPcMutation } = useBookingMutation();
@@ -81,13 +80,11 @@ const BookingForm = ({
     const { fetchUserByName } = useUserId();
 
     const onSubmitPcBooking: SubmitHandler<BookingFormInput> = async (formData) => {
-        // SOON: new booking request
         setIsSubmitting(true);
 
         try {
             const { id: assetId } = await assetClient.fetchAssetByName(formData.pc);
             const { id: userId } = await fetchUserByName(formData.userName);
-            console.log("submiited requester id", userId)
             const startTime = stringToDateWithTime(formData.startTime);
             const endTime = stringToDateWithTime(formData.endTime);
             const bookingId = crypto.randomUUID();
@@ -105,7 +102,6 @@ const BookingForm = ({
             }
 
             const newBookingData = await bookingPcMutation.mutateAsync(submitedFormData);
-            console.log(newBookingData)
 
             setBookingCalendarData((prevBook) => [
                 ...prevBook,
@@ -138,7 +134,6 @@ const BookingForm = ({
     }
 
     const onSubmitFacilityBooking: SubmitHandler<BookingFormInput> = async (formData) => {
-        // SOON: new booking request
         setIsSubmitting(true);
 
         try {
@@ -177,7 +172,7 @@ const BookingForm = ({
             setOpen(false);
             toast({
                 title: "Add new booking success",
-                description: `Success request new ${isFacility ? "Facility" : "PC" }: ${formData.facility}`
+                description: `Success request new ${isFacility ? "Facility" : "PC"}: ${formData.facility}`
             });
         } catch (error) {
             console.log(error);
@@ -185,7 +180,7 @@ const BookingForm = ({
             toast({
                 title: "Add new booking failed",
                 description: "Something went wrong when submitting the new booking",
-                variant:"destructive"
+                variant: "destructive"
             });
         } finally {
             setIsSubmitting(false);
@@ -200,6 +195,13 @@ const BookingForm = ({
         } else {
             onSubmitPcBooking(formData)
         }
+    }
+
+    if (
+        memberSiteIdLoading ||
+        tpManagerSiteIdLoading
+    ) {
+        return <LoadingSpinner />
     }
 
     return (
@@ -237,11 +239,35 @@ const BookingForm = ({
                         <FormItem>
                             <FormLabel>User Name</FormLabel>
                             <FormControl>
-                                <Input {...field} placeholder="Enter user name" />
+                                <Input {...field} onChange={(e) => {
+                                    setUserName(e.target.value)
+                                    field.onChange(e)
+                                }} placeholder="Enter user name" />
                             </FormControl>
                         </FormItem>
                     )}
                 />
+                {isUserProfileLoading ? (
+                    <LoadingSpinner />
+                ) : userProfile?.map((user) => (
+                    <Card onClick={() => {
+                            setValue("userName", user.full_name);
+                            setUserName("");
+                        }} 
+                        className="w-full px-3 py-2 flex flex-col justify-between items-start cursor-pointer" 
+                        key={user.id}
+                    >
+                        <header className="w-full flex items-center justify-between">
+                            <h1 className="text-base font-medium">{user.full_name}</h1>
+                            <small className="flex items-center">
+                                Select
+                                <ChevronRight className="size-4"/>
+                            </small>
+                        </header>
+                        <small className="text-gray-600"> {user.email}</small>
+                        <small className="text-gray-600">{user.phone_number}</small>
+                    </Card>
+                ))}
                 <FormField
                     control={form.control}
                     name="date"

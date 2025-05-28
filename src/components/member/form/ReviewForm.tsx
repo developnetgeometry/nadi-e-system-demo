@@ -45,7 +45,6 @@ type ReviewData = {
   ethnic_id: string;
   occupation_id: string;
   type_sector: string;
-  socio_id: string;
   income_range: string;
   ict_knowledge: string;
   education_level: string;
@@ -67,7 +66,6 @@ type ReviewFormProps = ReviewData & {
   ethnics: { id: string; eng: string }[];
   occupations: { id: string; eng: string }[];
   typeSectors: { id: string; eng: string }[];
-  socioeconomics: { id: string; eng: string }[];
   incomeLevels: { id: string; eng: string }[];
   ictKnowledge: { id: string; eng: string }[];
   educationLevels: { id: string; eng: string }[];
@@ -115,7 +113,6 @@ export function ReviewForm({
   ethnic_id,
   occupation_id,
   type_sector,
-  socio_id,
   income_range,
   ict_knowledge,
   education_level,
@@ -131,7 +128,6 @@ export function ReviewForm({
   ethnics,
   occupations,
   typeSectors,
-  socioeconomics,
   incomeLevels,
   ictKnowledge,
   educationLevels,
@@ -455,17 +451,7 @@ export function ReviewForm({
             </p>
           </div>
 
-          {/* Socioeconomic */}
-          <div>
-            <span className="text-muted-foreground">Socioeconomic:</span>
-            <p>
-              {socio_id
-                ? socioeconomics.find((socioeconomic) => socioeconomic.id.toString() === socio_id)?.eng || "Not Selected"
-                : "Not Selected"}
-            </p>
-          </div>
-
-          {/* Socioeconomic */}
+          {/* Income Range */}
           <div>
             <span className="text-muted-foreground">Income Range:</span>
             <p>

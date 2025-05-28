@@ -188,7 +188,10 @@ export const assetClient = {
         nd_brand (
             id,
             name,
-            brand_type
+            nd_brand_type (
+              id,
+              name
+            )
           ),
         nd_booking (
             id,
@@ -281,7 +284,10 @@ export const assetClient = {
           nd_brand (
             id,
             name,
-            brand_type
+            nd_brand_type (
+              id,
+              name
+            )
           ),
           nd_booking (
             id,
@@ -325,7 +331,10 @@ export const assetClient = {
         nd_brand (
           id,
           name,
-          brand_type
+          nd_brand_type (
+            id,
+            name
+          )
         ),
         nd_booking (
           id,

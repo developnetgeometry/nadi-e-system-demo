@@ -55,7 +55,7 @@ export const BookingFormDialog = ({
                             inputSum={5}
                         />}>
                             <DialogHeader>
-                                <DialogTitle>Create New PC Booking</DialogTitle>
+                                <DialogTitle>Create New {isFacility ? "Facility" : "PC"} Booking</DialogTitle>
                             </DialogHeader>
                             <BookingForm
                                 isTpSite={isTpSite}

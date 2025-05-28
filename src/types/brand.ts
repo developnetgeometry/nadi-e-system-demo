@@ -1,5 +1,10 @@
 export interface Brand {
   id: number;
   name: string;
-  brand_type: string;
+  nd_brand_type: BrandType;
+}
+
+export interface BrandType {
+  id: number;
+  name: string
 }

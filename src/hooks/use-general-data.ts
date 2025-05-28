@@ -208,7 +208,8 @@ const useGeneralData = () => {
       try {
         const { data, error } = await supabase
           .from("nd_identity_no_type")
-          .select("id, eng, bm");
+          .select("id, eng, bm")
+          .order("id", { ascending: true });
         if (error) throw error;
         setIdentityNoTypes(data);
       } catch (error) {

@@ -428,5 +428,17 @@ export const bookingClient = {
         if (error) throw error;
 
         return data;
+    },
+
+    getUserProfilesByName: async (full_name: string) => {
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .textSearch("full_name", full_name)
+            .or("user_type.eq.member, user_type.eq.tp_site")
+
+        if (error) throw error;
+
+        return data;
     }
 }

@@ -22,6 +22,7 @@ import DetailExample from "@/pages/examples/DetailExample";
 import SettingsExample from "@/pages/examples/SettingsExample";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
+import EventRegistrationPage from "./pages/dashboard/programmes/EventRegistrationPage";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,10 @@ function App() {
               <Route path="/examples/detail" element={<DetailExample />} />
               <Route path="/examples/settings" element={<SettingsExample />} />
 
+              <Route
+                path="/event-registration/:eventId"
+                element={<EventRegistrationPage />}
+              />
               {/* Add organization details route */}
               <Route
                 path="/admin/organizations/:id"

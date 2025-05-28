@@ -50,6 +50,7 @@ const MemberManagement = () => {
           `
           id,
           ref_id (id, fullname),
+          identity_no,
           community_status,
           fullname,
           email,
@@ -63,7 +64,7 @@ const MemberManagement = () => {
 
       if (searchTerm) {
         query = query.or(
-          `fullname.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`
+          `fullname.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,identity_no.ilike.%${searchTerm}%`
         );
       }
 
@@ -115,7 +116,7 @@ const MemberManagement = () => {
   const paginatedMembers = membersData?.data || [];
 
   const handleAddNewMember = () => {
-     navigate(`/member-management/registration`);
+    navigate(`/member-management/registration`);
   };
 
   const handleViewDetailsClick = (userId: string) => {
@@ -180,7 +181,7 @@ const MemberManagement = () => {
           <div className="relative w-full sm:w-1/2">
             <Input
               type="text"
-              placeholder="Search members..."
+              placeholder="Search members by name, email, or IC number"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
