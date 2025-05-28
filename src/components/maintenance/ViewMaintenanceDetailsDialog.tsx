@@ -37,6 +37,7 @@ import {
   MaintenanceUpdate,
 } from "@/types/maintenance";
 import { format } from "date-fns";
+
 import { CalendarDays, CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -47,6 +48,10 @@ import {
   getMaintenanceStatusIcon,
   getSLACategoryClass,
 } from "./MaintenanceStatusBadge";
+
+import "@/fonts/Verdana-normal.js";
+import "@/fonts/VerdanaBd-bold.js";
+import GenerateMaintenanceReportCM from "./report/GenerateMaintenanceReport";
 
 export interface ViewMaintenanceDetailsDialogProps {
   open: boolean;
@@ -112,6 +117,10 @@ export const ViewMaintenanceDetailsDialog = ({
   const isTPCloseRequest =
     userMetadata?.user_group_name == "TP" &&
     maintenanceRequest?.status == MaintenanceStatus.InProgress;
+
+  const isCompleted =
+    userMetadata?.user_group_name == "TP" &&
+    maintenanceRequest?.status == MaintenanceStatus.Completed;
 
   const [activeTab, setActiveTab] = useState("details");
 
@@ -750,6 +759,14 @@ export const ViewMaintenanceDetailsDialog = ({
     );
   }
 
+  function TPGenerateReport() {
+    return (
+      <div className="flex justify-center items-center gap-4">
+        <GenerateMaintenanceReportCM />
+      </div>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -980,6 +997,7 @@ export const ViewMaintenanceDetailsDialog = ({
         {isDefferedFlow && <ProcessDefferedRequest />}
         {isVendorApproval && <VendorApproval />}
         {isTPCloseRequest && <TPCloseRequest />}
+        {isCompleted && <TPGenerateReport />}
       </DialogContent>
     </Dialog>
   );

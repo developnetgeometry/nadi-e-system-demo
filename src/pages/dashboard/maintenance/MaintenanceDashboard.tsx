@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { MaintenanceList } from "@/components/maintenance/MaintenanceList";
 import { MaintenanceRequestFormDialog } from "@/components/maintenance/MaintenanceRequestFormDialog";
 import { Button } from "@/components/ui/button";
