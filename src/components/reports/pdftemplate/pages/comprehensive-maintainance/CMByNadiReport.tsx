@@ -140,23 +140,23 @@ export const CMByNadiReportPDF = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Total Docket</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket Existing</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v=>v.status==="Existing").length|| 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket New</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v=>v.status==="New").length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket Pending</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v=>v.status==="Pending").length || 'XX'}</Text>
                         </View>
                         <View style={{ ...styles.totalBox, padding: 5, width: 75, marginVertical: 0, marginLeft: 5 }}>
                             <Text style={{ fontSize: 8 }}>Docket Close</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{0 || 'XX'}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{maintainanceData.filter(v=>v.status==="Close").length || 'XX'}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -169,7 +169,7 @@ export const CMByNadiReportPDF = ({
                 </View>
                 {/* TABLE */}
                 <PDFTable
-                    data={maintainanceData.slice(0, 20)}
+                    data={maintainanceData}
                     columns={[
                         { header: "NO", key: (_, i) => `${i + 1}.`, width: "5%" },
                         { header: "TYPE", key: "type" },

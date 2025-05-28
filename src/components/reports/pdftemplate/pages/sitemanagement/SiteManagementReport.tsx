@@ -149,7 +149,8 @@ export const SiteManagementReportPDF = ({
 
                 {/* Section 2.1 Local Authority */}
 
-                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />                <View style={styles.totalBox}>
+                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />                
+                <View style={styles.totalBox}>
                     {/* total NADI sites have authority */}
                     <Text>Total NADI{"\n"}{localAuthoritySites}</Text>
                 </View>
@@ -190,7 +191,8 @@ export const SiteManagementReportPDF = ({
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.2 INSURANCE" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    
+                    <View style={styles.totalBox}>
                         {/* total NADI sites with insurance */}
                         <Text>Total NADI{"\n"}{insuranceSites}</Text>
                     </View>
@@ -235,7 +237,9 @@ export const SiteManagementReportPDF = ({
                 )}
 
                 <PDFFooter />
-            </Page>            {/* Page 3: APPENDIX for SITE INSURANCE - Only show if there are attachments */}
+            </Page>            
+            
+            {/* Page 3: APPENDIX for SITE INSURANCE - Only show if there are attachments */}
             {hasInsuranceAttachments && (
                 <Page size="A4" style={styles.page}>
                     <PDFAppendixTitlePage
@@ -277,10 +281,13 @@ export const SiteManagementReportPDF = ({
                                 justifyContent: 'center',
                                 width: '100%',
                                 height: '75%', // Take most of the page
-                            }}>                                <Image 
+                            }}>                                
+                            
+                            <Image 
                                     src={url}
                                     style={styles.fullPageImage}
                                 />
+                                
                             </View>
                             
                             <PDFFooter />
@@ -293,7 +300,8 @@ export const SiteManagementReportPDF = ({
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.3 AUDITS" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    
+                    <View style={styles.totalBox}>
                         {/* total NADI sites with audits */}
                         <Text>Total NADI{"\n"}{auditSites}</Text>
                     </View>
@@ -332,7 +340,9 @@ export const SiteManagementReportPDF = ({
                     <Text>No audit data available.</Text>
                 )}
                 <PDFFooter />
-            </Page>            {/* Page 5: APPENDIX for AUDIT - Only show if there are audit attachments */}
+            </Page>            
+            
+            {/* Page 5: APPENDIX for AUDIT - Only show if there are audit attachments */}
             {hasAuditAttachments && (
                 <Page size="A4" style={styles.page}>
                     <PDFAppendixTitlePage
@@ -348,7 +358,8 @@ export const SiteManagementReportPDF = ({
 
                 <PDFSectionTitle title="2.5 AGREEMENTS" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    
+                    <View style={styles.totalBox}>
                         {/* total NADI sites with agreements */}
                         <Text>Total NADI{"\n"}{agreementSites}</Text>
                     </View>
@@ -386,7 +397,9 @@ export const SiteManagementReportPDF = ({
                     <Text>No agreement data available.</Text>
                 )}
                 <PDFFooter />
-            </Page>            {/* Page 7: APPENDIX for AGREEMENT - Only show if there are agreement attachments */}
+            </Page>           
+            
+             {/* Page 7: APPENDIX for AGREEMENT - Only show if there are agreement attachments */}
             {hasAgreementAttachments && (
                 <Page size="A4" style={styles.page}>
                     <PDFAppendixTitlePage
@@ -401,7 +414,8 @@ export const SiteManagementReportPDF = ({
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.4 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    
+                    <View style={styles.totalBox}>
                         {/* total NADI sites with utilities */}
                         <Text>Total NADI{"\n"}{utilitySites}</Text>
                     </View>
@@ -456,7 +470,8 @@ export const SiteManagementReportPDF = ({
             <Page size="A4" style={styles.page}>
                 <PDFSectionTitle title="2.6 AWARENESS PROGRAMMES" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    <View style={styles.totalBox}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>                    
+                    <View style={styles.totalBox}>
                         {/* total NADI sites with awareness programmes */}
                         <Text>Total NADI{"\n"}{programmeSites}</Text>
                     </View>
@@ -479,7 +494,7 @@ export const SiteManagementReportPDF = ({
                         },
                         {
                             key: "standard_code",
-                            header: "STANDARD CODE",
+                            header: "SITE CODE",
                         },
                         {
                             key: "site_name",
@@ -501,8 +516,11 @@ export const SiteManagementReportPDF = ({
                 />
                 ) : (
                     <Text>No awareness programme data available.</Text>
-                )}                <PDFFooter />
-            </Page>            {/* Page 10: APPENDIX for AWARENESS PROGRAMMES - Only show if there are programme attachments */}
+                )}                
+                <PDFFooter />
+            </Page>            
+            
+            {/* Page 10: APPENDIX for AWARENESS PROGRAMMES - Only show if there are programme attachments */}
             {hasProgrammeAttachments && (
                 <Page size="A4" style={styles.page}>
                     <PDFAppendixTitlePage

@@ -12,6 +12,12 @@ const styles = StyleSheet.create({
     width: 80, 
     height: 60 
   },
+  logo2:{
+    width: 70, 
+    height: 52.5, // Maintaining the aspect ratio (70 / 80 * 60 = 52.5)
+    marginLeft: "auto", 
+    marginRight: 0,
+  },
   titleSection: { 
     textAlign: "center", 
     flex: 1 
@@ -112,7 +118,7 @@ export const PDFHeader = ({
       <Text style={styles.title}>THE NATIONAL INFORMATION</Text>
       <Text style={styles.title}>DISSEMINATION CENTRE (NADI)</Text>
     </View>
-    <Image src={duspLogo} style={styles.logo} />
+    <Image src={duspLogo} style={styles.logo2} />
   </View>
 );
 

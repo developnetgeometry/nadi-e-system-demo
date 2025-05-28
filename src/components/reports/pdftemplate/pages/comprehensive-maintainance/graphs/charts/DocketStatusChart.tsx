@@ -11,12 +11,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
-import { DocketStatusData } from "@/hooks/report/use-cm-byphase-pdf-data";
+import { docketStatusData } from "@/hooks/report/use-cm-byphase-pdf-data";
 
 
 
 interface DocketStatusChartProps {
-  data: DocketStatusData[];
+  data: docketStatusData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;

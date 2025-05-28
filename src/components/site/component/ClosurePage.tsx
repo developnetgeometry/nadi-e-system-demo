@@ -60,6 +60,7 @@ import { useFormatDuration } from "@/hooks/use-format-duration";
 import {
   useDraftClosure,
   useDeleteDraftClosure,
+  useDeletePendingClosure,
 } from "../hook/submit-siteclosure-data";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useToast } from "@/components/ui/use-toast";
@@ -306,11 +307,11 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [duspFilters, setDuspFilters] = useState<string[]>([]);
   const [tpFilters, setTpFilters] = useState<string[]>([]);
-
   const { formatDuration } = useFormatDuration();
   const { formatDate } = useFormatDate();
   const { fetchDraftData, loading: loadingDraft } = useDraftClosure();
   const { deleteDraft, loading: deletingDraft } = useDeleteDraftClosure();
+  const { deletePending, loading: deletingPending } = useDeletePendingClosure();
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -800,25 +801,20 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     setDeletePendingId(requestId);
     setShowDeletePendingConfirm(true);
   };
-
   const handleDeletePendingConfirm = async () => {
     if (!deletePendingId) return;
 
     try {
-      // Delete the pending request
-      const { error } = await supabase
-        .from("nd_site_closure")
-        .delete()
-        .eq("id", deletePendingId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Closure request deleted successfully",
-      });
-
-      refetch();
+      const result = await deletePending(deletePendingId);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Closure request deleted successfully",
+        });
+        refetch();
+      } else {
+        throw new Error(result.error);
+      }
     } catch (err) {
       console.error("Error deleting request:", err);
       toast({
