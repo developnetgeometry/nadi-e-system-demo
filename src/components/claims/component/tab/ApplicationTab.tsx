@@ -13,9 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { uploadAttachment, deleteAttachment, updateRemark } from "@/components/claims/hook/upload-attachment";
 import { Download, Trash2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ViewSiteDialog from "../ViewSiteDialog";
 const fileInputLabelClass =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[#5147dd] bg-background text-[#5147dd] hover:bg-[#5147dd]/10 hover:text-[#5147dd] h-6 px-4 py-2"
-
 
 type ClaimData = {
   id: number;
@@ -58,6 +58,8 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
   const { toast } = useToast();
   const [editingRemark, setEditingRemark] = useState<{ itemId: number; remark: string | null } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isViewSiteDialogOpen, setIsViewSiteDialogOpen] = useState(false);
+  const [selectedSiteIds, setSelectedSiteIds] = useState<number[]>([]);
 
   const handleUpdateRemark = async (itemId: number, remark: string) => {
     try {
@@ -157,6 +159,7 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
           <TableRow>
             <TableHead className="px-4 py-2 border w-[120px]">Category</TableHead>
             <TableHead className="px-4 py-2 border w-[200px]">Items</TableHead>
+            <TableHead className="px-4 py-2 border w-[120px]">Sites</TableHead>
             <TableHead className="px-4 py-2 text-center border w-[120px]">Summary Report</TableHead>
             <TableHead className="px-4 py-2 text-center border">Attachment</TableHead>
             <TableHead className="px-4 py-2 text-center border w-[300px]">Remark</TableHead>
@@ -177,6 +180,27 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
                     </TableCell>
                   )}
                   <TableCell className="px-4 py-2 border">{item.item.name}</TableCell>
+                  <TableCell className="px-4 py-2 text-center border">
+                    {item.item.site_ids.length > 0 ? (
+                      <div className="flex flex-col items-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedSiteIds(item.item.site_ids); // Pass the site_ids to the dialog
+                            setIsViewSiteDialogOpen(true); // Open the dialog
+                          }}
+                          className="h-6"
+                        >
+                          View Sites
+                        </Button>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {`${item.item.site_ids.length} site${item.item.site_ids.length !== 1 ? "s" : ""} selected`}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">No Sites</span>
+                    )}
+                  </TableCell>
                   <TableCell className="px-4 py-2 text-center border">
                     {item.item.need_summary_report ? (
                       item.item.summary_report_file ? (
@@ -359,6 +383,12 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
         </TableBody>
       </Table>
 
+      {/* View Site DIalog */}
+      <ViewSiteDialog
+        isOpen={isViewSiteDialogOpen}
+        onClose={() => setIsViewSiteDialogOpen(false)} // Close the dialog
+        siteIds={selectedSiteIds} // Pass the selected site IDs
+      />
     </div>
   );
 }
