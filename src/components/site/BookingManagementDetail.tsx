@@ -284,8 +284,6 @@ const BookingContent = ({
     facilitiesData
 }: BookingContentProps) => {
 
-    const tabsMenu = ["PC Bookings", "PC Calendar", "Facility Bookings", "Facility Calendar"];
-
     const tpsSitespcsAvailibility = pcsData?.map((pc) => {
         const currentBooking = pc.nd_booking?.find((b) => {
             const now = new Date();
@@ -334,6 +332,7 @@ const BookingContent = ({
                 }}
                 pcsData={pcsData}
                 isTpAdmin={isTpAdmin}
+                isTpSite={isTpSite}
                 bookingsData={pcsBooking}
                 setBookingsData={setPcsBookingsData}
                 isLoading={isBookingLoading}
@@ -373,7 +372,8 @@ interface PcBookingProps {
         pcAvailable: number | string
     }
     pcsData: Asset[],
-    isTpAdmin: boolean
+    isTpAdmin: boolean,
+    isTpSite: boolean,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     bookingsData: Booking[],
     isLoading: boolean
@@ -383,6 +383,7 @@ const PcBookings = ({
     value,
     pcStats,
     pcsData,
+    isTpSite,
     isTpAdmin,
     setBookingsData,
     bookingsData,
@@ -425,6 +426,7 @@ const PcBookings = ({
                 }
             </section>
             <PcMainContent
+                isTpSite={isTpSite}
                 pcsData={pcsData}
                 bookingsData={bookingsData}
                 setBookingsData={setBookingsData}
@@ -440,6 +442,7 @@ interface PcMainContentProps {
     pcsData: Asset[]
     isLoading: boolean
     isTpAdmin: boolean
+    isTpSite: boolean
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
 }
 
@@ -447,6 +450,7 @@ export const PcMainContent = ({
     bookingsData,
     setBookingsData,
     pcsData,
+    isTpSite,
     isTpAdmin,
     isLoading
 }: PcMainContentProps) => {
@@ -472,7 +476,7 @@ export const PcMainContent = ({
 
     return (
         <section className="mt-6 flex flex-col" id="pc status">
-            {isTpAdmin && <BulkActionButtons />}
+            {isTpSite && <BulkActionButtons />}
             <AssetStatus
                 assetData={pcsData}
                 header="PC Status"
@@ -517,6 +521,8 @@ export const PcCalender = ({
 
     useEffect(() => {
         function filterByDateRange(bookingData: Booking[], range: DateRange): Booking[] {
+            if (!range?.from || !range?.to) return bookingData;
+            
             const { from, to } = range;
 
             return bookingData.filter(item => {
@@ -588,21 +594,10 @@ const FacilityBooking = ({
     facilitiesData
 }: FacilityBookingProps) => {
     return (
-        <TabsContent className="w-full mt-6 space-y-6" value={value}>
-            <div className="space-y-4">
-                <h1 className="text-2xl font-bold">Facilities Charts</h1>
-                <div className="w-full grid grid-cols-2 gap-6">
-                    <ChartCard title="Facility Utilization" badge={<Badge className="bg-white border border-gray-300 text-black">Last 30 Days</Badge>}>
-                        <FacilityUtilization />
-                    </ChartCard>
-                    <ChartCard title="Facility Utilization" badge={<Badge className="bg-white border border-gray-300 text-black">Current Week</Badge>}>
-                        <FacilityUsageTrend />
-                    </ChartCard>
-                </div>
-            </div>
+        <TabsContent className="w-full" value={value}>
             <AssetStatus
-                spaceData={facilitiesData}
                 header="Facility Status"
+                spaceData={facilitiesData}
             />
         </TabsContent>
     )
@@ -628,31 +623,6 @@ const FacilityCalender = ({
     bookingsData,
     setBookingsData
 }: FacilityCalendarProps) => {
-    const statsItems = [
-        {
-            title: "Total Check-ins",
-            value: String(23),
-            icon: UserCheck,
-            description: "",
-            iconBgColor: "bg-gray-200",
-            iconTextColor: "text-black",
-        },
-        {
-            title: "Computer Lab",
-            value: String(12),
-            icon: MonitorCheck,
-            description: "",
-            iconBgColor: "bg-blue-100",
-            iconTextColor: "text-blue-500",
-        }, {
-            title: "Study Room",
-            value: String(9),
-            icon: BookCheck,
-            description: "",
-            iconBgColor: "bg-green-100",
-            iconTextColor: "text-green-500",
-        },
-    ];
 
     const [bookingCalendarData, setBookingCalendarData] = useState<Booking[]>([]);
     const [rawBookingCalendarData, setRawBookingCalendarData] = useState([]);
@@ -663,6 +633,8 @@ const FacilityCalender = ({
 
     useEffect(() => {
         function filterByDateRange(bookingData: Booking[], range: DateRange): Booking[] {
+            if (!range?.from || !range?.to) return bookingData;
+            
             const { from, to } = range;
 
             return bookingData.filter(item => {
@@ -703,13 +675,6 @@ const FacilityCalender = ({
 
     return (
         <TabsContent className="w-full mt-6 space-y-6" value={value}>
-            <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {
-                    statsItems.map((item) => (
-                        <StatsCard key={item.title} {...item} />
-                    ))
-                }
-            </section>
             <BookingCalendar
                 assetTypeNames={[
                     "All Facilities",
@@ -719,7 +684,6 @@ const FacilityCalender = ({
                 isTpSite={isTpSite}
                 date={date}
                 setDate={setDate}
-                header="Booking Records"
                 isFacility={true}
                 bookingType="facilities"
                 bookingData={bookingCalendarData}
@@ -736,7 +700,7 @@ interface AssetStatusProps {
     assetData?: Asset[]
     spaceData?: SiteSpace[]
     isLoading?: boolean
-    header: string
+    header?: string
 }
 
 const AssetStatus = ({
@@ -845,7 +809,7 @@ const AssetStatus = ({
                     return {
                         id: pc.id,
                         status: booking?.is_using ? "in-use" : "Available",
-                        type: pc.nd_brand?.brand_type,
+                        type: pc.nd_brand?.nd_brand_type?.name,
                         name: pc.name,
                         spec: pc?.nd_brand.name,
                         staffName: isBooking ? full_name : "-",
@@ -930,12 +894,17 @@ const AssetStatus = ({
     return (
         <>
             <div className="flex justify-between">
-                <h1 className="text-2xl font-bold">{header}</h1>
-                <div className="flex gap-2">
-                    {statusBadges.map(({ name, customClass }) => (
-                        <Badge key={name} className={`${customClass}`}>{name}</Badge>
-                    ))}
-                </div>
+                {!!header && (
+                    <>
+                        <h1 className="text-2xl font-bold">{header}</h1>
+                        <div className="flex gap-2">
+                            {statusBadges.map(({ name, customClass }) => (
+                                <Badge key={name} className={`${customClass}`}>{name}</Badge>
+                            ))}
+                        </div>
+                    </>
+
+                )}
             </div>
             <div>
                 {
