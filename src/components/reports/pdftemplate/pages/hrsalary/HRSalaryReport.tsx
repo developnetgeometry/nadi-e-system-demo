@@ -245,7 +245,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 <PDFHeader mcmcLogo={mcmcLogo} duspLogo={duspLogo} />
 
                 <PDFMetaSection
-                    reportTitle="Salary & HR Management"
+                    reportTitle="1.0 Salary & HR Management"
                     phaseLabel={phaseLabel}
                     periodType={periodType}
                     periodValue={periodValue}

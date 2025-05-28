@@ -52,7 +52,8 @@ export const SiteManagementReportDownloadButton = ({
     yearFilter,
     tpFilter
   );
-  const fileName = `site-management-report-${new Date().toISOString().split('T')[0]}.pdf`; 
+
+  const fileName = `SiteManagementReport_${duspLabel || 'AllDUSP'}_${phaseLabel || 'AllPhases'}_${periodType || 'AllPeriods'}_${periodValue || 'AllValues'}.pdf`;
   
   const generateAndDownloadPDF = async () => {
     setIsGenerating(true);

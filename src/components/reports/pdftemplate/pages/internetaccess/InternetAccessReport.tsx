@@ -172,12 +172,12 @@ export const InternetAccessReportPDF: React.FC<InternetAccessReportPDFProps> = (
               },
               {
                 key: "technology",
-                header: "QTY CMS PC CLIENT",
+                header: "TECHNOLOGY",
                 width: "20%"
               },
               {
                 key: "bandwidth",
-                header: "DATE INSTALL",
+                header: "BANDWIDTH",
                 width: "20%"
               }
             ]}
