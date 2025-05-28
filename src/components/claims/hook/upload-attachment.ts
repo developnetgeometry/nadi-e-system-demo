@@ -117,3 +117,24 @@ export const uploadSignDoc = async (
     return { success: false, error };
   }
 };
+
+
+export const updateRemark = async (requestId: number, remark: string) => {
+  try {
+    // Update the remark in the nd_claim_request table
+    const { error: dbError } = await supabase
+      .from("nd_claim_request")
+      .update({ remark })
+      .eq("id", requestId);
+
+    if (dbError) {
+      console.error("Error updating remark in nd_claim_request:", dbError);
+      throw new Error("Failed to update remark in nd_claim_request");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in updateRemark function:", error);
+    return { success: false, error };
+  }
+};

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { PDFDocument } from "pdf-lib";
 import {
   Table,
   TableBody,
@@ -7,14 +8,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import { uploadAttachment, deleteAttachment } from "@/components/claims/hook/upload-attachment";
-import { BUCKET_NAME_SITE_CLAIM, supabase, SUPABASE_BUCKET_URL } from "@/integrations/supabase/client";
-import { useSiteProfilesByIds } from "@/components/claims/tp/hooks/use-generate-claim-report";
+import { Textarea } from "@/components/ui/textarea";
+import { uploadAttachment, deleteAttachment, updateRemark } from "@/components/claims/hook/upload-attachment";
+import { Download, Trash2, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+const fileInputLabelClass =
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[#5147dd] bg-background text-[#5147dd] hover:bg-[#5147dd]/10 hover:text-[#5147dd] h-6 px-4 py-2"
 
-interface ClaimData {
+
+type ClaimData = {
   id: number;
   claim_type: string;
   year: number;
@@ -25,300 +28,337 @@ interface ClaimData {
   payment_status: boolean;
   phase_id: { id: number; name: string };
   claim_status: { id: number; name: string };
-  tp_dusp_id: {
-    id: string;
-    name: string;
-    parent_id: { id: string; name: string };
-  };
+  tp_dusp_id: { id: string; name: string; parent_id: { id: string; name: string } };
   requests: {
     id: number;
-    category: { id: number; name: string };
-    item: {
+    name: string;
+    items: {
       id: number;
-      name: string;
-      need_support_doc: boolean;
-      need_summary_report: boolean;
-      status_item: boolean;
-      remark: string;
-      site_ids: number[];
-      suppport_doc_file: { id: number; file_path: string }[];
-      summary_report_file: { id: number; file_path: string } | null;
-    };
+      item: {
+        id: number;
+        name: string;
+        need_support_doc: boolean;
+        need_summary_report: boolean;
+        status_item: boolean;
+        remark: string | null;
+        site_ids: number[];
+        suppport_doc_file: { id: number; file_path: string }[]; // Updated type
+        summary_report_file: { id: number; file_path: string } | null;
+      };
+    }[];
   }[];
-}
+};
 
-interface ApplicationTabProps {
+type ApplicationTabProps = {
   claimData: ClaimData;
-}
+  refetch: () => void;
+};
 
-const ApplicationTab: React.FC<ApplicationTabProps> = ({ claimData }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
-  const [selectedSiteIds, setSelectedSiteIds] = useState<number[]>([]);
+export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
+  const { toast } = useToast();
+  const [editingRemark, setEditingRemark] = useState<{ itemId: number; remark: string | null } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const { siteProfiles, isLoading, error } = useSiteProfilesByIds(selectedSiteIds);
-
-  const handleOpenDialog = (requestId: number) => {
-    setSelectedRequestId(requestId);
-    setIsDialogOpen(true);
-  };
-
-  const handleOpenSiteDialog = (siteIds: number[]) => {
-    setSelectedSiteIds(siteIds);
-    setIsSiteDialogOpen(true);
-  };
-
-  const handleFileUpload = async () => {
-    if (!selectedRequestId || files.length === 0) return;
-
-    setIsUploading(true);
-
+  const handleUpdateRemark = async (itemId: number, remark: string) => {
     try {
-      for (const file of files) {
-        const { success, error } = await uploadAttachment(
-          file,
-          claimData.tp_dusp_id, // Pass the tp_dusp_id object
-          claimData.year, // Pass the year
-          claimData.ref_no, // Pass the reference number
-          selectedRequestId, // Pass the request ID
-          1 // Supporting document
-        );
-
-        if (success) {
-          // Fetch the latest data for the specific request
-          const { data: updatedAttachments, error: fetchError } = await supabase
-            .from("nd_claim_attachment")
-            .select("id, file_path")
-            .eq("request_id", selectedRequestId)
-            .eq("claim_type_id", 1); // Fetch only supporting documents
-
-          if (fetchError) {
-            console.error("Error fetching updated attachments:", fetchError);
-            throw new Error("Failed to fetch updated attachments");
-          }
-
-          // Update the UI with the latest attachments
-          const request = claimData.requests.find((req) => req.id === selectedRequestId);
-          if (request) {
-            request.item.suppport_doc_file = updatedAttachments.map((attachment) => ({
-              id: attachment.id,
-              file_path: `${SUPABASE_BUCKET_URL}/${BUCKET_NAME_SITE_CLAIM}/${attachment.file_path}`,
-            }));
-          }
-        } else {
-          console.error("Error uploading file:", error);
-          throw new Error("Failed to upload file");
-        }
+      const result = await updateRemark(itemId, remark);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Remark updated.",
+          variant: "default",
+        });
+        setEditingRemark(null);
+      } else {
+        alert("Failed to update remark.");
       }
+      refetch();
     } catch (error) {
-      console.error("Error uploading files:", error);
-    } finally {
-      setIsUploading(false);
-      setIsDialogOpen(false);
-      setFiles([]);
+      console.error("Error updating remark:", error);
     }
   };
 
-  const handleDeleteFile = async (fileId: number, filePath: string, requestId: number) => {
+  const handleDownloadAllReports = async () => {
+    setIsDownloading(true); // Set loading state to true
     try {
-      const { success, error } = await deleteAttachment(fileId, filePath);
+      const pdfDoc = await PDFDocument.create();
 
-      if (success) {
-        // Update the UI
-        const request = claimData.requests.find((req) => req.id === requestId);
-        if (request) {
-          request.item.suppport_doc_file = request.item.suppport_doc_file.filter((file) => file.id !== fileId);
+      // Iterate over all requests and their items
+      for (const request of claimData.requests) {
+        for (const item of request.items) {
+          // Add the summary report file
+          if (item.item.summary_report_file) {
+            const summaryResponse = await fetch(item.item.summary_report_file.file_path);
+            const summaryBytes = await summaryResponse.arrayBuffer();
+            const summaryPdf = await PDFDocument.load(summaryBytes);
+            const summaryPages = await pdfDoc.copyPages(summaryPdf, summaryPdf.getPageIndices());
+            summaryPages.forEach((page) => pdfDoc.addPage(page));
+          }
+
+          // Add the supporting document files
+          if (item.item.suppport_doc_file?.length > 0) {
+            for (const file of item.item.suppport_doc_file) {
+              const supportResponse = await fetch(file.file_path);
+              const supportBytes = await supportResponse.arrayBuffer();
+              const supportPdf = await PDFDocument.load(supportBytes);
+              const supportPages = await pdfDoc.copyPages(supportPdf, supportPdf.getPageIndices());
+              supportPages.forEach((page) => pdfDoc.addPage(page));
+            }
+          }
         }
-
-        // Trigger a re-render by updating the state
-        setFiles((prevFiles) => [...prevFiles]); // Dummy state update to force re-render
-      } else {
-        console.error("Error deleting file:", error);
-        throw new Error("Failed to delete file");
       }
+
+      // Serialize the combined PDF
+      const combinedPdfBytes = await pdfDoc.save();
+
+      // Create a blob and trigger download
+      const blob = new Blob([combinedPdfBytes], { type: "application/pdf" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `ClaimData_Combined_Report.pdf`;
+      link.click();
+      URL.revokeObjectURL(link.href);
     } catch (error) {
-      console.error("Error deleting file:", error);
+      console.error("Error combining and downloading reports:", error);
+    } finally {
+      setIsDownloading(false); // Reset loading state
     }
   };
 
   return (
     <div>
-      <header className="mb-4">Claim Items</header>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-bold">Claim Data</h2>
+
+        <Button
+          variant="outline"
+          onClick={handleDownloadAllReports}
+          disabled={isDownloading}
+          className="relative flex items-center justify-center"
+        >
+          {isDownloading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500 mr-2"></div>
+              Downloading...
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4 mr-2" />
+              Download Combined Reports
+            </>
+          )}
+        </Button>
+      </div>
+
       {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
 
       <Table className="border border-gray-300 w-full text-sm">
-        <TableHeader className="bg-gray-50">
+        <TableHeader>
           <TableRow>
-            <TableHead className="px-4 py-2 border">Category</TableHead>
-            <TableHead className="px-4 py-2 border">Items</TableHead>
-            <TableHead className="px-4 py-2 text-center border">Sites</TableHead>
-            <TableHead className="px-4 py-2 text-center border">Summary Report</TableHead>
-            <TableHead className="px-4 py-2 text-center border">Supporting Document</TableHead>
+            <TableHead className="px-4 py-2 border w-[120px]">Category</TableHead>
+            <TableHead className="px-4 py-2 border w-[200px]">Items</TableHead>
+            <TableHead className="px-4 py-2 text-center border w-[120px]">Summary Report</TableHead>
+            <TableHead className="px-4 py-2 text-center border">Attachment</TableHead>
+            <TableHead className="px-4 py-2 text-center border w-[300px]">Remark</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {claimData.requests.reduce((acc, request, index, array) => {
-            const isFirstInCategory =
-              index === 0 || request.category.id !== array[index - 1].category.id;
-
-            acc.push(
-              <TableRow key={request.id}>
-                {isFirstInCategory && (
-                  <TableCell
-                    className="px-4 py-2 border"
-                    rowSpan={
-                      array.filter((req) => req.category.id === request.category.id).length
-                    }
-                  >
-                    {request.category.name}
-                  </TableCell>
-                )}
-                <TableCell className="px-4 py-2 border">{request.item.name}</TableCell>
-                <TableCell className="px-4 py-2 text-center border">
-                  <Button variant="outline" onClick={() => handleOpenSiteDialog(request.item.site_ids)}>
-                    View Sites
-                  </Button>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {request.item.site_ids.length} site{request.item.site_ids.length !== 1 ? "s" : ""} selected
-                  </div>
-                </TableCell>
-                <TableCell className="px-4 py-2 text-center border">
-                  {request.item.summary_report_file ? (
-                    <a
-                      href={request.item.summary_report_file.file_path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 underline"
+          {claimData.requests.map((request) => (
+            <React.Fragment key={request.id}>
+              {request.items.map((item, index) => (
+                <TableRow key={item.id}>
+                  {index === 0 && (
+                    <TableCell
+                      className="px-4 py-2 align-top border"
+                      rowSpan={request.items.length}
                     >
-                      View Report
-                    </a>
-                  ) : (
-                    <span className="text-gray-500">Not Required</span>
+                      {request.name}
+                    </TableCell>
                   )}
-                </TableCell>
-                <TableCell className="px-4 py-2 text-center border">
-                  <div className="flex flex-col items-center gap-2">
-                    {request.item.suppport_doc_file?.length ? (
-                      <div className="flex flex-col gap-2">
-                        {request.item.suppport_doc_file.map((file) => (
-                          <div key={file.id} className="flex items-center gap-2">
-                            <a
-                              href={file.file_path}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-500 underline"
-                            >
-                              View Document
-                            </a>
-                            {claimData.claim_status?.name === "DRAFTED" && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-red-600"
-                                onClick={() => handleDeleteFile(file.id, file.file_path, request.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
+                  <TableCell className="px-4 py-2 border">{item.item.name}</TableCell>
+                  <TableCell className="px-4 py-2 text-center border">
+                    {item.item.need_summary_report ? (
+                      item.item.summary_report_file ? (
+                        <a
+                          href={item.item.summary_report_file.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 underline"
+                        >
+                          View Report
+                        </a>
+                      ) : (
+                        <span className="text-gray-500">Not Available</span>
+                      )
+                    ) : (
+                      <span className="text-gray-500">Not Required</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-center border">
+                    {item.item.need_support_doc ? (
+                      <div className="flex flex-col items-center gap-2">
+                        {item.item.suppport_doc_file?.length > 0 ? (
+                          <div className="flex flex-col gap-2">
+                            {item.item.suppport_doc_file.map((file, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <a
+                                  href={file.file_path}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 underline"
+                                >
+                                  View File
+                                </a>
+                                {(claimData.claim_status.name === "DRAFTED" &&
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-red-600"
+                                    onClick={async () => {
+                                      try {
+                                        const result = await deleteAttachment(file.id, file.file_path);
+                                        if (result.success) {
+                                          toast({
+                                            title: "Success",
+                                            description: "Attachment deleted.",
+                                            variant: "default",
+                                          });
+                                          refetch(); // Refresh the data
+                                        } else {
+                                          alert("Failed to delete attachment.");
+                                        }
+                                      } catch (error) {
+                                        console.error("Error deleting attachment:", error);
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        ) : (
+                          <span className="text-gray-500">No Files</span>
+                        )}
+                        {(claimData.claim_status.name === "DRAFTED" &&
+                          <div>
+                            <input
+                              type="file"
+                              id="fileInput"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx"
+                              multiple // Allow multiple file selection
+                              onChange={async (e) => {
+                                if (e.target.files) {
+                                  const files = Array.from(e.target.files); // Convert FileList to an array
+                                  try {
+                                    for (const file of files) {
+                                      const result = await uploadAttachment(
+                                        file,
+                                        claimData.tp_dusp_id,
+                                        claimData.year,
+                                        claimData.ref_no,
+                                        item.id,
+                                        1 // Claim type ID for supporting documents
+                                      );
+                                      if (!result.success) {
+                                        alert(`Failed to upload file: ${file.name}`);
+                                      }
+                                    }
+                                    toast({
+                                      title: "Success",
+                                      description: "Attachments uploaded.",
+                                      variant: "default",
+                                    });
+                                    refetch(); // Refresh the data
+                                  } catch (error) {
+                                    console.error("Error uploading attachments:", error);
+                                  }
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor="fileInput"
+                              className={fileInputLabelClass}
+                            >
+                              Upload File
+                            </label>
+                          </div>
+                        )}
                       </div>
                     ) : (
-                      <span className="text-gray-500">Not Available</span>
+                      <span className="text-gray-500">Not Required</span>
                     )}
-                    {claimData.claim_status?.name === "DRAFTED" && (
-                      <Button variant="outline" onClick={() => handleOpenDialog(request.id)}>
-                        Upload
-                      </Button>
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-center border">
+                    {editingRemark?.itemId === item.id ? (
+                      <div className="flex flex-col gap-2">
+                        <Textarea
+                          value={editingRemark.remark ?? ""}
+                          onChange={(e) =>
+                            setEditingRemark({
+                              itemId: item.id,
+                              remark: e.target.value,
+                            })
+                          }
+                          className="border border-gray-300 rounded px-2 py-1 w-full"
+                        />
+                        <div className="flex justify-between items-center gap-2">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => setEditingRemark(null)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              handleUpdateRemark(item.id, editingRemark.remark ?? "")
+                            }
+                            className="flex-1"
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <span className={
+                          claimData.claim_status.name === "DRAFTED"
+                            ? "border border-gray-300 rounded px-2 py-1 w-full"
+                            : ""
+                        }>  {item.item.remark?.trim() ? item.item.remark : "No Remark"}
+                        </span>
+                        {(claimData.claim_status.name === "DRAFTED" &&
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              setEditingRemark({
+                                itemId: item.id,
+                                remark: item.item.remark,
+                              })
+                            }
+                            className="h-6"
+                          >
+                            {item.item.remark?.trim() ? "Update Remark" : "Add Remark"}
+                          </Button>
+                        )}
+                      </div>
                     )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
+                  </TableCell>
 
-            return acc;
-          }, [])}
+
+                </TableRow>
+              ))}
+            </React.Fragment>
+          ))}
         </TableBody>
       </Table>
 
-      {/* Upload Dialog */}
-      {isDialogOpen && (
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Upload Supporting Documents</DialogTitle>
-              <DialogDescription></DialogDescription>
-            </DialogHeader>
-            <input
-              type="file"
-              multiple
-              accept=".pdf,.doc,.docx"
-              onChange={(e) => setFiles(Array.from(e.target.files || []))}
-            />
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                onClick={handleFileUpload}
-                disabled={files.length === 0 || isUploading}
-              >
-                {isUploading ? "Uploading..." : "Upload"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-
-      {/* Dialog for Site Profiles */}
-      {isSiteDialogOpen && (
-        <Dialog open={isSiteDialogOpen} onOpenChange={setIsSiteDialogOpen}>
-          <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Site Profiles</DialogTitle>
-              <DialogDescription>
-                Below are the details of the selected site profiles.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="p-4">
-              {isLoading ? (
-                <p>Loading site profiles...</p>
-              ) : error ? (
-                <p className="text-red-500">Error loading site profiles.</p>
-              ) : siteProfiles && siteProfiles.length > 0 ? (
-                <table className="table-auto w-full border-collapse border border-gray-300">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border px-4 py-2">Full Name</th>
-                      <th className="border px-4 py-2">Ref ID (MCMC)</th>
-                      <th className="border px-4 py-2">Ref ID (TP)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {siteProfiles.map((profile, index) => (
-                      <tr key={index}>
-                        <td className="border px-4 py-2">{profile.fullname}</td>
-                        <td className="border px-4 py-2">{profile.refid_mcmc}</td>
-                        <td className="border px-4 py-2">{profile.refid_tp}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p>No site profiles available.</p>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
-};
-
-export default ApplicationTab;
+}
