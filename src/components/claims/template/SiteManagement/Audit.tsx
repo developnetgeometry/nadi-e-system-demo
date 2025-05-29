@@ -6,6 +6,7 @@ import {
     View,
     StyleSheet,
     pdf,
+    Image,
 } from "@react-pdf/renderer";
 import {
     PDFFooter,
@@ -18,6 +19,24 @@ import {
 // Import the actual data fetching functions, not hooks
 import { fetchAuditData } from "./hook/use-audit-data";
 import { fetchPhaseData } from "@/hooks/use-phase";
+// Import PDF merging library
+import { PDFDocument } from 'pdf-lib';
+
+// Utility functions for handling attachments
+const isPDF = (url: string): boolean => {
+    return url.toLowerCase().endsWith('.pdf');
+};
+
+const isImage = (url: string): boolean => {
+    const extensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.tiff'];
+    return extensions.some(ext => url.toLowerCase().endsWith(ext));
+};
+
+// Function to fetch a PDF as ArrayBuffer
+const fetchPDFAsArrayBuffer = async (url: string): Promise<ArrayBuffer> => {
+    const response = await fetch(url);
+    return await response.arrayBuffer();
+};
 
 const styles = StyleSheet.create({
     page: {
@@ -35,6 +54,19 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 12,
         width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
+    },
+    attachmentContainer: {
+        marginTop: 20,
+        marginBottom: 20,
+    },
+    attachmentTitle: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    imageAttachment: {
+        width: '100%',
+        marginBottom: 20,
     },
 });
 
@@ -124,9 +156,7 @@ const Audit = async ({
                     <Text>No audit data available.</Text>
                 )}
                 <PDFFooter />
-            </Page>
-
-            {/* Page 2: APPENDIX for AUDIT - Only show if there are audit attachments */}
+            </Page>            {/* Page 2: APPENDIX for AUDIT - Only show if there are audit attachments */}
             <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX"
@@ -134,13 +164,63 @@ const Audit = async ({
                 />
                 <PDFFooter />
             </Page>
+            
+            {/* Image attachment pages - One image per page */}
+            {audits.flatMap((audit, auditIndex) => 
+                (audit.attachments_path || [])
+                    .filter(isImage)
+                    .map((attachmentPath, attachIndex) => (
+                        <Page key={`${auditIndex}-${attachIndex}`} size="A4" style={styles.page}>
+                            <View style={styles.attachmentContainer}>
+                                <Text style={styles.attachmentTitle}>
+                                    Attachment for {audit.site_name} ({audit.standard_code})
+                                </Text>
+                                <Image src={attachmentPath} style={styles.imageAttachment} />
+                            </View>
+                            <PDFFooter />
+                        </Page>
+                    ))
+            )}
         </Document>
-    );
+    );// Get all attachment paths from audit data
+    const attachmentPaths = audits.flatMap(audit => audit.attachments_path || []);
+    
+    // Separate attachments into images and PDFs
+    const imageAttachments = attachmentPaths.filter(isImage);
+    const pdfAttachments = attachmentPaths.filter(isPDF);
 
     // Create a blob from the PDF document
-    const blob = await pdf(AuditDoc).toBlob();    // Generate filename based on available filters
+    const reportBlob = await pdf(AuditDoc).toBlob();
+    const reportArrayBuffer = await reportBlob.arrayBuffer();
+    
+    // Create a PDF document from the report
+    let pdfDoc = await PDFDocument.load(reportArrayBuffer);
+
+    // If there are PDF attachments, merge them with the main document
+    if (pdfAttachments.length > 0) {
+        try {
+            for (const pdfUrl of pdfAttachments) {
+                try {
+                    const attachmentBuffer = await fetchPDFAsArrayBuffer(pdfUrl);
+                    const attachmentPdf = await PDFDocument.load(attachmentBuffer);
+                    const attachmentPages = await pdfDoc.copyPages(attachmentPdf, attachmentPdf.getPageIndices());
+                    attachmentPages.forEach(page => pdfDoc.addPage(page));
+                } catch (error) {
+                    console.error(`Error merging PDF attachment ${pdfUrl}:`, error);
+                }
+            }
+        } catch (error) {
+            console.error("Error merging PDF attachments:", error);
+        }
+    }
+    
+    // Generate the final PDF blob
+    const mergedPdfBytes = await pdfDoc.save();
+    const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+    
+    // Generate filename based on available filters
     const dateStr = new Date().toISOString().split('T')[0];
-      // Build filename parts
+    // Build filename parts
     let filenameParts = ['audit-report'];
     
     // Add claim type if available
