@@ -200,11 +200,12 @@ export const PDFMetaSection = ({
   };
   
   // Determine periodType based on claimType if not directly provided
-  let periodType = claimType;
-    periodType = claimType === "Monthly" ? "MONTH / YEAR" :
-                      claimType === "Quarterly" ? "QUARTER / YEAR" :
-                      claimType === "Yearly" ? "YEAR" :
-                      "All Time";
+   const periodType = claimType ? 
+        (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
+         claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
+         claimType.toLowerCase() === "yearly" ? "YEAR" :
+         "All Time") : "All Time";
+
   
   // Format the period value based on periodType and available data
   let formattedPeriodValue = "-";
@@ -513,11 +514,11 @@ export const PDFPhaseQuarterInfo = ({
     endDate?: string | null;
 }) => {
     // Determine periodType based on claimType
-    const periodType = claimType === "Monthly" ? "MONTH / YEAR" :
-                        claimType === "Quarterly" ? "QUARTER / YEAR" :
-                        claimType === "Yearly" ? "YEAR" :
-                        "All Time";
-    
+    const periodType = claimType ? 
+        (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
+         claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
+         claimType.toLowerCase() === "yearly" ? "YEAR" :
+         "All Time") : "All Time";
     // Format the period value based on periodType
     let periodValue = '-';
     
