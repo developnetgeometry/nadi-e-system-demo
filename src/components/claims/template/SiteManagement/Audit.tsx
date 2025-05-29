@@ -15,8 +15,9 @@ import {
     PDFPhaseQuarterInfo,
     PDFMetaSection
 } from "../component/pdf-component";
-import useAuditData from "./hook/use-audit-data";
-import usePhase from "@/hooks/use-phase";
+// Import the actual data fetching functions, not hooks
+import { fetchAuditData } from "./hook/use-audit-data";
+import { fetchPhaseData } from "@/hooks/use-phase";
 
 const styles = StyleSheet.create({
     page: {
@@ -61,7 +62,7 @@ const Audit = async ({
 
 }: AuditProps): Promise<File> => {
     // Fetch audit data based on filters
-    const { audits } = useAuditData({
+    const { audits } = await fetchAuditData({
         startDate,
         endDate,
         duspFilter,
@@ -69,9 +70,11 @@ const Audit = async ({
         nadiFilter,
         tpFilter
     });
+    console.log("Audit data:", audits);
 
     // Fetch phase info if phaseFilter is provided
-    const { phase } = usePhase(phaseFilter);
+    const { phase } = await fetchPhaseData(phaseFilter);
+    console.log("Phase data:", phase);
     const phaseLabel = phase?.name || "All Phases";
 
     // Define the PDF document
