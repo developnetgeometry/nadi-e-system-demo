@@ -44,7 +44,8 @@ export const useFetchClaimById = (id: number) => {
             site_ids,
             application_id
           `)
-          .eq("application_id", id);
+          .eq("application_id", id)
+          .order("id", { ascending: true });
 
         if (claimReqError) {
           console.error("Error fetching nd_claim_request:", claimReqError);
@@ -114,29 +115,46 @@ export const useFetchClaimById = (id: number) => {
           throw new Error("Failed to fetch claim logs");
         }
 
-        // Step 6: Transform data to match the new structure
-        const requests = claimRequests.map((req) => ({
-          id: req.id, // Use nd_claim_request.id
-          category: req.category_id, // Use category_id (id, name) as an object
-          item: {
-            id: req.item_id.id,
-            name: req.item_id.name,
-            need_support_doc: req.item_id.need_support_doc,
-            need_summary_report: req.item_id.need_summary_report,
-            status_item: req.status_item,
-            remark: req.remark,
-            site_ids: req.site_ids,
-            suppport_doc_file: updatedClaimAttachments
-              .filter((attach) => attach.request_id === req.id && attach.claim_type_id === 1)
-              .map((attach) => ({
-                id: attach.id,
-                file_path: attach.file_path,
-              })),
-            summary_report_file: updatedClaimAttachments.find(
-              (attach) => attach.request_id === req.id && attach.claim_type_id === 2
-            ) || null,
-          },
-        }));
+        // Step 6: Transform data to group items by category
+        const categoryMap = new Map();
+
+        claimRequests.forEach((req) => {
+          const categoryId = req.category_id.id;
+
+          if (!categoryMap.has(categoryId)) {
+            categoryMap.set(categoryId, {
+              id: categoryId,
+              name: req.category_id.name,
+              items: [],
+            });
+          }
+
+          const category = categoryMap.get(categoryId);
+          category.items.push({
+            id: req.id, // nd_claim_request.id
+            item: {
+              id: req.item_id.id,
+              name: req.item_id.name,
+              need_support_doc: req.item_id.need_support_doc,
+              need_summary_report: req.item_id.need_summary_report,
+              status_item: req.status_item,
+              remark: req.remark,
+              site_ids: req.site_ids,
+              suppport_doc_file: updatedClaimAttachments
+                .filter((attach) => attach.request_id === req.id && attach.claim_type_id === 1)
+                .map((attach) => ({
+                  id: attach.id,
+                  file_path: attach.file_path,
+                })),
+              summary_report_file: updatedClaimAttachments.find(
+                (attach) => attach.request_id === req.id && attach.claim_type_id === 2
+              ) || null,
+            },
+          });
+        });
+
+        const requests = Array.from(categoryMap.values());
+
 
         // Combine data
         return {

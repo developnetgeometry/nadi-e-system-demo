@@ -9,7 +9,7 @@ export const useSiteProfilesByIds = (siteIds: number[]) => {
 
       const { data, error } = await supabase
         .from("nd_site_profile")
-        .select("refid_mcmc, refid_tp, fullname, is_active")
+        .select("id, refid_mcmc, refid_tp, fullname, is_active")
         .in("id", siteIds); // Filter by the array of site_ids
 
       if (error) {
