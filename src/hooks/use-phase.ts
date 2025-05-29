@@ -1,7 +1,4 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 
 export interface Phase {
   id: number;
@@ -16,80 +13,33 @@ export interface Phase {
   updated_by: string | null;
 }
 
-export function usePhase(phaseId: string | number | null) {
-  const { toast } = useToast();
-  
-  const {
-    data: phase,
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ["phase", phaseId],
-    queryFn: async () => {
-      if (!phaseId) return null;
-      
-      const { data, error } = await supabase
-        .from("nd_phases")
-        .select("*")
-        .eq("id", Number(phaseId))
-        .single();
-      
-      if (error) {
-        console.error("Error fetching phase:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load phase information",
-          variant: "destructive"
-        });
-        throw error;
-      }
-      
-      return data as Phase;
-    },
-    enabled: !!phaseId // Only run query if phaseId is provided
-  });
-  
-  return {
-    phase,
-    isLoading,
-    error
-  };
-}
+/**
+ * Non-hook data fetching function for use in async contexts
+ * This function is used by Audit.tsx to fetch phase data directly without React hooks
+ */
+export async function fetchPhaseData(phaseId: string | number | null) {
+  if (!phaseId) {
+    return { phase: null };
+  }
 
-export function useAllPhases() {
-  const { toast } = useToast();
-  
-  const {
-    data: phases,
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ["phases"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("nd_phases")
-        .select("*")
-        .order("id");
-      
-      if (error) {
-        console.error("Error fetching phases:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load phases",
-          variant: "destructive"
-        });
-        throw error;
-      }
-      
-      return data as Phase[];
+  try {
+    const { data, error } = await supabase
+      .from("nd_phases")
+      .select("*")
+      .eq("id", Number(phaseId))
+      .single();
+    
+    if (error) {
+      console.error("Error fetching phase:", error);
+      throw error;
     }
-  });
-  
-  return {
-    phases,
-    isLoading,
-    error
-  };
+    
+    return { phase: data as Phase };
+  } catch (err) {
+    console.error("Error in fetchPhaseData:", err);
+    return { phase: null };
+  }
 }
 
-export default usePhase;
+// For backward compatibility
+export default fetchPhaseData;
