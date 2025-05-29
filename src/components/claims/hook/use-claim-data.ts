@@ -82,7 +82,7 @@ export const useSiteByPhase = () => {
   const fetchSitesByPhase = async (phaseId: number) => {
     const { data, error } = await supabase
       .from("nd_site_profile")
-      .select("id, fullname")
+      .select("id, fullname, refid_mcmc, refid_tp")
       .eq("phase_id", phaseId);
 
     if (error) {

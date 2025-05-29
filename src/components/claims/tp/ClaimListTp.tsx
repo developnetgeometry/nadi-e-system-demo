@@ -15,18 +15,20 @@ import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { exportToCSV } from "@/utils/export-utils";
 import { Eye, Trash2 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import ClaimViewDialog from "../component/ClaimViewDialog";
 import TPDeleteDialog from "./TPDeleteDialog";
 import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
 import { useFetchClaimTP } from "./hooks/fetch-claim-tp";
+import { useNavigate } from "react-router-dom";
+
 
 export function ClaimListTp() {
   const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
+  const navigate = useNavigate();
+
 
   // Filter states
   const [search, setSearch] = useState<string>("");
@@ -44,8 +46,7 @@ export function ClaimListTp() {
   };
 
   const handleView = (claimId: number) => {
-    setSelectedClaim(claimId);
-    setIsViewDialogOpen(true);
+    navigate(`/claim/report?id=${claimId}`);
   };
 
   const handleDelete = (claim: any) => {
@@ -212,10 +213,18 @@ export function ClaimListTp() {
                     ? new Date(0, claim.month - 1).toLocaleString("default", { month: "long" })
                     : "N/A"}
                 </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusBadgeVariant(claim.claim_status.name)}>
+                <TableCell className="flex items-center gap-2">
+                  <Badge className="min-w-[6rem] text-center" variant={getStatusBadgeVariant(claim.claim_status.name)}>
                     {claim.claim_status.name}
                   </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full p-0 w-6 h-6 flex items-center justify-center"
+                    onClick={() => handleOpenDescriptionDialog(claim.claim_status.name)}
+                  >
+                    i
+                  </Button>
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
@@ -273,15 +282,6 @@ export function ClaimListTp() {
         onClose={() => setIsDescriptionDialogOpen(false)}
         status={selectedStatus}
       />
-
-      {/* Claim View Dialog */}
-      {selectedClaim && (
-        <ClaimViewDialog
-          isOpen={isViewDialogOpen}
-          onClose={() => setIsViewDialogOpen(false)}
-          claimId={selectedClaim}
-        />
-      )}
 
       {/* TP Delete Dialog */}
       {selectedClaim && (
