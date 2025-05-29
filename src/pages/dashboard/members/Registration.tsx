@@ -190,7 +190,10 @@ const RegistrationPage = () => {
       if (!data.dob) return showValidationError("Date of Birth is required.");
       if (!data.join_date) return showValidationError("Join Date is required.");
       if (!data.mobile_no) return showValidationError("Mobile Number is required.");
-      if (!data.email) return showValidationError("Email is required.");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        return showValidationError("Invalid email format. Please enter a valid email address eg: (abc@gmail.com).");
+      }
       if (!data.gender) return showValidationError("Gender is required.");
       if (!data.status_membership) return showValidationError("Membership status is required.");
     }
