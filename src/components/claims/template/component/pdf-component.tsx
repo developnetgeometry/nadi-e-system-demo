@@ -128,13 +128,17 @@ export const PDFHeader = ({
 export const PDFMetaSection = ({
   reportTitle,
   phaseLabel,
-  periodType = "MONTH / YEAR",
-  periodValue,
+  claimType = null,
+  quater = null,
+  startDate = null,
+  endDate = null,
 }: {
   reportTitle: string;
   phaseLabel?: string;
-  periodType?: string;
-  periodValue?: string;
+  claimType?: string | null;
+  quater?: string | number | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }) => {  
   // Create styles for the meta section table
   const metaStyles = StyleSheet.create({
@@ -189,24 +193,47 @@ export const PDFMetaSection = ({
       borderRightWidth: 0, // Remove right border on the last cell
     }
   });
-  
-  // Create a style for the last row that doesn't have a bottom border
+    // Create a style for the last row that doesn't have a bottom border
   const lastRowStyle = {
     ...metaStyles.row,
     borderBottomWidth: 0, // Remove bottom border from last row to avoid double borders
   };
+  
+  // Determine periodType based on claimType if not directly provided
+  let periodType = claimType;
+    periodType = claimType === "Monthly" ? "MONTH / YEAR" :
+                      claimType === "Quarterly" ? "QUARTER / YEAR" :
+                      claimType === "Yearly" ? "YEAR" :
+                      "All Time";
+  
+  // Format the period value based on periodType and available data
+  let formattedPeriodValue = "-";
+  
+  // Extract month and year from startDate and endDate if provided
+  const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
+  const year = endDate ? new Date(endDate).getFullYear().toString() : null;
+  
+  if (periodType === "MONTH / YEAR" && month && year) {
+    formattedPeriodValue = `${month} ${year}`;
+  } else if (periodType === "QUARTER / YEAR") {
+    if (quater && year) {
+      formattedPeriodValue = `${quater} ${year}`;
+    }
+  } else if (periodType === "YEAR" && year) {
+    formattedPeriodValue = `${year}`;
+  }
   
   return (
     <View style={metaStyles.container}>
       <View style={metaStyles.firstRow}>
         <Text style={metaStyles.labelCell}>REPORT</Text>
         <Text style={metaStyles.valueCell}>{reportTitle}</Text>
-      </View>
+      </View>      
       <View style={lastRowStyle}>
         <Text style={metaStyles.labelCell}>PHASE</Text>
         <Text style={metaStyles.phaseCell}>{phaseLabel || "-"}</Text>
         <Text style={metaStyles.periodLabelCell}>{periodType}</Text>
-        <Text style={metaStyles.periodValueCell}>{periodValue || "-"}</Text>
+        <Text style={metaStyles.periodValueCell}>{formattedPeriodValue}</Text>
       </View>
     </View>
   );
@@ -474,29 +501,54 @@ export const PDFTable = <T extends Record<string, any>>({
  */
 export const PDFPhaseQuarterInfo = ({
     phaseLabel,
-    periodType = "MONTH / YEAR",
-    month,
-    year,
+    claimType = null,
+    quater = null,
+    startDate = null,
+    endDate = null,
 }: {
     phaseLabel?: string;
-    periodType?: string;
-    month?: string | number | null;
-    year?:string | number | null;
-}) => (
-    <View style={{
-        ...styles.phaseQuarterInfo, 
-        width: 170, 
-    }}>
-        <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
-            <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
-            {phaseLabel || '-'}
-        </Text>
-        <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
-            <Text style={{ fontWeight: "bold" }}>{periodType}: </Text>
-            {(month && year) ? `${month} ${year}` : '-'}
-        </Text>
-    </View>
-);
+    claimType?: string | null;
+    quater?: string | number | null;
+    startDate?: string | null;
+    endDate?: string | null;
+}) => {
+    // Determine periodType based on claimType
+    const periodType = claimType === "Monthly" ? "MONTH / YEAR" :
+                        claimType === "Quarterly" ? "QUARTER / YEAR" :
+                        claimType === "Yearly" ? "YEAR" :
+                        "All Time";
+    
+    // Format the period value based on periodType
+    let periodValue = '-';
+    
+    // Extract month and year from startDate and endDate
+    const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
+    const year = endDate ? new Date(endDate).getFullYear().toString() : null;
+    
+    if (periodType === "MONTH / YEAR" && month && year) {
+        periodValue = `${month} ${year}`;
+    } else if (periodType === "QUARTER / YEAR" && quater && year) {
+        periodValue = `${quater} ${year}`;
+    } else if (periodType === "YEAR" && year) {
+        periodValue = `${year}`;
+    }
+    
+    return (
+        <View style={{
+            ...styles.phaseQuarterInfo, 
+            width: 170, 
+        }}>
+            <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
+                <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
+                {phaseLabel || '-'}
+            </Text>
+            <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
+                <Text style={{ fontWeight: "bold" }}>{periodType}: </Text>
+                {periodValue}
+            </Text>
+        </View>
+    );
+};
 
 /**
  * The PDF Appendix Title Page component
