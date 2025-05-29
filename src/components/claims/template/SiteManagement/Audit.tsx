@@ -91,7 +91,6 @@ const Audit = async ({
 
                 />
 
-
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
                         {/* total NADI sites with audits */}
@@ -136,24 +135,26 @@ const Audit = async ({
     );
 
     // Create a blob from the PDF document
-    const blob = await pdf(AuditDoc).toBlob();
-    // Generate filename based on available filters
+    const blob = await pdf(AuditDoc).toBlob();    // Generate filename based on available filters
     const dateStr = new Date().toISOString().split('T')[0];
-    let fileName = `audit-report-${dateStr}.pdf`;
-
-    // Use filters for more specific naming if available
-    if (startDate && endDate) {
-        const startFormatted = startDate.replace(/\//g, '-');
-        const endFormatted = endDate.replace(/\//g, '-');
-        fileName = `audit-report-${startFormatted}_to_${endFormatted}.pdf`;
-    } else if (phase?.name) {
-        fileName = `audit-report-${phase.name.replace(/\s+/g, '-')}.pdf`;
-    }
-
-    // Add claim type to filename if available
+      // Build filename parts
+    let filenameParts = ['audit-report'];
+    
+    // Add claim type if available
     if (claimType) {
-        fileName = `audit-report-${claimType}-${dateStr}.pdf`;
+        filenameParts.push(claimType);
     }
+    
+    // Add phase name if available
+    if (phase?.name) {
+        filenameParts.push(phase.name.replace(/\s+/g, '-'));
+    }
+    
+    // Always add the current date
+    filenameParts.push(dateStr);
+    
+    // Combine all parts with hyphens and add extension
+    let fileName = `${filenameParts.join('-')}.pdf`;
 
     // Convert blob to File object with metadata
     return new File([blob], fileName, {
