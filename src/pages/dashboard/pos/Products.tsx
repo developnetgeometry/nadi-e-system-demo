@@ -50,7 +50,7 @@ const Products = () => {
   const [filteredInventories, setFilteredInventories] = useState([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [editPrice, setEditPrice] = useState("");
+  const [editPrices, setEditPrices] = useState<{[key: string]: string}>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -77,6 +77,7 @@ const Products = () => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPSite = parsedMetadata?.user_type === "tp_site";
   const isTPUser =
     parsedMetadata?.user_group_name === "TP" &&
     !!parsedMetadata?.organization_id;
@@ -84,6 +85,11 @@ const Products = () => {
   const formatProductId = (item) => {
     const date = new Date(item.created_at);
     const timestamp = Math.floor(date.getTime() / 1000); // Unix timestamp
+
+    if (item.isService) {
+      return `s${timestamp}`;
+    }
+
     return `p${timestamp}`;
   };
 
@@ -142,7 +148,8 @@ const Products = () => {
   const { data: inventoryData, isLoading, error } = useQuery({
     queryKey: ['inventories', parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
     queryFn: async () => {
-      let query = supabase
+      // Fetch inventory data
+      let inventoryQuery = supabase
         .from('nd_inventory')
         .select(`*, 
           type:nd_inventory_type!type_id(id, name),
@@ -158,7 +165,6 @@ const Products = () => {
           return [];
         }
 
-        // Get the site_id from nd_site table using site_profile_id
         const { data: siteData, error: siteError } = await supabase
           .from('nd_site')
           .select('id')
@@ -171,18 +177,79 @@ const Products = () => {
         }
 
         const siteId = siteData.id;
-        query = query.eq('site_id', siteId);
+        inventoryQuery = inventoryQuery.eq('site_id', siteId);
       }
 
-      const { data, error } = await query;
-        
+      const { data: inventoryResult, error: inventoryError } = await inventoryQuery;
+      
+      if (inventoryError) {
+        console.error('Error fetching inventory:', inventoryError);
+        throw inventoryError;
+      }
+
+      const { data: servicesResult, error: servicesError } = await supabase
+        .from('nd_category_service')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+        throw servicesError;
+      }
+
+      const { data: serviceCharges, error: chargesError } = await supabase
+        .from('nd_service_charge')
+        .select('*');
+
+      if (chargesError) {
+        console.error('Error fetching service charges:', chargesError);
+        throw chargesError;
+      }
+
+      // Transform services data to match inventory structure
+      const transformedServices = servicesResult?.map(service => {
+        // Find the service charge for this service
+        const serviceCharge = serviceCharges?.find(charge => charge.category_id === service.id);
+        const price = serviceCharge?.fee || 0;
+
+        return {
+          id: `service_${service.id}`, // Prefix to distinguish from inventory items
+          name: service.eng,
+          description: service.bm,
+          price: price,
+          quantity: 999,
+          barcode: null,
+          created_at: service.created_at,
+          updated_at: service.updated_at,
+          category: { id: 'services', name: 'Services' },
+          type: { id: 'service', name: 'Service' },
+          isService: true,
+          originalServiceId: service.id // Keep original ID for editing
+        };
+      }) || [];
+
+      // Combine inventory and services
+      const combinedData = [...(inventoryResult || []), ...transformedServices];
+      
+      return combinedData;
+    }
+  });
+
+  const { data: serviceCharges } = useQuery({
+    queryKey: ['serviceCharges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('nd_service_charge')
+        .select('*')
+        .order('id');
+
       if (error) {
-        console.error('Error fetching inventory:', error);
+        console.error("Error fetching service charges:", error);
         throw error;
       }
-      
+
       return data || [];
-    }
+    },
   });
 
   const handleSearchChange = (e) => {
@@ -190,26 +257,48 @@ const Products = () => {
   };
 
   const handleEdit = (item) => {
-    setSelectedItem(item);
-    setEditPrice(item.price?.toString() || "");
-    setIsEditDialogOpen(true);
+    if (item.isService) {
+      if (isSuperAdmin) {
+        setSelectedItem(item);
+        // Initialize edit prices for all service charges of this service
+        const servicePrices: {[key: string]: string} = {};
+        serviceCharges?.filter(charge => charge.category_id === item.originalServiceId)
+          .forEach(charge => {
+            servicePrices[charge.id.toString()] = charge.fee?.toString() || '';
+          });
+        setEditPrices(servicePrices);
+        setIsEditDialogOpen(true);
+      } else if (isTPSite && item.originalServiceId === 5) {
+        setSelectedItem(item);
+        // Initialize edit prices for binding service charges only
+        const servicePrices: {[key: string]: string} = {};
+        serviceCharges?.filter(charge => charge.category_id === item.originalServiceId)
+          .forEach(charge => {
+            servicePrices[charge.id.toString()] = charge.fee?.toString() || '';
+          });
+        setEditPrices(servicePrices);
+        setIsEditDialogOpen(true);
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to edit this service",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Cannot Edit",
+        description: "Only services can be edited",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleUpdatePrice = async () => {
-    if (!selectedItem || !editPrice) {
+    if (!selectedItem) {
       toast({
         title: "Error",
-        description: "Please enter a valid price",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newPrice = parseFloat(editPrice);
-    if (isNaN(newPrice) || newPrice < 0) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid positive number",
+        description: "No item selected",
         variant: "destructive",
       });
       return;
@@ -227,45 +316,75 @@ const Products = () => {
         console.error("Error retrieving user data from localStorage:", error);
       }
 
-      const { error } = await supabase
-        .from('nd_inventory')
-        .update({ 
-          price: newPrice,
-          updated_by: userId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedItem.id);
+      if (selectedItem.isService) {
+        // Update multiple service charges
+        const updatePromises = Object.entries(editPrices).map(async ([chargeId, priceStr]) => {
+          const newPrice = parseFloat(priceStr);
+          if (isNaN(newPrice) || newPrice < 0) {
+            throw new Error(`Invalid price for service charge ID ${chargeId}`);
+          }
 
-      if (error) {
-        throw error;
+          return supabase
+            .from('nd_service_charge')
+            .update({ 
+              fee: newPrice,
+              updated_by: userId,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', parseInt(chargeId));
+        });
+
+        const results = await Promise.all(updatePromises);
+        
+        // Check for errors
+        const hasError = results.some(result => result.error);
+        if (hasError) {
+          throw new Error("Failed to update some service prices");
+        }
+      } else {
+        const singlePrice = editPrices['single'] || '';
+        const newPrice = parseFloat(singlePrice);
+
+        if (isNaN(newPrice) || newPrice < 0) {
+          toast({
+            title: "Error",
+            description: "Please enter a valid positive number",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const { error } = await supabase
+          .from('nd_inventory')
+          .update({ 
+            price: newPrice,
+            updated_by: userId,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', selectedItem.id);
+
+        if (error) {
+          throw error;
+        }
       }
-
-      // Update local state
-      const updatedInventories = inventories.map(item => 
-        item.id === selectedItem.id 
-          ? { ...item, price: newPrice }
-          : item
-      );
-      setInventories(updatedInventories);
-      setFilteredInventories(updatedInventories);
 
       queryClient.invalidateQueries({ queryKey: ['inventories'] });
 
       toast({
         title: "Success",
-        description: `Price updated successfully for ${selectedItem.name}`,
+        description: `Price${selectedItem.isService ? 's' : ''} updated successfully for ${selectedItem.name}`,
         variant: "default",
       });
 
       setIsEditDialogOpen(false);
       setSelectedItem(null);
-      setEditPrice("");
+      setEditPrices({});
 
     } catch (error) {
       console.error('Error updating price:', error);
       toast({
         title: "Error",
-        description: "Failed to update price. Please try again.",
+        description: error.message || "Failed to update price. Please try again.",
         variant: "destructive",
       });
     }
@@ -755,7 +874,7 @@ const Products = () => {
                       )}
                     </div>
                   </TableHead>
-                  {isSuperAdmin && (
+                  {(isSuperAdmin || isTPSite) && (
                     <TableHead>Action</TableHead>
                   )}
                 </TableRow>
@@ -773,7 +892,7 @@ const Products = () => {
                       <TableCell>
                         {item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A'}
                       </TableCell>
-                      {isSuperAdmin && (
+                      {(isSuperAdmin || (isTPSite && item.isService && item.originalServiceId === 5)) && item.isService && (
                         <TableCell>
                           <div className="flex gap-2">
                             <Tooltip>
@@ -782,7 +901,6 @@ const Products = () => {
                                   variant="outline"
                                   size="icon"
                                   onClick={() => handleEdit(item)}
-                                  disabled={item.category?.name !== "Services"}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
@@ -796,7 +914,7 @@ const Products = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6">
+                    <TableCell colSpan={8} className="text-center py-6">
                       No products found
                     </TableCell>
                   </TableRow>
@@ -809,45 +927,99 @@ const Products = () => {
 
       {/* Edit Price Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Service Price</DialogTitle>
+            <DialogTitle>
+              {selectedItem?.isService ? 'Edit Service Prices' : 'Edit Product Price'}
+            </DialogTitle>
           </DialogHeader>
           {selectedItem && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="serviceName">Service Name</Label>
+                <Label htmlFor="itemName">
+                  {selectedItem.isService ? 'Service Name' : 'Product Name'}
+                </Label>
                 <Input
-                  id="serviceName"
+                  id="itemName"
                   value={selectedItem.name}
                   disabled
                   className="bg-muted"
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="currentPrice">Current Price</Label>
-                <Input
-                  id="currentPrice"
-                  value={`RM ${selectedItem.price?.toFixed(2) || '0.00'}`}
-                  disabled
-                  className="bg-muted"
-                />
-              </div>
+              {selectedItem.isService ? (
+                // Show all service charges for this service
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">Service Options & Prices</Label>
+                  {serviceCharges?.filter(charge => charge.category_id === selectedItem.originalServiceId).map((charge, index) => (
+                    <div key={charge.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`description-${charge.id}`}>Description</Label>
+                        <Input
+                          id={`description-${charge.id}`}
+                          value={charge.description}
+                          disabled
+                          className="bg-muted"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor={`currentPrice-${charge.id}`}>Current Price</Label>
+                        <Input
+                          id={`currentPrice-${charge.id}`}
+                          value={`RM ${charge.fee?.toFixed(2) || '0.00'}`}
+                          disabled
+                          className="bg-muted"
+                        />
+                      </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="newPrice">New Price (RM)</Label>
-                <Input
-                  id="newPrice"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Enter new price"
-                  value={editPrice}
-                  onChange={(e) => setEditPrice(e.target.value)}
-                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-              </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`newPrice-${charge.id}`}>New Price (RM)</Label>
+                        <Input
+                          id={`newPrice-${charge.id}`}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Enter new price"
+                          value={editPrices[charge.id] || ''}
+                          onChange={(e) => setEditPrices(prev => ({
+                            ...prev,
+                            [charge.id]: e.target.value
+                          }))}
+                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // Show single price for regular products
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPrice">Current Price</Label>
+                    <Input
+                      id="currentPrice"
+                      value={`RM ${selectedItem.price?.toFixed(2) || '0.00'}`}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newPrice">New Price (RM)</Label>
+                    <Input
+                      id="newPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="Enter new price"
+                      value={editPrices['single'] || ''}
+                      onChange={(e) => setEditPrices(prev => ({...prev, single: e.target.value}))}
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
           
@@ -857,7 +1029,7 @@ const Products = () => {
               onClick={() => {
                 setIsEditDialogOpen(false);
                 setSelectedItem(null);
-                setEditPrice("");
+                setEditPrices({});
               }}
             >
               Cancel
@@ -865,9 +1037,13 @@ const Products = () => {
             <Button 
               variant="default"
               onClick={handleUpdatePrice}
-              disabled={!editPrice || parseFloat(editPrice) < 0}
+              disabled={selectedItem?.isService ? 
+                Object.keys(editPrices).length === 0 || 
+                Object.values(editPrices).some(price => !price || parseFloat(price as string) < 0) :
+                !editPrices['single'] || parseFloat(editPrices['single'] as string) < 0
+              }
             >
-              Update Price
+              Update Price{selectedItem?.isService ? 's' : ''}
             </Button>
           </div>
         </DialogContent>

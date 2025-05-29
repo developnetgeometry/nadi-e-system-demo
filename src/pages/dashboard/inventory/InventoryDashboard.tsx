@@ -4,7 +4,7 @@ import { InventoryList } from "@/components/inventory/InventoryList";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { useInventories } from "@/hooks/use-inventories";
-import { useSiteId } from "@/hooks/use-site-id";
+import { useSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { InventoryStatsCardProps, InventoryStatsData } from "@/types/inventory";
 import { Plus, Settings } from "lucide-react";
@@ -19,6 +19,10 @@ const InventoryDashboard = () => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_type === "tp_site";
+  const { siteId: tpSiteId } = useTpManagerSiteId(isTpSiteUser);
+
+  const finalSiteId = isTpSiteUser ? tpSiteId : siteId;
 
   let inventoryStats: InventoryStatsData = {
     total: 0,
@@ -125,6 +129,7 @@ const InventoryDashboard = () => {
         <InventoryFormDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          defaultSiteId={finalSiteId}
         />
       </div>
     </>
