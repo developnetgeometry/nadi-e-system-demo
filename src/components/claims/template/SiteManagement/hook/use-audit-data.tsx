@@ -36,7 +36,7 @@ export const fetchAuditData = async ({
             site_name: "Site A",
             refId: "REF001",
             state: "State A",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-closure/B15N006/B15N006_213_1748422766799_0_63d2ba34e3de7982097624fb_word-invoice-template-3.png", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-closure/_211_1748419298636_0_63d2ba34e3de7982097624fb_word-invoice-template-3.png"]
+            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-closure/_211_1748419298636_0_63d2ba34e3de7982097624fb_word-invoice-template-3.png", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"]
         },
         {
             site_id: "2",
@@ -44,7 +44,7 @@ export const fetchAuditData = async ({
             site_name: "Site B",
             refId: "REF002",
             state: "State B",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"]
+            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf","https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-closure/_211_1748419298636_0_63d2ba34e3de7982097624fb_word-invoice-template-3.png"]
         }
     ];
     
