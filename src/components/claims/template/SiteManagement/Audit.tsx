@@ -19,24 +19,9 @@ import {
 // Import the actual data fetching functions, not hooks
 import { fetchAuditData } from "./hook/use-audit-data";
 import { fetchPhaseData } from "@/hooks/use-phase";
-// Import PDF merging library
-import { PDFDocument } from 'pdf-lib';
-
-// Utility functions for handling attachments
-const isPDF = (url: string): boolean => {
-    return url.toLowerCase().endsWith('.pdf');
-};
-
-const isImage = (url: string): boolean => {
-    const extensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.tiff'];
-    return extensions.some(ext => url.toLowerCase().endsWith(ext));
-};
-
-// Function to fetch a PDF as ArrayBuffer
-const fetchPDFAsArrayBuffer = async (url: string): Promise<ArrayBuffer> => {
-    const response = await fetch(url);
-    return await response.arrayBuffer();
-};
+// Import PDF utilities
+import { generatePdfFilename } from "../component/pdf-utils";
+import { generateFinalPdf, AttachmentSource } from "../component/pdf-attachment-handler";
 
 const styles = StyleSheet.create({
     page: {
@@ -107,9 +92,7 @@ const Audit = async ({
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
-    const phaseLabel = phase?.name || "All Phases";
-
-    // Define the PDF document
+    const phaseLabel = phase?.name || "All Phases";    // Define the PDF document (only the main report pages)
     const AuditDoc = (
         <Document>
             {/* Page 1: Audits */}
@@ -123,7 +106,6 @@ const Audit = async ({
                     quater={quater}
                     startDate={startDate}
                     endDate={endDate}
-
                 />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
@@ -156,7 +138,9 @@ const Audit = async ({
                     <Text>No audit data available.</Text>
                 )}
                 <PDFFooter />
-            </Page>            {/* Page 2: APPENDIX for AUDIT - Only show if there are audit attachments */}
+            </Page>
+
+            {/* Page 2: APPENDIX for AUDIT - Title page */}
             <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX"
@@ -164,83 +148,27 @@ const Audit = async ({
                 />
                 <PDFFooter />
             </Page>
-            
-            {/* Image attachment pages - One image per page */}
-            {audits.flatMap((audit, auditIndex) => 
-                (audit.attachments_path || [])
-                    .filter(isImage)
-                    .map((attachmentPath, attachIndex) => (
-                        <Page key={`${auditIndex}-${attachIndex}`} size="A4" style={styles.page}>
-                            <View style={styles.attachmentContainer}>
-                                <Text style={styles.attachmentTitle}>
-                                    Attachment for {audit.site_name} ({audit.standard_code})
-                                </Text>
-                                <Image src={attachmentPath} style={styles.imageAttachment} />
-                            </View>
-                            <PDFFooter />
-                        </Page>
-                    ))
-            )}
         </Document>
-    );// Get all attachment paths from audit data
-    const attachmentPaths = audits.flatMap(audit => audit.attachments_path || []);
-    
-    // Separate attachments into images and PDFs
-    const imageAttachments = attachmentPaths.filter(isImage);
-    const pdfAttachments = attachmentPaths.filter(isPDF);
-
-    // Create a blob from the PDF document
+    );   
+      // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(AuditDoc).toBlob();
-    const reportArrayBuffer = await reportBlob.arrayBuffer();
     
-    // Create a PDF document from the report
-    let pdfDoc = await PDFDocument.load(reportArrayBuffer);
-
-    // If there are PDF attachments, merge them with the main document
-    if (pdfAttachments.length > 0) {
-        try {
-            for (const pdfUrl of pdfAttachments) {
-                try {
-                    const attachmentBuffer = await fetchPDFAsArrayBuffer(pdfUrl);
-                    const attachmentPdf = await PDFDocument.load(attachmentBuffer);
-                    const attachmentPages = await pdfDoc.copyPages(attachmentPdf, attachmentPdf.getPageIndices());
-                    attachmentPages.forEach(page => pdfDoc.addPage(page));
-                } catch (error) {
-                    console.error(`Error merging PDF attachment ${pdfUrl}:`, error);
-                }
-            }
-        } catch (error) {
-            console.error("Error merging PDF attachments:", error);
-        }
-    }
+    // Process all audits that have attachments as sources for generateFinalPdf
+    const sources: AttachmentSource[] = audits
+        .filter(audit => audit.attachments_path && audit.attachments_path.length > 0)
+        .map(audit => ({
+            attachments_path: audit.attachments_path || [],
+            standard_code: audit.standard_code,
+        }));
     
-    // Generate the final PDF blob
-    const mergedPdfBytes = await pdfDoc.save();
-    const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+    // Generate the final PDF by merging the report with attachment pages
+    const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
     
-    // Generate filename based on available filters
-    const dateStr = new Date().toISOString().split('T')[0];
-    // Build filename parts
-    let filenameParts = ['audit-report'];
+    // Generate filename based on filters
+    const fileName = generatePdfFilename('audit-report', claimType, phase?.name);
     
-    // Add claim type if available
-    if (claimType) {
-        filenameParts.push(claimType);
-    }
-    
-    // Add phase name if available
-    if (phase?.name) {
-        filenameParts.push(phase.name.replace(/\s+/g, '-'));
-    }
-    
-    // Always add the current date
-    filenameParts.push(dateStr);
-    
-    // Combine all parts with hyphens and add extension
-    let fileName = `${filenameParts.join('-')}.pdf`;
-
     // Convert blob to File object with metadata
-    return new File([blob], fileName, {
+    return new File([finalPdfBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });
