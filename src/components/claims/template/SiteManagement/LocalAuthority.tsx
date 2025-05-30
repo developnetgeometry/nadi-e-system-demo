@@ -146,7 +146,7 @@ const LocalAuthority = async ({
                         data={localAuthority}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "SITE CODE", },
+                            { key: "standard_code", header: "REFID", },
                             { key: "site_name", header: "NADI", },
                             { key: "state", header: "STATE", }
                         ]}
