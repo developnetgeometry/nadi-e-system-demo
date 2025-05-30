@@ -34,7 +34,7 @@ import {
   humanizeMaintenanceStatus,
   MaintenanceRequest,
   MaintenanceStatus,
-  MaintenanceUpdate,
+  MaintenanceUpdate
 } from "@/types/maintenance";
 import { format } from "date-fns";
 
@@ -51,7 +51,7 @@ import {
 
 import "@/fonts/Verdana-normal.js";
 import "@/fonts/VerdanaBd-bold.js";
-import GenerateMaintenanceReportCM from "./report/GenerateMaintenanceReport";
+import GenerateMaintenanceReportCM from "./report/GenerateMaintenanceReportCM";
 
 export interface ViewMaintenanceDetailsDialogProps {
   open: boolean;

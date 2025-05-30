@@ -21,13 +21,17 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  calculateNewDateByFrequency,
   getMaintenanceStatus,
+  humanizeMaintenanceFrequency,
   humanizeMaintenanceStatus,
+  MaintenanceDocketType,
   MaintenanceRequest,
   MaintenanceStatus,
   MaintenanceUpdate,
 } from "@/types/maintenance";
 import { format } from "date-fns";
+import { CalendarDays } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AttachmentUploadField } from "./AttachmentUploadField";
@@ -36,6 +40,8 @@ import {
   getMaintenanceStatusClass,
   getMaintenanceStatusIcon,
 } from "./MaintenanceStatusBadge";
+import GenerateMaintenanceReportPM from "./report/GenerateMaintenanceReportPM";
+import { generateDocketNumber } from "./report/utils";
 
 export interface ViewMaintenanceDetailsDialogPMProps {
   open: boolean;
@@ -75,6 +81,10 @@ export const ViewMaintenanceDetailsDialogPM = ({
   const isTPCloseRequest =
     userMetadata?.user_group_name == "TP" &&
     maintenanceRequest?.status == MaintenanceStatus.InProgress;
+
+  const isCompleted =
+    userMetadata?.user_group_name == "TP" &&
+    maintenanceRequest?.status == MaintenanceStatus.Completed;
 
   const [activeTab, setActiveTab] = useState("details");
 
@@ -379,6 +389,49 @@ export const ViewMaintenanceDetailsDialogPM = ({
 
         if (updateError) throw updateError;
 
+        // create a new PM request based on frequency
+        if (
+          status === MaintenanceStatus.Completed &&
+          maintenanceRequest?.frequency
+        ) {
+          const now = new Date();
+          const docketNumber = generateDocketNumber(
+            MaintenanceDocketType.Preventive,
+            now,
+            undefined,
+            maintenanceRequest.type_id
+          );
+
+          const newMaintenanceDate = calculateNewDateByFrequency(
+            maintenanceRequest.maintenance_date,
+            maintenanceRequest.frequency
+          );
+
+          const newPMRequest: Partial<MaintenanceRequest> = {
+            no_docket: docketNumber,
+            description: maintenanceRequest.description,
+            type_id: maintenanceRequest.type_id,
+            asset_id: maintenanceRequest.asset_id,
+            frequency: maintenanceRequest.frequency,
+            requester_by: maintenanceRequest.requester_by,
+            vendor_id: maintenanceRequest.vendor_id,
+            maintenance_date: newMaintenanceDate,
+            status: MaintenanceStatus.Issued,
+          };
+
+          const { error: createPMRequestError } = await supabase
+            .from("nd_maintenance_request")
+            .insert({
+              ...newPMRequest,
+              created_at: now.toISOString(),
+              updated_at: now.toISOString(),
+            });
+
+          if (createPMRequestError) {
+            throw createPMRequestError;
+          }
+        }
+
         toast({
           title: "Maintenance Request updated successfully",
           description:
@@ -412,6 +465,14 @@ export const ViewMaintenanceDetailsDialogPM = ({
         >
           Reject Completion
         </Button>
+      </div>
+    );
+  }
+
+  function TPGenerateReport() {
+    return (
+      <div className="flex justify-center items-center gap-4">
+        <GenerateMaintenanceReportPM maintenanceRequest={maintenanceRequest} />
       </div>
     );
   }
@@ -471,16 +532,29 @@ export const ViewMaintenanceDetailsDialogPM = ({
 
               <div>
                 <Label className="text-sm font-medium text-gray-500">
+                  {maintenanceRequest?.maintenance_date
+                    ? "Estimated Completion"
+                    : "No Estimated Date"}
+                </Label>
+                <div className="mt-1 flex items-center">
+                  {maintenanceRequest?.maintenance_date && (
+                    <>
+                      <CalendarDays className="h-4 w-4 text-gray-400 mr-2" />
+                      {format(
+                        maintenanceRequest?.maintenance_date,
+                        "dd/MM/yyyy"
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
                   Frequency
                 </Label>
                 <div className="mt-1">
-                  {maintenanceRequest?.frequency === 0
-                    ? "Weekly"
-                    : maintenanceRequest?.frequency === 1
-                    ? "Monthly"
-                    : maintenanceRequest?.frequency === 2
-                    ? "Yearly"
-                    : "N/A"}
+                  {humanizeMaintenanceFrequency(maintenanceRequest?.frequency)}
                 </div>
               </div>
 
@@ -584,6 +658,7 @@ export const ViewMaintenanceDetailsDialogPM = ({
         </Tabs>
 
         {isTPCloseRequest && <TPCloseRequest />}
+        {isCompleted && <TPGenerateReport />}
       </DialogContent>
     </Dialog>
   );
