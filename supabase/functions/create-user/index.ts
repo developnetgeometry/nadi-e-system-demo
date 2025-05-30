@@ -77,6 +77,7 @@ serve(async (req) => {
     const allowedUserTypes = [
       "tp_admin",
       "tp_hr",
+      "tp_site",
       "dusp_admin",
       "mcmc_admin",
       "sso_admin",
