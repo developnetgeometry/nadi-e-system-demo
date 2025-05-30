@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     },
 });
 
-type AuditProps = {
+type LocalAuthorityProps = {
     duspFilter?: string | number;
     phaseFilter?: string | number | null;
     tpFilter?: string | number;
@@ -70,7 +70,7 @@ type AuditProps = {
 };
 
 // Convert to an async function that returns a File object
-const Audit = async ({
+const LocalAuthority = async ({
     duspFilter = null,
     phaseFilter = null,
     nadiFilter = [],
@@ -82,8 +82,8 @@ const Audit = async ({
     header = false,
     dusplogo = null
 
-}: AuditProps): Promise<File> => {
-    // Fetch audit data based on filters
+}: LocalAuthorityProps): Promise<File> => {
+    // Fetch local authority data based on filters
     const { localAuthority } = await fetchlocalAuthorityData({
         startDate,
         endDate,
@@ -99,7 +99,7 @@ const Audit = async ({
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
     const phaseLabel = phase?.name || "All Phases";    // Define the PDF document (only the main report pages)
-    const AuditDoc = (
+    const LocalAuthorityDoc = (
         <Document>
             {/* Page 1: Local Authority */}
             <Page size="A4" style={styles.page}>
@@ -162,10 +162,10 @@ const Audit = async ({
 
     );
     // Create a blob from the PDF document (main report and appendix title page)
-    const reportBlob = await pdf(AuditDoc).toBlob();
+    const reportBlob = await pdf(LocalAuthorityDoc).toBlob();
 
     // Generate filename based on filters
-    const fileName = generatePdfFilename('audit-report', claimType, phase?.name);
+    const fileName = generatePdfFilename('local-authority-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
     return new File([reportBlob], fileName, {
@@ -174,4 +174,4 @@ const Audit = async ({
     });
 }
 
-export default Audit;
+export default LocalAuthority;
