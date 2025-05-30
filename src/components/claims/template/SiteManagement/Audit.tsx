@@ -107,12 +107,12 @@ const Audit = async ({
                     <>
                         <PDFHeader
                             mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
-                            duspLogo={dusplogo || "/logo-placeholder-image.png"} // Use provided DUSP logo or placeholder
+                            duspLogo={dusplogo } // Use provided DUSP logo or placeholder
                         />
 
 
                         <PDFMetaSection
-                            reportTitle="AUDIT REPORT"
+                            reportTitle="2.0 Site Management"
                             phaseLabel={phaseLabel}
                             claimType={claimType}
                             quater={quater}
