@@ -5,6 +5,7 @@ export interface MaintenanceData {
     type?: string;
     issue?: string;
     SLA?: string;
+    status?: string; // Added to match the example data
     Duration?: string;
     Opened?: string;
     Closed?: string;
@@ -58,8 +59,9 @@ export function useCMByNadiPdfData(
                     id: "M001",
                     type: "Electrical",
                     issue: "Power outage",
-                    SLA: "4 hours",
+                    SLA: "minor",
                     Duration: "3 hours",
+                    status: "Existing",
                     Opened: "2023-05-10 09:00",
                     Closed: "2023-05-10 12:00"
                 },
@@ -67,7 +69,8 @@ export function useCMByNadiPdfData(
                     id: "M002",
                     type: "Plumbing",
                     issue: "Water leak",
-                    SLA: "6 hours",
+                    SLA: "minor",
+                    status: "Existing",
                     Duration: "5 hours",
                     Opened: "2023-05-12 11:30",
                     Closed: "2023-05-12 16:30"
@@ -76,7 +79,8 @@ export function useCMByNadiPdfData(
                     id: "M003",
                     type: "HVAC",
                     issue: "AC not cooling",
-                    SLA: "12 hours",
+                    SLA: "major",
+                    status:"Pending",
                     Duration: "8 hours",
                     Opened: "2023-05-15 08:00",
                     Closed: "2023-05-15 16:00"
@@ -85,7 +89,8 @@ export function useCMByNadiPdfData(
                     id: "M004",
                     type: "IT",
                     issue: "Network down",
-                    SLA: "2 hours",
+                    SLA: "minor",
+                    status:"Close",
                     Duration: "1.5 hours",
                     Opened: "2023-05-18 14:00",
                     Closed: "2023-05-18 15:30"
@@ -94,7 +99,7 @@ export function useCMByNadiPdfData(
                     id: "M005",
                     type: "Structural",
                     issue: "Ceiling damage",
-                    SLA: "24 hours",
+                    SLA: "major",
                     Duration: "20 hours",
                     Opened: "2023-05-20 10:00",
                     Closed: "2023-05-21 06:00"
@@ -103,7 +108,8 @@ export function useCMByNadiPdfData(
                     id: "M006",
                     type: "Electrical",
                     issue: "Broken outlet",
-                    SLA: "8 hours",
+                    SLA: "minor",
+                    status: "New",
                     Duration: "4 hours",
                     Opened: "2023-05-22 13:00",
                     Closed: "2023-05-22 17:00"
@@ -112,7 +118,8 @@ export function useCMByNadiPdfData(
                     id: "M007",
                     type: "Security",
                     issue: "Door lock malfunction",
-                    SLA: "3 hours",
+                    SLA: "minor",
+                    status: "New",
                     Duration: "2 hours",
                     Opened: "2023-05-25 07:30",
                     Closed: "2023-05-25 09:30"

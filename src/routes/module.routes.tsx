@@ -9,6 +9,7 @@ import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
 import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
 import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
 import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
+import ActivityLogs from "@/pages/dashboard/compliance/ActivityLogs";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import DashboardPage from "@/pages/dashboard/Dashboard";
@@ -70,6 +71,7 @@ import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
 import ClaimRegister from "@/pages/dashboard/claim/ClaimRegister";
+import ClaimReports from "@/pages/dashboard/claim/ClaimReports";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -200,6 +202,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_claim_settings">
       <ClaimRegister />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/claim/report",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_claim_settings">
+      <ClaimReports />
       // </ProtectedRoute>
     ),
   },
@@ -355,6 +365,14 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Compliance Routes
+  {
+    path: "/compliance/activity",
+    element: (
+      // <ProtectedRoute requiredPermission="view_activity_logs">
+      <ActivityLogs />
+      // </ProtectedRoute>
+    ),
+  },
   {
     path: "/compliance/audit",
     element: (

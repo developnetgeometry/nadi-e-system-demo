@@ -5766,6 +5766,7 @@ export type Database = {
           created_by: string | null
           id: string
           item_id: string
+          service_id?: number
           price_per_unit: number | null
           quantity: number | null
           total_price: number | null
@@ -5778,6 +5779,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           item_id: string
+          service_id?: number
           price_per_unit?: number | null
           quantity?: number | null
           total_price?: number | null
@@ -5790,6 +5792,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           item_id?: string
+          service_id?: number
           price_per_unit?: number | null
           quantity?: number | null
           total_price?: number | null

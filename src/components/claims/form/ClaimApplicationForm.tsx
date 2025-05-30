@@ -13,6 +13,8 @@ import {
 import useClaimCategorySimple from "../hook/use-claim-categoy-simple";
 import { useSiteByPhase } from "../hook/use-claim-data";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 type CategoryData = {
   id: number;
@@ -43,18 +45,31 @@ export function ClaimApplicationForm({
 }: ClaimApplicationFormProps) {
   const { categories } = useClaimCategorySimple();
   const { phases, fetchSitesByPhase } = useSiteByPhase();
-  const [sites, setSites] = useState<{ id: number; name: string }[]>([]);
+  const [sites, setSites] = useState<{ id: number; name: string; refid_mcmc: string; refid_tp: string }[]>([]);
   const [selectedItem, setSelectedItem] = useState<{ categoryId: number; itemId: number } | null>(null);
   const [tempSelectedSites, setTempSelectedSites] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState(""); // State for search input
+
+  // Filter sites based on the search term
+  const filteredSites = sites.filter(
+    (site) =>
+      site.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      site.refid_mcmc?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      site.refid_tp?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleFetchSites = async (phaseId: number) => {
     const fetchedSites = await fetchSitesByPhase(phaseId);
-    setSites(
-      fetchedSites.map((site: { id: number; fullname: string }) => ({
-        id: site.id,
-        name: site.fullname,
-      }))
-    );
+    const mappedSites = fetchedSites.map((site: { id: number; fullname: string; refid_mcmc: string; refid_tp: string }) => ({
+      id: site.id,
+      name: site.fullname,
+      refid_mcmc: site.refid_mcmc || "N/A",
+      refid_tp: site.refid_tp || "N/A",
+    }));
+    setSites(mappedSites);
+
+    // Auto-select all sites when they are loaded
+    setTempSelectedSites(mappedSites.map((site) => site.id));
   };
 
   useEffect(() => {
@@ -68,9 +83,9 @@ export function ClaimApplicationForm({
       const { categoryId, itemId } = selectedItem;
       const existing = category_ids.find((cat) => cat.id === categoryId)
         ?.item_ids.find((item) => item.id === itemId)?.site_ids || [];
-      setTempSelectedSites(existing);
+      setTempSelectedSites(existing.length > 0 ? existing : sites.map((site) => site.id)); // Auto-select all if no existing selection
     }
-  }, [selectedItem]);
+  }, [selectedItem, sites]);
 
   const handleSiteSelection = (siteId: number) => {
     setTempSelectedSites((prev) =>
@@ -120,7 +135,7 @@ export function ClaimApplicationForm({
         <Select
           value={phase_id?.toString() ?? ""}
           onValueChange={(value) => {
-            updateFields({ phase_id: Number(value) });
+            updateFields({ phase_id: Number(value), category_ids: [] }); // Reset category_ids
             handleFetchSites(Number(value));
           }}
         >
@@ -154,7 +169,7 @@ export function ClaimApplicationForm({
               {categories.map((category) => (
                 <React.Fragment key={category.id}>
                   {category.children.map((item, index) => (
-                    <TableRow key={item.id} >
+                    <TableRow key={item.id}>
                       {index === 0 && (
                         <TableCell
                           className="px-4 py-2 border align-top"
@@ -177,36 +192,63 @@ export function ClaimApplicationForm({
                           )}
                           onChange={(e) => {
                             const checked = e.target.checked;
-                            updateFields({
-                              category_ids: checked
-                                ? [
-                                  ...category_ids,
-                                  {
-                                    id: category.id,
-                                    name: category.name,
-                                    item_ids: [
-                                      {
-                                        id: item.id,
-                                        name: item.name,
-                                        need_support_doc: item.need_support_doc,
-                                        need_summary_report: item.need_summary_report,
-                                        summary_report_file: null, // Reset file on selection
-                                        site_ids: [],
-                                      },
-                                    ],
-                                  },
-                                ]
-                                : category_ids
-                                  .map((cat) =>
+
+                            const newCategoryIds = checked
+                              ? (() => {
+                                const existingCategory = category_ids.find((cat) => cat.id === category.id);
+                                if (existingCategory) {
+                                  // If the category already exists, add the new item to its item_ids
+                                  return category_ids.map((cat) =>
                                     cat.id === category.id
                                       ? {
                                         ...cat,
-                                        item_ids: cat.item_ids.filter((i) => i.id !== item.id),
+                                        item_ids: [
+                                          ...cat.item_ids,
+                                          {
+                                            id: item.id,
+                                            name: item.name,
+                                            need_support_doc: item.need_support_doc,
+                                            need_summary_report: item.need_summary_report,
+                                            summary_report_file: null, // Reset file on selection
+                                            site_ids: sites.map((site) => site.id), // Auto-select all sites
+                                          },
+                                        ],
                                       }
                                       : cat
-                                  )
-                                  .filter((cat) => cat.item_ids.length > 0),
-                            });
+                                  );
+                                } else {
+                                  // If the category doesn't exist, add it as a new category
+                                  return [
+                                    ...category_ids,
+                                    {
+                                      id: category.id,
+                                      name: category.name,
+                                      item_ids: [
+                                        {
+                                          id: item.id,
+                                          name: item.name,
+                                          need_support_doc: item.need_support_doc,
+                                          need_summary_report: item.need_summary_report,
+                                          summary_report_file: null, // Reset file on selection
+                                          site_ids: sites.map((site) => site.id), // Auto-select all sites
+                                        },
+                                      ],
+                                    },
+                                  ];
+                                }
+                              })()
+                              : category_ids
+                                .map((cat) =>
+                                  cat.id === category.id
+                                    ? {
+                                      ...cat,
+                                      item_ids: cat.item_ids.filter((i) => i.id !== item.id),
+                                    }
+                                    : cat
+                                )
+                                .filter((cat) => cat.item_ids.length > 0);
+
+                            updateFields({ category_ids: newCategoryIds });
                           }}
                         />
                       </TableCell>
@@ -234,7 +276,6 @@ export function ClaimApplicationForm({
                                   const count = matchItem?.site_ids?.length || 0;
                                   return `${count} site${count !== 1 ? "s" : ""} selected`;
                                 })()}
-
                               </div>
                             </>
                           )}
@@ -258,6 +299,20 @@ export function ClaimApplicationForm({
             </DialogDescription>
           </DialogHeader>
 
+          {/* Search Input */}
+          <div className="relative mb-4">
+            <Input
+              type="text"
+              placeholder="Search sites by name, refid MCMC, or refid TP"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+            <div className="absolute left-3 top-2.5 text-gray-400">
+              <Search className="h-4 w-4" />
+            </div>
+          </div>
+
           <div className="mb-4">
             <label className="flex items-center space-x-2">
               <input
@@ -270,9 +325,10 @@ export function ClaimApplicationForm({
             </label>
           </div>
 
+          {/* Filtered Sites */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            {sites.length > 0 ? (
-              sites.map((site) => (
+            {filteredSites.length > 0 ? (
+              filteredSites.map((site) => (
                 <div
                   key={site.id}
                   className="p-2 border border-gray-300 rounded flex items-center bg-white shadow-sm"
@@ -283,12 +339,20 @@ export function ClaimApplicationForm({
                     checked={tempSelectedSites.includes(site.id)}
                     onChange={() => handleSiteSelection(site.id)}
                   />
-                  <span>{site.name}</span>
+                  <div>
+                    <p className="font-medium">{site.name}</p>
+                    <p className="text-xs text-gray-500">
+                      Ref ID MCMC: {site.refid_mcmc || "N/A"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Ref ID TP: {site.refid_tp || "N/A"}
+                    </p>
+                  </div>
                 </div>
               ))
             ) : (
               <p className="text-gray-500 col-span-full">
-                No sites available. Please select a phase.
+                No sites found matching your criteria.
               </p>
             )}
           </div>

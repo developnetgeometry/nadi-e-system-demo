@@ -12,7 +12,6 @@ interface SiteManagementReportDownloadButtonProps {
   phaseLabel?: string;
   periodType?: string;
   periodValue?: string;
-  totalSites?: number; // Optional, can be derived
   mcmcLogo: string;
   duspLogo: string;
   monthFilter?: string | number | null;
@@ -53,29 +52,14 @@ export const SiteManagementReportDownloadButton = ({
     yearFilter,
     tpFilter
   );
-  const fileName = `site-management-report-${new Date().toISOString().split('T')[0]}.pdf`;  const generateAndDownloadPDF = async () => {
+
+  const fileName = `SiteManagementReport_${duspLabel || 'AllDUSP'}_${phaseLabel || 'AllPhases'}_${periodType || 'AllPeriods'}_${periodValue || 'AllValues'}.pdf`;
+  
+  const generateAndDownloadPDF = async () => {
     setIsGenerating(true);
     onGenerationStart?.();
     try {
-      // Check if data is still loading
-      if (pdfData.loading) {
-        console.warn("Data is still loading. Waiting for data to be available...");
-        // Wait a bit before continuing
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
-      // Debug data before PDF generation
-      console.log('PDF DATA CHECK:', {
-        sitesCount: pdfData.sites?.length || 0,
-        utilitiesCount: pdfData.utilities?.length || 0, 
-        insuranceCount: pdfData.insurance?.length || 0,
-        localAuthorityCount: pdfData.localAuthority?.length || 0,
-        auditsCount: pdfData.audits?.length || 0,
-        agreementsCount: pdfData.agreements?.length || 0,
-        programmeCount: pdfData.awarenessPromotion?.length || 0,
-        filters: { monthFilter, yearFilter, duspFilter, phaseFilter, nadiFilter, tpFilter }
-      });
-      
+
       const blob = await pdf(
         <SiteManagementReportPDF
           duspLabel={duspLabel}
@@ -93,6 +77,7 @@ export const SiteManagementReportDownloadButton = ({
           programmes={pdfData.awarenessPromotion || []}
         />
       ).toBlob();
+      
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -102,14 +87,16 @@ export const SiteManagementReportDownloadButton = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       setIsGenerating(false);
-      onGenerationComplete?.(true);    } catch (error) {
+      onGenerationComplete?.(true);
+
+    } catch (error) {
       console.error('Error generating PDF:', error);
-      
+
       // Provide more detailed error info
       if (error instanceof Error) {
         console.error(`Error details: ${error.name}: ${error.message}`);
         console.error('Stack trace:', error.stack);
-        
+
         // Check common issues
         if (error.message.includes('undefined')) {
           console.error('Possible undefined data issue - check if all required data is loaded.');
@@ -118,20 +105,11 @@ export const SiteManagementReportDownloadButton = ({
           console.error('Possible invalid data structure - ensure arrays are properly initialized.');
         }
       }
-      
+
       setIsGenerating(false);
       onGenerationComplete?.(false);
     }
   };
-  // Show warning if data is missing
-  const hasMissingData = !pdfData.sites?.length || 
-    (!pdfData.utilities?.length && 
-     !pdfData.insurance?.length && 
-     !pdfData.localAuthority?.length &&
-     !pdfData.audits?.length &&
-     !pdfData.agreements?.length &&
-     !pdfData.awarenessPromotion?.length);
-
   return (
     <div className="flex flex-col items-end">
       <Button
@@ -139,7 +117,6 @@ export const SiteManagementReportDownloadButton = ({
         variant="secondary"
         className="bg-purple-500 hover:bg-purple-600 text-white flex items-center gap-2"
         onClick={generateAndDownloadPDF}
-        title={hasMissingData ? "Some data sections may be empty in the report" : "Download PDF report"}
       >
         {isGenerating ? (
           <>

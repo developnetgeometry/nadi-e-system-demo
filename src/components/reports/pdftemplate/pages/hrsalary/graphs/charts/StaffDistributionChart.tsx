@@ -8,12 +8,12 @@ import {
   Cell,
   PieLabelRenderProps,
 } from "recharts";
-import { StaffDistribution } from "@/hooks/report/use-hr-salary-data";
 import { getDefaultColor } from "../utils/colorUtils";
 import { useChartImageGenerator } from '../hooks/useChartImageGenerator';
+import { FormattedSalaryData } from '../ChartGenerator';
 
 interface StaffDistributionChartProps {
-  data: StaffDistribution[];
+  data: FormattedSalaryData[];
   width?: number;
   height?: number;
   onReady?: (img: string) => void;

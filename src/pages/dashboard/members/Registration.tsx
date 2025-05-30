@@ -19,7 +19,8 @@ import { Form } from "react-router-dom";
 type FormData = {
   identity_no_type: string;
   identity_no: string;
-  isIcNumberValid: boolean; // check if valid
+  isIcNumberExist: boolean;
+  isIcNumberValid: boolean;
   isUnder12: boolean;
   parent_fullname: string;
   parent_ic_no: string;
@@ -51,7 +52,6 @@ type FormData = {
   ethnic_id: string;
   occupation_id: string;
   type_sector: string;
-  socio_id: string;
   ict_knowledge: string;
   education_level: string;
   oku_status: boolean;
@@ -72,9 +72,10 @@ type FormData = {
   confirmPassword: string;
 };
 
-const INITIAL_DATA : FormData = {
+const INITIAL_DATA: FormData = {
   identity_no_type: null,
   identity_no: "",
+  isIcNumberExist: false,
   isIcNumberValid: false,
   isUnder12: false,
   parent_fullname: "",
@@ -104,7 +105,6 @@ const INITIAL_DATA : FormData = {
   ethnic_id: null,
   occupation_id: null,
   type_sector: null,
-  socio_id: null,
   ict_knowledge: null,
   education_level: null,
   oku_status: false,
@@ -125,7 +125,7 @@ const INITIAL_DATA : FormData = {
 const RegistrationPage = () => {
   const [data, setData] = useState(INITIAL_DATA);
   const [loading, setLoading] = useState(false); // Add loading state
-  const { genders, statusMemberships, nationalities, races, ethnics, occupations, typeSectors, socioeconomics, incomeLevels, ictKnowledge, educationLevels, identityNoTypes, typeRelationships, registrationMethods } = useGeneralData();
+  const { genders, statusMemberships, nationalities, races, ethnics, occupations, typeSectors, incomeLevels, ictKnowledge, educationLevels, identityNoTypes, typeRelationships, registrationMethods } = useGeneralData();
   const { siteProfiles } = useSiteGeneralData();
   const { states, districts, fetchDistrictsByState } = useGeoData();
   const { toast } = useToast();
@@ -146,13 +146,13 @@ const RegistrationPage = () => {
     <ICForm {...data} updateFields={updateFields} identityNoTypes={identityNoTypes} states={states} districts={districts} fetchDistrictsByState={fetchDistrictsByState} typeRelationships={typeRelationships} />,
     <PersonalForm genders={genders} statusMemberships={statusMemberships} registrationMethods={registrationMethods} {...data} updateFields={updateFields} />,
     <AddressForm states={states} districts={districts} fetchDistrictsByState={fetchDistrictsByState} {...data} updateFields={updateFields} />,
-    <DemographicForm nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} socioeconomics={socioeconomics} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} {...data} updateFields={updateFields} />,
-    <ReviewForm genders={genders} statusMemberships={statusMemberships} siteProfiles={siteProfiles} districts={districts} states={states} nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} socioeconomics={socioeconomics} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} typeRelationships={typeRelationships} registrationMethods={registrationMethods} {...data} updateFields={updateFields} />,
+    <DemographicForm nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} {...data} updateFields={updateFields} />,
+    <ReviewForm genders={genders} statusMemberships={statusMemberships} siteProfiles={siteProfiles} districts={districts} states={states} nationalities={nationalities} races={races} ethnics={ethnics} occupations={occupations} typeSectors={typeSectors} incomeLevels={incomeLevels} ictKnowledge={ictKnowledge} educationLevels={educationLevels} typeRelationships={typeRelationships} registrationMethods={registrationMethods} {...data} updateFields={updateFields} />,
     <AccountForm {...data} updateFields={updateFields} />,
   ]);
 
   const steps = [
-    { label: "Identity Number", validate: () => data.identity_no_type && data.identity_no && data.isIcNumberValid },
+    { label: "Identity Number", validate: () => data.identity_no_type && data.identity_no && data.isIcNumberExist },
     { label: "Personal Info", validate: () => data.fullname && data.ref_id && data.dob && data.join_date && data.mobile_no && data.email && data.gender && data.status_membership },
     { label: "Address", validate: () => data.state_id && data.district_id },
     { label: "Demographics", validate: () => data.nationality_id && data.race_id && data.ethnic_id },
@@ -167,8 +167,11 @@ const RegistrationPage = () => {
     if (currentStepIndex === 0) {
       if (!data.identity_no_type) return showValidationError("Identity type is required.");
       if (!data.identity_no) return showValidationError("IC number is required.");
-      if (data.identity_no_type === "1" && data.identity_no.length !== 12) return showValidationError("IC number must be 12 digits.");
-      if (!data.isIcNumberValid) return showValidationError("Identity number already exists in the system.");
+      if (data.identity_no_type === "1") {
+        if (data.identity_no.length !== 12) return showValidationError("IC number must be 12 digits.");
+        if (!data.isIcNumberValid) return showValidationError("IC number is invalid.");
+      }
+      if (!data.isIcNumberExist) return showValidationError("Identity number already exists in the system.");
       if (data.isUnder12) {
         if (!data.parent_fullname) return showValidationError("Guardian's Fullname is required.");
         if (!data.parent_ic_no) return showValidationError("Guardian's IC Number is required.");
@@ -187,7 +190,10 @@ const RegistrationPage = () => {
       if (!data.dob) return showValidationError("Date of Birth is required.");
       if (!data.join_date) return showValidationError("Join Date is required.");
       if (!data.mobile_no) return showValidationError("Mobile Number is required.");
-      if (!data.email) return showValidationError("Email is required.");
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        return showValidationError("Invalid email format. Please enter a valid email address eg: (abc@gmail.com).");
+      }
       if (!data.gender) return showValidationError("Gender is required.");
       if (!data.status_membership) return showValidationError("Membership status is required.");
     }

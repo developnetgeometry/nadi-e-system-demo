@@ -127,7 +127,7 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
             </div>
 
             <Table className="border border-gray-300 w-full text-sm">
-                <TableHeader className="bg-gray-50">
+                <TableHeader>
                     <TableRow>
                         <TableHead className="px-4 py-2 text-center border">Signed Documents</TableHead>
                     </TableRow>

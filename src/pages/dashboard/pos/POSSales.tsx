@@ -39,10 +39,9 @@ const POSSales = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<(string | number | null)>('cash');
   const [isPrintDialogOpen, setIsPrintDialogOpen] = useState(false);
   const [printOptions, setPrintOptions] = useState({
-    type: 'bw', // 'bw' or 'color'
-    pricePerPage: 0.10,
+    selectedServiceId: null,
     numberOfPages: 1,
-    subtotal: 0.10
+    subtotal: 0
   });
   const [printingItem, setPrintingItem] = useState<Inventory | null>(null);
   const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
@@ -68,6 +67,8 @@ const POSSales = () => {
     description?: string;
     isPrintingService?: boolean;
     image_url?: string;
+    isService?: boolean;
+    serviceId?: number;
   }>>([]);
 
   const paymentMethodOption = [
@@ -85,6 +86,43 @@ const POSSales = () => {
   const { data: inventorys, isLoading: loadingInventorys } = useQuery({
     queryKey: ['inventorys', searchItem, selectedSearchFilter, parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
     queryFn: async () => {
+      // If searching for services, fetch from nd_category_service table
+      if (selectedSearchFilter === 'services') {
+        let serviceQuery = supabase
+          .from('nd_category_service')
+          .select('*');
+
+        if (searchItem && searchItem.length > 0) {
+          serviceQuery = serviceQuery.or(`bm.ilike.%${searchItem}%,eng.ilike.%${searchItem}%`);
+        } else {
+          serviceQuery = serviceQuery.limit(10);
+        }
+
+        serviceQuery = serviceQuery.order('created_at', { ascending: false });
+        const { data: serviceData, error: serviceError } = await serviceQuery;
+
+        if (serviceError) {
+          console.error("Error fetching services:", serviceError);
+          throw serviceError;
+        }
+
+        // Transform service data to match inventory structure
+        const transformedServices = serviceData?.map(service => ({
+          id: service.id,
+          name: service.eng, // Use English name
+          description: service.bm, // Use Bahasa Malaysia as description
+          price: 0, // Will be set dynamically based on service_charge
+          quantity: 999, // Services don't have stock limits
+          category_id: 1, // Mark as service
+          type_id: 2, // Digital service
+          barcode: null,
+          image_url: null,
+          nd_inventory_attachment: []
+        })) || [];
+
+        return transformedServices;
+      }
+
       let query = supabase
         .from('nd_inventory')
         .select(`
@@ -117,9 +155,7 @@ const POSSales = () => {
         query = query.eq('site_id', siteId);
       }
 
-      if (selectedSearchFilter === 'services') {
-        query = query.eq('category_id', 1);
-      } else if (selectedSearchFilter === 'items') {
+      if (selectedSearchFilter === 'items') {
         query = query.in('category_id', [2, 3, 4, 5]);
       }
 
@@ -131,8 +167,6 @@ const POSSales = () => {
 
       query = query.order('created_at', { ascending: false });
       const { data, error } = await query;
-
-      console.log(data);
       
       if (error) {
         console.error("Error fetching inventories:", error);
@@ -173,12 +207,37 @@ const POSSales = () => {
     },
   });
 
+  const { data: serviceCharges, isLoading: loadingServiceCharges } = useQuery({
+    queryKey: ['serviceCharges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('nd_service_charge')
+        .select('*')
+        .order('id');
+
+      if (error) {
+        console.error("Error fetching service charges:", error);
+        throw error;
+      }
+
+      return data || [];
+    },
+  });
+
   const resetSale = () => {
     setCartItems([]);
     setSelectedMember(null);
     setSearchTerm("");
     setSelectedPaymentMethod('cash');
     setRemarks("");
+  };
+
+  const resetPrintOptions = () => {
+    setPrintOptions({
+      selectedServiceId: null,
+      numberOfPages: 1,
+      subtotal: 0
+    });
   };
 
   const handleSearchChange = (value: string) => {
@@ -193,6 +252,27 @@ const POSSales = () => {
   const updateCartItemQuantity = (itemId: string | number, newQuantity: number) => {
     if (newQuantity < 1) return;
 
+    // Find the cart item to check if it's a service
+    const cartItem = cartItems.find(item => item.id === itemId);
+    if (!cartItem) return;
+
+    // For services, allow unlimited quantity updates
+    if (cartItem.isService) {
+      const updatedItems = cartItems.map(item => {
+        if(item.id === itemId) {
+          return {
+            ...item,
+            quantity: newQuantity,
+            total: newQuantity * item.price
+          };
+        }
+        return item;
+      });
+      setCartItems(updatedItems);
+      return;
+    }
+
+    // For physical items, check inventory
     const inventoryItem = inventorys?.find(inv => inv.id === itemId);
     if(!inventoryItem) return;
 
@@ -222,7 +302,7 @@ const POSSales = () => {
   const addToCart = (inventory: Inventory) => {
     if (inventory) {
       // Check if it's a printing service
-      if (inventory.name.toLowerCase().includes('printing')) {
+      if (inventory.category_id === 1) {
         setPrintingItem({
           ...inventory,
           image_url: inventory.image_url
@@ -270,7 +350,8 @@ const POSSales = () => {
           quantity: itemQuantity,
           price: inventory.price,
           total: itemQuantity * inventory.price,
-          image_url: inventory.image_url
+          image_url: inventory.image_url,
+          isService: selectedSearchFilter === 'services'
         };
         setCartItems([...cartItems, newItem]);
 
@@ -366,7 +447,8 @@ const POSSales = () => {
           quantity: item.quantity,
           price_per_unit: item.price,
           total_price: item.total,
-          item_id: item.id,
+          item_id: item.isService ? null : item.id,
+          service_id: item.isService ? (item.serviceId || item.id) : null,
           created_by: userId,
           created_at: new Date().toISOString(),
           updated_by: null,
@@ -381,38 +463,40 @@ const POSSales = () => {
           throw insertTransactionItemError;
         }
 
-        const { data: inventoryData, error: getInventoryError } = await supabase
-          .from("nd_inventory")
-          .select("quantity")
-          .eq("id", item.id)
-          .single();
+        if (!item.isService) {
+          const { data: inventoryData, error: getInventoryError } = await supabase
+            .from("nd_inventory")
+            .select("quantity")
+            .eq("id", item.id)
+            .single();
 
-        if (getInventoryError) {
-          throw getInventoryError;
+          if (getInventoryError) {
+            console.warn(`Could not fetch inventory for item ${item.id}, might be a service`);
+          } else {
+            const currentQuantity = inventoryData.quantity;
+            const newQuantity = currentQuantity - item.quantity;
+
+            if (newQuantity < 0) {
+              throw new Error(`Not enough inventory for ${item.name}. Available: ${currentQuantity}`);
+            }
+
+            // Update the inventory
+            const { error: updateInventoryError } = await supabase
+              .from("nd_inventory")
+              .update({ 
+                quantity: newQuantity,
+                updated_by: userId,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", item.id);
+
+            if (updateInventoryError) {
+              throw updateInventoryError;
+            }
+
+            console.log(`Updated inventory for item ${item.id}: ${currentQuantity} → ${newQuantity}`);
+          }
         }
-
-        const currentQuantity = inventoryData.quantity;
-        const newQuantity = currentQuantity - item.quantity;
-
-        if (newQuantity < 0) {
-          throw new Error(`Not enough inventory for ${item.name}. Available: ${currentQuantity}`);
-        }
-
-        // Update the inventory
-        const { error: updateInventoryError } = await supabase
-          .from("nd_inventory")
-          .update({ 
-            quantity: newQuantity,
-            updated_by: userId,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", item.id);
-
-        if (updateInventoryError) {
-          throw updateInventoryError;
-        }
-
-        console.log(`Updated inventory for item ${item.id}: ${currentQuantity} → ${newQuantity}`);
       }
 
       setReceipt({
@@ -461,17 +545,14 @@ const POSSales = () => {
     setPrintOptions(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Calculate subtotal
-      if (field === 'type' || field === 'pricePerPage' || field === 'numberOfPages') {
-        const price = field === 'type' ? 
-          (value === 'color' ? 0.10 : 0.10) :
-          (field === 'pricePerPage' ? value : prev.pricePerPage);
+      // Calculate subtotal based on selected service and quantity
+      if (field === 'selectedServiceId' || field === 'numberOfPages') {
+        const selectedService = serviceCharges?.find(charge => charge.id === 
+          (field === 'selectedServiceId' ? value : prev.selectedServiceId));
         
-        const pages = field === 'numberOfPages' ? value : prev.numberOfPages;
-        updated.subtotal = parseFloat((price * pages).toFixed(2));
-        
-        if (field === 'type') {
-          updated.pricePerPage = value === 'color' ? 0.10 : 0.10;
+        if (selectedService) {
+          const quantity = field === 'numberOfPages' ? value : prev.numberOfPages;
+          updated.subtotal = parseFloat((selectedService.fee * quantity).toFixed(2));
         }
       }
       
@@ -481,7 +562,8 @@ const POSSales = () => {
 
   const addPrintingToCart = () => {
     if (printingItem) {
-      const description = `${printOptions.type === 'bw' ? 'B&W' : 'Color'} - RM${printOptions.pricePerPage.toFixed(2)}/page × ${printOptions.numberOfPages} pages`;
+      const selectedService = serviceCharges?.find(charge => charge.id === printOptions.selectedServiceId);
+      const description = selectedService ? `${selectedService.description} × ${printOptions.numberOfPages}` : '';
       
       const newItem = {
         id: printingItem.id,
@@ -493,7 +575,9 @@ const POSSales = () => {
         price: printOptions.subtotal,
         total: printOptions.subtotal,
         isPrintingService: true,
-        image_url: printingItem.image_url
+        image_url: printingItem.image_url,
+        isService: true,
+        serviceId: printOptions.selectedServiceId
       };
       
       if (editingCartItemIndex !== null && editingCartItemIndex >= 0) {
@@ -521,6 +605,7 @@ const POSSales = () => {
       setIsPrintDialogOpen(false);
       setPrintingItem(null);
       setSearchItem("");
+      resetPrintOptions();
     }
   };
 
@@ -735,7 +820,7 @@ const POSSales = () => {
                               Barcode: {item.barcode ? item.barcode : '-'}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              Stock: {getInventoryStock(item.id)}
+                              Stock: {item.isService ? 'Unlimited' : getInventoryStock(item.id)}
                             </div>
                           </div>
                         </div>
@@ -753,7 +838,7 @@ const POSSales = () => {
                             <span>{item.quantity}</span>
                             <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
                               onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
-                              disabled={item.quantity >= getInventoryStock(item.id)}
+                              disabled={!item.isService && item.quantity >= getInventoryStock(item.id)}
                             >
                               <Plus className="h-5 w-5" />
                             </Button>
@@ -767,15 +852,18 @@ const POSSales = () => {
                                   if (itemIndex !== -1) {
                                     setEditingCartItemIndex(itemIndex);
                                     
-                                    const description = item.description || '';
-                                    const isBW = description.includes('B&W');
-                                    const priceMatch = description.match(/RM([\d.]+)\/page/);
-                                    const pagesMatch = description.match(/(\d+) pages/);
+                                    // Find the selected service ID from the description
+                                    const selectedService = serviceCharges?.find(charge => 
+                                      item.description?.includes(charge.description)
+                                    );
+                                    
+                                    // Extract quantity from description
+                                    const quantityMatch = item.description?.match(/×\s*(\d+)/);
+                                    const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
                                     
                                     setPrintOptions({
-                                      type: isBW ? 'bw' : 'color',
-                                      pricePerPage: priceMatch ? parseFloat(priceMatch[1]) : 0.10,
-                                      numberOfPages: pagesMatch ? parseInt(pagesMatch[1]) : 1,
+                                      selectedServiceId: selectedService?.id || null,
+                                      numberOfPages: quantity,
                                       subtotal: item.price
                                     });
                                     
@@ -786,7 +874,8 @@ const POSSales = () => {
                                       barcode: item.barcode,
                                       price: item.price,
                                       quantity: item.quantity,
-                                      image_url: item.image_url
+                                      image_url: item.image_url,
+                                      category_id: 1
                                     } as Inventory);
                                     
                                     setIsPrintDialogOpen(true);
@@ -1130,58 +1219,48 @@ const POSSales = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Printing Options Dialog */}
+        {/* Service Options Dialog */}
         <Dialog open={isPrintDialogOpen} onOpenChange={(open) => {
           setIsPrintDialogOpen(open);
           if (!open) {
             setEditingCartItemIndex(null);
+            resetPrintOptions();
           }
         }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Printing Options</DialogTitle>
+              <DialogTitle>Service Options</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div>
-                <Label className="text-sm font-medium">Print Type</Label>
-                <div className="flex gap-4 mt-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="bw"
-                      checked={printOptions.type === 'bw'}
-                      onChange={() => handlePrintOptionsChange('type', 'bw')}
-                      className="h-4 w-4 rounded-full"
-                    />
-                    <Label htmlFor="bw">Black & White</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      id="color"
-                      checked={printOptions.type === 'color'}
-                      onChange={() => handlePrintOptionsChange('type', 'color')}
-                      className="h-4 w-4 rounded-full"
-                    />
-                    <Label htmlFor="color">Color</Label>
-                  </div>
+                <Label className="text-sm font-medium">Service: {printingItem?.name}</Label>
+                {printingItem?.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{printingItem.description}</p>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">Available Options</Label>
+                <div className="space-y-2 mt-2">
+                  {serviceCharges?.filter(charge => charge.category_id === printingItem?.id).map((charge) => (
+                    <div key={charge.id} className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id={`service-${charge.id}`}
+                        checked={printOptions.selectedServiceId === charge.id}
+                        onChange={() => handlePrintOptionsChange('selectedServiceId', charge.id)}
+                        className="h-4 w-4 rounded-full"
+                      />
+                      <Label htmlFor={`service-${charge.id}`} className="flex-1">
+                        {charge.description} - RM{charge.fee.toFixed(2)}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="pricePerPage">Price Per Page (RM)</Label>
-                <Input
-                  id="pricePerPage"
-                  type="number"
-                  step="0.01"
-                  value={printOptions.pricePerPage}
-                  onChange={(e) => handlePrintOptionsChange('pricePerPage', parseFloat(e.target.value))}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label className="mb-2 block">Number of Pages</Label>
+                <Label className="mb-2 block">Quantity</Label>
                 <div className="flex items-center gap-2">
                   <Button 
                     size="sm" 
@@ -1217,7 +1296,7 @@ const POSSales = () => {
                 Cancel
               </Button>
               <Button variant="default" onClick={addPrintingToCart}>
-                Save Options
+                Add Service
               </Button>
             </div>
           </DialogContent>

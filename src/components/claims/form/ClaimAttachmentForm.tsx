@@ -13,6 +13,7 @@ import { RefreshCw, Trash2 } from "lucide-react";
 import { Progress } from "@radix-ui/react-progress";
 import { ClaimReportGenerator } from "../tp/ClaimReportGenerator";
 import { Textarea } from "@/components/ui/textarea";
+import Audit from "../template/SiteManagement/Audit";
 
 type CategoryData = {
     id: number;
@@ -31,8 +32,18 @@ type CategoryData = {
 };
 
 type ClaimData = {
-    is_finished_generate: boolean;
+    claim_type: string;
+    year: number;
+    quarter: number;
+    month: number;
+    start_date: string;
+    end_date: string;
+    ref_no: string;
+    tp_dusp_id: string;
+    dusp_id: string;
+    phase_id: number;
     category_ids: CategoryData[];
+    is_finished_generate: boolean;
 };
 
 type ClaimAttachmentFormProps = ClaimData & {
@@ -40,8 +51,18 @@ type ClaimAttachmentFormProps = ClaimData & {
 };
 
 export function ClaimAttachmentForm({
-    is_finished_generate,
+    claim_type,
+    year,
+    quarter,
+    month,
+    start_date,
+    end_date,
+    ref_no,
+    tp_dusp_id,
+    dusp_id,
+    phase_id,
     category_ids,
+    is_finished_generate,
     updateFields,
 }: ClaimAttachmentFormProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -50,60 +71,60 @@ export function ClaimAttachmentForm({
     const [isGenerating, setIsGenerating] = useState<Record<number, boolean>>({});
     const [generatedFiles, setGeneratedFiles] = useState<Record<number, File | null>>({});
 
-const handleFileChange = (files: FileList | null) => {
-    if (!files || !selectedItem) return;
+    const handleFileChange = (files: FileList | null) => {
+        if (!files || !selectedItem) return;
 
-    const updatedCategories = category_ids.map((category) => {
-        if (category.id === selectedItem.categoryId) {
-            return {
-                ...category,
-                item_ids: category.item_ids.map((item) => {
-                    if (item.id === selectedItem.itemId) {
-                        const updatedFiles = [
-                            ...(item.suppport_doc_file || []), // Keep existing files
-                            ...Array.from(files), // Add new files
-                        ];
-                        return {
-                            ...item,
-                            suppport_doc_file: updatedFiles,
-                            status_item: updatedFiles.length > 0, // Set status_item to true if files exist
-                        };
-                    }
-                    return item;
-                }),
-            };
-        }
-        return category;
-    });
+        const updatedCategories = category_ids.map((category) => {
+            if (category.id === selectedItem.categoryId) {
+                return {
+                    ...category,
+                    item_ids: category.item_ids.map((item) => {
+                        if (item.id === selectedItem.itemId) {
+                            const updatedFiles = [
+                                ...(item.suppport_doc_file || []), // Keep existing files
+                                ...Array.from(files), // Add new files
+                            ];
+                            return {
+                                ...item,
+                                suppport_doc_file: updatedFiles,
+                                status_item: updatedFiles.length > 0, // Set status_item to true if files exist
+                            };
+                        }
+                        return item;
+                    }),
+                };
+            }
+            return category;
+        });
 
-    updateFields({ category_ids: updatedCategories });
-    setIsDialogOpen(false);
-    setFiles([]);
-};
+        updateFields({ category_ids: updatedCategories });
+        setIsDialogOpen(false);
+        setFiles([]);
+    };
 
-const handleDeleteSpecificFile = (categoryId: number, itemId: number, fileIndex: number) => {
-    const updatedCategories = category_ids.map((category) => {
-        if (category.id === categoryId) {
-            return {
-                ...category,
-                item_ids: category.item_ids.map((item) => {
-                    if (item.id === itemId) {
-                        const updatedFiles = item.suppport_doc_file?.filter((_, idx) => idx !== fileIndex) || [];
-                        return {
-                            ...item,
-                            suppport_doc_file: updatedFiles,
-                            status_item: updatedFiles.length > 0, // Update status_item based on the updated files
-                        };
-                    }
-                    return item;
-                }),
-            };
-        }
-        return category;
-    });
+    const handleDeleteSpecificFile = (categoryId: number, itemId: number, fileIndex: number) => {
+        const updatedCategories = category_ids.map((category) => {
+            if (category.id === categoryId) {
+                return {
+                    ...category,
+                    item_ids: category.item_ids.map((item) => {
+                        if (item.id === itemId) {
+                            const updatedFiles = item.suppport_doc_file?.filter((_, idx) => idx !== fileIndex) || [];
+                            return {
+                                ...item,
+                                suppport_doc_file: updatedFiles,
+                                status_item: updatedFiles.length > 0, // Update status_item based on the updated files
+                            };
+                        }
+                        return item;
+                    }),
+                };
+            }
+            return category;
+        });
 
-    updateFields({ category_ids: updatedCategories });
-};
+        updateFields({ category_ids: updatedCategories });
+    };
 
     // Group categories by ID
     const groupedCategories = category_ids.reduce<Record<number, CategoryData>>((acc, category) => {
@@ -131,17 +152,17 @@ const handleDeleteSpecificFile = (categoryId: number, itemId: number, fileIndex:
     }, [generatedFiles, category_ids, is_finished_generate, updateFields]);
 
     useEffect(() => {
-    // Initialize generatedFiles state from summary_report_file
-    const initialGeneratedFiles: Record<number, File | null> = {};
-    category_ids.forEach((category) => {
-        category.item_ids.forEach((item) => {
-            if (item.summary_report_file) {
-                initialGeneratedFiles[item.id] = item.summary_report_file;
-            }
+        // Initialize generatedFiles state from summary_report_file
+        const initialGeneratedFiles: Record<number, File | null> = {};
+        category_ids.forEach((category) => {
+            category.item_ids.forEach((item) => {
+                if (item.summary_report_file) {
+                    initialGeneratedFiles[item.id] = item.summary_report_file;
+                }
+            });
         });
-    });
-    setGeneratedFiles(initialGeneratedFiles);
-}, [category_ids]);
+        setGeneratedFiles(initialGeneratedFiles);
+    }, [category_ids]);
 
     const handleReportsGenerated = (itemId: number, file: File) => {
         // Update the generatedFiles state
@@ -170,6 +191,76 @@ const handleDeleteSpecificFile = (categoryId: number, itemId: number, fileIndex:
         setIsGenerating((prev) => ({ ...prev, [itemId]: true }));
     };
 
+    const handleGenerateReport = async (itemId: number, itemName: string, siteIds: number[]) => {
+        try {
+            startGeneratingReport(itemId);
+
+            const reportData = {
+                claimType: claim_type,
+                quater: String(quarter),
+                startDate: start_date,
+                endDate: end_date,
+                tpFilter: tp_dusp_id,
+                phaseFilter: phase_id,
+                duspFilter: dusp_id,
+                nadiFilter: siteIds,
+            };
+
+            let generatedFile: File | null = null;
+
+            if (itemId === 6 || itemName.toLowerCase() === "audit") {
+                // Generate Audit Report
+                generatedFile = await Audit(reportData);
+            } else {
+                // Generate Claim Report
+                generatedFile = await new Promise<File | null>((resolve) => {
+                    <ClaimReportGenerator
+                        site_profile_ids={siteIds}
+                        category_ids={category_ids}
+                        onReportsGenerated={(reports) => {
+                            const file = reports.find((report) => report.item_name === itemName)?.report_file || null;
+                            resolve(file);
+                        }}
+                    />;
+                });
+            }
+
+            if (generatedFile) {
+                // Update the summary_report_file in category_ids
+                const updatedCategories = category_ids.map((category) => ({
+                    ...category,
+                    item_ids: category.item_ids.map((item) => {
+                        if (item.id === itemId) {
+                            return {
+                                ...item,
+                                summary_report_file: generatedFile, // Store the generated file
+                            };
+                        }
+                        return item;
+                    }),
+                }));
+
+                // Update the fields with the modified category_ids
+                updateFields({ category_ids: updatedCategories });
+
+                // Check if all required reports are generated
+                const allGenerated = updatedCategories.every((category) =>
+                    category.item_ids.every(
+                        (item) =>
+                            !item.need_summary_report || item.summary_report_file !== null
+                    )
+                );
+
+                // Update is_finished_generate based on the allGenerated flag
+                updateFields({ is_finished_generate: allGenerated });
+            }
+        } catch (error) {
+            console.error("Error generating report:", error);
+        } finally {
+            setIsGenerating((prev) => ({ ...prev, [itemId]: false }));
+        }
+    };
+
     return (
         <div>
             <header className="mb-4">Category & Items Attachments</header>
@@ -189,138 +280,138 @@ const handleDeleteSpecificFile = (categoryId: number, itemId: number, fileIndex:
 </pre> */}
 
 
-<Table className="border border-gray-300 w-full text-sm">
-    <TableHeader className="bg-gray-50">
-        <TableRow>
-            <TableHead className="px-4 py-2 border">Category</TableHead>
-            <TableHead className="px-4 py-2 border">Items</TableHead>
-            <TableHead className="px-4 py-2 text-center border">Summary Report</TableHead>
-            <TableHead className="px-4 py-2 text-center border">Supporting Document</TableHead>
-            <TableHead className="px-4 py-2 text-center border">Remark</TableHead> {/* New Remark Column */}
-        </TableRow>
-    </TableHeader>
-
-    <TableBody>
-        {Object.values(groupedCategories).map((category) => (
-            <React.Fragment key={category.id}>
-                {category.item_ids.map((item, index) => (
-                    <TableRow key={item.id}>
-                        {index === 0 && (
-                            <TableCell
-                                className="px-4 py-2 align-top border"
-                                rowSpan={category.item_ids.length}
-                            >
-                                {category.name}
-                            </TableCell>
-                        )}
-                        <TableCell className="px-4 py-2 border">{item.name}</TableCell>
-                        <TableCell className="px-4 py-2 text-center border">
-                            {item.need_summary_report ? (
-                                isGenerating[item.id] ? (
-                                    <div className="flex items-center gap-4">
-                                        <RefreshCw className="h-4 w-4 animate-spin" />
-                                        <div className="space-y-2 flex-1">
-                                            <div className="text-sm">Generating report...</div>
-                                            <Progress value={45} className="h-1" />
-                                        </div>
-                                    </div>
-                                ) : generatedFiles[item.id] ? (
-                                    <a
-                                        href={URL.createObjectURL(generatedFiles[item.id])}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-500 underline"
-                                    >
-                                        {generatedFiles[item.id].name}
-                                    </a>
-                                ) : (
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => startGeneratingReport(item.id)}
-                                    >
-                                        Generate Report
-                                    </Button>
-                                )
-                            ) : (
-                                <span className="text-gray-500">Not Required</span>
-                            )}
-                        </TableCell>
-                        <TableCell className="px-4 py-2 text-center border">
-                            {item.need_support_doc ? (
-                                <div className="flex flex-col items-center gap-2">
-                                    {item.suppport_doc_file?.length ? (
-                                        <div className="flex flex-col gap-2">
-                                            {item.suppport_doc_file.map((file, idx) => (
-                                                <div key={idx} className="flex items-center gap-2">
-                                                    <a
-                                                        href={URL.createObjectURL(file)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-500 underline"
-                                                    >
-                                                        {file.name}
-                                                    </a>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-6 w-6 text-red-600"
-                                                        onClick={() =>
-                                                            handleDeleteSpecificFile(category.id, item.id, idx)
-                                                        }
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : ""}
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => {
-                                            setSelectedItem({
-                                                categoryId: category.id,
-                                                itemId: item.id,
-                                            });
-                                            setIsDialogOpen(true);
-                                        }}
-                                    >
-                                        Upload
-                                    </Button>
-                                </div>
-                            ) : (
-                                <span className="text-gray-500">Not Required</span>
-                            )}
-                        </TableCell>
-                        <TableCell className="px-4 py-2 text-center border">
-                            {/* Remark Input Field */}
-                            <Textarea
-                                value={item.remark ?? "" }
-                                onChange={(e) => {
-                                    const updatedCategories = category_ids.map((category) => {
-                                        if (category.id === category.id) {
-                                            return {
-                                                ...category,
-                                                item_ids: category.item_ids.map((i) =>
-                                                    i.id === item.id
-                                                        ? { ...i, remark: e.target.value }
-                                                        : i
-                                                ),
-                                            };
-                                        }
-                                        return category;
-                                    });
-                                    updateFields({ category_ids: updatedCategories });
-                                }}
-                                className="border border-gray-300 rounded px-2 py-1 w-full"
-                                placeholder="Add remark"
-                            />
-                        </TableCell>
+            <Table className="border border-gray-300 w-full text-sm">
+                <TableHeader className="bg-gray-50">
+                    <TableRow>
+                        <TableHead className="px-4 py-2 border">Category</TableHead>
+                        <TableHead className="px-4 py-2 border">Items</TableHead>
+                        <TableHead className="px-4 py-2 text-center border">Summary Report</TableHead>
+                        <TableHead className="px-4 py-2 text-center border">Supporting Document</TableHead>
+                        <TableHead className="px-4 py-2 text-center border">Remark</TableHead>
                     </TableRow>
-                ))}
-            </React.Fragment>
-        ))}
-    </TableBody>
-</Table>
+                </TableHeader>
+
+                <TableBody>
+                    {Object.values(groupedCategories).map((category) => (
+                        <React.Fragment key={category.id}>
+                            {category.item_ids.map((item, index) => (
+                                <TableRow key={item.id}>
+                                    {index === 0 && (
+                                        <TableCell
+                                            className="px-4 py-2 align-top border"
+                                            rowSpan={category.item_ids.length}
+                                        >
+                                            {category.name}
+                                        </TableCell>
+                                    )}
+                                    <TableCell className="px-4 py-2 border">{item.name}</TableCell>
+                                    <TableCell className="px-4 py-2 text-center border">
+                                        {item.need_summary_report ? (
+                                            isGenerating[item.id] ? (
+                                                <div className="flex items-center gap-4">
+                                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="text-sm">Generating report...</div>
+                                                        <Progress value={45} className="h-1" />
+                                                    </div>
+                                                </div>
+                                            ) : generatedFiles[item.id] ? (
+                                                <a
+                                                    href={URL.createObjectURL(generatedFiles[item.id])}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-500 underline"
+                                                >
+                                                    {generatedFiles[item.id].name}
+                                                </a>
+                                            ) : (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => handleGenerateReport(item.id, item.name, item.site_ids)}
+                                                >
+                                                    Generate Report
+                                                </Button>
+                                            )
+                                        ) : (
+                                            <span className="text-gray-500">Not Required</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 text-center border">
+                                        {item.need_support_doc ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                {item.suppport_doc_file?.length ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        {item.suppport_doc_file.map((file, idx) => (
+                                                            <div key={idx} className="flex items-center gap-2">
+                                                                <a
+                                                                    href={URL.createObjectURL(file)}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-blue-500 underline"
+                                                                >
+                                                                    {file.name}
+                                                                </a>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-6 w-6 text-red-600"
+                                                                    onClick={() =>
+                                                                        handleDeleteSpecificFile(category.id, item.id, idx)
+                                                                    }
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : null}
+                                                <Button
+                                                    className="h-6"
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        setSelectedItem({
+                                                            categoryId: category.id,
+                                                            itemId: item.id,
+                                                        });
+                                                        setIsDialogOpen(true);
+                                                    }}
+                                                >
+                                                    Upload
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-500">Not Required</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-2 text-center border">
+                                        <Textarea
+                                            value={item.remark ?? ""}
+                                            onChange={(e) => {
+                                                const updatedCategories = category_ids.map((category) => {
+                                                    if (category.id === category.id) {
+                                                        return {
+                                                            ...category,
+                                                            item_ids: category.item_ids.map((i) =>
+                                                                i.id === item.id
+                                                                    ? { ...i, remark: e.target.value }
+                                                                    : i
+                                                            ),
+                                                        };
+                                                    }
+                                                    return category;
+                                                });
+                                                updateFields({ category_ids: updatedCategories });
+                                            }}
+                                            className="border border-gray-300 rounded px-2 py-1 w-full"
+                                            placeholder="Add remark"
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </React.Fragment>
+                    ))}
+                </TableBody>
+            </Table>
 
             {/* Upload Dialog */}
             {isDialogOpen && (
