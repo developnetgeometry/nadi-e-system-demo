@@ -107,7 +107,7 @@ const Audit = async ({
                     <>
                         <PDFHeader
                             mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
-                            duspLogo={dusplogo } // Use provided DUSP logo or placeholder
+                            duspLogo={dusplogo} // Use provided DUSP logo or placeholder
                         />
 
 
@@ -130,13 +130,16 @@ const Audit = async ({
                         <Text>Total NADI{"\n"}{audits.length}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
-                        <PDFPhaseQuarterInfo
-                            phaseLabel={phaseLabel}
-                            claimType={claimType}
-                            quater={quater}
-                            startDate={startDate}
-                            endDate={endDate}
-                        />
+                        {/* when header not provided, show phase and quarter info */}
+                        {!header && (
+                            <PDFPhaseQuarterInfo
+                                phaseLabel={phaseLabel}
+                                claimType={claimType}
+                                quater={quater}
+                                startDate={startDate}
+                                endDate={endDate}
+                            />
+                        )}
                     </View>
                 </View>
 
