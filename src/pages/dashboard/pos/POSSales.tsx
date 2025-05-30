@@ -67,6 +67,8 @@ const POSSales = () => {
     description?: string;
     isPrintingService?: boolean;
     image_url?: string;
+    isService?: boolean;
+    serviceId?: number;
   }>>([]);
 
   const paymentMethodOption = [
@@ -250,6 +252,27 @@ const POSSales = () => {
   const updateCartItemQuantity = (itemId: string | number, newQuantity: number) => {
     if (newQuantity < 1) return;
 
+    // Find the cart item to check if it's a service
+    const cartItem = cartItems.find(item => item.id === itemId);
+    if (!cartItem) return;
+
+    // For services, allow unlimited quantity updates
+    if (cartItem.isService) {
+      const updatedItems = cartItems.map(item => {
+        if(item.id === itemId) {
+          return {
+            ...item,
+            quantity: newQuantity,
+            total: newQuantity * item.price
+          };
+        }
+        return item;
+      });
+      setCartItems(updatedItems);
+      return;
+    }
+
+    // For physical items, check inventory
     const inventoryItem = inventorys?.find(inv => inv.id === itemId);
     if(!inventoryItem) return;
 
@@ -327,7 +350,8 @@ const POSSales = () => {
           quantity: itemQuantity,
           price: inventory.price,
           total: itemQuantity * inventory.price,
-          image_url: inventory.image_url
+          image_url: inventory.image_url,
+          isService: selectedSearchFilter === 'services'
         };
         setCartItems([...cartItems, newItem]);
 
@@ -423,7 +447,8 @@ const POSSales = () => {
           quantity: item.quantity,
           price_per_unit: item.price,
           total_price: item.total,
-          item_id: item.id,
+          item_id: item.isService ? null : item.id,
+          service_id: item.isService ? (item.serviceId || item.id) : null,
           created_by: userId,
           created_at: new Date().toISOString(),
           updated_by: null,
@@ -438,7 +463,7 @@ const POSSales = () => {
           throw insertTransactionItemError;
         }
 
-        if (item.type_id !== 2 || !item.isPrintingService) {
+        if (!item.isService) {
           const { data: inventoryData, error: getInventoryError } = await supabase
             .from("nd_inventory")
             .select("quantity")
@@ -550,7 +575,9 @@ const POSSales = () => {
         price: printOptions.subtotal,
         total: printOptions.subtotal,
         isPrintingService: true,
-        image_url: printingItem.image_url
+        image_url: printingItem.image_url,
+        isService: true,
+        serviceId: printOptions.selectedServiceId
       };
       
       if (editingCartItemIndex !== null && editingCartItemIndex >= 0) {
@@ -793,7 +820,7 @@ const POSSales = () => {
                               Barcode: {item.barcode ? item.barcode : '-'}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              Stock: {getInventoryStock(item.id)}
+                              Stock: {item.isService ? 'Unlimited' : getInventoryStock(item.id)}
                             </div>
                           </div>
                         </div>
@@ -811,7 +838,7 @@ const POSSales = () => {
                             <span>{item.quantity}</span>
                             <Button variant="secondary" className="w-8 h-8 text-[14px] p-0 inline-flex hover:bg-[#5147dd] hover:text-white border"
                               onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}
-                              disabled={item.quantity >= getInventoryStock(item.id)}
+                              disabled={!item.isService && item.quantity >= getInventoryStock(item.id)}
                             >
                               <Plus className="h-5 w-5" />
                             </Button>
