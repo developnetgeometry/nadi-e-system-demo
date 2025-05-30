@@ -2,15 +2,20 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
+import { getStartAndEndDate } from "../hook/getStartAndEndDate";
 
 type ClaimData = {
     claim_type: string;
     year: number;
     quarter: number;
     month: number;
+    start_date: string;
+    end_date: string;
     ref_no: string;
     tp_name: string; //additional
     dusp_name: string; //additional
+    phase_id?: number;
+
 };
 
 type ClaimDateFormProps = ClaimData & {
@@ -22,9 +27,12 @@ export function ClaimDateForm({
     year,
     quarter,
     month,
+    start_date,
+    end_date,
     ref_no,
     tp_name,
     dusp_name,
+    phase_id,
     updateFields,
 }: ClaimDateFormProps) {
     useEffect(() => {
@@ -47,7 +55,13 @@ export function ClaimDateForm({
                 generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-${mmm}`;
             }
 
-            updateFields({ ref_no: generatedRefNo });
+            try {
+                const { start_date: calculatedStartDate, end_date: calculatedEndDate } = getStartAndEndDate(claim_type, year, quarter, month);
+                updateFields({ start_date: calculatedStartDate, end_date: calculatedEndDate });
+            } catch (error) {
+                console.error("Error calculating start and end dates:", error);
+            }
+        updateFields({ ref_no: generatedRefNo, phase_id: null });
         }
     }, [dusp_name, tp_name, year, quarter, month, claim_type, updateFields]);
 

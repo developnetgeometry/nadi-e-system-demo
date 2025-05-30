@@ -13,6 +13,7 @@ import { RefreshCw, Trash2 } from "lucide-react";
 import { Progress } from "@radix-ui/react-progress";
 import { ClaimReportGenerator } from "../tp/ClaimReportGenerator";
 import { Textarea } from "@/components/ui/textarea";
+import Audit from "../template/SiteManagement/Audit";
 
 type CategoryData = {
     id: number;
@@ -31,8 +32,18 @@ type CategoryData = {
 };
 
 type ClaimData = {
-    is_finished_generate: boolean;
+    claim_type: string;
+    year: number;
+    quarter: number;
+    month: number;
+    start_date: string;
+    end_date: string;
+    ref_no: string;
+    tp_dusp_id: string;
+    dusp_id: string;
+    phase_id: number;
     category_ids: CategoryData[];
+    is_finished_generate: boolean;
 };
 
 type ClaimAttachmentFormProps = ClaimData & {
@@ -40,8 +51,18 @@ type ClaimAttachmentFormProps = ClaimData & {
 };
 
 export function ClaimAttachmentForm({
-    is_finished_generate,
+    claim_type,
+    year,
+    quarter,
+    month,
+    start_date,
+    end_date,
+    ref_no,
+    tp_dusp_id,
+    dusp_id,
+    phase_id,
     category_ids,
+    is_finished_generate,
     updateFields,
 }: ClaimAttachmentFormProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -170,6 +191,76 @@ export function ClaimAttachmentForm({
         setIsGenerating((prev) => ({ ...prev, [itemId]: true }));
     };
 
+    const handleGenerateReport = async (itemId: number, itemName: string, siteIds: number[]) => {
+        try {
+            startGeneratingReport(itemId);
+
+            const reportData = {
+                claimType: claim_type,
+                quater: String(quarter),
+                startDate: start_date,
+                endDate: end_date,
+                tpFilter: tp_dusp_id,
+                phaseFilter: phase_id,
+                duspFilter: dusp_id,
+                nadiFilter: siteIds,
+            };
+
+            let generatedFile: File | null = null;
+
+            if (itemId === 6 || itemName.toLowerCase() === "audit") {
+                // Generate Audit Report
+                generatedFile = await Audit(reportData);
+            } else {
+                // Generate Claim Report
+                generatedFile = await new Promise<File | null>((resolve) => {
+                    <ClaimReportGenerator
+                        site_profile_ids={siteIds}
+                        category_ids={category_ids}
+                        onReportsGenerated={(reports) => {
+                            const file = reports.find((report) => report.item_name === itemName)?.report_file || null;
+                            resolve(file);
+                        }}
+                    />;
+                });
+            }
+
+            if (generatedFile) {
+                // Update the summary_report_file in category_ids
+                const updatedCategories = category_ids.map((category) => ({
+                    ...category,
+                    item_ids: category.item_ids.map((item) => {
+                        if (item.id === itemId) {
+                            return {
+                                ...item,
+                                summary_report_file: generatedFile, // Store the generated file
+                            };
+                        }
+                        return item;
+                    }),
+                }));
+
+                // Update the fields with the modified category_ids
+                updateFields({ category_ids: updatedCategories });
+
+                // Check if all required reports are generated
+                const allGenerated = updatedCategories.every((category) =>
+                    category.item_ids.every(
+                        (item) =>
+                            !item.need_summary_report || item.summary_report_file !== null
+                    )
+                );
+
+                // Update is_finished_generate based on the allGenerated flag
+                updateFields({ is_finished_generate: allGenerated });
+            }
+        } catch (error) {
+            console.error("Error generating report:", error);
+        } finally {
+            setIsGenerating((prev) => ({ ...prev, [itemId]: false }));
+        }
+    };
+
     return (
         <div>
             <header className="mb-4">Category & Items Attachments</header>
@@ -236,7 +327,7 @@ export function ClaimAttachmentForm({
                                             ) : (
                                                 <Button
                                                     variant="outline"
-                                                    onClick={() => startGeneratingReport(item.id)}
+                                                    onClick={() => handleGenerateReport(item.id, item.name, item.site_ids)}
                                                 >
                                                     Generate Report
                                                 </Button>
@@ -275,7 +366,7 @@ export function ClaimAttachmentForm({
                                                     </div>
                                                 ) : null}
                                                 <Button
-                                                className="h-6"
+                                                    className="h-6"
                                                     variant="outline"
                                                     onClick={() => {
                                                         setSelectedItem({

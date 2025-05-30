@@ -33,8 +33,11 @@ type FormData = {
   year: number;
   quarter: number;
   month: number;
+  start_date: string;
+  end_date: string;
   ref_no: string;
   tp_dusp_id: string;
+  dusp_id: string;
   tp_name: string;
   dusp_name: string;
 
@@ -50,8 +53,11 @@ const INITIAL_DATA: FormData = {
   year: new Date().getFullYear(),
   quarter: null,
   month: null,
+  start_date: "",
+  end_date: "",
   ref_no: "",
   tp_dusp_id: null,
+  dusp_id: null,
   tp_name: "",
   dusp_name: "",
 
@@ -68,6 +74,7 @@ const ClaimFormPage = () => {
     tp_name: "", // Initialize as empty
     dusp_name: "", // Initialize as empty
     tp_dusp_id: "", // Initialize as null
+    dusp_id: "",
   });
 
   const [loading, setLoading] = useState(false); // Add loading state
@@ -81,6 +88,7 @@ const ClaimFormPage = () => {
         tp_name: duspTpData.name,
         dusp_name: duspTpData.parent_id?.name,
         tp_dusp_id: duspTpData.id,
+        dusp_id: duspTpData.parent_id?.id,
       }));
     }
   }, [duspTpData]);
@@ -148,6 +156,10 @@ const ClaimFormPage = () => {
     if (currentStepIndex === 1) {
       if (!data.phase_id) {
         showValidationError("Phase is required");
+        return;
+      }
+      if (data.category_ids.length === 0) {
+        showValidationError("At least one item is required");
         return;
       }
     }
