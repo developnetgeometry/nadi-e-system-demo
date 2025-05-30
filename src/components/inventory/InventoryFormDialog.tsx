@@ -28,6 +28,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
+import { useTpManagerSiteId } from "@/hooks/use-site-id";
 import { Textarea } from "../ui/textarea";
 import { X, Upload, Loader2 } from "lucide-react";
 
@@ -73,6 +74,8 @@ export const InventoryFormDialog = ({
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_type === "tp_site";
+  const { siteId: tpSiteId } = useTpManagerSiteId(isTpSiteUser);
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
@@ -127,7 +130,7 @@ export const InventoryFormDialog = ({
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
   const [siteId, setSiteId] = useState<string>(
-    String(defaultSiteId) || String(inventory?.site_id) || ""
+    String(defaultSiteId) || String(inventory?.site_id) || String(isTpSiteUser ? tpSiteId : "") ||  ""
   );
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
 
@@ -203,7 +206,14 @@ export const InventoryFormDialog = ({
     if (siteId) {
       fetchSite();
     }
-  }, [siteId, isStaffUser, inventory]);
+  }, [siteId, isStaffUser, inventory, isTpSiteUser]);
+
+  useEffect(() => {
+    // Auto-set siteId for tp_site users
+    if (isTpSiteUser && tpSiteId) {
+      setSiteId(tpSiteId);
+    }
+  }, [isTpSiteUser, tpSiteId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -221,7 +231,7 @@ export const InventoryFormDialog = ({
       return;
     }
 
-    if (!siteId) {
+    if (!siteId && !isTpSiteUser) {
       toast({
         title: "Error",
         description: "Please select a Site.",
@@ -229,6 +239,24 @@ export const InventoryFormDialog = ({
       });
       setIsSubmitting(false);
       return;
+    }
+
+    if (isTpSiteUser && !selectedSite && siteId) {
+      try {
+        const site = await fetchSiteBySiteId(siteId);
+        if (site) {
+          setSelectedSite(site);
+        }
+      } catch (error) {
+        console.error("Error fetching site for tp_site user:", error);
+        toast({
+          title: "Error",
+          description: "Unable to fetch site information.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // const inventory = {
@@ -441,7 +469,7 @@ export const InventoryFormDialog = ({
                 </div>
               )}
 
-              {(isSuperAdmin || isDUSPUser || isTPUser || isStaffUser) && (
+              {(isSuperAdmin || isDUSPUser || isTPUser || isStaffUser) && !isTpSiteUser && (
                 <div className="space-y-2">
                   <Label htmlFor="type">Site</Label>
                   <Select
@@ -465,6 +493,18 @@ export const InventoryFormDialog = ({
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {isTpSiteUser && selectedSite && (
+                <div className="space-y-2">
+                  <Label htmlFor="assigned-site">Assigned Site</Label>
+                  <Input
+                    id="assigned-site"
+                    value={selectedSite.sitename || "Loading..."}
+                    disabled
+                    className="bg-muted"
+                  />
                 </div>
               )}
 

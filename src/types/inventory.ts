@@ -14,6 +14,7 @@ export interface Inventory {
   site?: Site;
   nd_inventory_attachment?: InventoryAttachment[];
   image_url?: string;
+  category_id?: number;
   created_by?: string;
   created_at?: string;
   updated_by?: string;
