@@ -246,9 +246,9 @@ const Transactions = () => {
           // Get transaction items
           const { data: items, error: itemsError } = await supabase
             .from('nd_pos_transaction_item')
-            .select('id, quantity, price_per_unit, total_price, item_id')
+            .select('id, quantity, price_per_unit, total_price, item_id, service_id')
             .eq('transaction_id', transaction.id);
-          
+
           if (itemsError) 
             console.error('Error fetching items:', itemsError);
 
@@ -258,26 +258,98 @@ const Transactions = () => {
           // Fetch inventory details for each item and determine site
           const itemsWithDetails = await Promise.all(
             items.map(async (item) => {
-              const { data: inventoryData, error: inventoryError } = await supabase
-                .from('nd_inventory')
-                .select(`
-                  name,
-                  site_id,
-                  nd_site!site_id(
-                    nd_site_profile!site_profile_id(
-                      sitename
+              let itemData = null;
+              let siteName = 'Unknown Site';
+              
+              // First try to fetch from inventory (for physical items)
+              if (item.item_id) {
+                const { data: inventoryData, error: inventoryError } = await supabase
+                  .from('nd_inventory')
+                  .select(`
+                    name,
+                    site_id,
+                    nd_site!site_id(
+                      nd_site_profile!site_profile_id(
+                        sitename
+                      )
                     )
-                  )
-                `)
-                .eq('id', item.item_id)
-                .single();
-                
-              if (inventoryError) console.error('Error fetching inventory:', inventoryError);
+                  `)
+                  .eq('id', item.item_id)
+                  .single();
+                  
+                if (!inventoryError && inventoryData) {
+                  itemData = inventoryData;
+                  siteName = inventoryData?.nd_site?.nd_site_profile?.sitename || 'Unknown Site';
+                } else {
+                  console.log('Item not found in inventory, checking services...', item.item_id);
+                }
+              }
+              
+              // If not found in inventory and have a service_id, fetch from services
+              if (!itemData && item.service_id) {
+                const { data: serviceData, error: serviceError } = await supabase
+                  .from('nd_category_service')
+                  .select('id, eng, bm')
+                  .eq('id', item.service_id)
+                  .single();
+                  
+                if (!serviceError && serviceData) {
+                  itemData = { 
+                    name: serviceData.eng || serviceData.bm || 'Unknown Service',
+                    id: serviceData.id 
+                  };
+                  
+                  // For services, get site info from the transaction creator
+                  if (transaction.created_by) {
+                    // Try to get site info from the user's site profile
+                    const { data: userSiteData, error: userSiteError } = await supabase
+                      .from('nd_site_user')
+                      .select(`
+                        site_profile_id,
+                        nd_site_profile!site_profile_id(
+                          sitename
+                        )
+                      `)
+                      .eq('user_id', transaction.created_by)
+                      .single();
+                      
+                    if (!userSiteError && userSiteData?.nd_site_profile?.sitename) {
+                      siteName = userSiteData.nd_site_profile.sitename;
+                      console.log('Service site name from user profile:', siteName);
+                    } else {
+                      // Fallback: try to get from current user's metadata if available
+                      if (parsedMetadata?.group_profile?.site_profile_id) {
+                        const { data: currentSiteData, error: currentSiteError } = await supabase
+                          .from('nd_site_profile')
+                          .select('sitename')
+                          .eq('id', parsedMetadata.group_profile.site_profile_id)
+                          .single();
+                          
+                        if (!currentSiteError && currentSiteData?.sitename) {
+                          siteName = currentSiteData.sitename;
+                          console.log('Service site name from current user metadata:', siteName);
+                        }
+                      }
+                    }
+                  }
+                  
+                  console.log('Service found:', serviceData);
+                } else {
+                  console.log('Service not found:', item.service_id, serviceError);
+                }
+              }
+              
+              console.log('Final item data:', {
+                item_id: item.item_id,
+                service_id: item.service_id,
+                itemData,
+                siteName
+              });
               
               return {
                 ...item,
-                nd_inventory: inventoryData || { name: 'Unknown item' },
-                siteName: inventoryData?.nd_site?.nd_site_profile?.sitename || 'Unknown Site'
+                nd_inventory: itemData || { name: 'Unknown item' },
+                siteName: siteName
               };
             })
           );
