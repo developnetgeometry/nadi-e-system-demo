@@ -14,7 +14,8 @@ import {
     PDFSectionTitle,
     PDFAppendixTitlePage,
     PDFPhaseQuarterInfo,
-    PDFMetaSection
+    PDFMetaSection,
+    PDFHeader
 } from "../component/pdf-component";
 // Import the actual data fetching functions, not hooks
 import { fetchAuditData } from "./hook/use-audit-data";
@@ -64,6 +65,8 @@ type AuditProps = {
     endDate?: string | null;
     claimType?: string | null; //monthly/quarter/yearly
     quater?: string | null; //optional, used for quarterly reports
+    header?: boolean; // Optional header for the PDF
+    dusplogo?: string | null; // Optional DUSP logo
 };
 
 // Convert to an async function that returns a File object
@@ -75,7 +78,9 @@ const Audit = async ({
     startDate = null,
     endDate = null,
     claimType = null,
-    quater = null
+    quater = null,
+    header = false,
+    dusplogo = null
 
 }: AuditProps): Promise<File> => {
     // Fetch audit data based on filters
@@ -97,16 +102,27 @@ const Audit = async ({
         <Document>
             {/* Page 1: Audits */}
             <Page size="A4" style={styles.page}>
-                <PDFSectionTitle title="2.3 AUDITS" />
 
-                <PDFMetaSection
-                    reportTitle="AUDIT REPORT"
-                    phaseLabel={phaseLabel}
-                    claimType={claimType}
-                    quater={quater}
-                    startDate={startDate}
-                    endDate={endDate}
-                />
+                {header && (
+                    <>
+                        <PDFHeader
+                            mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
+                            duspLogo={dusplogo || "/logo-placeholder-image.png"} // Use provided DUSP logo or placeholder
+                        />
+
+
+                        <PDFMetaSection
+                            reportTitle="AUDIT REPORT"
+                            phaseLabel={phaseLabel}
+                            claimType={claimType}
+                            quater={quater}
+                            startDate={startDate}
+                            endDate={endDate}
+                        />
+                    </>
+                )}
+
+                <PDFSectionTitle title="2.3 AUDITS" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
@@ -149,10 +165,10 @@ const Audit = async ({
                 <PDFFooter />
             </Page>
         </Document>
-    );   
-      // Create a blob from the PDF document (main report and appendix title page)
+    );
+    // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(AuditDoc).toBlob();
-    
+
     // Process all audits that have attachments as sources for generateFinalPdf
     const sources: AttachmentSource[] = audits
         .filter(audit => audit.attachments_path && audit.attachments_path.length > 0)
@@ -160,13 +176,13 @@ const Audit = async ({
             attachments_path: audit.attachments_path || [],
             standard_code: audit.standard_code,
         }));
-    
+
     // Generate the final PDF by merging the report with attachment pages
     const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
-    
+
     // Generate filename based on filters
     const fileName = generatePdfFilename('audit-report', claimType, phase?.name);
-    
+
     // Convert blob to File object with metadata
     return new File([finalPdfBlob], fileName, {
         type: 'application/pdf',
