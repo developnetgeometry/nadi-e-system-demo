@@ -122,7 +122,7 @@ const Agreement = async ({
                     </>
                 )}
 
-                <PDFSectionTitle title="2.2 SITE AGREEMENT" />
+                <PDFSectionTitle title="2.4 SITE AGREEMENT" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
