@@ -18,7 +18,7 @@ import {
     PDFHeader
 } from "../component/pdf-component";
 // Import the actual data fetching functions, not hooks
-import fetchAgreementData from "./hook/use-agreement";
+import fetchAgreementData from "./hook/use-agreement-data";
 import { fetchPhaseData } from "@/hooks/use-phase";
 // Import PDF utilities
 import { generatePdfFilename } from "../component/pdf-utils";
