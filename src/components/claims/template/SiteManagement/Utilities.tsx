@@ -7,6 +7,7 @@ import {
     StyleSheet,
     pdf,
     Image,
+    Checkbox
 } from "@react-pdf/renderer";
 import {
     PDFFooter,
@@ -146,14 +147,15 @@ const Utilities = async ({
                 {utility.length > 0 ? (
                     <PDFTable
                         data={utility}
-                        columns={[
+                        columns={[                            
+                            
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
                             { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
                             { key: "state", header: "STATE" },
-                            { key: (row) => row.water ? "☑" : "☐", header: "WATER" },
-                            { key: (row) => row.electricity ? "☑" : "☐", header: "ELECTRICITY" },
-                            { key: (row) => row.sewerage ? "☑" : "☐", header: "SEWERAGE" },
+                            { key: (row) => row.water ? "$YES" : "NO", header: "WATER" },
+                            { key: (row) => row.electricity ? "YES" : "NO", header: "ELECTRICITY" },
+                            { key: (row) => row.sewerage ? "YES" : "NO", header: "SEWERAGE" },
                         ]}
                     />
                 ) : (
