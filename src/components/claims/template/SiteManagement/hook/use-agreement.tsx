@@ -40,16 +40,17 @@ export const fetchAgreementData = async ({
             site_name: "Site A",
             refId: "REF001",
             state: "State A",
-            duration: "2023-01-01 to 2023-12-31",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"]
+            attachments_path: [
+                "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf",
+                "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"
+            ]
         },
         {
             site_id: "2",
             standard_code: "SC002",
             site_name: "Site B",
             refId: "REF002",
-            state: "State B",
-            duration: "2023-01-01 to 2023-12-31"
+            state: "State B"
         }
         
     ];
