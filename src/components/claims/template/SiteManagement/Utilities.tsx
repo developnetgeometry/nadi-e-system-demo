@@ -153,7 +153,7 @@ const Utilities = async ({
                             { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
                             { key: "state", header: "STATE" },
-                            { key: (row) => row.water ? "$YES" : "NO", header: "WATER" },
+                            { key: (row) => row.water ? "YES" : "NO", header: "WATER" },
                             { key: (row) => row.electricity ? "YES" : "NO", header: "ELECTRICITY" },
                             { key: (row) => row.sewerage ? "YES" : "NO", header: "SEWERAGE" },
                         ]}
