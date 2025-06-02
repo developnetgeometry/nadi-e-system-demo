@@ -172,7 +172,7 @@ const PortalWebService = async ({
     const reportBlob = await pdf(PortalWebServiceDoc).toBlob();
 
     // Generate filename based on filters
-    const fileName = generatePdfFilename('portalWebService-report', claimType, phase?.name);
+    const fileName = generatePdfFilename('portal-web-service-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
     return new File([reportBlob], fileName, {
