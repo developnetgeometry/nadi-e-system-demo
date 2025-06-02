@@ -380,8 +380,9 @@ export const PDFTable = <T extends Record<string, any>>({
   const tableStyles = StyleSheet.create({
     table: { 
       width: "100%", 
-      borderWidth: 1,
-      borderColor: "#000",
+      // Remove borderWidth and borderColor to avoid hanging borders
+      // borderWidth: 1,
+      // borderColor: "#000",
       marginTop: 10
     },
     tableHeader: {
@@ -402,7 +403,8 @@ export const PDFTable = <T extends Record<string, any>>({
       textTransform: "uppercase",
       textAlign: "center",
       color: "#fff",
-    },      td: { 
+    },      
+    td: { 
       padding: 6,
       fontSize: 8,
     },
@@ -447,13 +449,15 @@ export const PDFTable = <T extends Record<string, any>>({
 
   return (
     <View style={tableStyles.table}>
-      <View style={tableStyles.tableHeader}>
-        {columns.map((column, i) => (          
+      <View style={tableStyles.tableHeader} fixed>
+        {columns.map((column, i) => (
           <Text 
             key={i} 
             style={[
               tableStyles.th,
-              columnStyles[i]
+              columnStyles[i],
+              i === 0 && { borderLeftWidth: 1, borderLeftColor: "#000" },
+              i === columns.length - 1 && { borderRightWidth: 1, borderRightColor: "#000" }
             ]}
           >
             {column.header}
@@ -463,13 +467,11 @@ export const PDFTable = <T extends Record<string, any>>({
       {data.map((row, rowIndex) => (
         <View 
           key={rowIndex} 
+          wrap={false}
           style={[
             tableStyles.tableRow,
-            // Add white background to even rows and remove bottom border from last row
-            {
-              ...(rowIndex % 2 === 1 && { backgroundColor: "#f9f9f9" }),
-              ...(rowIndex === data.length - 1 && { borderBottomWidth: 0 })
-            }
+            rowIndex % 2 === 1 && { backgroundColor: "#f9f9f9" }
+            // <-- Remove conditional that disables borderBottomWidth for last row
           ]}
         >
           {columns.map((column, colIndex) => {
@@ -484,7 +486,9 @@ export const PDFTable = <T extends Record<string, any>>({
                 key={colIndex} 
                 style={[
                   tableStyles.td,
-                  columnStyles[colIndex]
+                  columnStyles[colIndex],
+                  colIndex === 0 && { borderLeftWidth: 1, borderLeftColor: "#000" },
+                  colIndex === columns.length - 1 && { borderRightWidth: 1, borderRightColor: "#000" }
                 ]}
               >
                 {displayValue}
@@ -595,7 +599,8 @@ export const PDFFooter = ({
     hour12: false
   });
   
-  return (    <View style={styles.footer}>
+  return (    
+  <View style={styles.footer} fixed>
       <View style={styles.footerLine} />
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={styles.footerText}>

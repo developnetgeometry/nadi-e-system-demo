@@ -27,6 +27,7 @@ import { generatePdfFilename } from "../component/pdf-utils";
 const styles = StyleSheet.create({
     page: {
         padding: 40,
+        paddingBottom: 80, // <-- Increased bottom padding to avoid overlap with footer
         fontSize: 10,
         fontFamily: "Helvetica",
         position: "relative",
@@ -161,7 +162,7 @@ const ManageInternetService = async ({
                 ) : (
                     <Text>No manage data available.</Text>
                 )}
-                <PDFFooter />
+                <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
             </Page>
         </Document>
     );
