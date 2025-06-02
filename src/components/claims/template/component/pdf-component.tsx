@@ -541,7 +541,7 @@ export const PDFPhaseQuarterInfo = ({
     return (
         <View style={{
             ...styles.phaseQuarterInfo, 
-            width: 170, 
+            // width: 170, 
         }}>
             <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
                 <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
