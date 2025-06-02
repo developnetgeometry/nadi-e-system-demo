@@ -47,6 +47,7 @@ export async function createStaffMember(staffData: any) {
           userType: staffData.userType,
           icNumber: staffData.ic_number,
           phoneNumber: staffData.phone_number,
+          userGroup: 6, // Assuming 6 is the user group for center staff
           createdBy: currentUser.id,
         },
       });
@@ -77,11 +78,22 @@ export async function createStaffMember(staffData: any) {
     const { data: staffProfile, error: staffProfileError } = await supabase
       .from("nd_staff_profile")
       .insert({
-        user_id: authUser.id, // Should be UUID, not bigint
+        user_id: authUser.id,
         fullname: staffData.name,
         ic_no: staffData.ic_number,
         mobile_no: staffData.phone_number,
         work_email: staffData.email,
+        personal_email: staffData.personal_email,
+        qualification: staffData.qualification,
+        dob: staffData.dob,
+        place_of_birth: staffData.place_of_birth,
+        marital_status: staffData.marital_status,
+        race_id: staffData.race_id,
+        religion_id: staffData.religion_id,
+        nationality_id: staffData.nationality_id,
+        gender_id: staffData.gender_id,
+        height: staffData.height,
+        weight: staffData.weight,
         is_active: staffData.status === "Active",
         ...metaData, // Add standard metadata
       })
@@ -120,13 +132,25 @@ export async function createStaffMember(staffData: any) {
       staffProfile.id
     );
 
-    const { error: jobError } = await supabase.from("nd_staff_job").insert({
-      staff_id: staffProfile.id, // This is a UUID
-      site_id: siteLocationId, // Make sure this is properly converted to a bigint
-      join_date: staffData.employDate,
-      is_active: true,
-      ...metaData, // Add standard metadata
-    });
+    let position_id;
+    if (staffData.userType == "staff_manager") {
+      position_id = 1; // Assuming 1 is the ID for staff_manager
+    } else if (staffData.userType == "staff_assistant_manager") {
+      position_id = 2; // Assuming 2 is the ID for staff_assistant_manager
+    }
+
+    const { data: staffJob, error: jobError } = await supabase
+      .from("nd_staff_job")
+      .insert({
+        staff_id: staffProfile.id, // This is a UUID
+        site_id: siteLocationId, // Make sure this is properly converted to a bigint
+        position_id: position_id,
+        join_date: staffData.employDate,
+        is_active: staffData.status === "Active",
+        ...metaData, // Add standard metadata
+      })
+      .select("id") // to retrieve the job_id
+      .single();
 
     if (jobError) {
       console.error("Staff job creation error:", jobError);
@@ -136,12 +160,19 @@ export async function createStaffMember(staffData: any) {
     // Initialize other staff-related tables that we want to provision with this staff member
 
     // Create empty staff pay info record
-    const { error: payInfoError } = await supabase
+    const { data: staffPayInfo, error: payInfoError } = await supabase
       .from("nd_staff_pay_info")
       .insert({
         staff_id: staffProfile.id,
+        bank_id: staffData.bank_name,
+        bank_acc_no: staffData.bank_account_no,
+        epf_no: staffData.epf_no,
+        socso_no: staffData.socso_no,
+        tax_no: staffData.income_tax_no,
         ...metaData,
-      });
+      })
+      .select("id")
+      .single();
 
     if (payInfoError) {
       console.error("Staff pay info creation error:", payInfoError);
@@ -154,6 +185,16 @@ export async function createStaffMember(staffData: any) {
       .insert({
         staff_id: staffProfile.id,
         is_active: true,
+        permanent_address1: staffData.permanent_address1,
+        permanent_address2: staffData.permanent_address2,
+        permanent_postcode: staffData.permanent_postcode,
+        permanent_city_id: staffData.permanent_city,
+        permanent_state_id: staffData.permanent_state,
+        correspondence_address1: staffData.correspondence_address1,
+        correspondence_address2: staffData.correspondence_address2,
+        correspondence_postcode: staffData.correspondence_postcode,
+        correspondence_city_id: staffData.correspondence_city,
+        correspondence_state_id: staffData.correspondence_state,
         ...metaData,
       });
 
@@ -162,34 +203,64 @@ export async function createStaffMember(staffData: any) {
       // Not throwing, as this is a non-critical error
     }
 
-    // Create default staff contact (emergency contact) record (empty)
-    const { error: contactError } = await supabase
-      .from("nd_staff_contact")
-      .insert({
-        staff_id: staffProfile.id,
-        ...metaData,
-      });
-
-    if (contactError) {
-      console.error("Staff contact creation error:", contactError);
-      // Not throwing, as this is a non-critical error
+    // get Site Profile Details
+    const { data: siteProfile, error: siteProfileError } = await supabase
+      .from("nd_site_profile")
+      .select("id,phase_id")
+      .eq("id", siteLocationId)
+      .single();
+    if (siteProfileError) {
+      console.error("Error fetching site profile:", siteProfileError);
+      throw new Error("Error fetching site profile");
     }
 
-    // Create initial staff contract record
+    // Create staff contract record
+
     const { error: contractError } = await supabase
       .from("nd_staff_contract")
       .insert({
         staff_id: staffProfile.id,
-        is_active: true,
+        is_active: staffData.status === "Active",
         site_id: siteLocationId,
-        contract_start: staffData.employDate,
+        site_profile_id: siteProfile.id,
+        phase_id: siteProfile.phase_id,
+        contract_start: staffData.contractStartDate,
+        contract_end: staffData.contractEndDate,
+        contract_type: 1,
+        duration:
+          staffData.contractStartDate && staffData.contractEndDate
+            ? Math.ceil(
+                (new Date(staffData.contractEndDate).getTime() -
+                  new Date(staffData.contractStartDate).getTime()) /
+                  (1000 * 60 * 60 * 24)
+              )
+            : null,
         user_id: authUser.id,
         ...metaData,
       });
 
     if (contractError) {
-      console.error("Staff contract creation error:", contractError);
+      console.error("Staff contact creation error:", contractError);
       // Not throwing, as this is a non-critical error
+    }
+
+    const { error: updateProfileDataError } = await supabase
+      .from("nd_staff_profile")
+      .update({
+        job_id: staffJob?.id,
+        staff_pay_id: staffPayInfo?.id,
+        position_id: position_id,
+        updated_by: currentUser.id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", staffProfile.id);
+
+    if (updateProfileDataError) {
+      console.error(
+        "Error updating staff profile with job and pay info:",
+        updateProfileDataError
+      );
+      throw new Error("Error updating staff profile with job and pay info");
     }
 
     console.log(
