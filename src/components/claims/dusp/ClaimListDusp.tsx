@@ -15,16 +15,16 @@ import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import { exportToCSV } from "@/utils/export-utils";
 import { Eye } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import ClaimViewDialog from "../component/ClaimViewDialog";
 import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
 import { useFetchClaimDUSP } from "./hooks/fetch-claim-dusp";
+import { useNavigate } from "react-router-dom";
 
 export function ClaimListDusp() {
   const { data: claimDUSPData, isLoading: isClaimDUSPLoading } = useFetchClaimDUSP();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState<number | null>(null);
+    const navigate = useNavigate();
 
   // Filter states
   const [search, setSearch] = useState<string>("");
@@ -43,8 +43,7 @@ export function ClaimListDusp() {
   };
 
   const handleView = (claimId: number) => {
-    setSelectedClaim(claimId);
-    setIsViewDialogOpen(true);
+    navigate(`/claim/report?id=${claimId}`);
   };
 
   const handleExport = () => {
@@ -227,10 +226,18 @@ export function ClaimListDusp() {
                     ? new Date(0, claim.month - 1).toLocaleString("default", { month: "long" })
                     : "N/A"}
                 </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusBadgeVariant(claim.claim_status.name)}>
+                <TableCell className="flex items-center gap-2">
+                  <Badge className="min-w-[6rem] text-center" variant={getStatusBadgeVariant(claim.claim_status.name)}>
                     {claim.claim_status.name}
                   </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full p-0 w-6 h-6 flex items-center justify-center"
+                    onClick={() => handleOpenDescriptionDialog(claim.claim_status.name)}
+                  >
+                    i
+                  </Button>
                 </TableCell>
                 <TableCell>
                   <Badge variant={claim.payment_status ? "success" : "warning"}>
@@ -276,14 +283,6 @@ export function ClaimListDusp() {
         status={selectedStatus}
       />
 
-      {/* Claim View Dialog */}
-      {selectedClaim && (
-        <ClaimViewDialog
-          isOpen={isViewDialogOpen}
-          onClose={() => setIsViewDialogOpen(false)}
-          claimId={selectedClaim}
-        />
-      )}
     </div>
   );
 }

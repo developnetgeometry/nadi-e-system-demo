@@ -43,6 +43,16 @@ export const claimRoutes = [
             </Suspense>
         ),
     },
+        {
+        path: "/claim/report",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <ClaimRegister/>
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
     // {
     //     path: "/claim/list-record",
     //     element: (

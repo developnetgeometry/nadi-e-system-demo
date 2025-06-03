@@ -292,6 +292,7 @@ const POSDashboard = () => {
           .from('nd_site')
           .select(`
             id,
+            standard_code,
             nd_site_profile!site_profile_id(
               id,
               sitename
@@ -362,6 +363,7 @@ const POSDashboard = () => {
         const allSitePerformance = allSitesData.map(site => ({
           site: site.nd_site_profile?.sitename || `Site ${site.id}`,
           siteId: site.id,
+          siteCode: site.standard_code || '-',
           transactionCount: transactionsBySite[site.id]?.size || 0,
           totalSales: salesBySite[site.id] || 0,
           productCount: inventoryBySite[site.id]?.length || 0
@@ -391,6 +393,10 @@ const POSDashboard = () => {
               case "site":
                 valueA = a.site || "";
                 valueB = b.site || "";
+                break;
+              case "siteCode":
+                valueA = a.siteCode || "";
+                valueB = b.siteCode || "";
                 break;
               case "transactionCount":
                 valueA = a.transactionCount || 0;
@@ -691,6 +697,21 @@ const POSDashboard = () => {
                       </div>
                     </TableHead>
                     <TableHead
+                      className="cursor-pointer w-[150px]"
+                      onClick={() => handleSort("siteCode")}
+                    >
+                      <div className="flex items-center">
+                        Site Code
+                        {sortField === "siteCode" ? (
+                          <span className="ml-2">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        ) : (
+                          <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead
                       className="cursor-pointer w-[200px]"
                       onClick={() => handleSort("site")}
                     >
@@ -759,6 +780,7 @@ const POSDashboard = () => {
                       .map((_, index) => (
                         <TableRow key={`skeleton-row-${index}`}>
                           <TableCell><div className="h-4 w-8 bg-gray-200 rounded animate-pulse"></div></TableCell>
+                          <TableCell><div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
                           <TableCell><div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div></TableCell>
                           <TableCell><div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div></TableCell>
                           <TableCell><div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div></TableCell>
@@ -777,6 +799,7 @@ const POSDashboard = () => {
                         <TableCell className="font-semibold">
                           {(siteCurrentPage - 1) * sitesPageSize + index + 1}
                         </TableCell>
+                        <TableCell className="font-semibold">{site.siteCode}</TableCell>
                         <TableCell className="font-semibold">{site.site}</TableCell>
                         <TableCell>{site.transactionCount}</TableCell>
                         <TableCell>RM{site.totalSales.toFixed(2)}</TableCell>

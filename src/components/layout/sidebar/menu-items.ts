@@ -115,8 +115,8 @@ export const financialItems = [
 ];
 
 export const complianceItems = [
+  { title: "Activity Logs", path: "/compliance/activity" },
   { title: "Audit Logs", path: "/compliance/audit" },
-
   { title: "System Reports", path: "/compliance/reports" },
 ];
 

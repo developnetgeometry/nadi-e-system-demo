@@ -5996,7 +5996,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
-          item_id: string | null
+          item_id: string
           price_per_unit: number | null
           quantity: number | null
           service_id: number | null
@@ -6009,7 +6009,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          item_id?: string | null
+          item_id: string
           price_per_unit?: number | null
           quantity?: number | null
           service_id?: number | null
@@ -6022,7 +6022,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          item_id?: string | null
+          item_id?: string
           price_per_unit?: number | null
           quantity?: number | null
           service_id?: number | null
