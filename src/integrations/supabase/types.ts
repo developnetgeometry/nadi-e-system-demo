@@ -1400,6 +1400,7 @@ export type Database = {
           created_by: string | null
           eng: string | null
           id: number
+          image_url: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -1409,6 +1410,7 @@ export type Database = {
           created_by?: string | null
           eng?: string | null
           id: number
+          image_url?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -1418,6 +1420,7 @@ export type Database = {
           created_by?: string | null
           eng?: string | null
           id?: number
+          image_url?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -5131,8 +5134,8 @@ export type Database = {
           ict_knowledge: number | null
           id: number
           identity_no: string | null
+          identity_no_type: number | null
           income_range: number | null
-          indentity_no_type: number | null
           join_date: string | null
           mobile_no: string | null
           nationality_id: number | null
@@ -5168,8 +5171,8 @@ export type Database = {
           ict_knowledge?: number | null
           id?: number
           identity_no?: string | null
+          identity_no_type?: number | null
           income_range?: number | null
-          indentity_no_type?: number | null
           join_date?: string | null
           mobile_no?: string | null
           nationality_id?: number | null
@@ -5205,8 +5208,8 @@ export type Database = {
           ict_knowledge?: number | null
           id?: number
           identity_no?: string | null
+          identity_no_type?: number | null
           income_range?: number | null
-          indentity_no_type?: number | null
           join_date?: string | null
           mobile_no?: string | null
           nationality_id?: number | null
@@ -5256,17 +5259,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_member_profile_identity_no_type_fkey"
+            columns: ["identity_no_type"]
+            isOneToOne: false
+            referencedRelation: "nd_identity_no_type"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_member_profile_income_range_fkey"
             columns: ["income_range"]
             isOneToOne: false
             referencedRelation: "nd_income_levels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_member_profile_indentity_no_type_fkey"
-            columns: ["indentity_no_type"]
-            isOneToOne: false
-            referencedRelation: "nd_identity_no_type"
             referencedColumns: ["id"]
           },
           {
@@ -5996,7 +5999,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
-          item_id: string
+          item_id: string | null
           price_per_unit: number | null
           quantity: number | null
           service_id: number | null
@@ -6009,7 +6012,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          item_id: string
+          item_id?: string | null
           price_per_unit?: number | null
           quantity?: number | null
           service_id?: number | null
@@ -6022,7 +6025,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
-          item_id?: string
+          item_id?: string | null
           price_per_unit?: number | null
           quantity?: number | null
           service_id?: number | null
@@ -8551,6 +8554,7 @@ export type Database = {
           created_by: string | null
           id: number
           is_active: boolean | null
+          job_status_id: number | null
           join_date: string | null
           position_id: number | null
           resign_date: string | null
@@ -8565,6 +8569,7 @@ export type Database = {
           created_by?: string | null
           id?: number
           is_active?: boolean | null
+          job_status_id?: number | null
           join_date?: string | null
           position_id?: number | null
           resign_date?: string | null
@@ -8579,6 +8584,7 @@ export type Database = {
           created_by?: string | null
           id?: number
           is_active?: boolean | null
+          job_status_id?: number | null
           join_date?: string | null
           position_id?: number | null
           resign_date?: string | null
@@ -8618,6 +8624,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_staff_job_nd_staff_job_status_fk"
+            columns: ["job_status_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_job_status"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_staff_job_nd_staff_profile_fk"
             columns: ["staff_id"]
             isOneToOne: false
@@ -8625,6 +8638,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      nd_staff_job_status: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          name: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       nd_staff_leave: {
         Row: {
@@ -9053,6 +9093,50 @@ export type Database = {
             columns: ["staff_pay_id"]
             isOneToOne: false
             referencedRelation: "nd_staff_pay_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_staff_qualification: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: number
+          institution_name: string | null
+          staff_id: string
+          updated_at: string | null
+          updated_by: string | null
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          institution_name?: string | null
+          staff_id: string
+          updated_at?: string | null
+          updated_by?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          institution_name?: string | null
+          staff_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_qualification_nd_staff_profile_fk"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -11163,6 +11247,65 @@ export type Database = {
             columns: ["user_group"]
             isOneToOne: false
             referencedRelation: "nd_user_group"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programme_approvals: {
+        Row: {
+          approval_data: Json
+          approved_at: string | null
+          assigned_to: string | null
+          comments: string | null
+          created_at: string
+          id: string
+          programme_id: string | null
+          rejected_at: string | null
+          status: string
+          submitted_at: string
+          submitted_by: string | null
+          updated_at: string
+          workflow_id: string
+          workflow_step_id: string
+        }
+        Insert: {
+          approval_data?: Json
+          approved_at?: string | null
+          assigned_to?: string | null
+          comments?: string | null
+          created_at?: string
+          id?: string
+          programme_id?: string | null
+          rejected_at?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          updated_at?: string
+          workflow_id: string
+          workflow_step_id: string
+        }
+        Update: {
+          approval_data?: Json
+          approved_at?: string | null
+          assigned_to?: string | null
+          comments?: string | null
+          created_at?: string
+          id?: string
+          programme_id?: string | null
+          rejected_at?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          updated_at?: string
+          workflow_id?: string
+          workflow_step_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_approvals_programme_id_fkey"
+            columns: ["programme_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event"
             referencedColumns: ["id"]
           },
         ]
