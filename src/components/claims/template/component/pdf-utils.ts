@@ -198,7 +198,7 @@ export const drawSectionTitle = (
 };
 
 /**
- * Draws a PDF header with two logos and a centered title, similar to PDFHeader React component
+ * Draws a PDF header with two logos and a centered title, matching PDFHeader React component
  * @param page The PDF page to draw on
  * @param mcmcImage The embedded image object for the left logo
  * @param duspImage The embedded image object for the right logo
@@ -216,35 +216,41 @@ export const drawPDFHeader = (
     width: number = 520,
     height: number = 60
 ) => {
-    // Draw left logo
+    // Both logos: height 60, width auto (preserve aspect ratio)
+    let logoHeight = 60;
+    let mcmcLogoWidth = mcmcImage ? (mcmcImage.width / mcmcImage.height) * logoHeight : 0;
+    let duspLogoWidth = duspImage ? (duspImage.width / duspImage.height) * logoHeight : 0;
+    // 25% width for each logo section
+    const sectionWidth = width * 0.25;
+    // Draw left logo (left-aligned in section)
     if (mcmcImage) {
         page.drawImage(mcmcImage, {
-            x: x,
-            y: y - height,
-            width: 80,
-            height: 60,
+            x: x + (sectionWidth - mcmcLogoWidth) / 2,
+            y: y - logoHeight,
+            width: mcmcLogoWidth,
+            height: logoHeight,
         });
     }
-    // Draw right logo (slightly smaller)
+    // Draw right logo (right-aligned in section)
     if (duspImage) {
         page.drawImage(duspImage, {
-            x: x + width - 70,
-            y: y - 52.5,
-            width: 70,
-            height: 52.5,
+            x: x + width - sectionWidth + (sectionWidth - duspLogoWidth) / 2,
+            y: y - logoHeight,
+            width: duspLogoWidth,
+            height: logoHeight,
         });
     }
-    // Draw centered title (bold, uppercase, correct font size and vertical spacing)
+    // Draw centered title (centered in header)
     const title1 = 'THE NATIONAL INFORMATION';
     const title2 = 'DISSEMINATION CENTRE (NADI)';
-    const fontSize = 14; // Match PDFHeader font size
+    const fontSize = 14;
     const centerX = x + width / 2;
     // Estimate text width for centering
     const approxCharWidth = fontSize * 0.6;
     const t1Width = title1.length * approxCharWidth;
     const t2Width = title2.length * approxCharWidth;
-    // Vertical alignment: match react-pdf header spacing
-    const title1Y = y - 18; // slightly lower for better centering
+    // Vertically center the titles in the header
+    const title1Y = y - 18;
     const title2Y = y - 38;
     // Simulate bold by drawing twice with slight offset
     page.drawText(title1, {
