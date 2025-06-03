@@ -124,3 +124,388 @@ export const generatePdfFilename = (prefix: string, claimType: string | null, ph
     // Combine all parts with hyphens and add extension
     return `${filenameParts.join('-')}.pdf`;
 };
+
+/**
+ * Draws a section title styled like PDFSectionTitle from react-pdf, using pdf-lib
+ * @param page The PDF page to draw on
+ * @param title The section title text
+ * @param x The x coordinate (default 40)
+ * @param y The y coordinate (from top, required)
+ * @param width The width of the section title box (default 520)
+ * @param height The height of the section title box (default 24)
+ */
+export const drawSectionTitle = (
+    page: any,
+    title: string,
+    x: number = 40,
+    y: number,
+    width: number = 520,
+    height: number = 24
+) => {
+    // Match PDFSectionTitle: left-aligned, font size 10, bold, padding 8, uppercase
+    const fontSize = 10;
+    const padding = 8;
+    // Draw black background rectangle
+    page.drawRectangle({
+        x,
+        y: y - height,
+        width,
+        height,
+        color: rgb(0, 0, 0),
+    });
+    // Draw white, bold, uppercase text left-aligned with padding
+    const text = title.toUpperCase();
+    // Simulate bold by drawing twice with slight offset
+    page.drawText(text, {
+        x: x + padding,
+        y: y - height + (height - fontSize) / 2 + 1,
+        size: fontSize,
+        color: rgb(1, 1, 1),
+    });
+    page.drawText(text, {
+        x: x + padding + 0.5,
+        y: y - height + (height - fontSize) / 2 + 1,
+        size: fontSize,
+        color: rgb(1, 1, 1),
+    });
+};
+
+/**
+ * Draws a PDF header with two logos and a centered title, similar to PDFHeader React component
+ * @param page The PDF page to draw on
+ * @param mcmcImage The embedded image object for the left logo
+ * @param duspImage The embedded image object for the right logo
+ * @param x The left margin (default 40)
+ * @param y The y coordinate from top (default 800)
+ * @param width The total width of the header (default 520)
+ * @param height The height of the header (default 60)
+ */
+export const drawPDFHeader = (
+    page: any,
+    mcmcImage: any,
+    duspImage: any,
+    x: number = 40,
+    y: number = 800,
+    width: number = 520,
+    height: number = 60
+) => {
+    // Draw left logo
+    if (mcmcImage) {
+        page.drawImage(mcmcImage, {
+            x: x,
+            y: y - height,
+            width: 80,
+            height: 60,
+        });
+    }
+    // Draw right logo (slightly smaller)
+    if (duspImage) {
+        page.drawImage(duspImage, {
+            x: x + width - 70,
+            y: y - 52.5,
+            width: 70,
+            height: 52.5,
+        });
+    }
+    // Draw centered title (bold, uppercase, correct font size and vertical spacing)
+    const title1 = 'THE NATIONAL INFORMATION';
+    const title2 = 'DISSEMINATION CENTRE (NADI)';
+    const fontSize = 14; // Match PDFHeader font size
+    const centerX = x + width / 2;
+    // Estimate text width for centering
+    const approxCharWidth = fontSize * 0.6;
+    const t1Width = title1.length * approxCharWidth;
+    const t2Width = title2.length * approxCharWidth;
+    // Vertical alignment: match react-pdf header spacing
+    const title1Y = y - 18; // slightly lower for better centering
+    const title2Y = y - 38;
+    // Simulate bold by drawing twice with slight offset
+    page.drawText(title1, {
+        x: centerX - t1Width / 2,
+        y: title1Y,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+    });
+    page.drawText(title1, {
+        x: centerX - t1Width / 2 + 0.5,
+        y: title1Y,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+    });
+    page.drawText(title2, {
+        x: centerX - t2Width / 2,
+        y: title2Y,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+    });
+    page.drawText(title2, {
+        x: centerX - t2Width / 2 + 0.5,
+        y: title2Y,
+        size: fontSize,
+        color: rgb(0, 0, 0),
+    });
+};
+
+/**
+ * Draws a PDF meta section (report info table) similar to PDFMetaSection React component
+ * @param page The PDF page to draw on
+ * @param reportTitle The report title
+ * @param phaseLabel The phase label
+ * @param claimType The claim type (monthly/quarterly/yearly/null)
+ * @param quater The quarter (if any)
+ * @param startDate The start date (string or null)
+ * @param endDate The end date (string or null)
+ * @param x The left margin (default 40)
+ * @param y The y coordinate from top (default 730)
+ * @param width The total width (default 520)
+ * @param rowHeight The height of each row (default 24)
+ */
+export const drawPDFMetaSection = (
+    page: any,
+    reportTitle: string,
+    phaseLabel?: string,
+    claimType?: string | null,
+    quater?: string | number | null,
+    startDate?: string | null,
+    endDate?: string | null,
+    x: number = 40,
+    y: number = 730,
+    width: number = 520,
+    rowHeight: number = 24
+) => {
+    // Determine periodType
+    const periodType = claimType ?
+        (claimType.toLowerCase() === 'monthly' ? 'MONTH / YEAR' :
+            claimType.toLowerCase() === 'quarterly' ? 'QUARTER / YEAR' :
+                claimType.toLowerCase() === 'yearly' ? 'YEAR' :
+                    'All Time') : 'All Time';
+    // Format period value
+    let formattedPeriodValue = '-';
+    const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
+    const year = endDate ? new Date(endDate).getFullYear().toString() : null;
+    if (periodType === 'MONTH / YEAR' && month && year) {
+        formattedPeriodValue = `${month} ${year}`;
+    } else if (periodType === 'QUARTER / YEAR' && quater && year) {
+        formattedPeriodValue = `${quater} ${year}`;
+    } else if (periodType === 'YEAR' && year) {
+        formattedPeriodValue = `${year}`;
+    }
+    // Draw outer border
+    page.drawRectangle({
+        x,
+        y: y - rowHeight * 2,
+        width,
+        height: rowHeight * 2,
+        borderColor: rgb(0, 0, 0),
+        borderWidth: 1,
+        color: undefined,
+    });
+    // First row: REPORT
+    // Label cell (black bg)
+    page.drawRectangle({
+        x,
+        y: y - rowHeight,
+        width: width * 0.2,
+        height: rowHeight,
+        color: rgb(0, 0, 0),
+    });
+    page.drawText('REPORT', {
+        x: x + 8,
+        y: y - rowHeight + 6,
+        size: 10,
+        color: rgb(1, 1, 1),
+    });
+    // Value cell
+    page.drawText(reportTitle, {
+        x: x + width * 0.2 + 8,
+        y: y - rowHeight + 6,
+        size: 10,
+        color: rgb(0, 0, 0),
+    });
+    // Second row: PHASE, PERIOD
+    // PHASE label (black bg)
+    page.drawRectangle({
+        x,
+        y: y - rowHeight * 2,
+        width: width * 0.2,
+        height: rowHeight,
+        color: rgb(0, 0, 0),
+    });
+    page.drawText('PHASE', {
+        x: x + 8,
+        y: y - rowHeight * 2 + 6,
+        size: 10,
+        color: rgb(1, 1, 1),
+    });
+    // PHASE value
+    page.drawText(phaseLabel || '-', {
+        x: x + width * 0.2 + 8,
+        y: y - rowHeight * 2 + 6,
+        size: 10,
+        color: rgb(0, 0, 0),
+    });
+    // PERIOD label (black bg)
+    page.drawRectangle({
+        x: x + width * 0.5,
+        y: y - rowHeight * 2,
+        width: width * 0.25,
+        height: rowHeight,
+        color: rgb(0, 0, 0),
+    });
+    page.drawText(periodType, {
+        x: x + width * 0.5 + 8,
+        y: y - rowHeight * 2 + 6,
+        size: 10,
+        color: rgb(1, 1, 1),
+    });
+    // PERIOD value
+    page.drawText(formattedPeriodValue, {
+        x: x + width * 0.75 + 8,
+        y: y - rowHeight * 2 + 6,
+        size: 10,
+        color: rgb(0, 0, 0),
+    });
+    // Draw horizontal lines
+    page.drawLine({
+        start: { x, y: y - rowHeight },
+        end: { x: x + width, y: y - rowHeight },
+        thickness: 1,
+        color: rgb(0, 0, 0),
+    });
+    // Draw vertical lines for columns
+    page.drawLine({
+        start: { x: x + width * 0.2, y: y },
+        end: { x: x + width * 0.2, y: y - rowHeight * 2 },
+        thickness: 1,
+        color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+        start: { x: x + width * 0.5, y: y - rowHeight },
+        end: { x: x + width * 0.5, y: y - rowHeight * 2 },
+        thickness: 1,
+        color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+        start: { x: x + width * 0.75, y: y - rowHeight },
+        end: { x: x + width * 0.75, y: y - rowHeight * 2 },
+        thickness: 1,
+        color: rgb(0, 0, 0),
+    });
+};
+
+/**
+ * Draws a PDF footer similar to PDFFooter React component
+ * @param page The PDF page to draw on
+ * @param width The width of the page (default 520)
+ * @param y The y coordinate from bottom (default 30)
+ * @param customText Optional custom text for the left side
+ */
+export const drawPDFFooter = (
+    page: any,
+    width: number = 520,
+    y: number = 30,
+    customText?: string
+) => {
+    // Draw a faint horizontal line
+    page.drawRectangle({
+        x: 40,
+        y: y + 18,
+        width: width - 80,
+        height: 1,
+        color: rgb(0.66, 0.66, 0.66),
+        opacity: 0.3,
+        borderWidth: 0,
+    });
+    // Footer text (left)
+    const leftText = customText || 'This document is system-generated from NADI e-System.';
+    // Footer text (right, generated date)
+    const now = new Date();
+    const formattedDateTime = now.toLocaleString('en-MY', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    // Left text
+    page.drawText(leftText, {
+        x: 40,
+        y,
+        size: 9,
+        color: rgb(0.4, 0.4, 0.4),
+    });
+    // Right text
+    const rightText = `Generated on: ${formattedDateTime}`;
+    // Estimate right text width
+    const fontSize = 9;
+    const approxCharWidth = fontSize * 0.6;
+    const rightTextWidth = rightText.length * approxCharWidth;
+    page.drawText(rightText, {
+        x: width - 40 - rightTextWidth,
+        y,
+        size: 9,
+        color: rgb(0.4, 0.4, 0.4),
+    });
+};
+
+/**
+ * Draws a black border box for attachments (image or PDF)
+ */
+export const drawAttachmentBorder = (page: any, pageWidth: number, currentY: number) => {
+    const borderX = 40;
+    const borderY = currentY - 400;
+    const borderWidth = pageWidth - 80;
+    const borderHeight = 400;
+    page.drawRectangle({
+        x: borderX,
+        y: borderY,
+        width: borderWidth,
+        height: borderHeight,
+        borderColor: rgb(0, 0, 0),
+        borderWidth: 1,
+        color: rgb(1, 1, 1),
+    });
+    return { borderX, borderY, borderWidth, borderHeight };
+};
+
+/**
+ * Draws an image inside the border box, scaling and centering it
+ */
+export const drawImageInBorder = async (
+    page: any,
+    path: string,
+    pdfDoc: PDFDocument,
+    borderX: number,
+    borderY: number,
+    borderWidth: number,
+    borderHeight: number
+) => {
+    const imgX = borderX + 10;
+    const imgY = borderY + 10;
+    const imgWidthMax = borderWidth - 20;
+    const imgHeightMax = borderHeight - 20;
+    try {
+        const imgBytes = await fetch(path).then(r => r.arrayBuffer());
+        const imgObj = await embedImageByType(pdfDoc, imgBytes, path);
+        let imgWidth = imgObj.width;
+        let imgHeight = imgObj.height;
+        const scale = Math.min(imgWidthMax / imgWidth, imgHeightMax / imgHeight, 1);
+        imgWidth *= scale;
+        imgHeight *= scale;
+        page.drawImage(imgObj, {
+            x: imgX + (imgWidthMax - imgWidth) / 2,
+            y: imgY + (imgHeightMax - imgHeight) / 2,
+            width: imgWidth,
+            height: imgHeight,
+        });
+    } catch (e) {
+        page.drawText('Image not available', {
+            x: imgX + 10,
+            y: imgY + imgHeightMax / 2,
+            size: 12,
+            color: rgb(1, 0, 0),
+        });
+    }
+};
