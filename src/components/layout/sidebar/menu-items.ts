@@ -24,6 +24,7 @@ export const hrMenuItems = [
   { title: "Site Staff Management", path: "/hr/site-staff" },
   { title: "Leave Management", path: "/hr/leave" },
   { title: "Attendance", path: "/hr/attendance" },
+  { title: "Staff Attendance", path: "/hr/staff-attendance" },
   { title: "Staff Training", path: "/hr/staff-training" },
   { title: "Payroll", path: "/hr/payroll" },
 ];

@@ -22,10 +22,10 @@ export function useGenerateLeaveBalance() {
       );
 
       // Get all staff contracts or specific staff if provided
-      let query = supabase.from("nd_staff_contract").select("staff_tp_id");
+      let query = supabase.from("nd_staff_contract").select("staff_id");
 
       if (staffIds && staffIds.length > 0) {
-        query = query.in("staff_tp_id", staffIds);
+        query = query.in("staff_id", staffIds);
       }
 
       const { data: contracts, error: contractError } = await query;
@@ -36,10 +36,10 @@ export function useGenerateLeaveBalance() {
         throw new Error("No staff contracts found");
       }
 
-      // Get all leave types
+      // Get all leave types with their total values
       const { data: leaveTypes, error: leaveTypesError } = await supabase
         .from("nd_leave_type")
-        .select("*");
+        .select("id, name, total");
 
       if (leaveTypesError) throw leaveTypesError;
 
@@ -52,27 +52,11 @@ export function useGenerateLeaveBalance() {
 
       for (const contract of contracts) {
         for (const leaveType of leaveTypes) {
-          // Default balance allocation based on leave type
-          let defaultBalance = 0;
-          switch (leaveType.name.toLowerCase()) {
-            case "annual":
-              defaultBalance = 14;
-              break;
-            case "medical":
-              defaultBalance = 14;
-              break;
-            case "emergency":
-              defaultBalance = 7;
-              break;
-            case "replacement":
-              defaultBalance = 0;
-              break;
-            default:
-              defaultBalance = 0;
-          }
+          // Use the total from leave type, defaulting to 0 if not set
+          const defaultBalance = leaveType.total || 0;
 
           balancesToInsert.push({
-            staff_id: contract.staff_tp_id.toString(),
+            staff_id: contract.staff_id.toString(),
             leave_type_id: leaveType.id,
             balance: defaultBalance,
             used: 0,
