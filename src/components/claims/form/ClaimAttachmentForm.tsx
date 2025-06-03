@@ -11,7 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { Progress } from "@radix-ui/react-progress";
-import { ClaimReportGenerator } from "../tp/ClaimReportGenerator";
 import { Textarea } from "@/components/ui/textarea";
 import Audit from "../template/SiteManagement/Audit";
 import Salary from "../template/Salary&HRManagement/Salary";
@@ -58,6 +57,7 @@ type ClaimData = {
     ref_no: string;
     tp_dusp_id: string;
     dusp_id: string;
+    dusp_logo: string;
     phase_id: number;
     category_ids: CategoryData[];
     is_finished_generate: boolean;
@@ -77,6 +77,7 @@ export function ClaimAttachmentForm({
     ref_no,
     tp_dusp_id,
     dusp_id,
+    dusp_logo,
     phase_id,
     category_ids,
     is_finished_generate,
@@ -212,6 +213,11 @@ export function ClaimAttachmentForm({
         try {
             startGeneratingReport(itemId);
 
+            // Determine if this is the first item (smallest itemId)
+            const isFirstItem = category_ids.some((category) =>
+                category.item_ids.some((item) => item.id === itemId && item.id === Math.min(...category.item_ids.map((i) => i.id)))
+            );
+
             const reportData = {
                 claimType: claim_type,
                 quater: String(quarter),
@@ -220,7 +226,9 @@ export function ClaimAttachmentForm({
                 tpFilter: tp_dusp_id,
                 phaseFilter: phase_id,
                 duspFilter: dusp_id,
+                dusplogo: dusp_logo,
                 nadiFilter: siteIds,
+                header: isFirstItem, // Send header as true only for the first item
             };
 
             let generatedFile: File | null = null;
@@ -508,7 +516,7 @@ export function ClaimAttachmentForm({
             )}
 
             {/* ClaimReportGenerator */}
-/
+            /
         </div>
     );
 }

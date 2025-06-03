@@ -40,6 +40,7 @@ type FormData = {
   dusp_id: string;
   tp_name: string;
   dusp_name: string;
+  dusp_logo: string;
 
   phase_id: number;
   category_ids: CategoryData[];
@@ -60,6 +61,7 @@ const INITIAL_DATA: FormData = {
   dusp_id: null,
   tp_name: "",
   dusp_name: "",
+  dusp_logo: "",
 
   phase_id: null,
   category_ids: [], // Initialize as empty array
@@ -75,6 +77,7 @@ const ClaimFormPage = () => {
     dusp_name: "", // Initialize as empty
     tp_dusp_id: "", // Initialize as null
     dusp_id: "",
+    dusp_logo: "", // Initialize as empty
   });
 
   const [loading, setLoading] = useState(false); // Add loading state
@@ -89,6 +92,7 @@ const ClaimFormPage = () => {
         dusp_name: duspTpData.parent_id?.name,
         tp_dusp_id: duspTpData.id,
         dusp_id: duspTpData.parent_id?.id,
+        dusp_logo: duspTpData.parent_id?.logo_url || "",
       }));
     }
   }, [duspTpData]);
