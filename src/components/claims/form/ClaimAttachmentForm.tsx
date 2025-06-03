@@ -14,6 +14,23 @@ import { Progress } from "@radix-ui/react-progress";
 import { ClaimReportGenerator } from "../tp/ClaimReportGenerator";
 import { Textarea } from "@/components/ui/textarea";
 import Audit from "../template/SiteManagement/Audit";
+import Salary from "../template/Salary&HRManagement/Salary";
+import PerformanceIncentive from "../template/Salary&HRManagement/PerformanceIncentive";
+import ManPower from "../template/Salary&HRManagement/ManpowerManagement";
+import LocalAuthority from "../template/SiteManagement/LocalAuthority";
+import Insurance from "../template/SiteManagement/SiteInsurance";
+import Agreement from "../template/SiteManagement/SiteAgreement";
+import Utilities from "../template/SiteManagement/Utilities";
+import AwarenessPromotion from "../template/SiteManagement/Awareness&Promotion";
+import CMS from "../template/NADIeSystem/CMS";
+import PortalWebService from "../template/NADIeSystem/Portal&WebService";
+import ManageInternetService from "../template/InternetAccess/ManageInternetService";
+import NMS from "../template/InternetAccess/NMS";
+import Monitoring from "../template/InternetAccess/Monitoring&Reporting";
+import Upscaling from "../template/Training/Upscaling";
+import Refresh from "../template/Training/Refresh";
+import Maintenance from "../template/ComprehensiveMaintenance/Maintenance";
+import SmartService from "../template/SmartServices/SmartService";
 
 type CategoryData = {
     id: number;
@@ -207,22 +224,69 @@ export function ClaimAttachmentForm({
             };
 
             let generatedFile: File | null = null;
+            let isHandled = false; // Flag to track if the itemId is handled
 
-            if (itemId === 6 || itemName.toLowerCase() === "audit") {
-                // Generate Audit Report
+            // Use templates based on itemId
+            if (itemId === 1) {
+                generatedFile = await Salary(reportData);
+                isHandled = true;
+            } else if (itemId === 2) {
+                generatedFile = await PerformanceIncentive(reportData);
+                isHandled = true;
+            } else if (itemId === 3) {
+                generatedFile = await ManPower(reportData);
+                isHandled = true;
+            } else if (itemId === 4) {
+                generatedFile = await LocalAuthority(reportData);
+                isHandled = true;
+            } else if (itemId === 5) {
+                generatedFile = await Insurance(reportData);
+                isHandled = true;
+            } else if (itemId === 6) {
                 generatedFile = await Audit(reportData);
-            } else {
-                // Generate Claim Report
-                generatedFile = await new Promise<File | null>((resolve) => {
-                    <ClaimReportGenerator
-                        site_profile_ids={siteIds}
-                        category_ids={category_ids}
-                        onReportsGenerated={(reports) => {
-                            const file = reports.find((report) => report.item_name === itemName)?.report_file || null;
-                            resolve(file);
-                        }}
-                    />;
-                });
+                isHandled = true;
+            } else if (itemId === 7) {
+                generatedFile = await Agreement(reportData);
+                isHandled = true;
+            } else if (itemId === 9) {
+                generatedFile = await Utilities(reportData);
+                isHandled = true;
+            } else if (itemId === 11) {
+                generatedFile = await AwarenessPromotion(reportData);
+                isHandled = true;
+            } else if (itemId === 13) {
+                generatedFile = await CMS(reportData);
+                isHandled = true;
+            } else if (itemId === 14) {
+                generatedFile = await PortalWebService(reportData);
+                isHandled = true;
+            } else if (itemId === 15) {
+                generatedFile = await ManageInternetService(reportData);
+                isHandled = true;
+            } else if (itemId === 16) {
+                generatedFile = await NMS(reportData);
+                isHandled = true;
+            } else if (itemId === 17) {
+                generatedFile = await Monitoring(reportData);
+                isHandled = true;
+            } else if (itemId === 18) {
+                generatedFile = await Upscaling(reportData);
+                isHandled = true;
+            } else if (itemId === 19) {
+                generatedFile = await Refresh(reportData);
+                isHandled = true;
+            } else if (itemId === 20) {
+                generatedFile = await Maintenance(reportData);
+                isHandled = true;
+            } else if (itemId === 24) {
+                generatedFile = await SmartService(reportData);
+                isHandled = true;
+            }
+
+            // Handle unmatched cases
+            if (!isHandled) {
+                console.error(`No matching template found for itemId: ${itemId}, itemName: ${itemName}`);
+                return; // Exit early if no template matches
             }
 
             if (generatedFile) {
@@ -444,27 +508,7 @@ export function ClaimAttachmentForm({
             )}
 
             {/* ClaimReportGenerator */}
-            {category_ids.map((category) =>
-                category.item_ids.map(
-                    (item) =>
-                        item.need_summary_report &&
-                        isGenerating[item.id] && (
-                            <ClaimReportGenerator
-                                key={item.id}
-                                site_profile_ids={item.site_ids}
-                                category_ids={[category]}
-                                onReportsGenerated={(reports) => {
-                                    const generatedFile = reports.find(
-                                        (report) => report.item_name === item.name
-                                    )?.report_file;
-                                    if (generatedFile) {
-                                        handleReportsGenerated(item.id, generatedFile);
-                                    }
-                                }}
-                            />
-                        )
-                )
-            )}
+/
         </div>
     );
 }
