@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   supabase,
   BUCKET_NAME_UTILITIES,
@@ -101,6 +101,8 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duration, setDuration] = useState("");
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get("category");
 
   // States for database values
   const [eventCategories, setEventCategories] = useState<
@@ -255,6 +257,18 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     fetchProgrammes();
     fetchModules();
   }, []);
+
+  useEffect(() => {
+    if (categoryParam && eventCategories.length > 0) {
+      const isValidCategory = eventCategories.find(
+        (cat) => cat.value === categoryParam
+      );
+
+      if (isValidCategory) {
+        form.setValue("category", categoryParam);
+      }
+    }
+  }, [categoryParam, eventCategories, form]);
 
   // Fetch attachments if in edit mode
   useEffect(() => {
@@ -653,6 +667,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                       <select
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
+                        disabled={!!categoryParam}
                       >
                         <option value="">Select Category</option>
                         {eventCategories.map((category) => (
@@ -793,7 +808,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                   </FormItem>
                 )}
               />
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="is_group_event"
                 render={({ field }) => (
@@ -817,7 +832,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
