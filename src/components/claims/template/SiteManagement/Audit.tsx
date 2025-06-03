@@ -107,12 +107,12 @@ const Audit = async ({
                     <>
                         <PDFHeader
                             mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
-                            duspLogo={dusplogo || "/logo-placeholder-image.png"} // Use provided DUSP logo or placeholder
+                            duspLogo={dusplogo} // Use provided DUSP logo or placeholder
                         />
 
 
                         <PDFMetaSection
-                            reportTitle="AUDIT REPORT"
+                            reportTitle="2.0 Site Management"
                             phaseLabel={phaseLabel}
                             claimType={claimType}
                             quater={quater}
@@ -130,13 +130,16 @@ const Audit = async ({
                         <Text>Total NADI{"\n"}{audits.length}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
-                        <PDFPhaseQuarterInfo
-                            phaseLabel={phaseLabel}
-                            claimType={claimType}
-                            quater={quater}
-                            startDate={startDate}
-                            endDate={endDate}
-                        />
+                        {/* when header not provided, show phase and quarter info */}
+                        {!header && (
+                            <PDFPhaseQuarterInfo
+                                phaseLabel={phaseLabel}
+                                claimType={claimType}
+                                quater={quater}
+                                startDate={startDate}
+                                endDate={endDate}
+                            />
+                        )}
                     </View>
                 </View>
 
@@ -145,7 +148,7 @@ const Audit = async ({
                         data={audits}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "SITE CODE" },
+                            { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
                             { key: "state", header: "STATE" },
                         ]}

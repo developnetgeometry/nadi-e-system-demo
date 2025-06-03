@@ -50,7 +50,7 @@ export const fetchAuditData = async ({
     
     // Return the data in the same format as the hook
     return { 
-        audits: audits
+        audits: audits as AuditData[]
     };
 }
 

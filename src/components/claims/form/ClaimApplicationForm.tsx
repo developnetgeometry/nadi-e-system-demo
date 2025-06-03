@@ -31,6 +31,7 @@ type CategoryData = {
 
 type ClaimData = {
   phase_id: number;
+  claim_type: string;
   category_ids: CategoryData[];
 };
 
@@ -40,6 +41,7 @@ type ClaimApplicationFormProps = ClaimData & {
 
 export function ClaimApplicationForm({
   phase_id,
+  claim_type,
   category_ids,
   updateFields,
 }: ClaimApplicationFormProps) {

@@ -18,8 +18,8 @@ import {
     PDFHeader
 } from "../component/pdf-component";
 // Import the actual data fetching functions, not hooks
-import { fetchlocalAuthorityData } from "./hook/use-localAuthority-data";
 import { fetchPhaseData } from "@/hooks/use-phase";
+import fetchRefreshData from "./hook/use-refresh-data";
 // Import PDF utilities
 import { generatePdfFilename } from "../component/pdf-utils";
 
@@ -32,14 +32,14 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     totalBox: {
-        padding: 20,
         backgroundColor: "#fff",
         borderWidth: 1,
         borderColor: "#000",
         borderStyle: "solid",
         textAlign: "center",
-        fontSize: 12,
-        width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
+        fontSize: 8,
+        padding: 10,
+        width: 80
     },
     attachmentContainer: {
         marginTop: 20,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     },
 });
 
-type LocalAuthorityProps = {
+type RefreshProps = {
     duspFilter?: string | number;
     phaseFilter?: string | number | null;
     tpFilter?: string | number;
@@ -70,7 +70,7 @@ type LocalAuthorityProps = {
 };
 
 // Convert to an async function that returns a File object
-const LocalAuthority = async ({
+const Refresh = async ({
     duspFilter = null,
     phaseFilter = null,
     nadiFilter = [],
@@ -82,9 +82,9 @@ const LocalAuthority = async ({
     header = false,
     dusplogo = null
 
-}: LocalAuthorityProps): Promise<File> => {
-    // Fetch local authority data based on filters
-    const { localAuthority } = await fetchlocalAuthorityData({
+}: RefreshProps): Promise<File> => {
+    // Fetch Refresh data based on filters
+    const { refresh } = await fetchRefreshData({
         startDate,
         endDate,
         duspFilter,
@@ -92,25 +92,27 @@ const LocalAuthority = async ({
         nadiFilter,
         tpFilter
     });
-
-    console.log("Local Authority data:", localAuthority);
+    console.log("Refresh data:", refresh);
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
     const phaseLabel = phase?.name || "All Phases";    // Define the PDF document (only the main report pages)
-    const LocalAuthorityDoc = (
+    const RefreshDoc = (
         <Document>
-            {/* Page 1: Local Authority */}
+            {/* Page 1: Refresh */}
             <Page size="A4" style={styles.page}>
+
                 {header && (
                     <>
                         <PDFHeader
                             mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
                             duspLogo={dusplogo} // Use provided DUSP logo or placeholder
                         />
+
+
                         <PDFMetaSection
-                            reportTitle="2.0 Site Management"
+                            reportTitle="5.0 TRAINING"
                             phaseLabel={phaseLabel}
                             claimType={claimType}
                             quater={quater}
@@ -120,16 +122,33 @@ const LocalAuthority = async ({
                     </>
                 )}
 
-                {/* Section 2.1 Local Authority */}
-                <PDFSectionTitle title="2.1 LOCAL AUTHORITY" />
+                <PDFSectionTitle title="5.2 REFRESH TRAINING (MANAGER / ASSISTANT MANAGER)" />
+
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
-                        {/* total NADI sites with local authority */}
-                        <Text>Total NADI{"\n"}{localAuthority.length}</Text>
+                        {/* total NADI sites with refresh */}
+                        <Text>Total NADI{"\n"}</Text>
+                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{Array.from(new Set(refresh.map(item => item.site_id))).length}</Text>
                     </View>
-                    <View style={{ alignSelf: "flex-end" }}>
-                        {/* when header not provided, show phase and quarter info */}
-                        {!header && (
+                    <View style={styles.totalBox}>
+                        {/* Total number of employee sites with refresh */}
+                        <Text>Number of {"\n"} Employee</Text>
+                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.length}</Text>
+                    </View>
+                    <View style={styles.totalBox}>
+                        {/* Manager sites with refresh */}
+                        <Text>Manager{"\n"}</Text>
+                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.filter(v => v.participant_position === 'Manager').length}</Text>
+                    </View>
+                    <View style={styles.totalBox}>
+                        {/* Assistant Manager sites with refresh */}
+                        <Text>Assistant{"\n"}Manager</Text>
+                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.filter(v => v.participant_position === 'Assistant Manager').length}</Text>
+                    </View>
+                    {!header && (
+                        <View style={{ alignSelf: "flex-end" }}>
+                            {/* when header not provided, show phase and quarter info */}
+
                             <PDFPhaseQuarterInfo
                                 phaseLabel={phaseLabel}
                                 claimType={claimType}
@@ -137,35 +156,40 @@ const LocalAuthority = async ({
                                 startDate={startDate}
                                 endDate={endDate}
                             />
-                        )}
-                    </View>
+
+                        </View>
+                    )}
                 </View>
 
-                {localAuthority.length > 0 ?
-                    (<PDFTable
-                        data={localAuthority}
+                {refresh.length > 0 ? (
+                    <PDFTable
+                        data={refresh}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID", },
-                            { key: "site_name", header: "NADI", },
-                            { key: "state", header: "STATE", }
+                            { key: "standard_code", header: "REFID" },
+                            { key: "site_name", header: "NADI" },
+                            { key: "participant_fullname", header: "FULL NAME"},
+                            { key: "participant_position", header: "POSITION" },
+                            { key: "programme_name", header: "PROGRAM NAME" },
+                            { key: "programme_method", header: "METHOD" },
+                            { key: "programme_venue", header: "VENUE" },
+                            { key: "training_date", header: "DATE TRAINING" }
                         ]}
                     />
-                    ) : (
-                        <Text>No local authority data available.</Text>
-                    )}
-
-                {/* Footer Component */}
+                ) : (
+                    <Text>No refresh data available.</Text>
+                )}
                 <PDFFooter />
             </Page>
         </Document>
-
     );
     // Create a blob from the PDF document (main report and appendix title page)
-    const reportBlob = await pdf(LocalAuthorityDoc).toBlob();
+    const reportBlob = await pdf(RefreshDoc).toBlob();
+
+
 
     // Generate filename based on filters
-    const fileName = generatePdfFilename('local-authority-report', claimType, phase?.name);
+    const fileName = generatePdfFilename('refresh-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
     return new File([reportBlob], fileName, {
@@ -174,4 +198,4 @@ const LocalAuthority = async ({
     });
 }
 
-export default LocalAuthority;
+export default Refresh;
