@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format, differenceInCalendarDays, addDays, isWeekend } from "date-fns";
+import { format, differenceInCalendarDays, isWeekend } from "date-fns";
 import { Calendar as CalendarIcon, FileUp } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useLeaveType } from "@/hooks/lookup/use-leave-type";
+import { useLeaveBalance } from "@/hooks/hr/use-leave-balance";
+import { useLeaveApplications } from "@/hooks/hr/use-leave-applications";
 
 import {
   Dialog,
@@ -49,48 +50,31 @@ interface LeaveApplicationDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const leaveSchema = z
-  .object({
-    leaveType: z.string({
-      required_error: "Please select a leave type",
+const leaveSchema = z.object({
+  leaveType: z.string({
+    required_error: "Please select a leave type",
+  }),
+  dateRange: z.object({
+    from: z.date({
+      required_error: "Please select a start date",
     }),
-    dateRange: z.object({
-      from: z.date({
-        required_error: "Please select a start date",
-      }),
-      to: z.date({
-        required_error: "Please select an end date",
-      }),
+    to: z.date({
+      required_error: "Please select an end date",
     }),
-    period: z.enum(["full_day", "half_day_am", "half_day_pm"], {
-      required_error: "Please select a period",
+  }),
+  period: z.enum(["full_day", "half_day_am", "half_day_pm"], {
+    required_error: "Please select a period",
+  }),
+  reason: z.string().min(5, {
+    message: "Reason must be at least 5 characters",
+  }),
+  attachment: z
+    .instanceof(FileList)
+    .optional()
+    .transform((file) => {
+      return file && file.length > 0 ? file : undefined;
     }),
-    reason: z.string().min(5, {
-      message: "Reason must be at least 5 characters",
-    }),
-    attachment: z
-      .instanceof(FileList)
-      .optional()
-      .transform((file) => {
-        return file && file.length > 0 ? file : undefined;
-      }),
-  })
-  .refine(
-    (data) => {
-      // If leave type is not Annual Leave, attachment is required
-      if (
-        data.leaveType !== "annual" &&
-        (!data.attachment || data.attachment.length === 0)
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Attachment is required for this leave type",
-      path: ["attachment"],
-    }
-  );
+});
 
 export function LeaveApplicationDialog({
   open,
@@ -99,6 +83,8 @@ export function LeaveApplicationDialog({
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { leaveTypes, isLoading: isLoadingLeaveTypes } = useLeaveType();
+  const { leaveBalances } = useLeaveBalance();
+  const { applyLeave, isApplying } = useLeaveApplications();
 
   const form = useForm<z.infer<typeof leaveSchema>>({
     resolver: zodResolver(leaveSchema),
@@ -119,7 +105,7 @@ export function LeaveApplicationDialog({
     }
   }, [open, form]);
 
-  // Calculate number of days
+  // Calculate number of working days
   const [workingDays, setWorkingDays] = useState(0);
   useEffect(() => {
     if (dateRange?.from && dateRange?.to) {
@@ -143,21 +129,13 @@ export function LeaveApplicationDialog({
     }
   }, [dateRange, period]);
 
-  // Get leave balance
-  const { data: leaveBalance = {} } = useQuery({
-    queryKey: ["leave-balance", selectedLeaveType],
-    queryFn: async () => {
-      // In a real app, this would fetch from the database
-      const balances = {
-        annual: 11,
-        medical: 12,
-        replacement: 5,
-        emergency: 2,
-      };
-      return balances[selectedLeaveType as keyof typeof balances] || 0;
-    },
-    enabled: !!selectedLeaveType,
-  });
+  // Get leave balance for selected type
+  const selectedBalance = leaveBalances.find(
+    (balance) => String(balance.leave_type_id) === selectedLeaveType
+  );
+  const availableBalance = selectedBalance
+    ? selectedBalance.balance - selectedBalance.used
+    : 0;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -167,27 +145,31 @@ export function LeaveApplicationDialog({
     }
   };
 
-  const isAttachmentRequired =
-    selectedLeaveType && selectedLeaveType !== "annual";
+  const isAttachmentRequired = selectedLeaveType && selectedLeaveType !== "1"; // Assuming 1 is Annual Leave
 
   const onSubmit = async (data: z.infer<typeof leaveSchema>) => {
     try {
-      console.log("Submitting leave application:", data);
+      if (workingDays > availableBalance) {
+        toast({
+          title: "Insufficient Balance",
+          description: `You only have ${availableBalance} days available for this leave type.`,
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // In a real app, you would send this to your backend
-
-      toast({
-        title: "Leave application submitted",
-        description: "Your leave application has been submitted for approval.",
+      await applyLeave({
+        leave_type_id: parseInt(data.leaveType),
+        start_date: format(data.dateRange.from, "yyyy-MM-dd"),
+        end_date: format(data.dateRange.to, "yyyy-MM-dd"),
+        days_requested: workingDays,
+        reason: data.reason,
+        // Note: File upload functionality would need to be implemented separately
       });
 
       onOpenChange(false);
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit leave application. Please try again.",
-        variant: "destructive",
-      });
+      // Error handling is done in the hook
     }
   };
 
@@ -288,10 +270,11 @@ export function LeaveApplicationDialog({
                       />
                     </PopoverContent>
                   </Popover>
-                  {selectedLeaveType && (
+                  {selectedBalance && (
                     <FormDescription>
-                      Remaining balance:{" "}
-                      <span className="font-medium">{leaveBalance}</span> days
+                      Available balance:{" "}
+                      <span className="font-medium">{availableBalance}</span>{" "}
+                      days
                     </FormDescription>
                   )}
                   <FormMessage />
@@ -425,7 +408,9 @@ export function LeaveApplicationDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">Submit Application</Button>
+              <Button type="submit" disabled={isApplying}>
+                {isApplying ? "Submitting..." : "Submit Application"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

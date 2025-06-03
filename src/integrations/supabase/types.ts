@@ -1162,6 +1162,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_nd_booking_site"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_requester_booking"
             columns: ["requester_id"]
             isOneToOne: false
@@ -1179,19 +1186,48 @@ export type Database = {
       }
       nd_brand: {
         Row: {
-          brand_type: string | null
+          brand_type_id: number | null
           id: number
           name: string | null
         }
         Insert: {
-          brand_type?: string | null
+          brand_type_id?: number | null
           id?: number
           name?: string | null
         }
         Update: {
-          brand_type?: string | null
+          brand_type_id?: number | null
           id?: number
           name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_brand_type_id"
+            columns: ["brand_type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_brand_type"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_brand_type: {
+        Row: {
+          created_at: string | null
+          id: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1728,6 +1764,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_claim_location_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
         ]
@@ -2552,7 +2595,7 @@ export type Database = {
           start_datetime: string | null
           status_id: number | null
           subcategory_id: number | null
-          target_participant: number | null
+          target_participants: string | null
           total_new_member: number | null
           total_participant: number | null
           trainer_name: string
@@ -2579,7 +2622,7 @@ export type Database = {
           start_datetime?: string | null
           status_id?: number | null
           subcategory_id?: number | null
-          target_participant?: number | null
+          target_participants?: string | null
           total_new_member?: number | null
           total_participant?: number | null
           trainer_name: string
@@ -2606,7 +2649,7 @@ export type Database = {
           start_datetime?: string | null
           status_id?: number | null
           subcategory_id?: number | null
-          target_participant?: number | null
+          target_participants?: string | null
           total_new_member?: number | null
           total_participant?: number | null
           trainer_name?: string
@@ -3862,6 +3905,95 @@ export type Database = {
         }
         Relationships: []
       }
+      nd_leave_application: {
+        Row: {
+          applied_at: string | null
+          approved_at: string | null
+          approved_by: string | null
+          attachment_path: string | null
+          created_at: string | null
+          created_by: string | null
+          days_requested: number
+          end_date: string
+          id: number
+          leave_type_id: number
+          reason: string
+          rejection_reason: string | null
+          staff_id: string
+          start_date: string
+          status: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          attachment_path?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          days_requested: number
+          end_date: string
+          id?: number
+          leave_type_id: number
+          reason: string
+          rejection_reason?: string | null
+          staff_id: string
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          attachment_path?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          days_requested?: number
+          end_date?: string
+          id?: number
+          leave_type_id?: number
+          reason?: string
+          rejection_reason?: string | null
+          staff_id?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_leave_application_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_leave_application_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_leave_application_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_leave_type"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_leave_application_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_leave_attachment: {
         Row: {
           created_at: string | null
@@ -3894,42 +4026,67 @@ export type Database = {
       }
       nd_leave_balance: {
         Row: {
+          balance: number
+          carried_forward: number
           created_at: string | null
           created_by: string | null
           id: number
-          leave_remainng: number | null
-          leave_token: number | null
-          staff_id: number | null
-          total_leave_day: number | null
+          leave_type_id: number
+          staff_id: string
           updated_at: string | null
           updated_by: string | null
-          year: number | null
+          used: number
+          year: number
         }
         Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id: number
-          leave_remainng?: number | null
-          leave_token?: number | null
-          staff_id?: number | null
-          total_leave_day?: number | null
-          updated_at?: string | null
-          updated_by?: string | null
-          year?: number | null
-        }
-        Update: {
+          balance?: number
+          carried_forward?: number
           created_at?: string | null
           created_by?: string | null
           id?: number
-          leave_remainng?: number | null
-          leave_token?: number | null
-          staff_id?: number | null
-          total_leave_day?: number | null
+          leave_type_id: number
+          staff_id: string
           updated_at?: string | null
           updated_by?: string | null
-          year?: number | null
+          used?: number
+          year?: number
         }
-        Relationships: []
+        Update: {
+          balance?: number
+          carried_forward?: number
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          leave_type_id?: number
+          staff_id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          used?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_leave_balance_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_leave_balance_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "nd_leave_type"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_leave_balance_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_leave_carry_forward: {
         Row: {
@@ -4261,8 +4418,8 @@ export type Database = {
           created_by: string | null
           file_path: string | null
           id: number
-          leave_rep_id: number | null
-          staff_id: number | null
+          leave_rep_id: string
+          staff_id: string
           updated_at: string | null
           updated_by: string | null
         }
@@ -4271,8 +4428,8 @@ export type Database = {
           created_by?: string | null
           file_path?: string | null
           id: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
+          leave_rep_id: string
+          staff_id: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4281,8 +4438,8 @@ export type Database = {
           created_by?: string | null
           file_path?: string | null
           id?: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
+          leave_rep_id?: string
+          staff_id?: string
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -4296,8 +4453,8 @@ export type Database = {
           created_by: string | null
           flag: number | null
           id: number
-          leave_rep_id: number | null
-          staff_id: number | null
+          leave_rep_id: string
+          staff_id: string
           status: number | null
           updated_at: string | null
           updated_by: string | null
@@ -4309,8 +4466,8 @@ export type Database = {
           created_by?: string | null
           flag?: number | null
           id: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
+          leave_rep_id: string
+          staff_id: string
           status?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -4322,8 +4479,8 @@ export type Database = {
           created_by?: string | null
           flag?: number | null
           id?: number
-          leave_rep_id?: number | null
-          staff_id?: number | null
+          leave_rep_id?: string
+          staff_id?: string
           status?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -4340,7 +4497,7 @@ export type Database = {
           leave_status: number | null
           leave_type: number | null
           remark: string | null
-          staff_id: number | null
+          staff_id: string
           start_date: string | null
           updated_at: string | null
           updated_by: string | null
@@ -4354,7 +4511,7 @@ export type Database = {
           leave_status?: number | null
           leave_type?: number | null
           remark?: string | null
-          staff_id?: number | null
+          staff_id: string
           start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -4368,7 +4525,7 @@ export type Database = {
           leave_status?: number | null
           leave_type?: number | null
           remark?: string | null
-          staff_id?: number | null
+          staff_id?: string
           start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -4472,7 +4629,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
-          frequency: number | null
+          frequency: string | null
           id: number
           logs: Json | null
           maintenance_date: string | null
@@ -4494,7 +4651,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          frequency?: number | null
+          frequency?: string | null
           id?: number
           logs?: Json | null
           maintenance_date?: string | null
@@ -4516,7 +4673,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          frequency?: number | null
+          frequency?: string | null
           id?: number
           logs?: Json | null
           maintenance_date?: string | null
@@ -4975,6 +5132,7 @@ export type Database = {
           id: number
           identity_no: string | null
           income_range: number | null
+          indentity_no_type: number | null
           join_date: string | null
           mobile_no: string | null
           nationality_id: number | null
@@ -5011,6 +5169,7 @@ export type Database = {
           id?: number
           identity_no?: string | null
           income_range?: number | null
+          indentity_no_type?: number | null
           join_date?: string | null
           mobile_no?: string | null
           nationality_id?: number | null
@@ -5047,6 +5206,7 @@ export type Database = {
           id?: number
           identity_no?: string | null
           income_range?: number | null
+          indentity_no_type?: number | null
           join_date?: string | null
           mobile_no?: string | null
           nationality_id?: number | null
@@ -5103,6 +5263,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_member_profile_indentity_no_type_fkey"
+            columns: ["indentity_no_type"]
+            isOneToOne: false
+            referencedRelation: "nd_identity_no_type"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_member_profile_nationality_id_fkey"
             columns: ["nationality_id"]
             isOneToOne: false
@@ -5135,6 +5302,13 @@ export type Database = {
             columns: ["ref_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_profile_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -5379,6 +5553,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_site"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
         ]
@@ -5685,6 +5866,56 @@ export type Database = {
         }
         Relationships: []
       }
+      nd_phases_contract: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          end_date: string | null
+          file_path: string[] | null
+          id: number
+          is_active: boolean | null
+          phase_id: number | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          file_path?: string[] | null
+          id: number
+          is_active?: boolean | null
+          phase_id?: number | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          end_date?: string | null
+          file_path?: string[] | null
+          id?: number
+          is_active?: boolean | null
+          phase_id?: number | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_phases_contract_nd_phases_fk"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "nd_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_pos_service: {
         Row: {
           created_at: string | null
@@ -5766,9 +5997,9 @@ export type Database = {
           created_by: string | null
           id: string
           item_id: string
-          service_id?: number
           price_per_unit: number | null
           quantity: number | null
+          service_id: number | null
           total_price: number | null
           transaction_id: string
           updated_at: string | null
@@ -5779,9 +6010,9 @@ export type Database = {
           created_by?: string | null
           id?: string
           item_id: string
-          service_id?: number
           price_per_unit?: number | null
           quantity?: number | null
+          service_id?: number | null
           total_price?: number | null
           transaction_id: string
           updated_at?: string | null
@@ -5792,9 +6023,9 @@ export type Database = {
           created_by?: string | null
           id?: string
           item_id?: string
-          service_id?: number
           price_per_unit?: number | null
           quantity?: number | null
+          service_id?: number | null
           total_price?: number | null
           transaction_id?: string
           updated_at?: string | null
@@ -6137,6 +6368,13 @@ export type Database = {
             columns: ["site_profile_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_pudo_record_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
         ]
@@ -6523,6 +6761,13 @@ export type Database = {
             referencedRelation: "nd_site_profile_name"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_site_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_site_address: {
@@ -6600,6 +6845,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_site_address_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_site_address_state_id_fkey"
             columns: ["state_id"]
             isOneToOne: false
@@ -6614,7 +6866,8 @@ export type Database = {
           created_by: string | null
           file_path: string[] | null
           id: number
-          site_contract_id: number | null
+          remark: string | null
+          site_profile_id: number | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -6623,7 +6876,8 @@ export type Database = {
           created_by?: string | null
           file_path?: string[] | null
           id?: number
-          site_contract_id?: number | null
+          remark?: string | null
+          site_profile_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -6632,16 +6886,31 @@ export type Database = {
           created_by?: string | null
           file_path?: string[] | null
           id?: number
-          site_contract_id?: number | null
+          remark?: string | null
+          site_profile_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "nd_site_agreement_attachment_nd_site_contracts_fk"
-            columns: ["site_contract_id"]
+            foreignKeyName: "nd_site_agreement_attachment_nd_site_profile_fk"
+            columns: ["site_profile_id"]
             isOneToOne: false
-            referencedRelation: "nd_site_contracts"
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_agreement_attachment_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_agreement_attachment_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
         ]
@@ -6684,18 +6953,75 @@ export type Database = {
           },
         ]
       }
+      nd_site_audit_attachment: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_path: string[] | null
+          id: number
+          remark: string | null
+          site_profile_id: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string[] | null
+          id?: number
+          remark?: string | null
+          site_profile_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string[] | null
+          id?: number
+          remark?: string | null
+          site_profile_id?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_audit_attachment_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_audit_attachment_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_audit_attachment_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_site_closure: {
         Row: {
           affected_areas_id: number | null
           category_id: number | null
           close_end: string | null
           close_start: string | null
+          closed_marked: boolean | null
           created_at: string | null
           created_by: string | null
           duration: number | null
           end_time: string | null
           id: number
           remark: string | null
+          reopened_marked: boolean | null
           request_datetime: string | null
           requester_id: string | null
           session: number | null
@@ -6711,12 +7037,14 @@ export type Database = {
           category_id?: number | null
           close_end?: string | null
           close_start?: string | null
+          closed_marked?: boolean | null
           created_at?: string | null
           created_by?: string | null
           duration?: number | null
           end_time?: string | null
           id?: number
           remark?: string | null
+          reopened_marked?: boolean | null
           request_datetime?: string | null
           requester_id?: string | null
           session?: number | null
@@ -6732,12 +7060,14 @@ export type Database = {
           category_id?: number | null
           close_end?: string | null
           close_start?: string | null
+          closed_marked?: boolean | null
           created_at?: string | null
           created_by?: string | null
           duration?: number | null
           end_time?: string | null
           id?: number
           remark?: string | null
+          reopened_marked?: boolean | null
           request_datetime?: string | null
           requester_id?: string | null
           session?: number | null
@@ -6782,6 +7112,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_closure_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -6943,7 +7280,7 @@ export type Database = {
           contract_start?: string | null
           created_at?: string | null
           created_by?: string | null
-          id: number
+          id?: number
           is_active?: boolean | null
           remark?: string | null
           site_id?: number | null
@@ -7007,6 +7344,13 @@ export type Database = {
             referencedRelation: "nd_site_profile_name"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_site_image_site_profile_id_fkey"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_site_operation: {
@@ -7061,6 +7405,13 @@ export type Database = {
             referencedRelation: "nd_site_profile_name"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "nd_site_operation_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_site_profile: {
@@ -7082,6 +7433,7 @@ export type Database = {
           is_active: boolean
           latitude: string | null
           level_id: number | null
+          local_authority: boolean | null
           longtitude: string | null
           mukim_id: number | null
           oku_friendly: boolean | null
@@ -7120,6 +7472,7 @@ export type Database = {
           is_active?: boolean
           latitude?: string | null
           level_id?: number | null
+          local_authority?: boolean | null
           longtitude?: string | null
           mukim_id?: number | null
           oku_friendly?: boolean | null
@@ -7158,6 +7511,7 @@ export type Database = {
           is_active?: boolean
           latitude?: string | null
           level_id?: number | null
+          local_authority?: boolean | null
           longtitude?: string | null
           mukim_id?: number | null
           oku_friendly?: boolean | null
@@ -7326,6 +7680,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_site_remark_nd_site_profile_fk"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_site_remark_type_id_fkey"
             columns: ["type_id"]
             isOneToOne: false
@@ -7375,6 +7736,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_socioeconomic_nd_site_profile_fk"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -7434,6 +7802,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_space_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -7581,6 +7956,13 @@ export type Database = {
             columns: ["site_profile_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_user_nd_site_profile_fk"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -7764,59 +8146,78 @@ export type Database = {
       }
       nd_staff_address: {
         Row: {
-          address1: string | null
-          address2: string | null
-          city: string | null
+          correspondence_address1: string | null
+          correspondence_address2: string | null
+          correspondence_city_id: number | null
+          correspondence_postcode: string | null
+          correspondence_state_id: number | null
           created_at: string | null
           created_by: string | null
-          district_id: number | null
           id: number
-          is_active: boolean | null
-          postcode: string | null
+          is_active: boolean
+          permanent_address1: string | null
+          permanent_address2: string | null
+          permanent_city_id: number | null
+          permanent_postcode: string | null
+          permanent_state_id: number | null
           remark: string | null
           staff_id: string | null
-          state_id: number | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          address1?: string | null
-          address2?: string | null
-          city?: string | null
+          correspondence_address1?: string | null
+          correspondence_address2?: string | null
+          correspondence_city_id?: number | null
+          correspondence_postcode?: string | null
+          correspondence_state_id?: number | null
           created_at?: string | null
           created_by?: string | null
-          district_id?: number | null
           id?: number
-          is_active?: boolean | null
-          postcode?: string | null
+          is_active: boolean
+          permanent_address1?: string | null
+          permanent_address2?: string | null
+          permanent_city_id?: number | null
+          permanent_postcode?: string | null
+          permanent_state_id?: number | null
           remark?: string | null
           staff_id?: string | null
-          state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          address1?: string | null
-          address2?: string | null
-          city?: string | null
+          correspondence_address1?: string | null
+          correspondence_address2?: string | null
+          correspondence_city_id?: number | null
+          correspondence_postcode?: string | null
+          correspondence_state_id?: number | null
           created_at?: string | null
           created_by?: string | null
-          district_id?: number | null
           id?: number
-          is_active?: boolean | null
-          postcode?: string | null
+          is_active?: boolean
+          permanent_address1?: string | null
+          permanent_address2?: string | null
+          permanent_city_id?: number | null
+          permanent_postcode?: string | null
+          permanent_state_id?: number | null
           remark?: string | null
           staff_id?: string | null
-          state_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "nd_staff_address_district_id_fkey"
-            columns: ["district_id"]
+            foreignKeyName: "nd_staff_address_correspondence_city_id_fkey"
+            columns: ["correspondence_city_id"]
             isOneToOne: false
-            referencedRelation: "nd_district"
+            referencedRelation: "nd_city"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_address_correspondence_state_id_fkey"
+            columns: ["correspondence_state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
             referencedColumns: ["id"]
           },
           {
@@ -7827,8 +8228,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "nd_staff_address_state_id_fkey"
-            columns: ["state_id"]
+            foreignKeyName: "nd_staff_address_permanent_city_id_fkey"
+            columns: ["permanent_city_id"]
+            isOneToOne: false
+            referencedRelation: "nd_city"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_address_permanent_state_id_fkey"
+            columns: ["permanent_state_id"]
             isOneToOne: false
             referencedRelation: "nd_state"
             referencedColumns: ["id"]
@@ -7875,13 +8283,14 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: number
-          latitude: number | null
-          longitude: number | null
-          longtitude: number | null
+          latitude_check_in: number | null
+          latitude_check_out: number | null
+          longtitude_check_in: number | null
+          longtitude_check_out: number | null
           photo_path: string | null
           remark: string | null
           site_id: number | null
-          staff_id: number | null
+          staff_id: string
           status: boolean | null
           total_working_hour: number | null
           updated_at: string | null
@@ -7895,14 +8304,15 @@ export type Database = {
           check_out?: string | null
           created_at?: string | null
           created_by?: string | null
-          id: number
-          latitude?: number | null
-          longitude?: number | null
-          longtitude?: number | null
+          id?: number
+          latitude_check_in?: number | null
+          latitude_check_out?: number | null
+          longtitude_check_in?: number | null
+          longtitude_check_out?: number | null
           photo_path?: string | null
           remark?: string | null
           site_id?: number | null
-          staff_id?: number | null
+          staff_id: string
           status?: boolean | null
           total_working_hour?: number | null
           updated_at?: string | null
@@ -7917,19 +8327,49 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: number
-          latitude?: number | null
-          longitude?: number | null
-          longtitude?: number | null
+          latitude_check_in?: number | null
+          latitude_check_out?: number | null
+          longtitude_check_in?: number | null
+          longtitude_check_out?: number | null
           photo_path?: string | null
           remark?: string | null
           site_id?: number | null
-          staff_id?: number | null
+          staff_id?: string
           status?: boolean | null
           total_working_hour?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_attendance_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_attendance_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_attendance_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_attendance_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       nd_staff_contact: {
         Row: {
@@ -7994,6 +8434,7 @@ export type Database = {
           phase_id: number | null
           remark: string | null
           site_id: number | null
+          site_phase_id: number | null
           site_profile_id: number | null
           staff_id: string | null
           updated_at: string | null
@@ -8012,6 +8453,7 @@ export type Database = {
           phase_id?: number | null
           remark?: string | null
           site_id?: number | null
+          site_phase_id?: number | null
           site_profile_id?: number | null
           staff_id?: string | null
           updated_at?: string | null
@@ -8030,6 +8472,7 @@ export type Database = {
           phase_id?: number | null
           remark?: string | null
           site_id?: number | null
+          site_phase_id?: number | null
           site_profile_id?: number | null
           staff_id?: string | null
           updated_at?: string | null
@@ -8066,6 +8509,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_staff_contract_site_phase_id_fkey"
+            columns: ["site_phase_id"]
+            isOneToOne: false
+            referencedRelation: "nd_phases"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_staff_contract_site_profile_id_fkey"
             columns: ["site_profile_id"]
             isOneToOne: false
@@ -8077,6 +8527,13 @@ export type Database = {
             columns: ["site_profile_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_contract_site_profile_id_fkey"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -8151,6 +8608,13 @@ export type Database = {
             columns: ["site_id"]
             isOneToOne: false
             referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_job_nd_site_profile_fk"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -8258,6 +8722,7 @@ export type Database = {
           epf_no: string | null
           id: number
           socso_no: string | null
+          staff_id: string | null
           tax_no: string | null
           updated_at: string | null
           updated_by: string | null
@@ -8271,6 +8736,7 @@ export type Database = {
           epf_no?: string | null
           id?: number
           socso_no?: string | null
+          staff_id?: string | null
           tax_no?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -8284,6 +8750,7 @@ export type Database = {
           epf_no?: string | null
           id?: number
           socso_no?: string | null
+          staff_id?: string | null
           tax_no?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -8294,6 +8761,13 @@ export type Database = {
             columns: ["bank_id"]
             isOneToOne: false
             referencedRelation: "nd_bank_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_pay_info_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -8430,9 +8904,11 @@ export type Database = {
           dob: string | null
           fullname: string | null
           gender_id: number | null
+          height: string | null
           ic_no: string | null
           id: string
           is_active: boolean | null
+          is_deleted: boolean
           job_id: number | null
           marital_status: number | null
           mobile_no: string | null
@@ -8450,6 +8926,7 @@ export type Database = {
           updated_at: string | null
           updated_by: string | null
           user_id: string | null
+          weight: string | null
           work_email: string | null
         }
         Insert: {
@@ -8458,9 +8935,11 @@ export type Database = {
           dob?: string | null
           fullname?: string | null
           gender_id?: number | null
+          height?: string | null
           ic_no?: string | null
           id?: string
           is_active?: boolean | null
+          is_deleted?: boolean
           job_id?: number | null
           marital_status?: number | null
           mobile_no?: string | null
@@ -8478,6 +8957,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
+          weight?: string | null
           work_email?: string | null
         }
         Update: {
@@ -8486,9 +8966,11 @@ export type Database = {
           dob?: string | null
           fullname?: string | null
           gender_id?: number | null
+          height?: string | null
           ic_no?: string | null
           id?: string
           is_active?: boolean | null
+          is_deleted?: boolean
           job_id?: number | null
           marital_status?: number | null
           mobile_no?: string | null
@@ -8506,9 +8988,17 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           user_id?: string | null
+          weight?: string | null
           work_email?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "nd_staff_profile_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_job"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "nd_staff_profile_nd_genders_fk"
             columns: ["gender_id"]
@@ -9580,6 +10070,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "nd_utilities_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "nd_utilities_type_id_fkey"
             columns: ["type_id"]
             isOneToOne: false
@@ -10137,6 +10634,13 @@ export type Database = {
             referencedRelation: "nd_site_profile_name"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_site"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       nd_work_order: {
@@ -10516,28 +11020,28 @@ export type Database = {
       }
       pc_activity_logs: {
         Row: {
-          asset_id: string
+          asset_id: number | null
           created_at: string | null
           created_by: string | null
           data_log: Json
           id: string
-          site_id: string
+          site_id: number | null
         }
         Insert: {
-          asset_id: string
+          asset_id?: number | null
           created_at?: string | null
           created_by?: string | null
           data_log: Json
           id?: string
-          site_id: string
+          site_id?: number | null
         }
         Update: {
-          asset_id?: string
+          asset_id?: number | null
           created_at?: string | null
           created_by?: string | null
           data_log?: Json
           id?: string
-          site_id?: string
+          site_id?: number | null
         }
         Relationships: []
       }
@@ -10836,6 +11340,33 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_status_log: {
+        Row: {
+          change_reason: string
+          change_timestamp: string | null
+          log_id: number
+          new_status: number
+          previous_status: number
+          site_id: number
+        }
+        Insert: {
+          change_reason: string
+          change_timestamp?: string | null
+          log_id?: number
+          new_status: number
+          previous_status: number
+          site_id: number
+        }
+        Update: {
+          change_reason?: string
+          change_timestamp?: string | null
+          log_id?: number
+          new_status?: number
+          previous_status?: number
+          site_id?: number
         }
         Relationships: []
       }
@@ -11486,6 +12017,77 @@ export type Database = {
           },
         ]
       }
+      vw_site_profile_details: {
+        Row: {
+          bandwidth: number | null
+          district_id: number | null
+          dun_rfid: number | null
+          DUSP: string | null
+          fullname: string | null
+          id: number | null
+          local_authority: boolean | null
+          parliament_rfid: number | null
+          phase_id: number | null
+          refid_mcmc: string | null
+          refid_tp: string | null
+          standard_code: string | null
+          state_id: number | null
+          technology: number | null
+          TP: string | null
+          website: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_address_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_bandwidth_fkey"
+            columns: ["bandwidth"]
+            isOneToOne: false
+            referencedRelation: "nd_bandwidth"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_nd_duns_fk"
+            columns: ["dun_rfid"]
+            isOneToOne: false
+            referencedRelation: "nd_duns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_parliament_rfid_fkey"
+            columns: ["parliament_rfid"]
+            isOneToOne: false
+            referencedRelation: "nd_parliaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "nd_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_profile_technology_fkey"
+            columns: ["technology"]
+            isOneToOne: false
+            referencedRelation: "nd_technology"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_all_contract_statuses: {
@@ -11507,6 +12109,14 @@ export type Database = {
           type: Database["public"]["Enums"]["notification_type"] | null
           user_id: string | null
         }
+      }
+      fn_force_close_site: {
+        Args: { p_site_id: number }
+        Returns: undefined
+      }
+      fn_force_reopen_site: {
+        Args: { p_site_id: number }
+        Returns: undefined
       }
       get_asset_categories: {
         Args: Record<PropertyKey, never>

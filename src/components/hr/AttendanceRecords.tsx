@@ -1,60 +1,106 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar } from "@/components/ui/calendar";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Clock, MapPin, CheckCircle, XCircle } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { getAllStaffAttendanceByDate, recordAttendance, getSiteStaff } from "@/lib/attendance";
-import useStaffID from "@/hooks/use-staff-id";
-import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  CalendarIcon,
+  Users,
+  UserCheck,
+  Clock,
+  Filter,
+  RefreshCw,
+} from "lucide-react";
+import { format } from "date-fns";
+import { AttendanceFilters } from "./AttendanceFilters";
+import { AttendanceDetailsModal } from "./AttendanceDetailsModal";
+import {
+  getStaffAttendanceByDate,
+  getAttendanceFilterOptions,
+  AttendanceRecord,
+  AttendanceAnalytics,
+  AttendanceFilters as FilterType,
+} from "@/lib/attendance";
+import { useToast } from "@/hooks/use-toast";
 
-type AttendanceRecordsProps = {
+interface AttendanceRecordsProps {
   siteId?: number;
-};
+}
 
 const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    AttendanceRecord[]
+  >([]);
+  const [analytics, setAnalytics] = useState<AttendanceAnalytics>({
+    totalPresent: 0,
+    totalCheckIn: 0,
+    totalCheckOut: 0,
+    averageWorkingHours: 0,
+  });
   const [loading, setLoading] = useState(false);
-  const [siteStaff, setSiteStaff] = useState<any[]>([]);
-  const [remarks, setRemarks] = useState<Record<number, string>>({});
-  const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(
+    null
+  );
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  // Filter states
+  const [siteFilter, setSiteFilter] = useState<string>("all");
+  const [tpFilter, setTpFilter] = useState<string>("all");
+  const [duspFilter, setDuspFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Filter options
+  const [sites, setSites] = useState<{ id: string | number; name: string }[]>(
+    []
+  );
+  const [tpOptions, setTpOptions] = useState<
+    { id: string | number; name: string }[]
+  >([]);
+  const [duspOptions, setDuspOptions] = useState<
+    { id: string | number; name: string }[]
+  >([]);
+
   const { toast } = useToast();
-  const { staffID } = useStaffID();
-  const userMetadataString = useUserMetadata();
-  const [organizationId, setOrganizationId] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (userMetadataString) {
-      try {
-        const metadata = JSON.parse(userMetadataString);
-        if (metadata.organization_id) {
-          setOrganizationId(metadata.organization_id);
-          console.log("Organization ID from metadata:", metadata.organization_id);
-        }
-      } catch (err) {
-        console.error("Error parsing user metadata:", err);
-      }
+
+  const fetchFilterOptions = async () => {
+    try {
+      const options = await getAttendanceFilterOptions();
+      setSites(options.sites);
+      setTpOptions(options.tpOptions);
+      setDuspOptions(options.duspOptions);
+    } catch (error) {
+      console.error("Error fetching filter options:", error);
     }
-  }, [userMetadataString]);
-  
-  const fetchAttendance = async () => {
-    if (!date) return;
-    
+  };
+
+  const fetchAttendanceData = async (
+    selectedDate: Date,
+    filters?: FilterType
+  ) => {
+    if (!selectedDate) return;
+
     setLoading(true);
     try {
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      const data = await getAllStaffAttendanceByDate(formattedDate, siteId, organizationId || undefined);
-      setAttendanceData(data || []);
+      const dateString = format(selectedDate, "yyyy-MM-dd");
+      const result = await getStaffAttendanceByDate(dateString, filters);
+
+      setAttendanceRecords(result.records);
+      setAnalytics(result.analytics);
     } catch (error) {
       console.error("Error fetching attendance data:", error);
       toast({
         title: "Error",
-        description: "Failed to load attendance data",
+        description: "Failed to fetch attendance data",
         variant: "destructive",
       });
     } finally {
@@ -62,189 +108,85 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
     }
   };
 
-  const fetchSiteStaff = async () => {
-    try {
-      const data = await getSiteStaff(siteId, organizationId || undefined);
-      setSiteStaff(data || []);
-    } catch (error) {
-      console.error("Error fetching site staff:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load staff data",
-        variant: "destructive",
-      });
+  const handleApplyFilters = () => {
+    if (!date) return;
+
+    const filters: FilterType = {};
+
+    if (siteFilter && siteFilter !== "all") {
+      filters.siteId = parseInt(siteFilter);
     }
+    if (tpFilter && tpFilter !== "all") {
+      filters.tpId = tpFilter;
+    }
+    if (duspFilter && duspFilter !== "all") {
+      filters.duspId = duspFilter;
+    }
+    if (statusFilter && statusFilter !== "all") {
+      filters.status = statusFilter;
+    }
+
+    fetchAttendanceData(date, filters);
+  };
+
+  const handleClearFilters = () => {
+    setSiteFilter("all");
+    setTpFilter("all");
+    setDuspFilter("all");
+    setStatusFilter("all");
+
+    if (date) {
+      fetchAttendanceData(date);
+    }
+  };
+
+  const handleRowClick = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setShowDetailsModal(true);
   };
 
   useEffect(() => {
-    if (organizationId) {
-      fetchAttendance();
-      fetchSiteStaff();
-    }
-  }, [date, siteId, organizationId]);
+    fetchFilterOptions();
+  }, []);
 
-  const navigateDate = (direction: 'prev' | 'next') => {
-    if (!date) return;
-    
-    const newDate = new Date(date);
-    if (direction === 'prev') {
-      newDate.setDate(newDate.getDate() - 1);
+  useEffect(() => {
+    if (date) {
+      fetchAttendanceData(date);
+    }
+  }, [date]);
+
+  // Auto-refresh when filters change
+  useEffect(() => {
+    if (date) {
+      handleApplyFilters();
+    }
+  }, [siteFilter, tpFilter, duspFilter, statusFilter]);
+
+  const getStatusBadge = (record: AttendanceRecord) => {
+    if (record.check_in && record.check_out) {
+      return <Badge variant="default">Present</Badge>;
+    } else if (record.check_in && !record.check_out) {
+      return <Badge variant="secondary">Checked In</Badge>;
     } else {
-      newDate.setDate(newDate.getDate() + 1);
-    }
-    setDate(newDate);
-  };
-
-  const handleAttendanceToggle = (staffId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedStaffIds(prev => [...prev, staffId]);
-    } else {
-      setSelectedStaffIds(prev => prev.filter(id => id !== staffId));
+      return <Badge variant="destructive">Absent</Badge>;
     }
   };
 
-  const handleRemarkChange = (staffId: number, value: string) => {
-    setRemarks(prev => ({
-      ...prev,
-      [staffId]: value
-    }));
+  const formatTime = (time: string | null) => {
+    if (!time) return "-";
+    return format(new Date(`2000-01-01T${time}`), "HH:mm");
   };
-
-  const markAttendance = async () => {
-    if (selectedStaffIds.length === 0) {
-      toast({
-        title: "No staff selected",
-        description: "Please select at least one staff member",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const formattedDate = format(date || new Date(), 'yyyy-MM-dd');
-      const currentTime = new Date().toISOString();
-      
-      let position: { latitude?: number; longitude?: number; address?: string } = {};
-      
-      try {
-        if (navigator.geolocation) {
-          const pos = await new Promise<GeolocationPosition>((resolve, reject) => 
-            navigator.geolocation.getCurrentPosition(resolve, reject)
-          );
-          
-          position = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          };
-        }
-      } catch (err) {
-        console.warn("Geolocation not available:", err);
-      }
-      
-      for (const staffId of selectedStaffIds) {
-        const remark = remarks[staffId] || '';
-        const staffItem = siteStaff.find(s => s.staff_id === staffId);
-        const staffSiteId = staffItem?.site_id || siteId;
-        
-        if (!staffSiteId) {
-          console.error(`Site ID not found for staff ${staffId}`);
-          continue;
-        }
-        
-        await recordAttendance({
-          staff_id: staffId,
-          site_id: staffSiteId,
-          attend_date: formattedDate,
-          check_in: currentTime,
-          remark: remark,
-          status: true,
-          ...position
-        });
-      }
-      
-      toast({
-        title: "Success",
-        description: `Attendance marked for ${selectedStaffIds.length} staff members`,
-      });
-      
-      fetchAttendance();
-      setSelectedStaffIds([]);
-      setRemarks({});
-      
-    } catch (error) {
-      console.error("Error marking attendance:", error);
-      toast({
-        title: "Error",
-        description: "Failed to mark attendance",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markCheckout = async (id: number) => {
-    setLoading(true);
-    try {
-      const currentTime = new Date().toISOString();
-      const attendanceRecord = attendanceData.find(record => record.id === id);
-      
-      if (!attendanceRecord) {
-        throw new Error("Attendance record not found");
-      }
-      
-      await recordAttendance({
-        staff_id: attendanceRecord.staff_id,
-        site_id: attendanceRecord.site_id,
-        attend_date: attendanceRecord.attend_date,
-        check_out: currentTime
-      });
-      
-      toast({
-        title: "Success",
-        description: "Checkout recorded successfully",
-      });
-      
-      fetchAttendance();
-      
-    } catch (error) {
-      console.error("Error marking checkout:", error);
-      toast({
-        title: "Error",
-        description: "Failed to record checkout",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const staffWithNoAttendance = siteStaff.filter(staff => 
-    !attendanceData.some(record => record.staff_id === staff.staff_id)
-  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Daily Attendance</h2>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="icon" onClick={() => navigateDate('prev')}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="mx-2 font-medium">
-            {date ? format(date, 'MMMM d, yyyy') : 'Select a date'}
-          </span>
-          <Button variant="outline" size="icon" onClick={() => navigateDate('next')}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:col-span-4 flex flex-col lg:flex-row gap-6">
+        {/* Calendar - 3 columns */}
         <Card>
           <CardHeader>
-            <CardTitle>Attendance Calendar</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              Select Date
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Calendar
@@ -255,146 +197,221 @@ const AttendanceRecords: React.FC<AttendanceRecordsProps> = ({ siteId }) => {
             />
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Daily Overview</CardTitle>
+        {/* Analytics Overview */}
+        <Card className="shadow-sm border-gray-200 flex-1">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Daily Overview</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span>Total Present</span>
-                <span className="font-bold">{attendanceData.length}</span>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="text-2xl font-bold text-blue-700">
+                  {attendanceRecords.length}
+                </div>
+                <div className="text-xs text-blue-600">Total Records</div>
               </div>
-              <div className="flex justify-between items-center">
-                <span>Pending Checkout</span>
-                <span className="font-bold">
-                  {attendanceData.filter(record => record.check_in && !record.check_out).length}
-                </span>
+
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <UserCheck className="h-4 w-4 text-green-600" />
+                </div>
+                <div className="text-2xl font-bold text-green-700">
+                  {analytics.totalPresent}
+                </div>
+                <div className="text-xs text-green-600">Present</div>
               </div>
-              <div className="flex justify-between items-center">
-                <span>Average Working Hours</span>
-                <span className="font-bold">
-                  {attendanceData.length > 0 
-                    ? (attendanceData.reduce((sum, record) => sum + (record.total_working_hour || 0), 0) / attendanceData.length).toFixed(2)
-                    : "0.00"}
-                </span>
+
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Clock className="h-4 w-4 text-orange-600" />
+                </div>
+                <div className="text-2xl font-bold text-orange-700">
+                  {analytics.totalCheckIn}
+                </div>
+                <div className="text-xs text-orange-600">Check-ins</div>
               </div>
+
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Clock className="h-4 w-4 text-purple-600" />
+                </div>
+                <div className="text-2xl font-bold text-purple-700">
+                  {analytics.totalCheckOut}
+                </div>
+                <div className="text-xs text-purple-600">Check-outs</div>
+              </div>
+            </div>
+
+            <div className="text-center p-3 bg-amber-50 rounded-lg">
+              <div className="flex items-center justify-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-amber-600" />
+              </div>
+              <div className="text-2xl font-bold text-amber-700">
+                {analytics.averageWorkingHours.toFixed(1)}h
+              </div>
+              <div className="text-xs text-amber-600">Average Hours</div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Attendance Records ({format(date || new Date(), 'MMMM d, yyyy')})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      {/* Analytics Cards - 3 columns */}
+      <div className="col-span-12 lg:col-span-3"></div>
+
+      {/* Records and Filters - 6 columns */}
+      <div className="lg:col-span-4 space-y-6">
+        {/* Filters */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Attendance Records</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                {showFilters ? "Hide" : "Show"} Filters
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => date && fetchAttendanceData(date)}
+                disabled={loading}
+              >
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
             </div>
-          ) : (
-            <div className="space-y-6">
-              {attendanceData.length > 0 ? (
-                <div className="space-y-4">
-                  {attendanceData.map((record) => (
-                    <div key={record.id} className="p-4 border rounded-lg bg-gray-50">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold">{record.nd_staff_profile?.fullname}</h3>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Site: {record.nd_site_profile?.sitename || 'Unknown site'}
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col sm:flex-row gap-3">
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1 text-green-600" />
-                            <span className="text-sm">
-                              In: {record.check_in ? format(new Date(record.check_in), 'h:mm a') : 'N/A'}
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1 text-red-600" />
-                            <span className="text-sm">
-                              Out: {record.check_out ? format(new Date(record.check_out), 'h:mm a') : 'Not checked out'}
-                            </span>
-                          </div>
-                          
-                          {record.check_in && !record.check_out && (
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => markCheckout(record.id)}
-                            >
-                              Check Out
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {record.remark && (
-                        <div className="mt-2 text-sm italic border-t pt-2">
-                          Note: {record.remark}
-                        </div>
-                      )}
-                      
-                      {record.total_working_hour > 0 && (
-                        <div className="mt-2 text-xs bg-blue-50 text-blue-700 rounded-md p-1 inline-block">
-                          Working hours: {record.total_working_hour.toFixed(2)}h
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No attendance records for this date
-                </div>
-              )}
-              
-              {staffWithNoAttendance.length > 0 && (
-                <div className="border rounded-lg p-4 mt-6">
-                  <h3 className="text-lg font-medium mb-4">Mark Attendance</h3>
-                  
-                  <div className="space-y-4">
-                    {staffWithNoAttendance.map((staff) => (
-                      <div key={staff.staff_id} className="flex items-start space-x-3 pb-3 border-b">
-                        <Checkbox 
-                          id={`staff-${staff.staff_id}`}
-                          checked={selectedStaffIds.includes(staff.staff_id)}
-                          onCheckedChange={(checked) => handleAttendanceToggle(staff.staff_id, checked === true)}
-                        />
-                        <div className="grid gap-1.5 w-full">
-                          <Label htmlFor={`staff-${staff.staff_id}`}>
-                            {staff.nd_staff_profile.fullname}
-                          </Label>
-                          <Textarea
-                            placeholder="Add remarks (optional)"
-                            className="resize-none h-16 max-w-lg"
-                            disabled={!selectedStaffIds.includes(staff.staff_id)}
-                            value={remarks[staff.staff_id] || ''}
-                            onChange={(e) => handleRemarkChange(staff.staff_id, e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    
-                    <Button 
-                      onClick={markAttendance}
-                      disabled={selectedStaffIds.length === 0 || loading}
-                    >
-                      {loading ? 'Processing...' : 'Mark Attendance'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
+          </div>
+
+          {showFilters && (
+            <AttendanceFilters
+              siteFilter={siteFilter}
+              setSiteFilter={setSiteFilter}
+              tpFilter={tpFilter}
+              setTpFilter={setTpFilter}
+              duspFilter={duspFilter}
+              setDuspFilter={setDuspFilter}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              sites={sites}
+              tpOptions={tpOptions}
+              duspOptions={duspOptions}
+              onApplyFilters={handleApplyFilters}
+              onClearFilters={handleClearFilters}
+              loading={loading}
+            />
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Records Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Staff Attendance -{" "}
+              {date ? format(date, "dd MMMM yyyy") : "Select a date"}
+              {loading && (
+                <div className="ml-2 inline-flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                </div>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {attendanceRecords.length > 0 ? (
+              <div className="rounded-md border max-h-[600px] overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Staff Name</TableHead>
+                      <TableHead>IC No</TableHead>
+                      <TableHead>Mobile No</TableHead>
+                      <TableHead>Site</TableHead>
+                      <TableHead>DUSP (TP)</TableHead>
+                      <TableHead>Check In</TableHead>
+                      <TableHead>Check Out</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Hours</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attendanceRecords.map((record) => (
+                      <TableRow
+                        key={record.id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleRowClick(record)}
+                      >
+                        <TableCell className="font-medium">
+                          {record.nd_staff_profile?.fullname || "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          {record.nd_staff_profile?.ic_no || "-"}
+                        </TableCell>
+                        <TableCell>
+                          {record.nd_staff_profile?.mobile_no || "-"}
+                        </TableCell>
+                        <TableCell>
+                          {record.nd_site_profile?.sitename || "Unknown"}
+                        </TableCell>
+                        <TableCell>
+                          {record.nd_site_profile?.dusp_tp ? (
+                            <div className="text-sm">
+                              <div className="font-medium">
+                                {record.nd_site_profile.dusp_tp.name}
+                              </div>
+                              {record.nd_site_profile.dusp_tp.parent && (
+                                <div className="text-muted-foreground">
+                                  ({record.nd_site_profile.dusp_tp.parent.name})
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            "-"
+                          )}
+                        </TableCell>
+                        <TableCell>{formatTime(record.check_in)}</TableCell>
+                        <TableCell>{formatTime(record.check_out)}</TableCell>
+                        <TableCell>{getStatusBadge(record)}</TableCell>
+                        <TableCell>
+                          {record.total_working_hour
+                            ? `${record.total_working_hour}h`
+                            : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+                    Loading attendance data...
+                  </div>
+                ) : (
+                  `No attendance records found for ${
+                    date ? format(date, "dd MMMM yyyy") : "selected date"
+                  }`
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Attendance Details Modal */}
+      <AttendanceDetailsModal
+        open={showDetailsModal}
+        onOpenChange={setShowDetailsModal}
+        record={selectedRecord}
+      />
     </div>
   );
 };

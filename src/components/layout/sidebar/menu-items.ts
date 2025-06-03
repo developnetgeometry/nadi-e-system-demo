@@ -67,7 +67,7 @@ export const financeItems = [
 export const programmesItems = [
   { title: "Programmes Dashboard", path: "/programmes" },
   { title: "Programmes Settings", path: "/programmes/settings" },
-  { title: "Registration", path: "/programmes/registration" },
+  // { title: "Registration", path: "/programmes/registration" },
   { title: "Smart Services NADI4U", path: "/programmes/nadi4u" },
   { title: "Smart Services NADI2U", path: "/programmes/nadi2u" },
   { title: "Others", path: "/programmes/others" },
@@ -213,7 +213,7 @@ export const vendorManagementItems = [
   { title: "Vendor Dashboard", path: "/vendor" },
   { title: "Vendor Companies", path: "/vendor/companies" },
   { title: "Vendor Admin Management", path: "/vendor/staff" },
-  { title: "Vendor Staff Management", path: "/vendor/admin/staff/new" },
+  { title: "Vendor Staff Management", path: "/vendor/staff/new" },
   { title: "Team Management", path: "/vendor/teams" },
   { title: "Contracts", path: "/vendor/contracts" },
   { title: "Reports", path: "/vendor/reports" },

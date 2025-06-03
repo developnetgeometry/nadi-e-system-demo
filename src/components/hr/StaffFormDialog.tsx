@@ -96,6 +96,9 @@ const staffFormSchema = z.object({
   bank_account_no: z.string().optional().or(z.literal("")),
   qualification: z.string().optional().or(z.literal("")),
   join_date: z.string().optional().or(z.literal("")),
+  contract_type: z.string().optional().or(z.literal("")),
+  contractStartDate: z.string().optional().or(z.literal("")),
+  contractEndDate: z.string().optional().or(z.literal("")),
 });
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
@@ -139,6 +142,9 @@ export function StaffFormDialog({
   const [genders, setGenders] = useState<{ id: string; eng: string }[]>([]);
   const [states, setStates] = useState<{ id: string; name: string }[]>([]);
   const [banks, setBanks] = useState<{ id: string; bank_name: string }[]>([]);
+  // const [sites, setSites] = useState<any[]>([]);
+  const [phases, setPhases] = useState<any[]>([]);
+  const [contractTypes, setContractTypes] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("personal-info");
 
   const [currentUserCredentials, setCurrentUserCredentials] = useState<{
@@ -288,6 +294,19 @@ export function StaffFormDialog({
         console.error("Error fetching banks:", err);
       }
     };
+    const fetchContractTypes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nd_contract_type")
+          .select("id, name")
+          .order("name");
+
+        if (error) throw error;
+        setContractTypes(data || []);
+      } catch (error) {
+        console.error("Error fetching contract types:", error);
+      }
+    };
 
     if (organizationId) {
       fetchSites();
@@ -300,6 +319,7 @@ export function StaffFormDialog({
       fetchGenders();
       fetchStates();
       fetchBanks();
+      fetchContractTypes();
     }
   }, [organizationId, toast]);
 
@@ -310,6 +330,8 @@ export function StaffFormDialog({
       email: "",
       userType: "",
       employDate: new Date().toISOString().split("T")[0],
+      contractStartDate: new Date().toISOString().split("T")[0],
+      contractEndDate: new Date().toISOString().split("T")[0],
       status: "Active",
       siteLocation: "",
       phone_number: "",
@@ -345,6 +367,7 @@ export function StaffFormDialog({
       socso_no: "",
       bank_name: "",
       bank_account_no: "",
+      contract_type: "",
     },
   });
 
@@ -475,7 +498,7 @@ export function StaffFormDialog({
         await supabase.from("organization_users").insert({
           user_id: result.data.user_id,
           organization_id: parsedOrganizationId,
-          role: "staff",
+          role: "staff", // Default role, can be adjusted
         });
       }
 
@@ -1305,6 +1328,34 @@ export function StaffFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Join Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contractStartDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contract Start Date*</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contractEndDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contract End Date*</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>

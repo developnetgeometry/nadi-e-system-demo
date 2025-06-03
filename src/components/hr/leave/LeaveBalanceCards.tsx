@@ -1,17 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sun, Stethoscope, RefreshCcw, AlertTriangle } from "lucide-react";
-
-type LeaveBalance = {
-  type: string;
-  total: number;
-  used: number;
-  remaining: number;
-  pendingApprovals: number;
-};
+import {
+  Sun,
+  Stethoscope,
+  RefreshCcw,
+  AlertTriangle,
+  Calendar,
+} from "lucide-react";
+import { useLeaveBalance } from "@/hooks/hr/use-leave-balance";
 
 const leaveIcons: Record<string, { icon: JSX.Element; color: string }> = {
   Annual: {
@@ -30,46 +26,14 @@ const leaveIcons: Record<string, { icon: JSX.Element; color: string }> = {
     icon: <AlertTriangle className="w-6 h-6 text-orange-500" />,
     color: "text-orange-500",
   },
+  Default: {
+    icon: <Calendar className="w-6 h-6 text-gray-500" />,
+    color: "text-gray-500",
+  },
 };
 
 export function LeaveBalanceCards() {
-  const { user } = useAuth();
-
-  const { data: leaveBalances, isLoading } = useQuery({
-    queryKey: ["leave-balances", user?.id],
-    queryFn: async () => {
-      return [
-        {
-          type: "Annual",
-          total: 16,
-          used: 5,
-          remaining: 11,
-          pendingApprovals: 2,
-        },
-        {
-          type: "Medical",
-          total: 14,
-          used: 2,
-          remaining: 12,
-          pendingApprovals: 0,
-        },
-        {
-          type: "Replacement",
-          total: 5,
-          used: 0,
-          remaining: 5,
-          pendingApprovals: 1,
-        },
-        {
-          type: "Emergency",
-          total: 3,
-          used: 1,
-          remaining: 2,
-          pendingApprovals: 0,
-        },
-      ] as LeaveBalance[];
-    },
-  });
+  const { leaveBalances, isLoading } = useLeaveBalance();
 
   if (isLoading) {
     return (
@@ -92,29 +56,44 @@ export function LeaveBalanceCards() {
     );
   }
 
+  if (leaveBalances.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>No leave balance records found for this year.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {leaveBalances?.map((balance) => (
-        <Card key={balance.type} className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              {balance.type} Leave
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">
-                {balance.remaining} / {balance.total}
+      {leaveBalances.map((balance) => {
+        const leaveTypeName = balance.nd_leave_type?.name || "Unknown";
+        const iconConfig = leaveIcons[leaveTypeName] || leaveIcons.Default;
+        const remaining = balance.balance - balance.used;
+
+        return (
+          <Card key={balance.id} className="shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                {leaveTypeName} Leave
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold">
+                  {remaining} / {balance.balance}
+                </div>
+                <div>{iconConfig.icon}</div>
               </div>
-              <div>{leaveIcons[balance.type]?.icon}</div>
-            </div>
-            <div className="grid grid-cols-2 text-xs text-muted-foreground">
-              <div>Used: {balance.used}</div>
-              <div>Pending: {balance.pendingApprovals}</div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              <div className="grid grid-cols-2 text-xs text-muted-foreground">
+                <div>Used: {balance.used}</div>
+                <div>Carried: {balance.carried_forward}</div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }
