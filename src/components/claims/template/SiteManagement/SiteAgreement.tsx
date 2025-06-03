@@ -160,34 +160,34 @@ const Agreement = async ({
             </Page>
 
             {/* Page 2: APPENDIX for AGREEMENT - Title page */}
-            <Page size="A4" style={styles.page}>
+            {/* <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX"
                     title="SITE AGREEMENT"
                 />
                 <PDFFooter />
-            </Page>
+            </Page> */}
         </Document>
     );
     // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(agreementDoc).toBlob();
 
     // Process all agreement that have attachments as sources for generateFinalPdf
-    const sources: AttachmentSource[] = agreement
-        .filter(agreement => agreement.attachments_path && agreement.attachments_path.length > 0)
-        .map(agreement => ({
-            attachments_path: agreement.attachments_path || [],
-            standard_code: agreement.standard_code,
-        }));
+    // const sources: AttachmentSource[] = agreement
+    //     .filter(agreement => agreement.attachments_path && agreement.attachments_path.length > 0)
+    //     .map(agreement => ({
+    //         attachments_path: agreement.attachments_path || [],
+    //         standard_code: agreement.standard_code,
+    //     }));
 
     // Generate the final PDF by merging the report with attachment pages
-    const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
+    // const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
 
     // Generate filename based on filters
     const fileName = generatePdfFilename('agreement-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
-    return new File([finalPdfBlob], fileName, {
+    return new File([reportBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });

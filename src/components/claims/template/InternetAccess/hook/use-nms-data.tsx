@@ -37,7 +37,7 @@ export const fetchNMSData = async ({
             refId: "REF001",
             state: "State A",
             attachments_path: [
-                "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"
+                "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"
             ]
         },
         {
@@ -47,7 +47,7 @@ export const fetchNMSData = async ({
             refId: "REF002",
             state: "State B",
             attachments_path: [
-                "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"
+                "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"
             ]
         }
 

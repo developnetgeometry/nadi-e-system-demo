@@ -161,34 +161,34 @@ const Insurance = async ({
             </Page>
 
             {/* Page 2: APPENDIX for INSURANCE - Title page */}
-            <Page size="A4" style={styles.page}>
+            {/* <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX"
                     title="SITE INSURANCE"
                 />
                 <PDFFooter />
-            </Page>
+            </Page> */}
         </Document>
     );
     // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(insuranceDoc).toBlob();
 
     // Process all insurance that have attachments as sources for generateFinalPdf
-    const sources: AttachmentSource[] = insurance
-        .filter(insurance => insurance.attachments_path && insurance.attachments_path.length > 0)
-        .map(insurance => ({
-            attachments_path: insurance.attachments_path || [],
-            standard_code: insurance.standard_code,
-        }));
+    // const sources: AttachmentSource[] = insurance
+    //     .filter(insurance => insurance.attachments_path && insurance.attachments_path.length > 0)
+    //     .map(insurance => ({
+    //         attachments_path: insurance.attachments_path || [],
+    //         standard_code: insurance.standard_code,
+    //     }));
 
     // Generate the final PDF by merging the report with attachment pages
-    const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
+    // const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
 
     // Generate filename based on filters
     const fileName = generatePdfFilename('insurance-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
-    return new File([finalPdfBlob], fileName, {
+    return new File([reportBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });

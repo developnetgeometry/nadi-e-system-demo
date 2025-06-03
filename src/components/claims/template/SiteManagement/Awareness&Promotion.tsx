@@ -162,34 +162,34 @@ const AwarenessPromotion = async ({
             </Page>
 
             {/* Page 2: APPENDIX for ANP - Title page */}
-            <Page size="A4" style={styles.page}>
+            {/* <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX"
                     title="AWARENESS & PROMOTION PROGRAMME"
                 />
                 <PDFFooter />
-            </Page>
+            </Page> */}
         </Document>
     );
     // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(AwarenessPromotionDoc).toBlob();
 
     // Process all anp that have attachments as sources for generateFinalPdf
-    const sources: AttachmentSource[] = anp
-        .filter(anp => anp.attachments_path && anp.attachments_path.length > 0)
-        .map(anp => ({
-            attachments_path: anp.attachments_path || [],
-            standard_code: anp.standard_code,
-        }));
+    // const sources: AttachmentSource[] = anp
+    //     .filter(anp => anp.attachments_path && anp.attachments_path.length > 0)
+    //     .map(anp => ({
+    //         attachments_path: anp.attachments_path || [],
+    //         standard_code: anp.standard_code,
+    //     }));
 
     // Generate the final PDF by merging the report with attachment pages
-    const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
+    // const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
 
     // Generate filename based on filters
     const fileName = generatePdfFilename('awareness-promotion-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
-    return new File([finalPdfBlob], fileName, {
+    return new File([reportBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });
