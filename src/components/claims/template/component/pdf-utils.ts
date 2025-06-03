@@ -50,25 +50,52 @@ export const getFormattedDateString = (): string => {
 };
 
 /**
- * Adds a standard footer to a PDF page
+ * Adds a standard footer to a PDF page (styled to match PDFFooter in pdf-component)
  */
 export const addPageFooter = (page: any, width: number): void => {
-    // Add footer text at the bottom
-    page.drawText(`This document is system-generated from NADI e-System.`, {
-        x: 50,
-        y: 30,
-        size: 8,
-        color: rgb(0, 0, 0),
+    // Draw a faint horizontal line above the footer
+    page.drawRectangle({
+        x: 40,
+        y: 48, // 18px above the footer text (y=30)
+        width: width - 80,
+        height: 1,
+        color: rgb(0.66, 0.66, 0.66),
+        opacity: 0.3,
+        borderWidth: 0,
     });
-    
-    // Add generated date on the right side
-    const dateStr = getFormattedDateString();
-    
-    page.drawText(`Generated on: ${dateStr}`, {
-        x: width - 200,
+
+    // Footer text (left)
+    const leftText = 'This document is system-generated from NADI e-System.';
+    // Footer text (right, generated date)
+    const now = new Date();
+    const formattedDateTime = now.toLocaleString('en-MY', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    const rightText = `Generated on: ${formattedDateTime}`;
+    const fontSize = 9;
+    const color = rgb(0.4, 0.4, 0.4); // #666
+    // Estimate right text width
+    const approxCharWidth = fontSize * 0.6;
+    const rightTextWidth = rightText.length * approxCharWidth;
+    // Draw left text
+    page.drawText(leftText, {
+        x: 40,
         y: 30,
-        size: 8,
-        color: rgb(0, 0, 0),
+        size: fontSize,
+        color,
+    });
+    // Draw right text
+    page.drawText(rightText, {
+        x: width - 40 - rightTextWidth,
+        y: 30,
+        size: fontSize,
+        color,
     });
 };
 
