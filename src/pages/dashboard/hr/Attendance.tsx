@@ -10,10 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import AttendanceRecords from "@/components/hr/AttendanceRecords";
+import AttendanceScheduler from "@/components/hr/AttendanceScheduler";
+import { AttendanceMonthlyReport } from "@/components/hr/AttendanceMonthlyReport";
+import { AttendanceStatistics } from "@/components/hr/AttendanceStatistics";
 import { format } from "date-fns";
 import { Building, Clock, UserCheck, Users } from "lucide-react";
 import useStaffID from "@/hooks/use-staff-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useAttendanceStats } from "@/hooks/hr/use-attendance-stats";
 
 const Attendance = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -43,13 +47,11 @@ const Attendance = () => {
     }
   }, [userMetadataString]);
 
-  const attendanceStats = {
-    presentToday: 32,
-    onTime: 30,
-    late: 2,
-    absent: 3,
-    totalStaff: 35,
-  };
+  // Use the real attendance statistics hook
+  const { stats: attendanceStats, loading: statsLoading } = useAttendanceStats(
+    siteId,
+    organizationId
+  );
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -70,7 +72,7 @@ const Attendance = () => {
                   Present Today
                 </p>
                 <h3 className="text-2xl font-bold">
-                  {attendanceStats.presentToday}
+                  {statsLoading ? "..." : attendanceStats.presentToday}
                 </h3>
               </div>
             </CardContent>
@@ -85,7 +87,9 @@ const Attendance = () => {
                 <p className="text-sm font-medium text-muted-foreground">
                   On Time
                 </p>
-                <h3 className="text-2xl font-bold">{attendanceStats.onTime}</h3>
+                <h3 className="text-2xl font-bold">
+                  {statsLoading ? "..." : attendanceStats.onTime}
+                </h3>
               </div>
             </CardContent>
           </CardHover>
@@ -99,7 +103,9 @@ const Attendance = () => {
                 <p className="text-sm font-medium text-muted-foreground">
                   Late
                 </p>
-                <h3 className="text-2xl font-bold">{attendanceStats.late}</h3>
+                <h3 className="text-2xl font-bold">
+                  {statsLoading ? "..." : attendanceStats.late}
+                </h3>
               </div>
             </CardContent>
           </CardHover>
@@ -111,10 +117,10 @@ const Attendance = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  Total Staff
+                  Total Active Staff
                 </p>
                 <h3 className="text-2xl font-bold">
-                  {attendanceStats.totalStaff}
+                  {statsLoading ? "..." : attendanceStats.totalStaff}
                 </h3>
               </div>
             </CardContent>
@@ -124,6 +130,7 @@ const Attendance = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-6">
             <TabsTrigger value="daily">Daily Attendance</TabsTrigger>
+            <TabsTrigger value="scheduler">Task Scheduler</TabsTrigger>
             <TabsTrigger value="monthly">Monthly Report</TabsTrigger>
             <TabsTrigger value="stats">Statistics</TabsTrigger>
           </TabsList>
@@ -132,37 +139,16 @@ const Attendance = () => {
             <AttendanceRecords siteId={siteId} />
           </TabsContent>
 
+          <TabsContent value="scheduler">
+            <AttendanceScheduler />
+          </TabsContent>
+
           <TabsContent value="monthly">
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Attendance Report</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  View and export monthly attendance reports for all staff
-                  members.
-                </p>
-                <div className="p-6 text-center text-muted-foreground">
-                  Monthly attendance report feature coming soon
-                </div>
-              </CardContent>
-            </Card>
+            <AttendanceMonthlyReport />
           </TabsContent>
 
           <TabsContent value="stats">
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Statistics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  View detailed attendance statistics and trends.
-                </p>
-                <div className="p-6 text-center text-muted-foreground">
-                  Attendance statistics feature coming soon
-                </div>
-              </CardContent>
-            </Card>
+            <AttendanceStatistics />
           </TabsContent>
         </Tabs>
       </div>

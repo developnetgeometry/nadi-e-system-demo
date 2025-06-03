@@ -70,75 +70,79 @@ import WorkflowDashboard from "@/pages/workflow/WorkflowDashboard";
 import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
+import ProgrammeEdit from "@/pages/dashboard/programmes/ProgrammeRegistration";
 import ClaimRegister from "@/pages/dashboard/claim/ClaimRegister";
 import ClaimReports from "@/pages/dashboard/claim/ClaimReports";
 
+import { hrRoutes } from "@/routes/module-routes/module.hr.routes";
+import { vendorRoutes } from "./module-routes/module.vendor.routes";
+
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
-  {
-    path: "/hr",
-    element: (
-      // <ProtectedRoute requiredPermission="view_hr_dashboard">
-      <HRDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="view_hr_dashboard">
-      <HRSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/employees",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_employees">
-      <Employees />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/site-staff",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_site_staff">
-      <SiteStaff />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/attendance",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_attendance">
-      <Attendance />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/leave",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_leave">
-      <Leave />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/payroll",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_leave">
-      <Payroll />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/staff-training",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_leave">
-      <StaffTraining />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/hr",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_hr_dashboard">
+  //     <HRDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_hr_dashboard">
+  //     <HRSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/employees",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_employees">
+  //     <Employees />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/site-staff",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_site_staff">
+  //     <SiteStaff />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/attendance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_attendance">
+  //     <Attendance />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/leave",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_leave">
+  //     <Leave />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/payroll",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_leave">
+  //     <Payroll />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/staff-training",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_leave">
+  //     <StaffTraining />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // POS Routes
   {
     path: "/pos",
@@ -277,6 +281,14 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
       <ProgrammeSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/programmes/edit/:id",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <ProgrammeEdit />
       // </ProtectedRoute>
     ),
   },
@@ -684,4 +696,6 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
+  ...hrRoutes,
+  ...vendorRoutes,
 ];
