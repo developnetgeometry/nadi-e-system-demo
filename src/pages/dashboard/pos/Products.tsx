@@ -37,7 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FileDown, Filter, Search, Check, Edit, ChevronsUpDown, RotateCcw, X, Package, Box, FileText } from "lucide-react";
+import { FileDown, Filter, Search, Check, Edit, ChevronsUpDown, RotateCcw, X, Package, Box, FileText, Upload, Image as ImageIcon } from "lucide-react";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,6 +51,11 @@ const Products = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editPrices, setEditPrices] = useState<{[key: string]: string}>({});
+  const [isEditImageDialogOpen, setIsEditImageDialogOpen] = useState(false);
+  const [selectedImageItem, setSelectedImageItem] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -224,7 +229,8 @@ const Products = () => {
           category: { id: 'services', name: 'Services' },
           type: { id: 'service', name: 'Service' },
           isService: true,
-          originalServiceId: service.id // Keep original ID for editing
+          originalServiceId: service.id, // Keep original ID for editing
+          image_url: service.image_url
         };
       }) || [];
 
@@ -387,6 +393,197 @@ const Products = () => {
         description: error.message || "Failed to update price. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleEditImage = (item) => {
+    if (item.isService && isSuperAdmin) {
+      setSelectedImageItem(item);
+      setImagePreview(item.image_url || "");
+      setIsEditImageDialogOpen(true);
+    } else {
+      toast({
+        title: "Access Denied",
+        description: "Only super admins can edit service images",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateImage = async () => {
+    if (!selectedImageItem) {
+      toast({
+        title: "Error",
+        description: "No item selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      let imageUrl = selectedImageItem.image_url;
+
+      let userId = null;
+      try {
+        const storedUserMetadata = localStorage.getItem('user_metadata');
+        if (storedUserMetadata) {
+          const userData = JSON.parse(storedUserMetadata);
+          userId = userData.group_profile?.user_id || null;
+        }
+      } catch (error) {
+        console.error("Error retrieving user data from localStorage:", error);
+      }
+
+      // Upload new image if selected
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${selectedImageItem.originalServiceId}_${Date.now()}.${fileExt}`;
+
+        // Delete old image if exists
+        if (selectedImageItem.image_url) {
+          const oldFileName = selectedImageItem.image_url.split('/').pop();
+          if (oldFileName) {
+            await supabase.storage
+              .from('service-images')
+              .remove([oldFileName]);
+          }
+        }
+
+        // Upload new image
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('service-images')
+          .upload(fileName, imageFile);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('service-images')
+          .getPublicUrl(fileName);
+
+        imageUrl = publicUrl;
+      }
+
+      // Update service record
+      const { error } = await supabase
+        .from('nd_category_service')
+        .update({ 
+          image_url: imageUrl,
+          updated_by: userId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedImageItem.originalServiceId);
+
+      if (error) {
+        throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+
+      toast({
+        title: "Success",
+        description: "Service image updated successfully",
+        variant: "default",
+      });
+
+      setIsEditImageDialogOpen(false);
+      setSelectedImageItem(null);
+      setImageFile(null);
+      setImagePreview("");
+
+    } catch (error) {
+      console.error('Error updating image:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!selectedImageItem || !selectedImageItem.image_url) {
+      toast({
+        title: "Error",
+        description: "No image to remove",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+
+      let userId = null;
+      try {
+        const storedUserMetadata = localStorage.getItem('user_metadata');
+        if (storedUserMetadata) {
+          const userData = JSON.parse(storedUserMetadata);
+          userId = userData.group_profile?.user_id || null;
+        }
+      } catch (error) {
+        console.error("Error retrieving user data from localStorage:", error);
+      }
+
+      // Delete image from storage
+      const fileName = selectedImageItem.image_url.split('/').pop();
+      if (fileName) {
+        await supabase.storage
+          .from('service-images')
+          .remove([fileName]);
+      }
+
+      // Update service record to remove image_url
+      const { error } = await supabase
+        .from('nd_category_service')
+        .update({ 
+          image_url: null,
+          updated_by: userId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedImageItem.originalServiceId);
+
+      if (error) {
+        throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+
+      toast({
+        title: "Success",
+        description: "Service image removed successfully",
+        variant: "default",
+      });
+
+      setImagePreview("");
+      setImageFile(null);
+
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -907,6 +1104,21 @@ const Products = () => {
                               </TooltipTrigger>
                               <TooltipContent>Edit Price</TooltipContent>
                             </Tooltip>
+
+                            {isSuperAdmin && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleEditImage(item)}
+                                  >
+                                    <ImageIcon className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit Image</TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
                         </TableCell>
                       )}
@@ -1044,6 +1256,103 @@ const Products = () => {
               }
             >
               Update Price{selectedItem?.isService ? 's' : ''}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Image Dialog */}
+      <Dialog open={isEditImageDialogOpen} onOpenChange={setIsEditImageDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Service Image</DialogTitle>
+          </DialogHeader>
+          {selectedImageItem && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="serviceName">Service Name</Label>
+                <Input
+                  id="serviceName"
+                  value={selectedImageItem.name}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Current Image</Label>
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Service preview"
+                      className="w-full h-48 object-cover rounded-lg border"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={handleRemoveImage}
+                      disabled={isUploadingImage}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <ImageIcon className="h-12 w-12 mx-auto text-gray-400" />
+                      <p className="text-sm text-gray-500 mt-2">No image uploaded</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="imageUpload">Upload New Image</Label>
+                <Input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="cursor-pointer"
+                />
+                <p className="text-xs text-gray-500">
+                  Supported formats: JPG, PNG, GIF. Max size: 5MB
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsEditImageDialogOpen(false);
+                setSelectedImageItem(null);
+                setImageFile(null);
+                setImagePreview("");
+              }}
+              disabled={isUploadingImage}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="default"
+              onClick={handleUpdateImage}
+              disabled={isUploadingImage || !imageFile}
+            >
+              {isUploadingImage ? (
+                <>
+                  <Upload className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Update Image
+                </>
+              )}
             </Button>
           </div>
         </DialogContent>

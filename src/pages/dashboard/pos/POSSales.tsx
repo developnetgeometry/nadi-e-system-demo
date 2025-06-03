@@ -90,7 +90,7 @@ const POSSales = () => {
       if (selectedSearchFilter === 'services') {
         let serviceQuery = supabase
           .from('nd_category_service')
-          .select('*');
+          .select('*, image_url');
 
         if (searchItem && searchItem.length > 0) {
           serviceQuery = serviceQuery.or(`bm.ilike.%${searchItem}%,eng.ilike.%${searchItem}%`);
@@ -109,14 +109,14 @@ const POSSales = () => {
         // Transform service data to match inventory structure
         const transformedServices = serviceData?.map(service => ({
           id: service.id,
-          name: service.eng, // Use English name
-          description: service.bm, // Use Bahasa Malaysia as description
-          price: 0, // Will be set dynamically based on service_charge
+          name: service.eng,
+          description: service.bm,
+          price: 0,
           quantity: 999, // Services don't have stock limits
           category_id: 1, // Mark as service
           type_id: 2, // Digital service
           barcode: null,
-          image_url: null,
+          image_url: service.image_url,
           nd_inventory_attachment: []
         })) || [];
 

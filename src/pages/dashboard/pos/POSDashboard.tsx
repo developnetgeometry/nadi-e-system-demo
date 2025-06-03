@@ -117,15 +117,7 @@ const POSDashboard = () => {
           siteId = siteData.id;
         }
 
-        // 1. Calculate total sales
-        let salesQuery = supabase
-          .from('nd_pos_transaction_item')
-          .select(`
-            total_price,
-            item_id,
-            nd_inventory!item_id(id, site_id, name)
-          `);
-
+        // Calculate total sales (both inventory items and services)
         if (siteId) {
           // Get inventory IDs for this site
           const { data: siteInventory } = await supabase
@@ -135,17 +127,50 @@ const POSDashboard = () => {
             
           inventoryIds = siteInventory?.map(inv => inv.id) || [];
           
+          // Get users from this site for service transactions
+          const { data: siteUsers } = await supabase
+            .from('nd_site_user')
+            .select('user_id')
+            .eq('site_profile_id', parsedMetadata?.group_profile?.site_profile_id);
+          
+          const siteUserIds = siteUsers?.map(user => user.user_id) || [];
+          
+          let totalSalesFromItems = 0;
+          let totalSalesFromServices = 0;
+          
+          // Get sales from inventory items
           if (inventoryIds.length > 0) {
-            // Get transaction items for these inventory items
-            const { data: salesData } = await supabase
+            const { data: itemSalesData } = await supabase
               .from('nd_pos_transaction_item')
               .select('total_price')
               .in('item_id', inventoryIds);
               
-            totalSales = salesData?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0;
+            totalSalesFromItems = itemSalesData?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0;
           }
+          
+          // Get sales from services (transactions created by site users)
+          if (siteUserIds.length > 0) {
+            const { data: serviceTransactions } = await supabase
+              .from('nd_pos_transaction')
+              .select('id')
+              .in('created_by', siteUserIds);
+            
+            const serviceTransactionIds = serviceTransactions?.map(t => t.id) || [];
+            
+            if (serviceTransactionIds.length > 0) {
+              const { data: serviceSalesData } = await supabase
+                .from('nd_pos_transaction_item')
+                .select('total_price')
+                .in('transaction_id', serviceTransactionIds)
+                .not('service_id', 'is', null);
+                
+              totalSalesFromServices = serviceSalesData?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0;
+            }
+          }
+          
+          totalSales = totalSalesFromItems + totalSalesFromServices;
         } else {
-          // Super admin - get all sales
+          // Super admin - get all sales (items + services)
           const { data: salesData } = await supabase
             .from('nd_pos_transaction_item')
             .select('total_price');
@@ -153,7 +178,7 @@ const POSDashboard = () => {
           totalSales = salesData?.reduce((sum, item) => sum + (item.total_price || 0), 0) || 0;
         }
 
-        // 2. Get today's transactions
+        // Get today's transactions
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
@@ -162,37 +187,58 @@ const POSDashboard = () => {
         yesterday.setDate(yesterday.getDate() - 1);
 
         if (siteId) {
+          // Get users from this site for service transactions
+          const { data: siteUsers } = await supabase
+            .from('nd_site_user')
+            .select('user_id')
+            .eq('site_profile_id', parsedMetadata?.group_profile?.site_profile_id);
+          
+          const siteUserIds = siteUsers?.map(user => user.user_id) || [];
+          
+          let relevantTransactionIds = [];
+
+          // Get transactions with items from this site
           if (inventoryIds.length > 0) {
             const { data: siteTransactionItems } = await supabase
               .from('nd_pos_transaction_item')
               .select('transaction_id')
               .in('item_id', inventoryIds);
             
-            const relevantTransactionIds = [...new Set(siteTransactionItems?.map(item => item.transaction_id))];
+            relevantTransactionIds = [...relevantTransactionIds, ...siteTransactionItems?.map(item => item.transaction_id) || []];
+          }
+
+          // Get transactions created by users from this site (for services)
+          if (siteUserIds.length > 0) {
+            const { data: siteUserTransactions } = await supabase
+              .from('nd_pos_transaction')
+              .select('id')
+              .in('created_by', siteUserIds);
             
-            if (relevantTransactionIds.length > 0) {
-              // Get today's transactions
-              const { data: todayTransactions } = await supabase
-                .from('nd_pos_transaction')
-                .select('id')
-                .in('id', relevantTransactionIds)
-                .gte('transaction_date', today.toISOString())
-                .lt('transaction_date', tomorrow.toISOString());
-              
-              // Get yesterday's transactions
-              const { data: yesterdayTransactions } = await supabase
-                .from('nd_pos_transaction')
-                .select('id')
-                .in('id', relevantTransactionIds)
-                .gte('transaction_date', yesterday.toISOString())
-                .lt('transaction_date', today.toISOString());
-              
-              var todayCount = todayTransactions?.length || 0;
-              var yesterdayCount = yesterdayTransactions?.length || 0;
-            } else {
-              var todayCount = 0;
-              var yesterdayCount = 0;
-            }
+            relevantTransactionIds = [...relevantTransactionIds, ...siteUserTransactions?.map(t => t.id) || []];
+          }
+
+          // Remove duplicates
+          relevantTransactionIds = [...new Set(relevantTransactionIds)];
+          
+          if (relevantTransactionIds.length > 0) {
+            // Get today's transactions
+            const { data: todayTransactions } = await supabase
+              .from('nd_pos_transaction')
+              .select('id')
+              .in('id', relevantTransactionIds)
+              .gte('transaction_date', today.toISOString())
+              .lt('transaction_date', tomorrow.toISOString());
+            
+            // Get yesterday's transactions
+            const { data: yesterdayTransactions } = await supabase
+              .from('nd_pos_transaction')
+              .select('id')
+              .in('id', relevantTransactionIds)
+              .gte('transaction_date', yesterday.toISOString())
+              .lt('transaction_date', today.toISOString());
+            
+            var todayCount = todayTransactions?.length || 0;
+            var yesterdayCount = yesterdayTransactions?.length || 0;
           } else {
             var todayCount = 0;
             var yesterdayCount = 0;
@@ -215,7 +261,11 @@ const POSDashboard = () => {
           var yesterdayCount = yesterdayTransactions?.length || 0;
         }
 
-        // 3. Get total products
+        // Get total products (inventory + services)
+        let inventoryCount = 0;
+        let servicesCount = 0;
+
+        // Get inventory count
         let productsQuery = supabase
           .from('nd_inventory')
           .select('id')
@@ -226,6 +276,16 @@ const POSDashboard = () => {
         }
 
         const { data: productsData } = await productsQuery;
+        inventoryCount = productsData?.length || 0;
+
+        // Get services count (always show all services for now, or filter by site if needed)
+        const { data: servicesData } = await supabase
+          .from('nd_category_service')
+          .select('id');
+
+        servicesCount = servicesData?.length || 0;
+
+        const totalProductsCount = inventoryCount + servicesCount;
 
         // Calculate growth
         const transactionsGrowth = yesterdayCount > 0 
@@ -237,7 +297,7 @@ const POSDashboard = () => {
           salesGrowth: 0,
           totalTransactions: todayCount,
           transactionsGrowth: transactionsGrowth,
-          totalProducts: productsData?.length || 0,
+          totalProducts: totalProductsCount,
           productsGrowth: 0
         };
       } catch (error) {
@@ -344,6 +404,7 @@ const POSDashboard = () => {
         const transactionsBySite = {};
         const salesBySite = {};
 
+        // Process inventory items
         allTransactionItems?.forEach(item => {
           // Find which site this item belongs to
           const siteId = allInventoryData?.find(inv => inv.id === item.item_id)?.site_id;
@@ -359,6 +420,55 @@ const POSDashboard = () => {
           }
         });
 
+        // Process service transactions
+        for (const siteData of allSitesData) {
+          const siteId = siteData.id;
+          
+          // Get users for this site
+          const { data: siteUsers } = await supabase
+            .from('nd_site_user')
+            .select('user_id')
+            .eq('site_profile_id', siteData.nd_site_profile?.id);
+          
+          const siteUserIds = siteUsers?.map(user => user.user_id) || [];
+          
+          if (siteUserIds.length > 0) {
+            // Get service transactions for this site
+            const { data: serviceTransactions } = await supabase
+              .from('nd_pos_transaction')
+              .select('id')
+              .in('created_by', siteUserIds);
+            
+            const serviceTransactionIds = serviceTransactions?.map(t => t.id) || [];
+            
+            if (serviceTransactionIds.length > 0) {
+              // Get service transaction items
+              const { data: serviceTransactionItems } = await supabase
+                .from('nd_pos_transaction_item')
+                .select('total_price, transaction_id')
+                .in('transaction_id', serviceTransactionIds)
+                .not('service_id', 'is', null);
+              
+              // Add to site data
+              serviceTransactionItems?.forEach(item => {
+                if (!transactionsBySite[siteId]) {
+                  transactionsBySite[siteId] = new Set();
+                }
+                if (!salesBySite[siteId]) {
+                  salesBySite[siteId] = 0;
+                }
+                transactionsBySite[siteId].add(item.transaction_id);
+                salesBySite[siteId] += item.total_price || 0;
+              });
+            }
+          }
+        }
+
+        const { data: servicesData } = await supabase
+          .from('nd_category_service')
+          .select('id');
+        const servicesCount = servicesData?.length || 0;
+
         // Build performance data
         const allSitePerformance = allSitesData.map(site => ({
           site: site.nd_site_profile?.sitename || `Site ${site.id}`,
@@ -366,7 +476,7 @@ const POSDashboard = () => {
           siteCode: site.standard_code || '-',
           transactionCount: transactionsBySite[site.id]?.size || 0,
           totalSales: salesBySite[site.id] || 0,
-          productCount: inventoryBySite[site.id]?.length || 0
+          productCount: (inventoryBySite[site.id]?.length || 0) + servicesCount
         }));
 
         // Apply search filter here (after getting all data)
@@ -451,13 +561,14 @@ const POSDashboard = () => {
 
   // Fetch top selling products
   const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ['top-products', parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
+    queryKey: ['top-products', parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin, isTPUser],
     queryFn: async () => {
       try {
         let inventoryIds = [];
+        let productSales = {};
 
-        // If not super admin, get inventory IDs for the specific site first
-        if (!isSuperAdmin) {
+        // Handle TP Site users - only their own site's products
+        if (isTPSiteUser) {
           const siteProfileId = parsedMetadata?.group_profile?.site_profile_id;
           if (!siteProfileId) return [];
 
@@ -480,52 +591,72 @@ const POSDashboard = () => {
           inventoryIds = siteInventory?.map(inv => inv.id) || [];
           
           if (inventoryIds.length === 0) return [];
-        }
 
-        // Build the query for transaction items
-        let transactionItemsQuery = supabase
-          .from('nd_pos_transaction_item')
-          .select('item_id, quantity');
+          // Get transaction items for this site's inventory
+          const { data: transactionItems } = await supabase
+            .from('nd_pos_transaction_item')
+            .select('item_id, quantity')
+            .in('item_id', inventoryIds);
 
-        if (!isSuperAdmin && inventoryIds.length > 0) {
-          transactionItemsQuery = transactionItemsQuery.in('item_id', inventoryIds);
-        }
+          // Get inventory details
+          const { data: inventoryData } = await supabase
+            .from('nd_inventory')
+            .select('id, name')
+            .in('id', inventoryIds)
+            .is('deleted_at', null);
 
-        const { data: transactionItems, error: transactionError } = await transactionItemsQuery;
-        
-        if (transactionError) throw transactionError;
+          // Create product sales map
+          const itemNameMap = {};
+          inventoryData?.forEach(item => {
+            itemNameMap[item.id] = item.name;
+          });
 
-        // Get all unique item IDs from transaction items
-        const uniqueItemIds = [...new Set(transactionItems?.map(item => item.item_id) || [])];
-        
-        if (uniqueItemIds.length === 0) return [];
-
-        // Get inventory details for these items
-        const { data: inventoryData, error: inventoryError } = await supabase
-          .from('nd_inventory')
-          .select('id, name')
-          .in('id', uniqueItemIds)
-          .is('deleted_at', null);
-
-        if (inventoryError) throw inventoryError;
-
-        // Create a map of item_id to name for quick lookup
-        const itemNameMap = {};
-        inventoryData?.forEach(item => {
-          itemNameMap[item.id] = item.name;
-        });
-
-        // Group by product and sum quantities
-        const productSales = {};
-        transactionItems?.forEach(item => {
-          const productName = itemNameMap[item.item_id];
-          if (productName) {
-            if (!productSales[productName]) {
-              productSales[productName] = 0;
+          transactionItems?.forEach(item => {
+            const productName = itemNameMap[item.item_id];
+            if (productName) {
+              if (!productSales[productName]) {
+                productSales[productName] = 0;
+              }
+              productSales[productName] += item.quantity || 0;
             }
-            productSales[productName] += item.quantity || 0;
+          });
+        } 
+        // Handle Super Admin and TP Admin - all products from all sites
+        else {
+          // Get all transaction items (inventory items only for now)
+          const { data: allTransactionItems } = await supabase
+            .from('nd_pos_transaction_item')
+            .select('item_id, quantity')
+            .not('item_id', 'is', null);
+
+          // Get all unique item IDs
+          const uniqueItemIds = [...new Set(allTransactionItems?.map(item => item.item_id) || [])];
+          
+          if (uniqueItemIds.length > 0) {
+            // Get inventory details for all items
+            const { data: allInventoryData } = await supabase
+              .from('nd_inventory')
+              .select('id, name')
+              .in('id', uniqueItemIds)
+              .is('deleted_at', null);
+
+            // Create product sales map
+            const itemNameMap = {};
+            allInventoryData?.forEach(item => {
+              itemNameMap[item.id] = item.name;
+            });
+
+            allTransactionItems?.forEach(item => {
+              const productName = itemNameMap[item.item_id];
+              if (productName) {
+                if (!productSales[productName]) {
+                  productSales[productName] = 0;
+                }
+                productSales[productName] += item.quantity || 0;
+              }
+            });
           }
-        });
+        }
 
         // Convert to array and sort by sales
         const sortedProducts = Object.entries(productSales)

@@ -1399,6 +1399,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           eng: string | null
+          image_url: string | null
           id: number
           updated_at: string | null
           updated_by: string | null
@@ -1408,6 +1409,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           eng?: string | null
+          image_url: string | null
           id: number
           updated_at?: string | null
           updated_by?: string | null
@@ -1417,6 +1419,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           eng?: string | null
+          image_url: string | null
           id?: number
           updated_at?: string | null
           updated_by?: string | null
