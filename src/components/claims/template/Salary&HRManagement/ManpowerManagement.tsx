@@ -23,6 +23,7 @@ import { fetchPhaseData } from "@/hooks/use-phase";
 import fetchManPowerData from "./hook/use-manpower-data";
 // Import PDF utilities
 import { generatePdfFilename } from "../component/pdf-utils";
+import { generateManPowerPieChartImage } from "./chart/generateManPowerPieChartImage";
 
 
 const styles = StyleSheet.create({
@@ -112,16 +113,15 @@ const ManPower = async ({
     };
 
 
-    // // Generate chart image (base64 PNG) for PDF
-    // let chartImage: string | null = null;
-    // if (typeof window !== 'undefined' && maintenance.length > 0) {
-    //     try {
-    //         chartImage = await generateMaintenanceChartImage(maintenance);
-    //     } catch (e) {
-    //         console.error('Failed to generate chart image', e);
-    //     }
-    // }
-
+    // Generate chart image (base64 PNG) for PDF
+    let manPowerPieChartImage: string | null = null;
+    if (typeof window !== 'undefined' && manpower.length > 0) {
+        try {
+            manPowerPieChartImage = await generateManPowerPieChartImage(manpower);
+        } catch (e) {
+            console.error('Failed to generate vacancy pie chart image', e);
+        }
+    }
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
@@ -191,9 +191,10 @@ const ManPower = async ({
                             </View>
                         )}
                     </View>
-                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", borderColor: "#888888", borderWidth: 1, borderStyle: "dashed", padding: 10, marginTop: 10 }}>
-                        {/* chart bar manpower here */}
-                        <Text style={{ color: "#888888" }}>Number of Vacancies by Designation Chart</Text>
+                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center",marginTop: 20 }}>
+                        {manPowerPieChartImage && (
+                            <Image src={manPowerPieChartImage} style={{ width: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                        )}
                     </View>
                 </View>
                 <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}

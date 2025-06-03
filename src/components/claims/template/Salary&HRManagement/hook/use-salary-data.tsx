@@ -62,7 +62,33 @@ export const fetchSalaryData = async ({
             staff_join_date: "2022-05-15",
             staff_service_period: "1 year 5 months",
             staff_salary: 5000
-        }
+        },
+        {
+            site_id: "3",
+            standard_code: "SC003",
+            site_name: "Site C",
+            refId: "REF003",
+            state: "State C",
+            status: "Active",
+            staff_name: "Alice Johnson",
+            staff_position: "Manager",
+            staff_join_date: "2021-03-10",
+            staff_service_period: "2 years 8 months",
+            staff_salary: 5000
+        },
+        {
+            site_id: "4",
+            standard_code: "SC004",
+            site_name: "Site D",
+            refId: "REF004",
+            state: "State D",
+            status: "Active",
+            staff_name: "Bob Brown",
+            staff_position: "Part-Time",
+            staff_join_date: "2020-11-20",
+            staff_service_period: "3 years 6 months",
+            staff_salary: 2000
+        }   
     ];
     
     // Return the data in the same format as the hook

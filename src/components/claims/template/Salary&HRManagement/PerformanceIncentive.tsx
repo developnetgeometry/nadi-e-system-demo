@@ -23,6 +23,8 @@ import { fetchPhaseData } from "@/hooks/use-phase";
 import fetchPerformanceIncentiveData from "./hook/use-performanceIncentive-data";
 // Import PDF utilities
 import { generatePdfFilename } from "../component/pdf-utils";
+import { generateIncentiveBarChartImage } from "./chart/generateIncentiveBarChartImage";
+import { generateIncentivePieChartImage } from "./chart/generateIncentivePieChartImage";
 
 
 const styles = StyleSheet.create({
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
         fontSize: 10,
         padding: 15,
-        width: 100
+        width: 130
     },
     attachmentContainer: {
         marginTop: 20,
@@ -112,15 +114,17 @@ const PerformanceIncentive = async ({
     };
 
 
-    // // Generate chart image (base64 PNG) for PDF
-    // let chartImage: string | null = null;
-    // if (typeof window !== 'undefined' && maintenance.length > 0) {
-    //     try {
-    //         chartImage = await generateMaintenanceChartImage(maintenance);
-    //     } catch (e) {
-    //         console.error('Failed to generate chart image', e);
-    //     }
-    // }
+    // Generate chart image (base64 PNG) for PDF
+    let incentivePieChartImage: string | null = null;
+    let incentiveBarChartImage: string | null = null;
+    if (typeof window !== 'undefined' && incentive.length > 0) {
+        try {
+            incentivePieChartImage = await generateIncentivePieChartImage(incentive);
+            incentiveBarChartImage = await generateIncentiveBarChartImage(incentive);
+        } catch (e) {
+            console.error('Failed to generate salary pie chart image', e);
+        }
+    }
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
@@ -170,12 +174,13 @@ const PerformanceIncentive = async ({
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 5 }}>
 
                         {/* Performance Incentive Distribution chart here */}
-                        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", flex: 1, borderColor: "#888888", borderWidth: 1, borderStyle: "dashed", padding: 10}}>
-                            {/* chart bar incentive here */}
-                            <Text style={{color: "#888888"}}>Number of Employees by Designation Chart</Text>
+                        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", flex: 1 }}>
+                            {incentivePieChartImage && (
+                                <Image src={incentivePieChartImage} style={{ width: "100%", maxHeight: 220, objectFit: "contain" }} />
+                            )}
                         </View>
 
-                        <View style={{ alignSelf: "flex-end", flexDirection: "column", justifyContent: "space-evenly", gap: 5 }}>
+                        <View style={{ flexDirection: "column", justifyContent: "space-evenly", gap: 5 }}>
                             <View style={{ ...styles.totalBoxDashboard }}>
                                 {/* Number of Employee*/}
                                 <Text>Number of{"\n"}Employee</Text>
@@ -188,9 +193,11 @@ const PerformanceIncentive = async ({
                             </View>
                         </View>
                     </View>
-                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", borderColor: "#888888", borderWidth: 1, borderStyle: "dashed", padding: 10, marginTop: 10 }}>
-                        {/* chart bar incentive here */}
-                        <Text style={{color: "#888888"}}>Performance Incentive Amount by Designation Chart</Text>
+                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 15 }}>
+                        {/* chart bar salary here */}
+                        {incentiveBarChartImage && (
+                            <Image src={incentiveBarChartImage} style={{ width: "100%", maxHeight: 220, objectFit: "contain" }} />
+                        )}
                     </View>
                 </View>
                 <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
