@@ -34,34 +34,34 @@ export const fetchCMSData = async ({
     const cms = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "S10N010",
+            site_name: "NADI PPR Taman Rugading",
+            refId: "CELCOM-124",
+            state: "Sabah",
             pc_client_count: 10,
             date_install: "2023-10-01"
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "S01N001",
+            site_name: "NADI Sukau",
+            refId: "S02C001",
+            state: "Sabah",
             pc_client_count: 5,
             date_install: "2023-10-02"
         },
         {
             site_id: "3",
-            standard_code: "SC003",
-            site_name: "Site C",
-            refId: "REF003",
-            state: "State C",
+            standard_code: "T08N001",
+            site_name: "NADI Kampung Keruak",
+            refId: "T06C001",
+            state: "Terengganu",
             pc_client_count: 8,
             date_install: "2023-10-03"
         }
         
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 

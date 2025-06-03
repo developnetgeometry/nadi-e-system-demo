@@ -35,23 +35,23 @@ export const fetchManPowerData = async ({
     const manpower = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "B02N002",
+            site_name: "NADI Taman Seri Serendah",
+            refId: "B03C002",
+            state: "Selangor",
             status: "Active",
             position: "Manager",
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "C11N008",
+            site_name: "NADI Felda Keratong 5",
+            refId: "C09C003",
+            state: "Pahang",
             status: "Inactive",
             position: "Assistant Manager",
-        }
-    ];
+        }
+    ];
     
     // Return the data in the same format as the hook
     return { 

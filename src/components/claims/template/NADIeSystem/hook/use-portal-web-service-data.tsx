@@ -34,26 +34,26 @@ export const fetchPortalWebServiceData = async ({
     const portalWebService = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
-            site_url_web_portal: "https://www.youtube.com/",
-            email_staff: ["yap.jia.hui@batupayung.my","muhammad.luqman@batupayung.my"],
-            // attachments_path: ["https://example.com/attachment-a.pdf"]
+            standard_code: "K11N012",
+            site_name: "NADI Kampung Musa",
+            refId: "K09C002",
+            state: "Kedah",
+            site_url_web_portal: "https://kgmusa.nadi.my/",
+            email_staff: ["yap.jia.hui@kgmusa.nadi.my","muhammad.luqman@kgmusa.nadi.my"],
+           
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
-            site_url_web_portal: "https://example.com/portal-b",
-            email_staff: ["sim.mei.hui@PPRTamanDahlia.my","mazlan.shah@PPRTamanDahlia.my"],
-            // attachments_path: ["https://example.com/attachment-b.pdf"]
+            standard_code: "N11N009",
+            site_name: "NADI Taman Bukit Inai",
+            refId: "N09C001",
+            state: "Kelantan",
+            site_url_web_portal: "tamanbukitinai.nadi.my",
+            email_staff: ["sim.mei.hui@tamanbukitinai.nadi.my","mazlan.shah@tamanbukitinai.nadi.my"],
+          
         },
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 

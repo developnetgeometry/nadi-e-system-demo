@@ -38,33 +38,33 @@ export const fetchRefreshData = async ({
     const refresh = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
-            participant_fullname: "John Doe",
+            standard_code: "B05N002",
+            site_name: "NADI Kampung Parit Baru Baruh",
+            refId: "B05C003",
+            state: "Selangor",
+            participant_fullname: "Khalisya Natasha",
             participant_position: "Manager",
-            programme_name: "Refresh Programme A",
+            programme_name: "Hari Bersama Komuniti (HBK)",
             programme_method: "Online Training",
             programme_venue: "Physical",
             training_date: "2023-10-01"
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
-            participant_fullname: "Jane Smith",
+            standard_code: "N08N001",
+            site_name: "NADI Felda Lui Selatan",
+            refId: "N06C001",
+            state: "Negeri Sembilan",
+            participant_fullname: "Akram Dinzly",
             participant_position: "Assistant Manager",
-            programme_name: "Refresh Programme B",
+            programme_name: "Soft Skills",
             programme_method: "Online Training",
             programme_venue: "Physical",
             training_date: "2023-10-02"
         }
 
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 

@@ -37,23 +37,22 @@ export const fetchInsuranceData = async ({
     const insurance = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "B13N002",
+            site_name: "NADI Kota Raja",
+            refId: "B11C002",
+            state: "Selangor",
             duration: "2023-01-01 to 2023-12-31",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"]
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "S06N017",
+            site_name: "NADI Kg. Kuala",
+            refId: "CELCOM-060",
+            state: "Sabah",
             duration: "2023-01-01 to 2023-12-31"
         }
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 

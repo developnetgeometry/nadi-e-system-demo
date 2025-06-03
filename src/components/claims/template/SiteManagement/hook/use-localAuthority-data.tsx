@@ -34,20 +34,20 @@ export const fetchlocalAuthorityData = async ({
     const localAuthority = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A"
+            standard_code: "J01N001",
+            site_name: "NADI Kampung Pulai Sebatang",
+            refId: "J02C001",
+            state: "Johor"
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B"
+            standard_code: "C11N010",
+            site_name: "NADI Kuala Tahan",
+            refId: "C09C005",
+            state: "Pahang"
         }
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 

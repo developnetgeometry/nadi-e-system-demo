@@ -40,12 +40,12 @@ export const fetchPerformanceIncentiveData = async ({
     const incentive = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "K05N012",
+            site_name: "NADI Kuala Sala",
+            refId: "PI1M05K",
+            state: "Kedah",
             status: "Active",
-            staff_name: "John Doe",
+            staff_name: "Muhammad Abu",
             staff_position: "Assistant Manager",
             staff_start_work_date: "2023-01-01",
             staff_end_work_date: "2023-09-30",
@@ -54,20 +54,20 @@ export const fetchPerformanceIncentiveData = async ({
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "K10N007",
+            site_name: "NADI Kelang Lama",
+            refId: "CELCOM-137",
+            state: "Kedah",
             status: "Inactive",
-            staff_name: "Jane Smith",
+            staff_name: "Ahmad Jamal",
             staff_position: "Manager",
             staff_start_work_date: "2022-05-15",
             staff_end_work_date: "2023-10-01",
             staff_duration: "1 year 4 months",
             staff_incentive: 700
         }
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 
