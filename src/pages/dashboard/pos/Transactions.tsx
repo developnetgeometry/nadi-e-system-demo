@@ -88,6 +88,8 @@ const Transactions = () => {
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTPSiteUser =
+    parsedMetadata?.user_type === "tp_site";
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -150,7 +152,6 @@ const Transactions = () => {
       if (parsedMetadata?.user_type === 'member' && memberProfileId) {
         transactionQuery = transactionQuery.eq('member_id', memberProfileId);
       }
-      // For TP site users - show transactions from their site only
       else if (parsedMetadata?.user_type === 'tp_site') {
         const siteProfileId = parsedMetadata?.group_profile?.site_profile_id;
         
@@ -182,18 +183,40 @@ const Transactions = () => {
           
         const inventoryIds = siteInventory?.map(inv => inv.id) || [];
         
-        if (inventoryIds.length === 0) {
-          return [];
+        // Get transactions created by users from this site
+        const { data: siteUsers } = await supabase
+          .from('nd_site_user')
+          .select('user_id')
+          .eq('site_profile_id', siteProfileId);
+
+        const siteUserIds = siteUsers?.map(user => user.user_id) || [];
+
+        // Get transaction IDs that contain items from this site OR were created by site users
+        let relevantTransactionIds = [];
+
+        // Get transactions with items from this site
+        if (inventoryIds.length > 0) {
+          const { data: siteTransactionItems } = await supabase
+            .from('nd_pos_transaction_item')
+            .select('transaction_id')
+            .in('item_id', inventoryIds);
+          
+          relevantTransactionIds = [...relevantTransactionIds, ...siteTransactionItems?.map(item => item.transaction_id) || []];
         }
 
-        // Get transaction IDs that contain items from this site
-        const { data: siteTransactionItems } = await supabase
-          .from('nd_pos_transaction_item')
-          .select('transaction_id')
-          .in('item_id', inventoryIds);
-        
-        const relevantTransactionIds = [...new Set(siteTransactionItems?.map(item => item.transaction_id))];
-        
+        // Get transactions created by users from this site (for services)
+        if (siteUserIds.length > 0) {
+          const { data: siteUserTransactions } = await supabase
+            .from('nd_pos_transaction')
+            .select('id')
+            .in('created_by', siteUserIds);
+          
+          relevantTransactionIds = [...relevantTransactionIds, ...siteUserTransactions?.map(t => t.id) || []];
+        }
+
+        // Remove duplicates
+        relevantTransactionIds = [...new Set(relevantTransactionIds)];
+
         if (relevantTransactionIds.length === 0) {
           return [];
         }
@@ -261,13 +284,13 @@ const Transactions = () => {
               let itemData = null;
               let siteName = 'Unknown Site';
               
-              // First try to fetch from inventory (for physical items)
               if (item.item_id) {
                 const { data: inventoryData, error: inventoryError } = await supabase
                   .from('nd_inventory')
                   .select(`
                     name,
                     site_id,
+                    nd_inventory_attachment!left(file_path),
                     nd_site!site_id(
                       nd_site_profile!site_profile_id(
                         sitename
@@ -278,7 +301,10 @@ const Transactions = () => {
                   .single();
                   
                 if (!inventoryError && inventoryData) {
-                  itemData = inventoryData;
+                  itemData = {
+                    ...inventoryData,
+                    image_url: inventoryData.nd_inventory_attachment?.[0]?.file_path || null
+                  };
                   siteName = inventoryData?.nd_site?.nd_site_profile?.sitename || 'Unknown Site';
                 } else {
                   console.log('Item not found in inventory, checking services...', item.item_id);
@@ -287,55 +313,69 @@ const Transactions = () => {
               
               // If not found in inventory and have a service_id, fetch from services
               if (!itemData && item.service_id) {
-                const { data: serviceData, error: serviceError } = await supabase
-                  .from('nd_category_service')
-                  .select('id, eng, bm')
+                // First get the service charge to find the category_id
+                const { data: serviceChargeData, error: serviceChargeError } = await supabase
+                  .from('nd_service_charge')
+                  .select('category_id, description')
                   .eq('id', item.service_id)
                   .single();
                   
-                if (!serviceError && serviceData) {
-                  itemData = { 
-                    name: serviceData.eng || serviceData.bm || 'Unknown Service',
-                    id: serviceData.id 
-                  };
-                  
-                  // For services, get site info from the transaction creator
-                  if (transaction.created_by) {
-                    // Try to get site info from the user's site profile
-                    const { data: userSiteData, error: userSiteError } = await supabase
-                      .from('nd_site_user')
-                      .select(`
-                        site_profile_id,
-                        nd_site_profile!site_profile_id(
-                          sitename
-                        )
-                      `)
-                      .eq('user_id', transaction.created_by)
-                      .single();
-                      
-                    if (!userSiteError && userSiteData?.nd_site_profile?.sitename) {
-                      siteName = userSiteData.nd_site_profile.sitename;
-                      console.log('Service site name from user profile:', siteName);
-                    } else {
-                      // Fallback: try to get from current user's metadata if available
-                      if (parsedMetadata?.group_profile?.site_profile_id) {
-                        const { data: currentSiteData, error: currentSiteError } = await supabase
-                          .from('nd_site_profile')
-                          .select('sitename')
-                          .eq('id', parsedMetadata.group_profile.site_profile_id)
-                          .single();
-                          
-                        if (!currentSiteError && currentSiteData?.sitename) {
-                          siteName = currentSiteData.sitename;
-                          console.log('Service site name from current user metadata:', siteName);
+                if (!serviceChargeError && serviceChargeData) {
+                  // Now get the actual service category
+                  const { data: serviceData, error: serviceError } = await supabase
+                    .from('nd_category_service')
+                    .select('id, eng, bm, image_url')
+                    .eq('id', serviceChargeData.category_id)
+                    .single();
+                    
+                  if (!serviceError && serviceData) {
+                    itemData = { 
+                      name: serviceData.eng || serviceData.bm || 'Unknown Service',
+                      id: serviceData.id,
+                      description: serviceChargeData.description,
+                      image_url: serviceData.image_url || null
+                    };
+                    
+                    // For services, get site info from the transaction creator
+                    if (transaction.created_by) {
+                      // Try to get site info from the user's site profile
+                      const { data: userSiteData, error: userSiteError } = await supabase
+                        .from('nd_site_user')
+                        .select(`
+                          site_profile_id,
+                          nd_site_profile!site_profile_id(
+                            sitename
+                          )
+                        `)
+                        .eq('user_id', transaction.created_by)
+                        .single();
+                        
+                      if (!userSiteError && userSiteData?.nd_site_profile?.sitename) {
+                        siteName = userSiteData.nd_site_profile.sitename;
+                        console.log('Service site name from user profile:', siteName);
+                      } else {
+                        // Fallback: try to get from current user's metadata if available
+                        if (parsedMetadata?.group_profile?.site_profile_id) {
+                          const { data: currentSiteData, error: currentSiteError } = await supabase
+                            .from('nd_site_profile')
+                            .select('sitename')
+                            .eq('id', parsedMetadata.group_profile.site_profile_id)
+                            .single();
+                            
+                          if (!currentSiteError && currentSiteData?.sitename) {
+                            siteName = currentSiteData.sitename;
+                            console.log('Service site name from current user metadata:', siteName);
+                          }
                         }
                       }
                     }
+                    
+                    console.log('Service found:', serviceData);
+                  } else {
+                    console.log('Service category not found:', serviceChargeData.category_id, serviceError);
                   }
-                  
-                  console.log('Service found:', serviceData);
                 } else {
-                  console.log('Service not found:', item.service_id, serviceError);
+                  console.log('Service charge not found:', item.service_id, serviceChargeError);
                 }
               }
               
@@ -590,7 +630,7 @@ const Transactions = () => {
         {/* Filter Buttons */}
         <div className="flex flex-wrap gap-2">
           {/* TP Site Filter - Only for super admin and TP admin */}
-          {(isSuperAdmin || isTPUser) && (
+          {(isSuperAdmin || isTPUser || isTPSiteUser) && (
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -964,6 +1004,11 @@ const Transactions = () => {
                           {transaction.items.map(item => (
                             <div key={item.id}>
                               {item.quantity}x {item.nd_inventory?.name || 'Unknown item'}
+                              {item.nd_inventory?.description && (
+                                <div className="text-xs text-gray-400 ml-2">
+                                  {item.nd_inventory.description}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -1060,11 +1105,19 @@ const Transactions = () => {
                   <div key={index} className="flex flex-col gap-3 pb-2">
                     <div className="grid grid-cols-8">
                       <div className="flex col-span-5 gap-2">
-                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-                          <FileText className="h-6 w-6 text-gray-400" />
-                        </div>
+                        <img 
+                          src={item.nd_inventory?.image_url || "/200x200.svg"} 
+                          alt={item.nd_inventory?.name || 'Item'} 
+                          className="w-12 h-12 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.src = "/200x200.svg";
+                          }}
+                        />
                         <div>
                           <p className="font-medium text-sm">{item.nd_inventory?.name || 'Unknown item'}</p>
+                          {item.nd_inventory?.description && (
+                            <p className="text-xs text-muted-foreground">{item.nd_inventory.description}</p>
+                          )}
                           <p className="text-xs text-muted-foreground">
                             Unit Price: RM{item.price_per_unit?.toFixed(2) || '0.00'}
                           </p>

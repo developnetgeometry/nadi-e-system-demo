@@ -129,9 +129,8 @@ export const InventoryFormDialog = ({
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
-  const [siteId, setSiteId] = useState<string>(
-    String(defaultSiteId) || String(inventory?.site_id) || String(isTpSiteUser ? tpSiteId : "") ||  ""
-  );
+  const [siteId, setSiteId] = useState<string>("");
+
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
 
   const { useInventoryTypesQuery } = useInventories();
@@ -197,23 +196,39 @@ export const InventoryFormDialog = ({
 
   useEffect(() => {
     const fetchSite = async () => {
-      const site = await fetchSiteBySiteId(siteId!); // this in nd_site.id form
-      if (site) {
-        setSelectedSite(site);
+      if (!siteId) return;
+      
+      try {
+        const site = await fetchSiteBySiteId(siteId); // this in nd_site.id form
+        if (site) {
+          setSelectedSite(site);
+          console.log("Fetched site for TP site user:", site.sitename); // Debug log
+        } else {
+          console.warn("No site found for siteId:", siteId);
+        }
+      } catch (error) {
+        console.error("Error fetching site:", error);
       }
     };
 
-    if (siteId) {
+    if (siteId && isTpSiteUser) {
       fetchSite();
     }
-  }, [siteId, isStaffUser, inventory, isTpSiteUser]);
+  }, [siteId, isTpSiteUser]);
 
   useEffect(() => {
-    // Auto-set siteId for tp_site users
-    if (isTpSiteUser && tpSiteId) {
-      setSiteId(tpSiteId);
+    // Initialize siteId based on context
+    if (inventory?.site_id) {
+      // If editing existing inventory, use its site_id
+      setSiteId(String(inventory.site_id));
+    } else if (defaultSiteId) {
+      // If creating new with default site
+      setSiteId(String(defaultSiteId));
+    } else if (isTpSiteUser && tpSiteId) {
+      // If TP site user, use their assigned site
+      setSiteId(String(tpSiteId));
     }
-  }, [isTpSiteUser, tpSiteId]);
+  }, [isTpSiteUser, tpSiteId, defaultSiteId, inventory?.site_id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
