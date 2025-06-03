@@ -36,7 +36,7 @@ export const fetchMonitoringData = async ({
             site_name: "Site A",
             refId: "REF001",
             state: "State A",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf","https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"]
+            
         },
         {
             site_id: "2",
