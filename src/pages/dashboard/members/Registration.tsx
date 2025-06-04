@@ -252,7 +252,7 @@ const RegistrationPage = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Member Registration</h1>
-      <Card>
+      <Card className="relative">
         {loading && (
           <div className="absolute inset-0 bg-white/70 z-50 flex items-center justify-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary" />
