@@ -32,21 +32,19 @@ export const fetchAuditData = async ({
     const audits = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-closure/_211_1748419298636_0_63d2ba34e3de7982097624fb_word-invoice-template-3.png", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf"]
+            standard_code: "J05N002",
+            site_name: "NADI Bandar Permas",
+            refId: "J05C002",
+            state: "Johor",
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf","https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-closure/_211_1748419298636_0_63d2ba34e3de7982097624fb_word-invoice-template-3.png"]
-        }
-    ];
+            standard_code: "N11N003",
+            site_name: "NADI Desa Permai Repah",
+            refId: "DG_PI1M_127",
+            state: "Negeri Sembilan"
+        }
+    ];
     
     // Return the data in the same format as the hook
     return { 

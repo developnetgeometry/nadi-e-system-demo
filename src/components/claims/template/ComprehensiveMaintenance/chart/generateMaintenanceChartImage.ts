@@ -9,13 +9,24 @@ import html2canvas from "html2canvas";
  * @returns Promise<string> base64 image string
  */
 export async function generateMaintenanceChartImage(maintenance) {
-    // Prepare chart data: group by status and sum all minor/major for each status
+    // Find all unique SLA types in the data (case-insensitive, but keep original for display)
+    const slaSet = new Set<string>();
+    maintenance.forEach(item => {
+        if (item.docket_SLA) slaSet.add(item.docket_SLA);
+    });
+    const slaTypes = Array.from(slaSet) as string[];
+
+    // Prepare chart data: group by status and count for each SLA type
     const statusMap = {};
     maintenance.forEach(item => {
         const status = item.docket_status || "Unknown";
-        if (!statusMap[status]) statusMap[status] = { status, minor: 0, major: 0 };
-        if (item.docket_SLA?.toLowerCase() === "minor") statusMap[status].minor++;
-        if (item.docket_SLA?.toLowerCase() === "major") statusMap[status].major++;
+        if (!statusMap[status]) {
+            statusMap[status] = { status };
+            slaTypes.forEach(sla => { statusMap[status][sla] = 0; });
+        }
+        if (item.docket_SLA && slaTypes.includes(item.docket_SLA)) {
+            statusMap[status][item.docket_SLA]++;
+        }
     });
     const chartData = Object.values(statusMap);
     console.log("Chart data for MaintenanceStatusChart:", chartData);
@@ -28,7 +39,7 @@ export async function generateMaintenanceChartImage(maintenance) {
 
     // Render the chart into the container using React 18+ API
     const root = ReactDOMClient.createRoot(container);
-    root.render(React.createElement(MaintenanceStatusChart, { data: chartData, width: 650, height: 380 }));
+    root.render(React.createElement(MaintenanceStatusChart, { data: chartData, width: 650, height: 380, slaTypes }));
 
     // Wait for the chart to render
     await new Promise(resolve => setTimeout(resolve, 100));
