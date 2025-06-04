@@ -9,18 +9,19 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   logo: {
-    height: 60,
-    width: "auto", // Maintain aspect ratio
+    height: "auto",
+    width: 80 // Maintain aspect ratio
   },
   logo2: {
-    height: 52.5, // Maintain aspect ratio
-    width: "auto",
-    marginLeft: "auto",
-    marginRight: 0,
+    height: "auto",
+    width: 90 // Maintain aspect ratio
   },
   titleSection: {
     textAlign: "center",
-    flex: 1
+    flex: 1,
+    justifyContent: "center", // Center vertically
+    alignItems: "center",     // Center horizontally
+    flexDirection: "column",  // Ensure children stack vertically
   },
   title: {
     textAlign: "center",
@@ -113,16 +114,16 @@ export const PDFHeader = ({
   mcmcLogo?: string,
   duspLogo?: string
 }) => (
-  <View style={styles.header}>
-    <View style={{ width: "25%", alignItems: "flex-start" }}>
+  <View style={[styles.header]}> 
+    <View style={{ width: "25%", justifyContent: "center", alignItems: "center", padding: 2 }}>
       {mcmcLogo && <Image src={mcmcLogo} style={styles.logo} />}
     </View>
-    <View style={styles.titleSection}>
+    <View style={[styles.titleSection, {padding: 2 }]}> 
       <Text style={styles.title}>THE NATIONAL INFORMATION</Text>
       <Text style={styles.title}>DISSEMINATION CENTRE (NADI)</Text>
     </View>
-    <View style={{ width: "25%", alignItems: "flex-end" }}>
-      {duspLogo && <Image src={duspLogo} style={styles.logo} />}
+    <View style={{ width: "25%", justifyContent: "center", alignItems: "center", padding: 2 }}>
+      {duspLogo && <Image src={duspLogo} style={styles.logo2} />}
     </View>
   </View>
 );

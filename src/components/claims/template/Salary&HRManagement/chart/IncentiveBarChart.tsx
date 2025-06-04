@@ -56,11 +56,11 @@ export const IncentiveBarChart: React.FC<IncentiveBarChartProps> = ({
               }} 
             />
             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-            <Legend 
+            {/* <Legend 
               verticalAlign="top" 
               height={36}
               wrapperStyle={{ paddingTop: 20 }}
-            />
+            /> */}
             <Bar 
               dataKey="incentive" 
               name="Incentive (RM)" 
