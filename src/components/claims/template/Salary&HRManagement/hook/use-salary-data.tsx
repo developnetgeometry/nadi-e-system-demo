@@ -39,12 +39,12 @@ export const fetchSalaryData = async ({
     const salary = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "J05N007",
+            site_name: "NADI Taman Lautan Biru",
+            refId: "DG_PI1M_129",
+            state: "Johor",
             status: "Active",
-            staff_name: "John Doe",
+            staff_name: "Ahmad Khusyairi",
             staff_position: "Assistant Manager",
             staff_join_date: "2023-01-01",
             staff_service_period: "9 months",
@@ -52,12 +52,12 @@ export const fetchSalaryData = async ({
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "C13N003",
+            site_name: "NADI Tanah Rata",
+            refId: "C11C003",
+            state: "Pahang",
             status: "Inactive",
-            staff_name: "Jane Smith",
+            staff_name: "Siti Zahra",
             staff_position: "Manager",
             staff_join_date: "2022-05-15",
             staff_service_period: "1 year 5 months",
@@ -65,10 +65,10 @@ export const fetchSalaryData = async ({
         },
         {
             site_id: "3",
-            standard_code: "SC003",
-            site_name: "Site C",
-            refId: "REF003",
-            state: "State C",
+            standard_code: "S13N005",
+            site_name: "NADI Felda Umas",
+            refId: "S11C005",
+            state: "Sabah",
             status: "Active",
             staff_name: "Alice Johnson",
             staff_position: "Manager",
@@ -78,18 +78,18 @@ export const fetchSalaryData = async ({
         },
         {
             site_id: "4",
-            standard_code: "SC004",
-            site_name: "Site D",
-            refId: "REF004",
-            state: "State D",
+            standard_code: "B09N001",
+            site_name: "NADI Hulu Chuchoh",
+            refId: "DG_PI1M_035",
+            state: "Selangor",
             status: "Active",
-            staff_name: "Bob Brown",
+            staff_name: "Muhammad Akmal",
             staff_position: "Part-Time",
             staff_join_date: "2020-11-20",
             staff_service_period: "3 years 6 months",
             staff_salary: 2000
-        }   
-    ];
+        }   
+    ];
     
     // Return the data in the same format as the hook
     return { 

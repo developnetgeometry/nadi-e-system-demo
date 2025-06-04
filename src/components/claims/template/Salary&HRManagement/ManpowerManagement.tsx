@@ -150,21 +150,6 @@ const ManPower = async ({
 
                 <PDFSectionTitle title="1.3 MANPOWER MANAGEMENT (MANAGER / ASSISTANT MANAGER)" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    {!header && (
-                        <View style={{ alignSelf: "flex-end" }}>
-                            {/* when header not provided, show phase and quarter info */}
-                            <PDFPhaseQuarterInfo
-                                phaseLabel={phaseLabel}
-                                claimType={claimType}
-                                quater={quater}
-                                startDate={startDate}
-                                endDate={endDate}
-                            />
-                        </View>
-                    )}
-                </View>
-
                 <View style={{ flexDirection: "column", justifyContent: "space-between" }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                         <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 5 }}>

@@ -37,26 +37,25 @@ export const fetchAwarenessPromotionData = async ({
     const anp = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
-            programme_name: "Awareness Campaign 1",
-            programme_date: "2023-01-15",
-            attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-insurance/125/34_1747089875873.pdf", "https://example.com/attachment2.pdf"]
+            standard_code: "D09N005",
+            site_name: "NADI Kg Karangan",
+            refId: "PI1M03D",
+            state: "Kelantan",
+            programme_name: "NADI-KidVenture",
+            programme_date: "2023-01-15",        
         },
         {
             site_id: "2",
-            standard_code: "SC002",
+            standard_code: "D09N006",
             site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
-            programme_name: "Awareness Campaign 2",
+            refId: "PI1M04D",
+            state: "Kelantan",
+            programme_name: "BUDI MADANI",
             programme_date: "2023-02-20"
         }
         
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 
