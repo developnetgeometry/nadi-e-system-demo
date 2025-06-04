@@ -743,7 +743,6 @@ const AssetStatus = ({
             const processedFacilities = await Promise.all(
                 currentFilteredFacilitiesData.map(async (facility) => {
                     const booking: Booking = await bookingClient.getBookingBySiteSpaceId(facility?.id);
-
                     return {
                         id: facility.id,
                         status: !booking ? "Available" : "in-use",
