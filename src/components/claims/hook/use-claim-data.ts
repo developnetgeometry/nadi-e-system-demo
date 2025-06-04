@@ -19,7 +19,7 @@ export const useDuspTpData = () => {
           id,
           type,
           name,
-          parent_id (id, type, name)
+          parent_id (id, type, name, logo_url)
         `)
         .eq("id", organizationId)
         .single();

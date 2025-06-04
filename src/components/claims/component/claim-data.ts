@@ -22,7 +22,7 @@ export const useFetchClaimById = (id: number) => {
             ref_no,
             date_paid,
             payment_status,
-            tp_dusp_id (id, name, parent_id (id, name))
+            tp_dusp_id (id, name, parent_id (id, name, logo_url, description))
           `)
           .eq("id", id)
           .single();
