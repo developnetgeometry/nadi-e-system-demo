@@ -182,28 +182,6 @@ export function ClaimAttachmentForm({
         setGeneratedFiles(initialGeneratedFiles);
     }, [category_ids]);
 
-    const handleReportsGenerated = (itemId: number, file: File) => {
-        // Update the generatedFiles state
-        setGeneratedFiles((prev) => ({ ...prev, [itemId]: file }));
-        setIsGenerating((prev) => ({ ...prev, [itemId]: false }));
-
-        // Update the summary_report_file in category_ids
-        const updatedCategories = category_ids.map((category) => ({
-            ...category,
-            item_ids: category.item_ids.map((item) => {
-                if (item.id === itemId) {
-                    return {
-                        ...item,
-                        summary_report_file: file, // Store the generated file
-                    };
-                }
-                return item;
-            }),
-        }));
-
-        // Update the fields with the modified category_ids
-        updateFields({ category_ids: updatedCategories });
-    };
 
     const startGeneratingReport = (itemId: number) => {
         setIsGenerating((prev) => ({ ...prev, [itemId]: true }));
@@ -213,10 +191,21 @@ export function ClaimAttachmentForm({
         try {
             startGeneratingReport(itemId);
 
-            // Determine if this is the first item (smallest itemId)
-            const isFirstItem = category_ids.some((category) =>
-                category.item_ids.some((item) => item.id === itemId && item.id === Math.min(...category.item_ids.map((i) => i.id)))
+            // Determine the first item in the category that requires a summary report
+            const category = category_ids.find((category) =>
+                category.item_ids.some((item) => item.id === itemId)
             );
+
+            let isFirstItemInCategory = false;
+
+            if (category) {
+                const firstItemWithSummaryReport = category.item_ids.find(
+                    (item) => item.need_summary_report
+                );
+
+                // Check if the current item is the first item with need_summary_report = true
+                isFirstItemInCategory = firstItemWithSummaryReport?.id === itemId;
+            }
 
             const reportData = {
                 claimType: claim_type,
@@ -228,7 +217,7 @@ export function ClaimAttachmentForm({
                 duspFilter: dusp_id,
                 dusplogo: dusp_logo,
                 nadiFilter: siteIds,
-                header: isFirstItem, // Send header as true only for the first item
+                header: isFirstItemInCategory, // Send header as true only for the first item in its category
             };
 
             let generatedFile: File | null = null;

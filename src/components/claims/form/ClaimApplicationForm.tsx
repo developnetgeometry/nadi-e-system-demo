@@ -105,23 +105,30 @@ export function ClaimApplicationForm({
     if (selectedItem) {
       const { categoryId, itemId } = selectedItem;
       updateFields({
-        category_ids: category_ids.map((category) =>
-          category.id === categoryId
-            ? {
-              ...category,
-              item_ids: category.item_ids.map((item) =>
-                item.id === itemId
-                  ? {
-                    ...item,
-                    site_ids: tempSelectedSites,
-                    summary_report_file: null, // Reset the summary_report_file
-                  }
-                  : item
-              ),
-            }
-            : category
-        ),
+        category_ids: category_ids
+          .map((category) =>
+            category.id === categoryId
+              ? {
+                ...category,
+                item_ids: category.item_ids.map((item) =>
+                  item.id === itemId
+                    ? {
+                      ...item,
+                      site_ids: tempSelectedSites,
+                      summary_report_file: null,
+                    }
+                    : item
+                ),
+              }
+              : category
+          )
+          .sort((a, b) => a.id - b.id)
+          .map((cat) => ({
+            ...cat,
+            item_ids: [...cat.item_ids].sort((a, b) => a.id - b.id),
+          })),
       });
+
       setSelectedItem(null);
     }
   };
@@ -250,7 +257,14 @@ export function ClaimApplicationForm({
                                 )
                                 .filter((cat) => cat.item_ids.length > 0);
 
-                            updateFields({ category_ids: newCategoryIds });
+                            updateFields({
+                              category_ids: newCategoryIds
+                                .sort((a, b) => a.id - b.id)
+                                .map(cat => ({
+                                  ...cat,
+                                  item_ids: [...cat.item_ids].sort((a, b) => a.id - b.id),
+                                })),
+                            });
                           }}
                         />
                       </TableCell>
