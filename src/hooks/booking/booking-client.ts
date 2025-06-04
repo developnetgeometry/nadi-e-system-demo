@@ -459,5 +459,18 @@ export const bookingClient = {
         if (error) throw error;
 
         return data;
+    },
+
+    getMaintenancePc: async () => {
+        const { data, error } = await supabase
+            .from("nd_maintenance_request")
+            .select(`
+              asset_id  
+            `)
+            .eq("status", "submitted");
+
+        if (error) throw error;
+
+        return data;
     }
 }
