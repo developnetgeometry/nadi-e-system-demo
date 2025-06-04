@@ -20,6 +20,9 @@ type FormData = {
   identity_no_type: string;
   identity_no: string;
   isIcNumberExist: boolean;
+  isIcYearValid: boolean;
+  isIcMonthValid: boolean;
+  isIcDayValid: boolean;
   isIcNumberValid: boolean;
   isUnder12: boolean;
   parent_fullname: string;
@@ -76,6 +79,9 @@ const INITIAL_DATA: FormData = {
   identity_no_type: null,
   identity_no: "",
   isIcNumberExist: false,
+  isIcYearValid: false,
+  isIcMonthValid: false,
+  isIcDayValid: false,
   isIcNumberValid: false,
   isUnder12: false,
   parent_fullname: "",
@@ -169,6 +175,9 @@ const RegistrationPage = () => {
       if (!data.identity_no) return showValidationError("IC number is required.");
       if (data.identity_no_type === "1") {
         if (data.identity_no.length !== 12) return showValidationError("IC number must be 12 digits.");
+        if (!data.isIcYearValid) return showValidationError("IC year is invalid.");
+        if (!data.isIcMonthValid) return showValidationError("IC month is invalid.");
+        if (!data.isIcDayValid) return showValidationError("IC day is invalid.");
         if (!data.isIcNumberValid) return showValidationError("IC number is invalid.");
       }
       if (!data.isIcNumberExist) return showValidationError("Identity number already exists in the system.");

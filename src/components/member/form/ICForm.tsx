@@ -10,6 +10,9 @@ type ICData = {
   identity_no_type: string;
   identity_no: string;
   isIcNumberExist: boolean;
+  isIcYearValid: boolean;
+  isIcMonthValid: boolean;
+  isIcDayValid: boolean;
   isIcNumberValid: boolean;
   isUnder12: boolean;
   dob?: string;
@@ -43,6 +46,9 @@ export function ICForm({
   identity_no,
   identity_no_type,
   isIcNumberExist,
+  isIcYearValid,
+  isIcMonthValid,
+  isIcDayValid,
   isIcNumberValid,
   isUnder12,
   updateFields,
@@ -110,8 +116,9 @@ export function ICForm({
         const currentYear = now.getFullYear() % 100;
         const fullYear = yearPart > currentYear ? 1900 + yearPart : 2000 + yearPart;
 
-        const isValidMonth = monthPart >= 1 && monthPart <= 12;
-        const isValidDay = dayPart >= 1 && dayPart <= 31;
+        const isValidYear = fullYear <= now.getFullYear(); // Validate year
+        const isValidMonth = monthPart >= 1 && monthPart <= 12; // Validate month
+        const isValidDay = dayPart >= 1 && dayPart <= 31; // Validate day
 
         const dob = new Date(fullYear, monthPart - 1, dayPart);
         const today = new Date();
@@ -121,9 +128,16 @@ export function ICForm({
           dob.getMonth() === monthPart - 1 &&
           dob.getDate() === dayPart;
 
-        const isValidDate = isValidMonth && isValidDay && isExactDateMatch && dob < today;
+        const isValidDate = isValidYear && isValidMonth && isValidDay && isExactDateMatch && dob < today;
 
-        updateFields({ isIcNumberValid: isValidDate, nationality_id: "1" }); // 👈 set nationality_id
+        // Update fields for year, month, and day validity
+        updateFields({
+          isIcYearValid: isValidYear,
+          isIcMonthValid: isValidMonth,
+          isIcDayValid: isValidDay,
+          isIcNumberValid: isValidDate,
+          nationality_id: "1", // 👈 set nationality_id
+        });
 
         if (!isValidDate) {
           updateFields({
@@ -148,12 +162,17 @@ export function ICForm({
           isUnder12: age <= 12,
         });
       } else if (identity_no_type === "1") {
-        updateFields({ isIcNumberValid: false, isUnder12: false, dob: null });
+        updateFields({
+          isIcYearValid: false,
+          isIcMonthValid: false,
+          isIcDayValid: false,
+          isIcNumberValid: false,
+          isUnder12: false,
+          dob: null,
+        });
       }
-
     }, 500);
   }, [identity_no, updateFields, lastValidatedIC]);
-
 
 
 
@@ -230,6 +249,21 @@ export function ICForm({
                       <span className="text-red-600 flex items-center">
                         <XCircle className="w-4 h-4 mr-1" />
                         This IC number must have 12 digits
+                      </span>
+                    ) : !isIcYearValid ? (
+                      <span className="text-red-600 flex items-center">
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Invalid year in IC number
+                      </span>
+                    ) : !isIcMonthValid ? (
+                      <span className="text-red-600 flex items-center">
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Invalid month in IC number
+                      </span>
+                    ) : !isIcDayValid ? (
+                      <span className="text-red-600 flex items-center">
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Invalid day in IC number
                       </span>
                     ) : !isIcNumberValid ? (
                       <span className="text-red-600 flex items-center">
