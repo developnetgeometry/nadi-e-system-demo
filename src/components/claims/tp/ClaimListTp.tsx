@@ -29,6 +29,9 @@ export function ClaimListTp() {
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
   const navigate = useNavigate();
 
+  // Sorting states
+  const [sortField, setSortField] = useState<string>("year");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Filter states
   const [search, setSearch] = useState<string>("");
@@ -69,8 +72,17 @@ export function ClaimListTp() {
     exportToCSV(exportData, `claim_list_tp_${new Date().toISOString().split("T")[0]}`);
   };
 
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
   const filteredClaims = useMemo(() => {
-    return claimTPData?.filter((claim) => {
+    let claims = claimTPData?.filter((claim) => {
       return (
         (!search ||
           claim.ref_no?.toLowerCase().includes(search.toLowerCase())) &&
@@ -82,8 +94,32 @@ export function ClaimListTp() {
               .includes(filterMonth))) &&
         (!filterStatus || claim.claim_status.name === filterStatus)
       );
-    });
-  }, [claimTPData, search, filterYear, filterMonth, filterStatus]);
+    }) ?? [];
+
+    // Sorting
+    if (sortField) {
+      claims = [...claims].sort((a, b) => {
+        let aValue = a[sortField];
+        let bValue = b[sortField];
+        // Special case for status
+        if (sortField === "status") {
+          aValue = a.claim_status.name;
+          bValue = b.claim_status.name;
+        }
+        if (aValue === undefined || bValue === undefined) return 0;
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortOrder === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+        return sortOrder === "asc"
+          ? (aValue as number) - (bValue as number)
+          : (bValue as number) - (aValue as number);
+      });
+    }
+
+    return claims;
+  }, [claimTPData, search, filterYear, filterMonth, filterStatus, sortField, sortOrder]);
 
   const paginatedClaims = useMemo(() => {
     return filteredClaims?.slice(
@@ -192,10 +228,22 @@ export function ClaimListTp() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[60px] text-center">No.</TableHead>
-            <TableHead>Reference Number</TableHead>
-            <TableHead>Year</TableHead>
-            <TableHead>Month</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead
+              sortable
+              sorted={sortField === "ref_no" ? sortOrder : null}
+              onSort={() => handleSort("ref_no")}>Reference Number</TableHead>
+            <TableHead
+              sortable
+              sorted={sortField === "year" ? sortOrder : null}
+              onSort={() => handleSort("year")}>Year</TableHead>
+            <TableHead
+              sortable
+              sorted={sortField === "month" ? sortOrder : null}
+              onSort={() => handleSort("month")}>Month</TableHead>
+            <TableHead
+              sortable
+              sorted={sortField === "status" ? sortOrder : null}
+              onSort={() => handleSort("status")}>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
