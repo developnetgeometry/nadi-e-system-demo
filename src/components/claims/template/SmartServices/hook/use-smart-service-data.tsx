@@ -104,7 +104,7 @@ export const fetchSmartServiceData = async ({
             programme_time: "10:00 AM-11:00 AM",
             programme_remarks: "Enhance community well-being through inclusive, sustainable, and people-centered development",
             programme_participation: 50,
-            attachments_path: ["https://images.unsplash.com/photo-1486365227551-f3f90034a57c?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmlyZHxlbnwwfHwwfHx8MA%3D%3D", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"]
+            attachments_path: ["https://www.mbsj.gov.my/sites/default/files/styles/bootstrap3_col12/public/gotong-royong.jpg?itok=2RUE0ShK", "https://www.mof.gov.my/portal/images/2024/07/10/foto-050724a_large.jpg"]
         },
         {
             id: "2",
@@ -114,7 +114,7 @@ export const fetchSmartServiceData = async ({
             programme_time: "11:00 AM-12:00 PM",
             programme_remarks: "Promotes the adoption of digital financial solutions",
             programme_participation: 30,
-            // attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"]
+            attachments_path: ["https://www.wilayahku.com.my/canon/uploads/2024/03/2583980.jpg"]
         }
     ];
     const programmeParticipationData = [
