@@ -7,7 +7,10 @@ import {
     StyleSheet,
     pdf,
     Image,
-    Checkbox
+    Checkbox,
+    Svg,
+    Rect,
+    Path
 } from "@react-pdf/renderer";
 import {
     PDFFooter,
@@ -16,7 +19,8 @@ import {
     PDFAppendixTitlePage,
     PDFPhaseQuarterInfo,
     PDFMetaSection,
-    PDFHeader
+    PDFHeader,
+    PDFCheckbox // <-- import from pdf-component
 } from "../component/pdf-component";
 // Import the actual data fetching functions, not hooks
 import fetchUtilityData from "./hook/use-utility-data";
@@ -54,6 +58,13 @@ const styles = StyleSheet.create({
     imageAttachment: {
         width: '100%',
         marginBottom: 20,
+    },
+    checkbox: {
+        width: 12,
+        height: 12,
+        borderWidth: 1,
+        borderColor: '#222',
+        margin: 'auto',
     },
 });
 
@@ -123,7 +134,7 @@ const Utilities = async ({
                     </>
                 )}
 
-                <PDFSectionTitle title="2.5 SITE UTILITIES" />
+                <PDFSectionTitle title="2.5 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
                     <View style={styles.totalBox}>
@@ -148,14 +159,13 @@ const Utilities = async ({
                     <PDFTable
                         data={utility}
                         columns={[                            
-                            
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
                             { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
                             { key: "state", header: "STATE" },
-                            { key: (row) => row.water ? "PAID" : "UNPAID", header: "WATER" },
-                            { key: (row) => row.electricity ? "PAID" : "UNPAID", header: "ELECTRICITY" },
-                            { key: (row) => row.sewerage ? "PAID" : "UNPAID", header: "SEWERAGE" },
+                            { key: (row) => row.water, header: "WATER", render: (value) => <PDFCheckbox checked={!!value} /> },
+                            { key: (row) => row.electricity, header: "ELECTRICITY", render: (value) => <PDFCheckbox checked={!!value} /> },
+                            { key: (row) => row.sewerage, header: "SEWERAGE", render: (value) => <PDFCheckbox checked={!!value} /> }
                         ]}
                     />
                 ) : (
