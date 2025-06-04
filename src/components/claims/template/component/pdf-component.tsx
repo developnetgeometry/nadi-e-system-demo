@@ -1,5 +1,6 @@
 import React from "react";
 import { Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import { Svg, Rect, Path } from "@react-pdf/renderer";
 
 // PDF styles for the components
 const styles = StyleSheet.create({
@@ -357,6 +358,7 @@ export const PDFTable = <T extends Record<string, any>>({
     header: string;
     width?: number | string;
     render?: (value: any, row: T, index: number) => React.ReactNode;
+    align?: 'left' | 'center' | 'right'; // <-- allow per-column alignment
   }[];
 }) => {
   // Process columns to handle dynamic and fixed width columns
@@ -440,16 +442,8 @@ export const PDFTable = <T extends Record<string, any>>({
     } else {
       style.width = `${dynamicColumnWidth}%`;
     }
-    // Special handling for number column
-    if (index === 0) {
-      style.textAlign = "center";
-      style.paddingLeft = 4;
-      style.paddingRight = 4;
-    }
-    // Remove right border from the last column to prevent double borders with table border
-    if (index === columns.length - 1) {
-      style.borderRightWidth = 0;
-    }
+    // Remove special textAlign and padding for first column, let alignment be handled by align property
+    // If you want first column always center, set align: 'center' in the column definition
     return style;
   });
 
@@ -477,7 +471,6 @@ export const PDFTable = <T extends Record<string, any>>({
           style={[
             tableStyles.tableRow,
             rowIndex % 2 === 1 && { backgroundColor: "#f9f9f9" }
-            // <-- Remove conditional that disables borderBottomWidth for last row
           ]}
         >
           {columns.map((column, colIndex) => {
@@ -487,18 +480,25 @@ export const PDFTable = <T extends Record<string, any>>({
             const displayValue = column.render
               ? column.render(cellValue, row, rowIndex)
               : cellValue;
+            // Dynamic alignment: first column center by default, others left unless align is set
+            const align = column.align || (colIndex === 0 ? 'center' : 'left');
+            const alignItems = align === 'center' ? 'center' : (align === 'right' ? 'flex-end' : 'flex-start');
             return (
-              <Text
+              <View
                 key={colIndex}
                 style={[
-                  tableStyles.td,
                   columnStyles[colIndex],
                   colIndex === 0 && { borderLeftWidth: 1, borderLeftColor: "#000" },
-                  colIndex === columns.length - 1 && { borderRightWidth: 1, borderRightColor: "#000" }
+                  colIndex === columns.length - 1 && { borderRightWidth: 1, borderRightColor: "#000" },
+                  { justifyContent: "center", alignItems, minHeight: 18 }
                 ]}
               >
-                {displayValue}
-              </Text>
+                {typeof displayValue === 'string' || typeof displayValue === 'number' ? (
+                  <Text style={[tableStyles.td, align !== 'left' && { textAlign: align }]}>{displayValue}</Text>
+                ) : (
+                  displayValue
+                )}
+              </View>
             );
           })}
         </View>
@@ -619,3 +619,15 @@ export const PDFFooter = ({
     </View>
   );
 };
+
+/**
+ * PDFCheckbox component for use in PDF tables and forms
+ */
+export const PDFCheckbox = ({ checked }: { checked: boolean }) => (
+  <Svg width={12} height={12} style={{ width: 12, height: 12, margin: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }} viewBox="0 0 12 12">
+    <Rect x={0.5} y={0.5} width={11} height={11} rx={1.5} stroke="#888" strokeWidth={1} fill="#fff" />
+    {checked && (
+      <Path d="M3 6.5 L5 9 L9 4" stroke="#111" strokeWidth={1.3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    )}
+  </Svg>
+);

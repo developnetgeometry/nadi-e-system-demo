@@ -143,6 +143,12 @@ export const useBookingQueries = () => {
             enabled: asset_id !== null && command !== null
         })
 
+    const useMaintenancePc = () => 
+        useQuery({
+            queryKey: ["maintenancePc"],
+            queryFn: () => bookingClient.getMaintenancePc()
+        });
+
     return {
         useBookingQuery,
         useBookingAssetBrandQuery,
@@ -159,6 +165,7 @@ export const useBookingQueries = () => {
         useTpsSitesWithPagination,
         useAllState,
         useUserProfileByName,
-        useTriggerPcCommands
+        useTriggerPcCommands,
+        useMaintenancePc
     };
 };
