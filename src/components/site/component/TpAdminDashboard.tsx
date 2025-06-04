@@ -39,7 +39,8 @@ export const TpAdminDashBoard = ({
 
     const {
         useAllRegion,
-        useAllState
+        useAllState,
+        useMaintenancePc
     } = useBookingQueries();
     const [selectedRegion, setSelectedRegion] = useState(0);
     const [selectedState, setSelectedState] = useState(0);
@@ -59,17 +60,21 @@ export const TpAdminDashBoard = ({
         filter,
         setFilter
     } = useSitePaginationServer(INITIAL_PAGE, PER_PAGE, tpAdminOrgId);
+    const {data: maintenancePc, isLoading: maintenancePcIsLoading } = useMaintenancePc();
     const [bodyTableData, setBodyTableData] = useState([]);
 
     const isLoadingPCs = !pcsInTpsAdminSite || pcsInTpsAdminSite.length === 0;
     const initialTotalSites = useRef(tpsSites?.length);
-    const { totalPc, pcInUse } = useMemo(() => {
+    const { totalPc, pcInUse, pcsInMaintenance } = useMemo(() => {
         const totalPc = pcsInTpsAdminSite.length;
         const pcInUse = pcsInTpsAdminSite.filter(pc => pc?.nd_booking?.some(b => b?.is_using)).length;
+        const maintenancePcIds = maintenancePc?.map(pc => pc.asset_id) || [];
+        const pcsInMaintenance = pcsInTpsAdminSite.filter(pc => maintenancePcIds.includes(pc.id)).length;
 
         return {
             totalPc,
-            pcInUse
+            pcInUse,
+            pcsInMaintenance
         };
     }, [pcsInTpsAdminSite]);
 
@@ -106,6 +111,7 @@ export const TpAdminDashBoard = ({
             const totalPcs = site?.nd_site?.reduce((sum, s) => sum + (s.nd_asset?.length || 0), 0);
             let inUse = 0;
             let available = 0;
+            let maintenance = 0;
 
             for (const repSite of site?.nd_site || []) {
                 for (const asset of repSite.nd_asset || []) {
@@ -113,11 +119,14 @@ export const TpAdminDashBoard = ({
 
                     const isInUse = bookings.length > 0 && bookings.some(b => b.is_using === true);
                     const isAvailable = bookings.length === 0 || bookings.every(b => b.is_using === false);
+                    const isMaintenance = maintenancePc?.some(pc => pc.asset_id === asset.id);
 
                     if (isInUse) {
                         inUse++;
                     } else if (isAvailable) {
                         available++;
+                    } else if (isMaintenance) {
+                        maintenance++;
                     }
                 }
             }
@@ -130,7 +139,7 @@ export const TpAdminDashBoard = ({
                 totalPcs: totalPcs,
                 inUse: inUse,
                 available: available,
-                maintenance: "0 in Maintenance",
+                maintenance: maintenance,
                 action: "View"
             });
         }
@@ -177,7 +186,8 @@ export const TpAdminDashBoard = ({
     ];
 
     if (
-        isLoadingPCs
+        isLoadingPCs ||
+        maintenancePcIsLoading
     ) {
         return <LoadingSpinner />
     }
