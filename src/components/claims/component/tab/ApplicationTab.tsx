@@ -292,15 +292,16 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
                           <div>
                             <input
                               type="file"
-                              id="fileInput"
+                              id={`fileInput-${item.id}`}
                               className="hidden"
                               accept=".pdf,.doc,.docx"
-                              multiple // Allow multiple file selection
+                              multiple
                               onChange={async (e) => {
                                 if (e.target.files) {
-                                  const files = Array.from(e.target.files); // Convert FileList to an array
+                                  const files = Array.from(e.target.files);
                                   try {
                                     for (const file of files) {
+                                      console.log("Uploading file:", item.id);
                                       const result = await uploadAttachment(
                                         file,
                                         claimData.tp_dusp_id,
@@ -318,7 +319,8 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
                                       description: "Attachments uploaded.",
                                       variant: "default",
                                     });
-                                    refetch(); // Refresh the data
+                                    console.log("item.id", item.id);
+                                    refetch();
                                   } catch (error) {
                                     console.error("Error uploading attachments:", error);
                                   }
@@ -326,7 +328,7 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
                               }}
                             />
                             <label
-                              htmlFor="fileInput"
+                              htmlFor={`fileInput-${item.id}`}
                               className={fileInputLabelClass}
                             >
                               Upload File

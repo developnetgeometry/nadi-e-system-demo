@@ -127,7 +127,7 @@ export const insertClaimData = async (data: FormData) => {
                         const fileName = `support_${Date.now()}_${file.name}`;
                         const filePath = `${data.dusp_name}/${data.tp_name}/${data.year}/${data.ref_no}_${fileName}`;
 
-                        const fileBlob = new Blob([file], { type: "application/pdf" });
+                        const fileBlob = new Blob([file], { type: file.type });
 
                         const { error: uploadError } = await supabase.storage
                             .from(BUCKET_NAME_SITE_CLAIM)

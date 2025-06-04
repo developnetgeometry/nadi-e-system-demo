@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
 import { getStartAndEndDate } from "../hook/getStartAndEndDate";
-import { ifError } from "assert";
+import { useRef } from "react";
 
 type ClaimData = {
     claim_type: string;
@@ -36,6 +36,9 @@ export function ClaimDateForm({
     phase_id,
     updateFields,
 }: ClaimDateFormProps) {
+    const runningNoRef = useRef(Date.now().toString()); // Static on mount
+    const runningNo = runningNoRef.current;
+
     useEffect(() => {
         // Ensure claim_type is set before running the logic
         if (dusp_name && tp_name && year && claim_type) {
@@ -43,10 +46,10 @@ export function ClaimDateForm({
             let generatedRefNo = "";
 
             if (claim_type === "YEARLY") {
-                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-YEARLY`;
+                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-YEARLY_${runningNo}`;
             } else if (claim_type === "QUARTERLY" && quarter) {
                 const q = `Q${quarter}`;
-                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-QUARTERLY`;
+                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-QUARTERLY_${runningNo}`;
             } else if (claim_type === "MONTHLY" && quarter && month) {
                 const monthNames = [
                     "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -54,7 +57,7 @@ export function ClaimDateForm({
                 ];
                 const q = `Q${quarter}`;
                 const mmm = monthNames[month - 1];
-                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-${mmm}`;
+                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-${mmm}-MONTHLY_${runningNo}`;
             }
 
             try {
