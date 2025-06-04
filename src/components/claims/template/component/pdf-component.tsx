@@ -8,24 +8,25 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 30,
   },
-  logo: { 
-    width: 80, 
-    height: 60 
+  logo: {
+    height: 60,
+    width: "auto", // Maintain aspect ratio
   },
-  logo2:{
-    width: 70, 
-    height: 52.5, // Maintaining the aspect ratio (70 / 80 * 60 = 52.5)
-    marginLeft: "auto", 
+  logo2: {
+    height: 52.5, // Maintain aspect ratio
+    width: "auto",
+    marginLeft: "auto",
     marginRight: 0,
   },
-  titleSection: { 
-    textAlign: "center", 
-    flex: 1 
+  titleSection: {
+    textAlign: "center",
+    flex: 1
   },
-  title: { 
-    fontSize: 14, 
-    fontWeight: "bold", 
-    textTransform: "uppercase" 
+  title: {
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "bold",
+    textTransform: "uppercase"
   },
   footer: {
     position: "absolute",
@@ -40,10 +41,10 @@ const styles = StyleSheet.create({
     opacity: 0.3,
     marginBottom: 10,
   },
-  footerText: { 
-    fontSize: 9, 
-    color: "#666" 
-  },  
+  footerText: {
+    fontSize: 9,
+    color: "#666"
+  },
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -63,20 +64,20 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#000",
     width: "25%",
-  },  
+  },
   appendixTitlePage: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     height: "100%",
     position: "relative",
-  },  appendixContent: {
+  }, appendixContent: {
     position: "absolute",
     top: "40%",
     left: 0,
     right: 0,
     textAlign: "center",
-  },  appendixPhaseInfo: {
+  }, appendixPhaseInfo: {
     position: "absolute",
     top: 60, /* Positioned lower on the page */
     right: 0,
@@ -88,12 +89,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 10,
     textTransform: "uppercase",
-  },  appendixTitle: {
+  }, appendixTitle: {
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
     textTransform: "uppercase",
-  },  phaseQuarterInfo: {
+  }, phaseQuarterInfo: {
     textAlign: "right",
     fontSize: 8,
     marginLeft: "auto", /* Push to the right side */
@@ -105,20 +106,24 @@ const styles = StyleSheet.create({
 /**
  * The PDF header component with MCMC and DUSP logos
  */
-export const PDFHeader = ({ 
-  mcmcLogo, 
-  duspLogo 
-}: { 
-  mcmcLogo: string, 
-  duspLogo: string 
+export const PDFHeader = ({
+  mcmcLogo,
+  duspLogo
+}: {
+  mcmcLogo?: string,
+  duspLogo?: string
 }) => (
   <View style={styles.header}>
-    <Image src={mcmcLogo} style={styles.logo} />
+    <View style={{ width: "25%", alignItems: "flex-start" }}>
+      {mcmcLogo && <Image src={mcmcLogo} style={styles.logo} />}
+    </View>
     <View style={styles.titleSection}>
       <Text style={styles.title}>THE NATIONAL INFORMATION</Text>
       <Text style={styles.title}>DISSEMINATION CENTRE (NADI)</Text>
     </View>
-    <Image src={duspLogo} style={styles.logo2} />
+    <View style={{ width: "25%", alignItems: "flex-end" }}>
+      {duspLogo && <Image src={duspLogo} style={styles.logo} />}
+    </View>
   </View>
 );
 
@@ -139,7 +144,7 @@ export const PDFMetaSection = ({
   quater?: string | number | null;
   startDate?: string | null;
   endDate?: string | null;
-}) => {  
+}) => {
   // Create styles for the meta section table
   const metaStyles = StyleSheet.create({
     container: {
@@ -157,7 +162,7 @@ export const PDFMetaSection = ({
       flexDirection: "row",
       borderBottomWidth: 1,
       borderBottomColor: "#000",
-    },    
+    },
     labelCell: {
       backgroundColor: "#000",
       color: "#fff",
@@ -166,7 +171,7 @@ export const PDFMetaSection = ({
       width: "20%",
       borderRightWidth: 1,
       borderRightColor: "#000",
-    },    
+    },
     valueCell: {
       padding: 6,
       width: "80%",
@@ -174,46 +179,46 @@ export const PDFMetaSection = ({
     },
     phaseCell: {
       padding: 6,
-      width: "30%", 
+      width: "30%",
       borderRightWidth: 1,
       borderRightColor: "#000",
     },
     periodLabelCell: {
       backgroundColor: "#000",
-      color: "#fff", 
+      color: "#fff",
       fontWeight: "bold",
       padding: 6,
       width: "25%",
       borderRightWidth: 1,
       borderRightColor: "#000",
-    },    
+    },
     periodValueCell: {
       padding: 6,
       width: "25%",
       borderRightWidth: 0, // Remove right border on the last cell
     }
   });
-    // Create a style for the last row that doesn't have a bottom border
+  // Create a style for the last row that doesn't have a bottom border
   const lastRowStyle = {
     ...metaStyles.row,
     borderBottomWidth: 0, // Remove bottom border from last row to avoid double borders
   };
-  
-  // Determine periodType based on claimType if not directly provided
-   const periodType = claimType ? 
-        (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
-         claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
-         claimType.toLowerCase() === "yearly" ? "YEAR" :
-         "All Time") : "All Time";
 
-  
+  // Determine periodType based on claimType if not directly provided
+  const periodType = claimType ?
+    (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
+      claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
+        claimType.toLowerCase() === "yearly" ? "YEAR" :
+          "All Time") : "All Time";
+
+
   // Format the period value based on periodType and available data
   let formattedPeriodValue = "-";
-  
+
   // Extract month and year from startDate and endDate if provided
   const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
   const year = endDate ? new Date(endDate).getFullYear().toString() : null;
-  
+
   if (periodType === "MONTH / YEAR" && month && year) {
     formattedPeriodValue = `${month} ${year}`;
   } else if (periodType === "QUARTER / YEAR") {
@@ -223,13 +228,13 @@ export const PDFMetaSection = ({
   } else if (periodType === "YEAR" && year) {
     formattedPeriodValue = `${year}`;
   }
-  
+
   return (
     <View style={metaStyles.container}>
       <View style={metaStyles.firstRow}>
         <Text style={metaStyles.labelCell}>REPORT</Text>
         <Text style={metaStyles.valueCell}>{reportTitle}</Text>
-      </View>      
+      </View>
       <View style={lastRowStyle}>
         <Text style={metaStyles.labelCell}>PHASE</Text>
         <Text style={metaStyles.phaseCell}>{phaseLabel || "-"}</Text>
@@ -243,10 +248,10 @@ export const PDFMetaSection = ({
 /**
  * The PDF Section Title component
  */
-export const PDFSectionTitle = ({ 
-  title 
-}: { 
-  title: string 
+export const PDFSectionTitle = ({
+  title
+}: {
+  title: string
 }) => {
   const sectionStyles = StyleSheet.create({
     sectionTitle: {
@@ -322,8 +327,8 @@ export const PDFInfoTable = ({
         <Text style={infoTableStyles.title}>{title}</Text>
       </View>
       {data.map((item, index) => (
-        <View 
-          key={index} 
+        <View
+          key={index}
           style={[
             infoTableStyles.row,
             // Remove bottom border from last row
@@ -359,16 +364,16 @@ export const PDFTable = <T extends Record<string, any>>({
 
   // Calculate total fixed width percentage  
   const totalFixedWidth = fixedWidthColumns.reduce((total, col) => {
-    const width = typeof col.width === 'string' 
-      ? parseFloat(col.width.replace('%', '')) 
+    const width = typeof col.width === 'string'
+      ? parseFloat(col.width.replace('%', ''))
       : (typeof col.width === 'number' ? col.width : 0);
     return total + width;
   }, 0);
 
   // Calculate remaining percentage for dynamic columns
   let remainingWidth = Math.max(0, 100 - totalFixedWidth);
-  let dynamicColumnWidth = dynamicColumns.length > 0 
-    ? remainingWidth / dynamicColumns.length 
+  let dynamicColumnWidth = dynamicColumns.length > 0
+    ? remainingWidth / dynamicColumns.length
     : 0;
 
   // If no columns have width, distribute equally
@@ -378,10 +383,11 @@ export const PDFTable = <T extends Record<string, any>>({
   }
 
   const tableStyles = StyleSheet.create({
-    table: { 
-      width: "100%", 
-      borderWidth: 1,
-      borderColor: "#000",
+    table: {
+      width: "100%",
+      // Remove borderWidth and borderColor to avoid hanging borders
+      // borderWidth: 1,
+      // borderColor: "#000",
       marginTop: 10
     },
     tableHeader: {
@@ -389,20 +395,21 @@ export const PDFTable = <T extends Record<string, any>>({
       backgroundColor: "#000",
       color: "#fff",
       fontWeight: "bold",
-    },    
-    tableRow: { 
-      flexDirection: "row", 
+    },
+    tableRow: {
+      flexDirection: "row",
       borderBottomWidth: 1,
       borderBottomColor: "#000"
     },
-    th: { 
-      padding: 6, 
+    th: {
+      padding: 6,
       fontSize: 8,
       fontWeight: "bold",
       textTransform: "uppercase",
       textAlign: "center",
       color: "#fff",
-    },      td: { 
+    },
+    td: {
       padding: 6,
       fontSize: 8,
     },
@@ -417,14 +424,14 @@ export const PDFTable = <T extends Record<string, any>>({
       paddingLeft: 4,
       paddingRight: 4,
     }
-  });  
+  });
 
   // Create styles for each column once - this ensures header and data cells use exactly the same width
   const columnStyles = columns.map((column, index) => {
     // Base style with border
-    const style: any = { 
+    const style: any = {
       borderRightWidth: 1,
-      borderRightColor: "#000" 
+      borderRightColor: "#000"
     };
     // Set width based on column specifications
     if (column.width) {
@@ -443,17 +450,19 @@ export const PDFTable = <T extends Record<string, any>>({
       style.borderRightWidth = 0;
     }
     return style;
-  });  
+  });
 
   return (
     <View style={tableStyles.table}>
-      <View style={tableStyles.tableHeader}>
-        {columns.map((column, i) => (          
-          <Text 
-            key={i} 
+      <View style={tableStyles.tableHeader} fixed>
+        {columns.map((column, i) => (
+          <Text
+            key={i}
             style={[
               tableStyles.th,
-              columnStyles[i]
+              columnStyles[i],
+              i === 0 && { borderLeftWidth: 1, borderLeftColor: "#000" },
+              i === columns.length - 1 && { borderRightWidth: 1, borderRightColor: "#000" }
             ]}
           >
             {column.header}
@@ -461,30 +470,30 @@ export const PDFTable = <T extends Record<string, any>>({
         ))}
       </View>
       {data.map((row, rowIndex) => (
-        <View 
-          key={rowIndex} 
+        <View
+          key={rowIndex}
+          wrap={false}
           style={[
             tableStyles.tableRow,
-            // Add white background to even rows and remove bottom border from last row
-            {
-              ...(rowIndex % 2 === 1 && { backgroundColor: "#f9f9f9" }),
-              ...(rowIndex === data.length - 1 && { borderBottomWidth: 0 })
-            }
+            rowIndex % 2 === 1 && { backgroundColor: "#f9f9f9" }
+            // <-- Remove conditional that disables borderBottomWidth for last row
           ]}
         >
           {columns.map((column, colIndex) => {
-            const cellValue = typeof column.key === 'function' 
+            const cellValue = typeof column.key === 'function'
               ? column.key(row, rowIndex)
               : row[column.key as keyof T];
-            const displayValue = column.render 
-              ? column.render(cellValue, row, rowIndex) 
+            const displayValue = column.render
+              ? column.render(cellValue, row, rowIndex)
               : cellValue;
             return (
-              <Text 
-                key={colIndex} 
+              <Text
+                key={colIndex}
                 style={[
                   tableStyles.td,
-                  columnStyles[colIndex]
+                  columnStyles[colIndex],
+                  colIndex === 0 && { borderLeftWidth: 1, borderLeftColor: "#000" },
+                  colIndex === columns.length - 1 && { borderRightWidth: 1, borderRightColor: "#000" }
                 ]}
               >
                 {displayValue}
@@ -501,63 +510,63 @@ export const PDFTable = <T extends Record<string, any>>({
  * Component for displaying Phase and Quarter information aligned with the totalBox component
  */
 export const PDFPhaseQuarterInfo = ({
-    phaseLabel,
-    claimType = null,
-    quater = null,
-    startDate = null,
-    endDate = null,
+  phaseLabel,
+  claimType = null,
+  quater = null,
+  startDate = null,
+  endDate = null,
 }: {
-    phaseLabel?: string;
-    claimType?: string | null;
-    quater?: string | number | null;
-    startDate?: string | null;
-    endDate?: string | null;
+  phaseLabel?: string;
+  claimType?: string | null;
+  quater?: string | number | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }) => {
-    // Determine periodType based on claimType
-    const periodType = claimType ? 
-        (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
-         claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
-         claimType.toLowerCase() === "yearly" ? "YEAR" :
-         "All Time") : "All Time";
-    // Format the period value based on periodType
-    let periodValue = '-';
-    
-    // Extract month and year from startDate and endDate
-    const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
-    const year = endDate ? new Date(endDate).getFullYear().toString() : null;
-    
-    if (periodType === "MONTH / YEAR" && month && year) {
-        periodValue = `${month} ${year}`;
-    } else if (periodType === "QUARTER / YEAR" && quater && year) {
-        periodValue = `${quater} ${year}`;
-    } else if (periodType === "YEAR" && year) {
-        periodValue = `${year}`;
-    }
-    
-    return (
-        <View style={{
-            ...styles.phaseQuarterInfo, 
-            width: 170, 
-        }}>
-            <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
-                <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
-                {phaseLabel || '-'}
-            </Text>
-            <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
-                <Text style={{ fontWeight: "bold" }}>{periodType}: </Text>
-                {periodValue}
-            </Text>
-        </View>
-    );
+  // Determine periodType based on claimType
+  const periodType = claimType ?
+    (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
+      claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
+        claimType.toLowerCase() === "yearly" ? "YEAR" :
+          "All Time") : "All Time";
+  // Format the period value based on periodType
+  let periodValue = '-';
+
+  // Extract month and year from startDate and endDate
+  const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
+  const year = endDate ? new Date(endDate).getFullYear().toString() : null;
+
+  if (periodType === "MONTH / YEAR" && month && year) {
+    periodValue = `${month} ${year}`;
+  } else if (periodType === "QUARTER / YEAR" && quater && year) {
+    periodValue = `${quater} ${year}`;
+  } else if (periodType === "YEAR" && year) {
+    periodValue = `${year}`;
+  }
+
+  return (
+    <View style={{
+      ...styles.phaseQuarterInfo,
+      // width: 170, 
+    }}>
+      <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
+        <Text style={{ fontWeight: "bold" }}>PHASE: </Text>
+        {phaseLabel || '-'}
+      </Text>
+      <Text style={{ fontSize: 8, textTransform: "uppercase" }}>
+        <Text style={{ fontWeight: "bold" }}>{periodType}: </Text>
+        {periodValue}
+      </Text>
+    </View>
+  );
 };
 
 /**
  * The PDF Appendix Title Page component
  */
-export const PDFAppendixTitlePage = ({ 
+export const PDFAppendixTitlePage = ({
   appendixNumber,
   title,
-}: { 
+}: {
   appendixNumber: string;
   title: string;
   phaseLabel?: string;
@@ -566,7 +575,7 @@ export const PDFAppendixTitlePage = ({
   showPhaseInfo?: boolean;
 }) => {
   return (
-    <View style={{flex: 1, position: "relative"}}>
+    <View style={{ flex: 1, position: "relative" }}>
       <View style={styles.appendixContent}>
         <Text style={styles.appendixNumber}>{appendixNumber}</Text>
         <Text style={styles.appendixTitle}>{title}</Text>
@@ -578,10 +587,10 @@ export const PDFAppendixTitlePage = ({
 /**
  * The PDF footer component
  */
-export const PDFFooter = ({ 
-  customText 
-}: { 
-  customText?: string 
+export const PDFFooter = ({
+  customText
+}: {
+  customText?: string
 }) => {
   // Get current date and time
   const now = new Date();
@@ -594,8 +603,9 @@ export const PDFFooter = ({
     second: '2-digit',
     hour12: false
   });
-  
-  return (    <View style={styles.footer}>
+
+  return (
+    <View style={styles.footer} fixed>
       <View style={styles.footerLine} />
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={styles.footerText}>

@@ -14,6 +14,8 @@ import { uploadAttachment, deleteAttachment, updateRemark } from "@/components/c
 import { Download, Trash2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ViewSiteDialog from "../ViewSiteDialog";
+import FrontPage from "../../template/component/FrontPage";
+import Appendix from "../../template/component/Appendix";
 const fileInputLabelClass =
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[#5147dd] bg-background text-[#5147dd] hover:bg-[#5147dd]/10 hover:text-[#5147dd] h-6 px-4 py-2"
 
@@ -28,7 +30,7 @@ type ClaimData = {
   payment_status: boolean;
   phase_id: { id: number; name: string };
   claim_status: { id: number; name: string };
-  tp_dusp_id: { id: string; name: string; parent_id: { id: string; name: string } };
+  tp_dusp_id: { id: string; name: string; parent_id: { id: string; name: string; logo_url: string; description: string } };
   requests: {
     id: number;
     name: string;
@@ -85,6 +87,20 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
     try {
       const pdfDoc = await PDFDocument.create();
 
+      // Add the FrontPage as the first page
+      const frontPageFile = await FrontPage({
+        duspName: claimData.tp_dusp_id.parent_id.description,
+        claimType: claimData.claim_type,
+        year: claimData.year,
+        quarter: claimData.quarter,
+        month: claimData.month,
+        dusplogo: claimData.tp_dusp_id.parent_id.logo_url,
+      });
+      const frontPageBytes = await frontPageFile.arrayBuffer();
+      const frontPagePdf = await PDFDocument.load(frontPageBytes);
+      const frontPagePages = await pdfDoc.copyPages(frontPagePdf, frontPagePdf.getPageIndices());
+      frontPagePages.forEach((page) => pdfDoc.addPage(page));
+
       // Iterate over all requests and their items
       for (const request of claimData.requests) {
         for (const item of request.items) {
@@ -97,15 +113,20 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
             summaryPages.forEach((page) => pdfDoc.addPage(page));
           }
 
-          // Add the supporting document files
+          // Add the supporting document files using Appendix.tsx
           if (item.item.suppport_doc_file?.length > 0) {
-            for (const file of item.item.suppport_doc_file) {
-              const supportResponse = await fetch(file.file_path);
-              const supportBytes = await supportResponse.arrayBuffer();
-              const supportPdf = await PDFDocument.load(supportBytes);
-              const supportPages = await pdfDoc.copyPages(supportPdf, supportPdf.getPageIndices());
-              supportPages.forEach((page) => pdfDoc.addPage(page));
-            }
+            const appendixFile = await Appendix({
+              appendixNumber: "APPENDIX",
+              title: item.item.name,
+              attachments: item.item.suppport_doc_file.map((file) => ({
+                path: file.file_path,
+                description: `Supporting Document for ${item.item.name}`,
+              })),
+            });
+            const appendixBytes = await appendixFile.arrayBuffer();
+            const appendixPdf = await PDFDocument.load(appendixBytes);
+            const appendixPages = await pdfDoc.copyPages(appendixPdf, appendixPdf.getPageIndices());
+            appendixPages.forEach((page) => pdfDoc.addPage(page));
           }
         }
       }
@@ -131,6 +152,7 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold">Claim Data</h2>
+        {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
 
         <Button
           variant="outline"

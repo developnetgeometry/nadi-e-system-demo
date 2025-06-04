@@ -96,6 +96,9 @@ const staffFormSchema = z.object({
   bank_account_no: z.string().optional().or(z.literal("")),
   qualification: z.string().optional().or(z.literal("")),
   join_date: z.string().optional().or(z.literal("")),
+  contract_type: z.string().optional().or(z.literal("")),
+  contractStartDate: z.string().optional().or(z.literal("")),
+  contractEndDate: z.string().optional().or(z.literal("")),
 });
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
@@ -139,6 +142,9 @@ export function StaffFormDialog({
   const [genders, setGenders] = useState<{ id: string; eng: string }[]>([]);
   const [states, setStates] = useState<{ id: string; name: string }[]>([]);
   const [banks, setBanks] = useState<{ id: string; bank_name: string }[]>([]);
+  // const [sites, setSites] = useState<any[]>([]);
+  const [phases, setPhases] = useState<any[]>([]);
+  const [contractTypes, setContractTypes] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("personal-info");
 
   const [currentUserCredentials, setCurrentUserCredentials] = useState<{
@@ -288,6 +294,19 @@ export function StaffFormDialog({
         console.error("Error fetching banks:", err);
       }
     };
+    const fetchContractTypes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("nd_contract_type")
+          .select("id, name")
+          .order("name");
+
+        if (error) throw error;
+        setContractTypes(data || []);
+      } catch (error) {
+        console.error("Error fetching contract types:", error);
+      }
+    };
 
     if (organizationId) {
       fetchSites();
@@ -300,6 +319,7 @@ export function StaffFormDialog({
       fetchGenders();
       fetchStates();
       fetchBanks();
+      fetchContractTypes();
     }
   }, [organizationId, toast]);
 
@@ -310,6 +330,8 @@ export function StaffFormDialog({
       email: "",
       userType: "",
       employDate: new Date().toISOString().split("T")[0],
+      contractStartDate: new Date().toISOString().split("T")[0],
+      contractEndDate: new Date().toISOString().split("T")[0],
       status: "Active",
       siteLocation: "",
       phone_number: "",
@@ -345,6 +367,7 @@ export function StaffFormDialog({
       socso_no: "",
       bank_name: "",
       bank_account_no: "",
+      contract_type: "",
     },
   });
 
@@ -417,6 +440,7 @@ export function StaffFormDialog({
   }, [open, user]);
 
   const onSubmit = async (data: StaffFormValues) => {
+    console.log("Form data submitted:", data);
     setIsSubmitting(true);
     try {
       const allowedCreatorTypes = ["tp_admin", "tp_hr", "super_admin"];
@@ -475,7 +499,7 @@ export function StaffFormDialog({
         await supabase.from("organization_users").insert({
           user_id: result.data.user_id,
           organization_id: parsedOrganizationId,
-          role: "staff",
+          role: "staff", // Default role, can be adjusted
         });
       }
 
@@ -656,12 +680,19 @@ export function StaffFormDialog({
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select gender" />
+                              <SelectValue
+                                placeholder={
+                                  !field.value ? "Select gender" : undefined
+                                }
+                              />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {genders.map((gender) => (
-                              <SelectItem key={gender.id} value={gender.id}>
+                            {genders?.map((gender) => (
+                              <SelectItem
+                                key={gender.id}
+                                value={gender.id.toString()}
+                              >
                                 {gender.eng}
                               </SelectItem>
                             ))}
@@ -746,7 +777,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {cities.map((city) => (
-                              <SelectItem key={city.id} value={city.id}>
+                              <SelectItem
+                                key={city.id}
+                                value={city.id.toString()}
+                              >
                                 {city.name}
                               </SelectItem>
                             ))}
@@ -774,7 +808,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent>
                             {maritalStatuses.map((status) => (
-                              <SelectItem key={status.id} value={status.id}>
+                              <SelectItem
+                                key={status.id}
+                                value={status.id.toString()}
+                              >
                                 {status.eng}
                               </SelectItem>
                             ))}
@@ -830,7 +867,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent>
                             {races.map((race) => (
-                              <SelectItem key={race.id} value={race.id}>
+                              <SelectItem
+                                key={race.id}
+                                value={race.id.toString()}
+                              >
                                 {race.eng}
                               </SelectItem>
                             ))}
@@ -858,7 +898,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent>
                             {religions.map((religion) => (
-                              <SelectItem key={religion.id} value={religion.id}>
+                              <SelectItem
+                                key={religion.id}
+                                value={religion.id.toString()}
+                              >
                                 {religion.eng}
                               </SelectItem>
                             ))}
@@ -888,7 +931,7 @@ export function StaffFormDialog({
                             {nationalities.map((nationality) => (
                               <SelectItem
                                 key={nationality.id}
-                                value={nationality.id}
+                                value={nationality.id.toString()}
                               >
                                 {nationality.eng}
                               </SelectItem>
@@ -963,7 +1006,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {cities.map((city) => (
-                              <SelectItem key={city.id} value={city.id}>
+                              <SelectItem
+                                key={city.id}
+                                value={city.id.toString()}
+                              >
                                 {city.name}
                               </SelectItem>
                             ))}
@@ -991,7 +1037,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {states.map((state) => (
-                              <SelectItem key={state.id} value={state.id}>
+                              <SelectItem
+                                key={state.id}
+                                value={state.id.toString()}
+                              >
                                 {state.name}
                               </SelectItem>
                             ))}
@@ -1104,7 +1153,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {cities.map((city) => (
-                              <SelectItem key={city.id} value={city.id}>
+                              <SelectItem
+                                key={city.id}
+                                value={city.id.toString()}
+                              >
                                 {city.name}
                               </SelectItem>
                             ))}
@@ -1133,7 +1185,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {states.map((state) => (
-                              <SelectItem key={state.id} value={state.id}>
+                              <SelectItem
+                                key={state.id}
+                                value={state.id.toString()}
+                              >
                                 {state.name}
                               </SelectItem>
                             ))}
@@ -1225,7 +1280,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {banks.map((bank) => (
-                              <SelectItem key={bank.id} value={bank.id}>
+                              <SelectItem
+                                key={bank.id}
+                                value={bank.id.toString()}
+                              >
                                 {bank.bank_name}
                               </SelectItem>
                             ))}
@@ -1267,7 +1325,7 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent>
                             {userTypes.map((type) => (
-                              <SelectItem key={type} value={type}>
+                              <SelectItem key={type} value={type.toString()}>
                                 {type
                                   .split("_")
                                   .map(
@@ -1305,6 +1363,34 @@ export function StaffFormDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Join Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contractStartDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contract Start Date*</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contractEndDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contract End Date*</FormLabel>
                         <FormControl>
                           <Input type="date" {...field} />
                         </FormControl>
@@ -1361,7 +1447,10 @@ export function StaffFormDialog({
                           </FormControl>
                           <SelectContent className="max-h-60 overflow-y-auto">
                             {availableSites.map((site) => (
-                              <SelectItem key={site.id} value={site.id}>
+                              <SelectItem
+                                key={site.id}
+                                value={site.id.toString()}
+                              >
                                 {site.sitename}
                               </SelectItem>
                             ))}

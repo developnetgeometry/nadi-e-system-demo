@@ -77,6 +77,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { GenerateLeaveBalanceDialog } from "./GenerateLeaveBalanceDialog";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -84,6 +85,7 @@ import { Label } from "@/components/ui/label";
 
 const LeaveManagement = () => {};
 export function AdminLeaveManagement() {
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -565,6 +567,13 @@ export function AdminLeaveManagement() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button
+              onClick={() => setGenerateDialogOpen(true)}
+              variant="outline"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Generate Balances
+            </Button>
           </div>
         )}
       </div>
@@ -709,6 +718,10 @@ export function AdminLeaveManagement() {
         onOpenChange={setIsAddLeaveOpen}
         onAddLeaveRequest={handleAddLeaveRequest}
         employees={employees}
+      />
+      <GenerateLeaveBalanceDialog
+        open={generateDialogOpen}
+        onOpenChange={setGenerateDialogOpen}
       />
 
       <Dialog open={advancedFilterOpen} onOpenChange={setAdvancedFilterOpen}>

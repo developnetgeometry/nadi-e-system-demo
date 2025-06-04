@@ -5,10 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 export type LeaveType = {
   id: number;
   name: string;
-  created_at?: string;
-  updated_at?: string;
-  created_by?: string;
-  updated_by?: string;
+  description?: string;
+  max_days?: number;
+  attachment?: boolean;
 };
 
 export function useLeaveType() {
@@ -21,7 +20,7 @@ export function useLeaveType() {
       const { data, error } = await supabase
         .from("nd_leave_type")
         .select("*")
-        .order("id");
+        .order("name");
 
       if (error) throw error;
       return data as LeaveType[];

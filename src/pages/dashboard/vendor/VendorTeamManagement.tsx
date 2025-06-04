@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PageHeader } from "@/components/ui/dashboard/PageHeader";
@@ -33,7 +32,7 @@ interface Team {
   id: number;
   name: string;
   registration_number: string;
-  status: 'on_duty' | 'out_for_duty';
+  status: "on_duty" | "out_for_duty";
   staff_count: number;
   created_at: string;
   updated_at: string;
@@ -64,7 +63,9 @@ const VendorTeamManagement = () => {
 
   const fetchVendorProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: vendorStaff, error: staffError } = await supabase
@@ -110,7 +111,7 @@ const VendorTeamManagement = () => {
           return {
             ...team,
             staff_count: staffTeams?.length || 0,
-            status: 'on_duty' as const // Default status
+            status: "on_duty" as const, // Default status
           };
         })
       );
@@ -155,11 +156,13 @@ const VendorTeamManagement = () => {
         <div className="flex justify-between items-center mb-6">
           <PageHeader
             title="Team Management"
-            description={`Manage teams for ${vendorProfile?.business_name || 'your company'}`}
+            description={`Manage teams for ${
+              vendorProfile?.business_name || "your company"
+            }`}
           />
           <div className="flex gap-2">
             <Button asChild>
-              <Link to="/vendor/admin/staff/new">
+              <Link to="/vendor/staff/new">
                 <Plus className="mr-2 h-4 w-4" />
                 Register Staff
               </Link>
@@ -216,8 +219,16 @@ const VendorTeamManagement = () => {
                         </TableCell>
                         <TableCell>{team.staff_count}</TableCell>
                         <TableCell>
-                          <Badge variant={team.status === 'on_duty' ? 'default' : 'secondary'}>
-                            {team.status === 'on_duty' ? 'On Duty' : 'Out For Duty'}
+                          <Badge
+                            variant={
+                              team.status === "on_duty"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {team.status === "on_duty"
+                              ? "On Duty"
+                              : "Out For Duty"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -231,11 +242,15 @@ const VendorTeamManagement = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewTeam(team)}>
+                              <DropdownMenuItem
+                                onClick={() => handleViewTeam(team)}
+                              >
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditTeam(team)}>
+                              <DropdownMenuItem
+                                onClick={() => handleEditTeam(team)}
+                              >
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit Team
                               </DropdownMenuItem>

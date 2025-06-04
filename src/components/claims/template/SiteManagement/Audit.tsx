@@ -107,12 +107,12 @@ const Audit = async ({
                     <>
                         <PDFHeader
                             mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
-                            duspLogo={dusplogo || "/logo-placeholder-image.png"} // Use provided DUSP logo or placeholder
+                            duspLogo={dusplogo} // Use provided DUSP logo or placeholder
                         />
 
 
                         <PDFMetaSection
-                            reportTitle="AUDIT REPORT"
+                            reportTitle="2.0 Site Management"
                             phaseLabel={phaseLabel}
                             claimType={claimType}
                             quater={quater}
@@ -130,13 +130,16 @@ const Audit = async ({
                         <Text>Total NADI{"\n"}{audits.length}</Text>
                     </View>
                     <View style={{ alignSelf: "flex-end" }}>
-                        <PDFPhaseQuarterInfo
-                            phaseLabel={phaseLabel}
-                            claimType={claimType}
-                            quater={quater}
-                            startDate={startDate}
-                            endDate={endDate}
-                        />
+                        {/* when header not provided, show phase and quarter info */}
+                        {!header && (
+                            <PDFPhaseQuarterInfo
+                                phaseLabel={phaseLabel}
+                                claimType={claimType}
+                                quater={quater}
+                                startDate={startDate}
+                                endDate={endDate}
+                            />
+                        )}
                     </View>
                 </View>
 
@@ -145,7 +148,7 @@ const Audit = async ({
                         data={audits}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "SITE CODE" },
+                            { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
                             { key: "state", header: "STATE" },
                         ]}
@@ -157,34 +160,34 @@ const Audit = async ({
             </Page>
 
             {/* Page 2: APPENDIX for AUDIT - Title page */}
-            <Page size="A4" style={styles.page}>
+            {/* <Page size="A4" style={styles.page}>
                 <PDFAppendixTitlePage
                     appendixNumber="APPENDIX"
                     title="SITE AUDIT"
                 />
                 <PDFFooter />
-            </Page>
+            </Page> */}
         </Document>
     );
     // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(AuditDoc).toBlob();
 
     // Process all audits that have attachments as sources for generateFinalPdf
-    const sources: AttachmentSource[] = audits
-        .filter(audit => audit.attachments_path && audit.attachments_path.length > 0)
-        .map(audit => ({
-            attachments_path: audit.attachments_path || [],
-            standard_code: audit.standard_code,
-        }));
+    // const sources: AttachmentSource[] = audits
+    //     .filter(audit => audit.attachments_path && audit.attachments_path.length > 0)
+    //     .map(audit => ({
+    //         attachments_path: audit.attachments_path || [],
+    //         standard_code: audit.standard_code,
+    //     }));
 
     // Generate the final PDF by merging the report with attachment pages
-    const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
+    // const finalPdfBlob = await generateFinalPdf(reportBlob, sources);
 
     // Generate filename based on filters
     const fileName = generatePdfFilename('audit-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
-    return new File([finalPdfBlob], fileName, {
+    return new File([reportBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });
