@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface AuditData {
     site_id: string;
     standard_code: string;
@@ -19,37 +21,45 @@ export const fetchAuditData = async ({
     nadiFilter = [],
     tpFilter = null,
 }) => {
-    console.log("Fetching audit data with filters:", { 
-        startDate, 
-        endDate, 
-        duspFilter, 
-        phaseFilter, 
-        nadiFilter, 
-        tpFilter 
+    // Fetch from nd_site_audit_attachment, join nd_site_profile, nd_site, nd_state
+    let query = supabase
+        .from("nd_site_audit_attachment")
+        .select(`
+            id,
+            site_profile_id,
+            file_path,
+            nd_site_profile:site_profile_id(
+                id,
+                sitename,
+                nd_site:nd_site(standard_code, refid_tp),
+                state_id:nd_state(name)
+            )
+        `);
+    if (phaseFilter) query = query.eq("nd_site_profile.phase_id", Number(phaseFilter));
+    if (nadiFilter && nadiFilter.length > 0) query = query.in("site_profile_id", nadiFilter.map(Number));
+    // Add TP and DUSP filter logic if needed
+    const { data: auditDetails, error } = await query;
+    if (error) throw error;
+    if (!auditDetails || auditDetails.length === 0) return { audits: [] };
+    const audits = auditDetails.map(audit => {
+        const profile = audit.nd_site_profile;
+        // nd_site is likely an array, but if not, fallback gracefully
+        let standard_code = "";
+        let refId = "";
+        if (profile?.nd_site && Array.isArray(profile.nd_site)) {
+            standard_code = profile.nd_site[0]?.standard_code || "";
+            refId = profile.nd_site[0]?.refid_tp || "";
+        }
+        return {
+            site_id: String(profile?.id || audit.site_profile_id),
+            standard_code,
+            site_name: profile?.sitename || "",
+            refId,
+            state: profile?.state_id?.name || "",
+            attachments_path: audit.file_path || []
+        };
     });
-    
-    // Mock data (replace with actual API call in production)
-    const audits = [
-        {
-            site_id: "1",
-            standard_code: "J05N002",
-            site_name: "NADI Bandar Permas",
-            refId: "J05C002",
-            state: "Johor",
-        },
-        {
-            site_id: "2",
-            standard_code: "N11N003",
-            site_name: "NADI Desa Permai Repah",
-            refId: "DG_PI1M_127",
-            state: "Negeri Sembilan"
-        }
-    ];
-    
-    // Return the data in the same format as the hook
-    return { 
-        audits: audits as AuditData[]
-    };
+    return { audits };
 }
 
 // For backward compatibility
