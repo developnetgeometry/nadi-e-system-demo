@@ -39,12 +39,15 @@ export const fetchAgreementData = async ({
                 state_id:nd_state(name)
             )
         `);
-    if (phaseFilter) query = query.eq("nd_site_profile.phase_id", Number(phaseFilter));
+
     if (nadiFilter && nadiFilter.length > 0) query = query.in("site_profile_id", nadiFilter.map(Number));
-    // Add TP and DUSP filter logic if needed
+
     const { data: agreementDetails, error } = await query;
     if (error) throw error;
+
     if (!agreementDetails || agreementDetails.length === 0) return { agreement: [] };
+
+    // Map the fetched data to the desired format
     const agreement = agreementDetails.map(ag => {
         const profile = ag.nd_site_profile;
         let standard_code = "";
@@ -62,7 +65,7 @@ export const fetchAgreementData = async ({
             attachments_path: ag.file_path || []
         };
     });
-    return { agreement };
+    return { agreement:agreement as agreementData[] };
 }
 
 // For backward compatibility
