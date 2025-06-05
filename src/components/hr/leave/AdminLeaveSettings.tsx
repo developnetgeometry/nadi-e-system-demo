@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,9 @@ import { Plus } from "lucide-react";
 export function AdminLeaveSettings() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [editedEntitlements, setEditedEntitlements] = useState<Record<string, Record<string, number>>>({});
+  const [editedEntitlements, setEditedEntitlements] = useState<
+    Record<string, Record<string, number>>
+  >({});
 
   const { data: leaveSettings } = useQuery({
     queryKey: ["leave-settings"],
@@ -33,43 +34,59 @@ export function AdminLeaveSettings() {
       // For now, returning mock data
       return {
         leaveTypes: [
-          { id: 1, name: "Annual", description: "Yearly paid leave allocation" },
-          { id: 2, name: "Medical", description: "Sick leave with medical certificate" },
+          {
+            id: 1,
+            name: "Annual",
+            description: "Yearly paid leave allocation",
+          },
+          {
+            id: 2,
+            name: "Medical",
+            description: "Sick leave with medical certificate",
+          },
           { id: 3, name: "Emergency", description: "Urgent personal matters" },
-          { id: 4, name: "Replacement", description: "For working on off days" },
+          {
+            id: 4,
+            name: "Replacement",
+            description: "For working on off days",
+          },
         ],
         entitlements: {
-          "Staff": {
-            "Annual": 14,
-            "Medical": 14,
-            "Emergency": 3,
-            "Replacement": 5,
+          Staff: {
+            Annual: 14,
+            Medical: 14,
+            Emergency: 3,
+            Replacement: 5,
           },
-          "Manager": {
-            "Annual": 18,
-            "Medical": 14,
-            "Emergency": 5,
-            "Replacement": 5,
+          Manager: {
+            Annual: 18,
+            Medical: 14,
+            Emergency: 5,
+            Replacement: 5,
           },
           "Senior Manager": {
-            "Annual": 21,
-            "Medical": 14,
-            "Emergency": 7,
-            "Replacement": 5,
+            Annual: 21,
+            Medical: 14,
+            Emergency: 7,
+            Replacement: 5,
           },
-        }
+        },
       };
     },
   });
 
-  const handleEntitlementChange = (role: string, leaveType: string, value: string) => {
+  const handleEntitlementChange = (
+    role: string,
+    leaveType: string,
+    value: string
+  ) => {
     const numValue = parseInt(value) || 0;
-    setEditedEntitlements(prev => ({
+    setEditedEntitlements((prev) => ({
       ...prev,
       [role]: {
         ...(prev[role] || {}),
-        [leaveType]: numValue
-      }
+        [leaveType]: numValue,
+      },
     }));
   };
 
@@ -77,7 +94,7 @@ export function AdminLeaveSettings() {
     try {
       setIsLoading(true);
       // In a real app, you would send an API request to update settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulating API call
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulating API call
 
       toast({
         title: "Settings saved",
@@ -128,7 +145,9 @@ export function AdminLeaveSettings() {
                   <TableCell>{type.name}</TableCell>
                   <TableCell>{type.description}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <Button variant="ghost" size="sm">
+                      Edit
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -156,31 +175,41 @@ export function AdminLeaveSettings() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leaveSettings?.entitlements && Object.entries(leaveSettings.entitlements).map(([role, entitlements]) => (
-                <TableRow key={role}>
-                  <TableCell>{role}</TableCell>
-                  {leaveSettings.leaveTypes.map((type) => {
-                    const currentValue = editedEntitlements[role]?.[type.name] !== undefined
-                      ? editedEntitlements[role][type.name]
-                      : entitlements[type.name];
-                      
-                    return (
-                      <TableCell key={`${role}-${type.id}`}>
-                        <Input
-                          type="number"
-                          min="0"
-                          className="w-16"
-                          value={currentValue}
-                          onChange={(e) => handleEntitlementChange(role, type.name, e.target.value)}
-                        />
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ))}
+              {leaveSettings?.entitlements &&
+                Object.entries(leaveSettings.entitlements).map(
+                  ([role, entitlements]) => (
+                    <TableRow key={role}>
+                      <TableCell>{role}</TableCell>
+                      {leaveSettings.leaveTypes.map((type) => {
+                        const currentValue =
+                          editedEntitlements[role]?.[type.name] !== undefined
+                            ? editedEntitlements[role][type.name]
+                            : entitlements[type.name];
+
+                        return (
+                          <TableCell key={`${role}-${type.id}`}>
+                            <Input
+                              type="number"
+                              min="0"
+                              className="w-16"
+                              value={currentValue}
+                              onChange={(e) =>
+                                handleEntitlementChange(
+                                  role,
+                                  type.name,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  )
+                )}
             </TableBody>
           </Table>
-          
+
           <div className="flex justify-end mt-4">
             <Button onClick={handleSaveSettings} disabled={isLoading}>
               {isLoading ? "Saving..." : "Save Changes"}

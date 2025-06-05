@@ -60,6 +60,7 @@ import { useFormatDuration } from "@/hooks/use-format-duration";
 import {
   useDraftClosure,
   useDeleteDraftClosure,
+  useDeletePendingClosure,
 } from "../hook/submit-siteclosure-data";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useToast } from "@/components/ui/use-toast";
@@ -306,11 +307,11 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [duspFilters, setDuspFilters] = useState<string[]>([]);
   const [tpFilters, setTpFilters] = useState<string[]>([]);
-
   const { formatDuration } = useFormatDuration();
   const { formatDate } = useFormatDate();
   const { fetchDraftData, loading: loadingDraft } = useDraftClosure();
   const { deleteDraft, loading: deletingDraft } = useDeleteDraftClosure();
+  const { deletePending, loading: deletingPending } = useDeletePendingClosure();
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -668,32 +669,32 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       if (logError) throw logError;
 
       // If the status is "Approved" (3) or "Authorized" (6), update the site profile status
-      if (newStatusId === 3 || newStatusId === 6) {
-        // Get the site profile ID from the closure item
-        const siteProfileId = closureItem.nd_site_profile?.id;
-        if (siteProfileId) {
-          // Update the site profile with both status values
-          const { error: siteProfileUpdateError } = await supabase
-            .from("nd_site_profile")
-            .update({
-              active_status: 3, // Set active_status to 3 for temporarily closed
-            })
-            .eq("id", siteProfileId);
+      // if (newStatusId === 3 || newStatusId === 6) {
+      //   // Get the site profile ID from the closure item
+      //   const siteProfileId = closureItem.nd_site_profile?.id;
+      //   if (siteProfileId) {
+      //     // Update the site profile with both status values
+      //     const { error: siteProfileUpdateError } = await supabase
+      //       .from("nd_site_profile")
+      //       .update({
+      //         active_status: 3, // Set active_status to 3 for temporarily closed
+      //       })
+      //       .eq("id", siteProfileId);
 
-          if (siteProfileUpdateError) {
-            console.error(
-              "Error updating site profile status:",
-              siteProfileUpdateError
-            );
-            // Don't throw error here to prevent blocking the approval process
-            // Instead, we'll just log it and continue
-          } else {
-            console.log(
-              `Site profile ${siteProfileId} status changed to temporarily close with active_status = 3`
-            );
-          }
-        }
-      }
+      //     if (siteProfileUpdateError) {
+      //       console.error(
+      //         "Error updating site profile status:",
+      //         siteProfileUpdateError
+      //       );
+      //       // Don't throw error here to prevent blocking the approval process
+      //       // Instead, we'll just log it and continue
+      //     } else {
+      //       console.log(
+      //         `Site profile ${siteProfileId} status changed to temporarily close with active_status = 3`
+      //       );
+      //     }
+      //   }
+      // }
 
       // Create appropriate success message based on the status
       let successMessage = "Closure request approved successfully";
@@ -800,25 +801,20 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
     setDeletePendingId(requestId);
     setShowDeletePendingConfirm(true);
   };
-
   const handleDeletePendingConfirm = async () => {
     if (!deletePendingId) return;
 
     try {
-      // Delete the pending request
-      const { error } = await supabase
-        .from("nd_site_closure")
-        .delete()
-        .eq("id", deletePendingId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Closure request deleted successfully",
-      });
-
-      refetch();
+      const result = await deletePending(deletePendingId);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Closure request deleted successfully",
+        });
+        refetch();
+      } else {
+        throw new Error(result.error);
+      }
     } catch (err) {
       console.error("Error deleting request:", err);
       toast({
@@ -1000,6 +996,9 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
             {item.nd_site_profile?.sitename || "N/A"}
             <div className="text-xs text-muted-foreground">
               {item.nd_site_profile?.nd_site?.[0]?.standard_code || "N/A"}
+              {item.nd_site_profile?.nd_site?.[0]?.refid_mcmc && (
+                <span> ({item.nd_site_profile.nd_site[0].refid_mcmc})</span>
+              )}
             </div>
           </>
         ),

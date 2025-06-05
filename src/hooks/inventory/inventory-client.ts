@@ -18,6 +18,10 @@ export const inventoryClient = {
       .from("nd_inventory")
       .select(
         `*,
+        nd_inventory_attachment(
+          file_path,
+          created_at
+        ),
         nd_inventory_type ( id, name ),
         site:nd_site (
           id,
@@ -73,6 +77,10 @@ export const inventoryClient = {
       .from("nd_inventory")
       .select(
         `*,
+        nd_inventory_attachment(
+          file_path,
+          created_at
+        ),
         nd_inventory_type ( id, name ),
         site:nd_site (
           id,

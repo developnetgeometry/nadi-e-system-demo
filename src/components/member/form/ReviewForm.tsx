@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogFooter, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText, MapPin, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 type ReviewData = {
   fullname: string;
@@ -44,7 +45,6 @@ type ReviewData = {
   ethnic_id: string;
   occupation_id: string;
   type_sector: string;
-  socio_id: string;
   income_range: string;
   ict_knowledge: string;
   education_level: string;
@@ -66,7 +66,6 @@ type ReviewFormProps = ReviewData & {
   ethnics: { id: string; eng: string }[];
   occupations: { id: string; eng: string }[];
   typeSectors: { id: string; eng: string }[];
-  socioeconomics: { id: string; eng: string }[];
   incomeLevels: { id: string; eng: string }[];
   ictKnowledge: { id: string; eng: string }[];
   educationLevels: { id: string; eng: string }[];
@@ -114,7 +113,6 @@ export function ReviewForm({
   ethnic_id,
   occupation_id,
   type_sector,
-  socio_id,
   income_range,
   ict_knowledge,
   education_level,
@@ -130,7 +128,6 @@ export function ReviewForm({
   ethnics,
   occupations,
   typeSectors,
-  socioeconomics,
   incomeLevels,
   ictKnowledge,
   educationLevels,
@@ -154,8 +151,8 @@ export function ReviewForm({
   };
 
   return (
-    <>
-      <DialogTitle className="mb-4">Review Details</DialogTitle>
+    <div >
+      <div className="mb-4">Review Details</div>
 
       <div className="border rounded-md p-4">
         <h3 className="font-semibold mb-2 flex items-center">
@@ -454,17 +451,7 @@ export function ReviewForm({
             </p>
           </div>
 
-          {/* Socioeconomic */}
-          <div>
-            <span className="text-muted-foreground">Socioeconomic:</span>
-            <p>
-              {socio_id
-                ? socioeconomics.find((socioeconomic) => socioeconomic.id.toString() === socio_id)?.eng || "Not Selected"
-                : "Not Selected"}
-            </p>
-          </div>
-
-          {/* Socioeconomic */}
+          {/* Income Range */}
           <div>
             <span className="text-muted-foreground">Income Range:</span>
             <p>
@@ -511,14 +498,21 @@ export function ReviewForm({
       {/* Agree Declaration */}
       <div className="space-y-2 flex items-center mt-4">
         <Dialog open={isAgreeDialogOpen} onOpenChange={setIsAgreeDialogOpen}>
-          <DialogTrigger asChild>
-            <Checkbox
-              id="agree_declare_checkbox"
-              checked={agree_declare || false}
-              className="ml-2 cursor-pointer"
-            />
-          </DialogTrigger>
+
+          <input
+            type="checkbox"
+            id="agree_declare_checkbox"
+            checked={agree_declare || false}
+            readOnly // Prevent manual toggling
+            onClick={() => setIsAgreeDialogOpen(true)} // Manually open dialog
+            className="ml-2 cursor-pointer w-4 h-4"
+          />
+
           <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Term Of Services</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
             <div
               className="max-h-96 overflow-y-auto"
               onScroll={(e) => handleScroll(e, setAgreeScrolled)}
@@ -587,14 +581,20 @@ export function ReviewForm({
       {/* PDPA Declaration */}
       <div className="space-y-2 flex items-center">
         <Dialog open={isPdpaDialogOpen} onOpenChange={setIsPdpaDialogOpen}>
-          <DialogTrigger asChild>
-            <Checkbox
-              id="pdpa_declare_checkbox"
-              checked={pdpa_declare || false}
-              className="ml-2 cursor-pointer"
-            />
-          </DialogTrigger>
+          <input
+            type="checkbox"
+            id="pdpa_declare_checkbox"
+            checked={pdpa_declare || false}
+            readOnly // Prevent manual toggling
+            onChange={() => setIsPdpaDialogOpen(true)} // Opens the dialog
+            className="ml-2 cursor-pointer w-4 h-4"
+          />
+
           <DialogContent>
+            <DialogHeader>
+              <DialogTitle>PDPA Declaration</DialogTitle>
+              <DialogDescription></DialogDescription>
+            </DialogHeader>
             <div
               className="max-h-96 overflow-y-auto"
               onScroll={(e) => handleScroll(e, setPdpaScrolled)}
@@ -659,6 +659,6 @@ export function ReviewForm({
           </span>
         </Label>
       </div>
-    </>
+    </div>
   );
 }

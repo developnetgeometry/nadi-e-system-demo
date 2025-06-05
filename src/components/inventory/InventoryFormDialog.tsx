@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FileUpload } from "@/components/ui/file-upload";
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import { useInventories } from "@/hooks/use-inventories";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
+import { useInventoryImage  } from "./hooks/use-inventory-image";
 import { supabase } from "@/integrations/supabase/client";
 import { Inventory } from "@/types/inventory";
 import { Site } from "@/types/site";
@@ -26,7 +28,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
+import { useTpManagerSiteId } from "@/hooks/use-site-id";
 import { Textarea } from "../ui/textarea";
+import { X, Upload, Loader2 } from "lucide-react";
 
 export interface InventoryFormDialogProps {
   open: boolean;
@@ -45,6 +49,15 @@ export const InventoryFormDialog = ({
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const {
+    imageFile,
+    previewUrl,
+    isUploading,
+    handleImageChange,
+    handleRemoveImage,
+    uploadImage
+  } = useInventoryImage();
+
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
@@ -61,6 +74,8 @@ export const InventoryFormDialog = ({
       ? parsedMetadata.organization_id
       : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
+  const isTpSiteUser = parsedMetadata?.user_type === "tp_site";
+  const { siteId: tpSiteId } = useTpManagerSiteId(isTpSiteUser);
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
@@ -77,7 +92,7 @@ export const InventoryFormDialog = ({
   const { data: sites = [], isLoading: sitesIsLoading } = useQuery({
     queryKey: ["sites", organizationId],
     queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
+    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser || isStaffUser,
   });
 
   // TODO: use real data
@@ -87,8 +102,8 @@ export const InventoryFormDialog = ({
     { id: 3, name: "Retail Type 3" },
   ];
 
-  const [inventoryId, setInventoryId] = useState<string>(
-    String(inventory?.id || null)
+  const [inventoryId, setInventoryId] = useState<string | null>(
+    inventory?.id || null
   );
   const [inventoryName, setInventoryName] = useState<string>(
     String(inventory?.name || "")
@@ -111,12 +126,12 @@ export const InventoryFormDialog = ({
   const [inventoryBarcode, setInventoryBarcode] = useState<string>(
     String(inventory?.barcode || "")
   );
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
 
   const [duspId, setDuspId] = useState("");
   const [tpId, setTpId] = useState("");
-  const [siteId, setSiteId] = useState<string>(
-    String(defaultSiteId) || String(inventory?.site_id) || ""
-  );
+  const [siteId, setSiteId] = useState<string>("");
+
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
 
   const { useInventoryTypesQuery } = useInventories();
@@ -129,20 +144,77 @@ export const InventoryFormDialog = ({
 
   useEffect(() => {
     if (inventory) {
-      setInventoryId(String(inventory.id));
-      setInventoryName(String(inventory.name));
-      setRetailType(String(inventory.retail_type));
-      setInventoryPrice(String(inventory.price));
-      setInventoryQuantity(String(inventory.quantity));
-      setInventoryDescription(String(inventory.description));
-      setInventoryBarcode(String(inventory.barcode));
+      setInventoryId(inventory.id);
+      setInventoryName(String(inventory.name || ""));
+      setRetailType(String(inventory.retail_type || ""));
+      setInventoryPrice(String(inventory.price || ""));
+      setInventoryQuantity(String(inventory.quantity || ""));
+      setInventoryDescription(String(inventory.description || ""));
+      setInventoryBarcode(String(inventory.barcode || ""));
+      
       if (!isLoadingInventoryType) {
-        setInventoryType(String(inventory.type_id));
+        setInventoryType(String(inventory.type_id || ""));
       }
-      if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading) {
-        setDuspId(String(inventory.site?.dusp_tp?.parent?.id));
-        setTpId(String(inventory.site?.dusp_tp_id));
-        setSiteId(String(inventory.site_id));
+      
+      // Set site-related data for editing
+      if (!duspsIsLoading && !tpsIsLoading && !sitesIsLoading && sites.length > 0) {
+        
+        let duspIdToSet = "";
+        let tpIdToSet = "";
+        
+        if (inventory.site?.dusp_tp_id_display) {
+          // Find matching TP by name from dusp_tp_id_display
+          const matchingTP = tps.find(tp => tp.name === inventory.site.dusp_tp_id_display);
+          if (matchingTP) {
+            tpIdToSet = String(matchingTP.id);
+            // Find the parent DUSP
+            const matchingDUSP = dusps.find(dusp => dusp.id === matchingTP.parent_id);
+            if (matchingDUSP) {
+              duspIdToSet = String(matchingDUSP.id);
+            }
+          }
+        }
+        
+        if (!duspIdToSet && inventory.site?.dusp_tp_id) {
+          tpIdToSet = String(inventory.site.dusp_tp_id);
+          // Find the TP and its parent DUSP
+          const matchingTP = tps.find(tp => tp.id.toString() === tpIdToSet);
+          if (matchingTP && matchingTP.parent_id) {
+            duspIdToSet = String(matchingTP.parent_id);
+          }
+        }
+        
+        if (!duspIdToSet && !tpIdToSet && inventory.site_id) {
+          // Find the site and get its TP relationship
+          const siteData = sites?.find(site => site.nd_site[0].id.toString() === String(inventory.site_id));
+          if (siteData?.dusp_tp_id) {
+            tpIdToSet = String(siteData.dusp_tp_id);
+            // Find the TP and its parent DUSP
+            const matchingTP = tps.find(tp => tp.id.toString() === tpIdToSet);
+            if (matchingTP && matchingTP.parent_id) {
+              duspIdToSet = String(matchingTP.parent_id);
+            }
+          }
+        }
+                
+        if (duspIdToSet) {
+          setDuspId(duspIdToSet);
+        }
+        
+        if (tpIdToSet) {
+          setTpId(tpIdToSet);
+        }
+        
+        if (inventory.site_id) {
+          const siteIdStr = String(inventory.site_id);
+          setSiteId(siteIdStr);
+          
+          // Find and set the selected site
+          const siteData = sites?.find(site => site.nd_site[0].id.toString() === siteIdStr);
+          if (siteData) {
+            setSelectedSite(siteData);
+          }
+        }
       }
     }
   }, [
@@ -151,21 +223,47 @@ export const InventoryFormDialog = ({
     duspsIsLoading,
     tpsIsLoading,
     sitesIsLoading,
+    sites,
+    dusps,
+    tps
   ]);
 
   useEffect(() => {
     if (duspId) {
-      tps?.filter((tp) => tp?.parent_id?.toString() === duspId);
+      // Filter TPs based on selected DUSP
+      const filteredTPs = tps?.filter((tp) => tp?.parent_id?.toString() === duspId);
+      // Reset TP and Site if DUSP changes
+      if (tpId && !filteredTPs?.find(tp => tp.id.toString() === tpId)) {
+        setTpId("");
+        setSiteId("");
+        setSelectedSite(null);
+      }
     }
 
     if (tpId) {
-      sites?.filter((site) => site?.dusp_tp_id?.toString() === tpId);
+      // Filter sites based on selected TP
+      const filteredSites = sites?.filter((site) => site?.dusp_tp_id?.toString() === tpId);
+      // Reset Site if TP changes
+      if (siteId && !filteredSites?.find(site => site.nd_site[0].id.toString() === siteId)) {
+        setSiteId("");
+        setSelectedSite(null);
+      }
     }
-  }, [duspId, tps, tpId, sites]);
+  }, [duspId, tps, tpId, sites, siteId]);
+
+  useEffect(() => {
+    // Handle site selection for non-tp_site users
+    if (siteId && !isTpSiteUser) {
+      const selectedSiteData = sites?.find(site => site.nd_site[0].id.toString() === siteId);
+      if (selectedSiteData) {
+        setSelectedSite(selectedSiteData);
+      }
+    }
+  }, [siteId, sites, isTpSiteUser]);
 
   useEffect(() => {
     if (!open) {
-      setInventoryId("");
+      setInventoryId(null);
       setInventoryName("");
       setInventoryType("");
       setInventoryDescription("");
@@ -176,30 +274,110 @@ export const InventoryFormDialog = ({
       setDuspId("");
       setTpId("");
       setSiteId("");
+      setSelectedSite(null);
+      setExistingImageUrl(null);
+      handleRemoveImage();
     }
-  }, [open]);
+  }, [open, handleRemoveImage]);
 
   useEffect(() => {
     const fetchSite = async () => {
-      const site = await fetchSiteBySiteId(siteId!); // this in nd_site.id form
-      if (site) {
-        setSelectedSite(site);
+      if (!siteId) return;
+      
+      try {
+        // For tp_site users, fetch site info using nd_site.id
+        const { data: siteData, error } = await supabase
+          .from('nd_site')
+          .select(`
+            id,
+            nd_site_profile!site_profile_id(
+              id,
+              sitename
+            )
+          `)
+          .eq('id', siteId)
+          .single();
+        
+        if (!error && siteData) {
+          setSelectedSite({
+            sitename: siteData.nd_site_profile?.sitename || 'Unknown Site',
+            nd_site: [{ id: siteData.id }]
+          } as unknown as Site);
+          console.log("Fetched site for TP site user:", siteData.nd_site_profile?.sitename);
+        } else {
+          console.warn("No site found for siteId:", siteId);
+        }
+      } catch (error) {
+        console.error("Error fetching site:", error);
       }
     };
 
-    if (siteId) {
+    if (siteId && isTpSiteUser) {
       fetchSite();
     }
-  }, [siteId, isStaffUser, inventory]);
+  }, [siteId, isTpSiteUser]);
+
+  useEffect(() => {
+    // Initialize siteId based on context - only run when dialog opens and inventory data is set
+    if (!open) return;
+    
+    if (inventory?.site_id) {
+      // If editing existing inventory, use its site_id
+      setSiteId(String(inventory.site_id));
+    } else if (isTpSiteUser && parsedMetadata?.group_profile?.site_profile_id && !inventory) {
+      // For tp_site users creating new inventory
+      const fetchUserSite = async () => {
+        try {
+          const { data: siteData, error } = await supabase
+            .from('nd_site')
+            .select('id, nd_site_profile!site_profile_id(sitename)')
+            .eq('site_profile_id', parsedMetadata.group_profile.site_profile_id)
+            .single();
+          
+          if (!error && siteData) {
+            setSiteId(String(siteData.id));
+            setSelectedSite({
+              sitename: siteData.nd_site_profile?.sitename || 'Unknown Site',
+              nd_site: [{ id: siteData.id }]
+            } as unknown as Site);
+          }
+        } catch (error) {
+          console.error("Error fetching user's site:", error);
+        }
+      };
+      
+      fetchUserSite();
+    } else if (defaultSiteId && !inventory) {
+      // For other users with default site (creating new inventory)
+      setSiteId(String(defaultSiteId));
+    }
+  }, [open, isTpSiteUser, parsedMetadata?.group_profile?.site_profile_id, defaultSiteId, inventory?.site_id, inventory]);
+
+  useEffect(() => {
+    if (inventory && open) {
+      setExistingImageUrl(inventory.image_url || null);
+    } else if (!open) {
+      setExistingImageUrl(null);
+    }
+  }, [inventory, open]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-
     setIsSubmitting(true);
 
-    if (!siteId && !isStaffUser) {
+    if (!inventoryType) {
+      toast({
+        title: "Error",
+        description: "Please select an Inventory Type.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!siteId && !isTpSiteUser) {
       toast({
         title: "Error",
         description: "Please select a Site.",
@@ -207,6 +385,24 @@ export const InventoryFormDialog = ({
       });
       setIsSubmitting(false);
       return;
+    }
+
+    if (isTpSiteUser && !selectedSite && siteId) {
+      try {
+        const site = await fetchSiteBySiteId(siteId);
+        if (site) {
+          setSelectedSite(site);
+        }
+      } catch (error) {
+        console.error("Error fetching site for tp_site user:", error);
+        toast({
+          title: "Error",
+          description: "Unable to fetch site information.",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     // const inventory = {
@@ -220,7 +416,7 @@ export const InventoryFormDialog = ({
     //   barcode: formData.get("barcode"),
     // };
 
-    const inventory: Partial<Inventory> = {
+    const inventoryData: Partial<Inventory> = {
       name: String(formData.get("name") || ""),
       // Convert string values to numbers for numeric fields
       type_id: inventoryType ? parseInt(inventoryType) : null,
@@ -233,32 +429,77 @@ export const InventoryFormDialog = ({
     };
 
     try {
+      let inventoryRecordId: string | null = inventoryId;
+      
       if (inventoryId) {
-        console.log("Updating existing inventory:", inventory);
+        console.log("Updating existing inventory:", inventoryData);
         const { error: updateError } = await supabase
           .from("nd_inventory")
-          .update({ ...inventory, updated_at: new Date().toISOString() })
+          .update({ ...inventoryData, updated_at: new Date().toISOString() })
           .eq("id", inventoryId);
 
         if (updateError) throw updateError;
-
-        toast({
-          title: "Inventory updated successfully",
-          description: "The inventory has been updated in the system.",
-        });
       } else {
-        console.log("Creating new inventory:", inventory);
-        const { error: insertError } = await supabase
+        console.log("Creating new inventory:", inventoryData);
+        const { data: insertData, error: insertError } = await supabase
           .from("nd_inventory")
-          .insert([{ ...inventory, created_at: new Date().toISOString() }]);
+          .insert([{ ...inventoryData, created_at: new Date().toISOString() }])
+          .select("id")
+          .single();
 
         if (insertError) throw insertError;
-
-        toast({
-          title: "Inventory added successfully",
-          description: "The new inventory has been added to the system.",
-        });
+        inventoryRecordId = insertData.id;
       }
+
+      // Handle image upload and attachment record
+      if (imageFile && inventoryRecordId) {
+        console.log("Uploading new image...");
+        const imageUrl = await uploadImage();
+        
+        if (imageUrl) {
+          const { data: userData } = await supabase.auth.getUser();
+          const userId = userData.user?.id;
+
+          // If updating existing inventory, first delete old attachment
+          if (inventoryId) {
+            await supabase
+              .from("nd_inventory_attachment")
+              .delete()
+              .eq("inventory_id", inventoryId);
+          }
+
+          // Insert new attachment record
+          const { error: attachmentError } = await supabase
+            .from("nd_inventory_attachment")
+            .insert([{
+              inventory_id: inventoryRecordId,
+              file_path: imageUrl,
+              created_by: userId,
+              created_at: new Date().toISOString()
+            }]);
+
+          if (attachmentError) {
+            console.error("Error saving attachment:", attachmentError);
+            throw attachmentError;
+          }
+
+          console.log("Image attachment saved successfully");
+        }
+      }
+      // If image was removed in edit mode
+      else if (!previewUrl && inventoryId) {
+        await supabase
+          .from("nd_inventory_attachment")
+          .delete()
+          .eq("inventory_id", inventoryId);
+      }
+
+      toast({
+        title: inventoryId ? "Inventory updated successfully" : "Inventory added successfully",
+        description: inventoryId 
+          ? "The inventory has been updated in the system." 
+          : "The new inventory has been added to the system.",
+      });
 
       queryClient.invalidateQueries({ queryKey: ["inventories"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-stats"] });
@@ -358,23 +599,25 @@ export const InventoryFormDialog = ({
                     required
                     value={tpId}
                     onValueChange={setTpId}
-                    disabled={tps ? false : true}
+                    disabled={(isSuperAdmin && !duspId) || tps.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select TP" />
                     </SelectTrigger>
                     <SelectContent>
-                      {tps.map((tp, index) => (
-                        <SelectItem key={index} value={tp.id.toString()}>
-                          {tp.name}
-                        </SelectItem>
-                      ))}
+                      {tps
+                        .filter((tp) => !duspId || tp?.parent_id?.toString() === duspId)
+                        .map((tp, index) => (
+                          <SelectItem key={index} value={tp.id.toString()}>
+                            {tp.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
               )}
 
-              {(isSuperAdmin || isDUSPUser || isTPUser) && (
+              {(isSuperAdmin || isDUSPUser || isTPUser || isStaffUser) && !isTpSiteUser && (
                 <div className="space-y-2">
                   <Label htmlFor="type">Site</Label>
                   <Select
@@ -382,22 +625,36 @@ export const InventoryFormDialog = ({
                     required
                     value={siteId}
                     onValueChange={setSiteId}
-                    disabled={sites ? false : true}
+                    disabled={!tpId || sites.length === 0}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select site" />
                     </SelectTrigger>
                     <SelectContent>
-                      {sites.map((site, index) => (
-                        <SelectItem
-                          key={index}
-                          value={site.nd_site[0].id.toString()}
-                        >
-                          {site.sitename}
-                        </SelectItem>
-                      ))}
+                      {sites
+                        .filter((site) => !tpId || site?.dusp_tp_id?.toString() === tpId)
+                        .map((site, index) => (
+                          <SelectItem
+                            key={index}
+                            value={site.nd_site[0].id.toString()}
+                          >
+                            {site.sitename}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {isTpSiteUser && selectedSite && (
+                <div className="space-y-2">
+                  <Label htmlFor="assigned-site">Assigned Site</Label>
+                  <Input
+                    id="assigned-site"
+                    value={selectedSite.sitename || "Loading..."}
+                    disabled
+                    className="bg-muted"
+                  />
                 </div>
               )}
 
@@ -490,6 +747,43 @@ export const InventoryFormDialog = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Inventory Image</Label>
+                {(previewUrl || existingImageUrl) ? (
+                  <div className="relative w-40 h-40 border rounded-md overflow-hidden bg-muted/30 flex items-center justify-center group">
+                    <img
+                      src={previewUrl || existingImageUrl || ''}
+                      alt="Inventory preview"
+                      className="object-contain w-full h-full p-2"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleRemoveImage();
+                        setExistingImageUrl(null);
+                      }}
+                      className="absolute top-2 right-2 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <FileUpload
+                    acceptedFileTypes="image/png,image/jpeg,image/webp,image/svg+xml"
+                    maxFiles={1}
+                    maxSizeInMB={2}
+                    onFilesSelected={handleImageChange}
+                    buttonText={isUploading ? "Uploading..." : "Upload Image"}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      "Upload Inventory Image"
+                    )}
+                  </FileUpload>
+                )}
               </div>
 
               <Button type="submit" disabled={isSubmitting} className="w-full">

@@ -4,7 +4,6 @@ import { useOrganizations } from "@/hooks/use-organizations";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { Inventory } from "@/types/inventory";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Search, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { fetchSites } from "../site/hook/site-utils";
 import { Input } from "../ui/input";
@@ -21,6 +20,24 @@ import {
 import { InventoryDeleteDialog } from "./InventoryDeleteDialog";
 import { InventoryDetailsDialog } from "./InventoryDetailsDialog";
 import { InventoryFormDialog } from "./InventoryFormDialog";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Download, Search, Settings, Trash2, Filter, RotateCcw, Building, Box, CheckCircle, Check, ChevronsUpDown, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
 
 interface InventoryListProps {
   inventories: Inventory[];
@@ -47,6 +64,8 @@ export const InventoryList = ({
     parsedMetadata?.organization_id
       ? parsedMetadata.organization_id
       : null;
+  const isTPSiteUser =
+    parsedMetadata?.user_type === "tp_site";
 
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Inventory | null>(null);
@@ -69,21 +88,74 @@ export const InventoryList = ({
 
   const { data: sites = [], isLoading: isLoadingSites } = useQuery({
     queryKey: ["sites", organizationId],
-    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser),
-    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser,
+    queryFn: () => fetchSites(organizationId, isTPUser, isDUSPUser, isTPSiteUser),
+    enabled: !!organizationId || isSuperAdmin || isDUSPUser || isTPUser || isTPSiteUser,
   });
 
-  const [filter, setFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("");
-  const [duspFilter, setDuspFilter] = useState<string>("");
-  const [tpFilter, setTpFilter] = useState<string>("");
-  const [siteFilter, setSiteFilter] = useState<string>("");
+  const [searchInventory, setSearchInventory] = useState("");
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+  // Selected filters (pending application)
+  const [selectedItemFilters, setSelectedItemFilters] = useState<string[]>([]);
+  const [selectedTPFilters, setSelectedTPFilters] = useState<string[]>([]);
+  const [selectedStatusFilters, setSelectedStatusFilters] = useState<string[]>([]);
+  const [selectedSiteFilters, setSelectedSiteFilters] = useState<string[]>([]);
+
+  // Applied filters (used in actual filtering)
+  const [appliedItemFilters, setAppliedItemFilters] = useState<string[]>([]);
+  const [appliedTPFilters, setAppliedTPFilters] = useState<string[]>([]);
+  const [appliedStatusFilters, setAppliedStatusFilters] = useState<string[]>([]);
+  const [appliedSiteFilters, setAppliedSiteFilters] = useState<string[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data: inventoryTypes = [], isLoading: isLoadingInventoryType } =
-    useInventoryTypesQuery();
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const handleResetFilters = () => {
+    setSearchInventory("");
+    setSelectedItemFilters([]);
+    setSelectedTPFilters([]);
+    setSelectedSiteFilters([]);
+    setSelectedStatusFilters([]);
+    setAppliedItemFilters([]);
+    setAppliedTPFilters([]);
+    setAppliedStatusFilters([]);
+    setAppliedSiteFilters([]);
+    setSortField(null);
+    setSortDirection(null);
+  };
+
+  const hasActiveFilters = 
+    appliedItemFilters.length > 0 ||
+    appliedTPFilters.length > 0 ||
+    appliedSiteFilters.length > 0 ||
+    appliedStatusFilters.length > 0;
+
+  const handleInventoryChange = (value: string) => {
+    setSearchInventory(value || "");
+  };
+
+  const { data: inventoryTypes = [], isLoading: isLoadingInventoryType } = useQuery({
+    queryKey: ['inventory-types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('nd_inventory_type')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   if (isLoadingInventories || isLoadingInventoryType) {
     return (
@@ -96,23 +168,78 @@ export const InventoryList = ({
   }
 
   const filteredInventories = (inventories ?? [])
-    .filter((inventory) =>
-      inventory.name.toLowerCase().includes(filter.toLowerCase())
-    )
-    .filter((inventory) =>
-      typeFilter ? String(inventory?.type.id) === String(typeFilter) : true
-    )
-    .filter((inventory) =>
-      duspFilter
-        ? String(inventory?.site?.dusp_tp.parent.id) === String(duspFilter)
-        : true
-    )
-    .filter((inventory) =>
-      tpFilter ? String(inventory?.site?.dusp_tp_id) === String(tpFilter) : true
-    )
-    .filter((inventory) =>
-      siteFilter ? String(inventory?.site.id) === String(siteFilter) : true
-    );
+  .filter((inventory) => {
+    // Search filter
+    if (searchInventory) {
+      const searchLower = searchInventory.toLowerCase();
+      const nameMatch = inventory.name?.toLowerCase().includes(searchLower);
+      const typeMatch = inventory.type?.name?.toLowerCase().includes(searchLower);
+      const siteMatch = inventory.site?.sitename?.toLowerCase().includes(searchLower);
+      const quantityMatch = inventory.quantity?.toString().includes(searchInventory);
+      
+      if (!(nameMatch || typeMatch || siteMatch || quantityMatch)) {
+        return false;
+      }
+    }
+
+    // Item filter
+    const itemMatch = appliedItemFilters.length > 0 
+      ? appliedItemFilters.includes(inventory.name || "")
+      : true;
+    
+    // TP filter (for TP DUSP display)
+    const tpMatch = appliedTPFilters.length > 0
+      ? appliedTPFilters.includes(inventory.site?.dusp_tp_id_display || "")
+      : true;
+
+    // Site filter (for site names)
+    const siteMatch = appliedSiteFilters.length > 0
+      ? appliedSiteFilters.includes(inventory.site?.sitename || "")
+      : true;
+    
+    const statusMatch = appliedStatusFilters.length > 0
+      ? appliedStatusFilters.includes("Active")
+      : true;
+
+    return itemMatch && tpMatch && siteMatch && statusMatch;
+  })
+  .sort((a, b) => {
+    if (!sortField || !sortDirection) return 0;
+    
+    let valueA, valueB;
+    
+    switch (sortField) {
+      case "name":
+        valueA = a.name || "";
+        valueB = b.name || "";
+        break;
+      case "quantity":
+        valueA = a.quantity || 0;
+        valueB = b.quantity || 0;
+        break;
+      case "type":
+        valueA = a.type?.name || "";
+        valueB = b.type?.name || "";
+        break;
+      case "site":
+        valueA = a.site?.sitename || "";
+        valueB = b.site?.sitename || "";
+        break;
+      case "tp":
+        valueA = a.site?.dusp_tp_id_display || "";
+        valueB = b.site?.dusp_tp_id_display || "";
+        break;
+      default:
+        valueA = a[sortField] || "";
+        valueB = b[sortField] || "";
+    }
+
+    if (sortDirection === "asc") {
+      return valueA > valueB ? 1 : -1;
+    } else {
+      return valueA < valueB ? 1 : -1;
+    }
+  });
 
   const paginatedInventories = filteredInventories.slice(
     (currentPage - 1) * itemsPerPage,
@@ -191,86 +318,326 @@ export const InventoryList = ({
 
   return (
     <div className="space-y-4">
-      <div className="relative mb-4 flex space-x-4">
-        <Input
-          placeholder="Search inventory.."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="pl-10"
-        />
-        <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-        <div className="relative">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-          >
-            <option value="">All</option>
-            {inventoryTypes.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.name}
-              </option>
-            ))}
-          </select>
+      <div className="flex justify-end mb-4">
+        <Button
+          className="flex items-center gap-2 h-10"
+          disabled={isLoadingSites}
+          onClick={handleExportInventories}
+        >
+          <Download className="h-4 w-4" />
+          Download CSV
+        </Button>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-center mb-4">
+        <div className="relative w-80">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search inventory..."
+            value={searchInventory}
+            onChange={(e) => handleInventoryChange(e.target.value)}
+            className="pl-9"
+          />
         </div>
-        {isSuperAdmin && (
-          <div className="relative">
-            <select
-              value={duspFilter}
-              onChange={(e) => setDuspFilter(e.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              disabled={isLoadingDusps}
-            >
-              <option value="">All DUSP</option>
-              {dusps.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {(isSuperAdmin || isDUSPUser) && (
-          <div className="relative">
-            <select
-              value={tpFilter}
-              onChange={(e) => setTpFilter(e.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              disabled={isLoadingTPs}
-            >
-              <option value="">All TP</option>
-              {tps.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {(isSuperAdmin || isDUSPUser || isTPUser) && (
-          <div className="relative">
-            <select
-              value={siteFilter}
-              onChange={(e) => setSiteFilter(e.target.value)}
-              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              disabled={isLoadingSites}
-            >
-              <option value="">All Sites</option>
-              {sites.map((site) => (
-                <option key={site?.id} value={site?.id}>
-                  {site?.sitename}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <div className="relative">
-          <Button disabled={isLoadingSites} onClick={handleExportInventories}>
-            <Download className="h-4 w-4 mr-2" />
-            Download CSV
+
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap gap-2">
+          {/* Item Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 h-10"
+              >
+                <Box className="h-4 w-4 text-gray-500" />
+                Item
+                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-0">
+              <Command>
+                <CommandInput placeholder="Search items..." />
+                <CommandList>
+                  <CommandEmpty>No items found.</CommandEmpty>
+                  <CommandGroup className="max-h-[300px] overflow-y-auto">
+                    {inventories && Array.from(
+                      new Set(inventories.map(inv => inv.name).filter(Boolean))
+                    ).sort().map((itemName) => (
+                      <CommandItem
+                        key={itemName}
+                        onSelect={() => {
+                          setSelectedItemFilters(
+                            selectedItemFilters.includes(itemName)
+                              ? selectedItemFilters.filter(item => item !== itemName)
+                              : [...selectedItemFilters, itemName]
+                          );
+                        }}
+                      >
+                        <div className={cn(
+                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                          selectedItemFilters.includes(itemName)
+                            ? "bg-primary border-primary"
+                            : "opacity-50"
+                        )}>
+                          {selectedItemFilters.includes(itemName) && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                        {itemName}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          {/* TP (DUSP) Filter - For super admin and DUSP users */}
+          {(isSuperAdmin || isDUSPUser) && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 h-10"
+                >
+                  <Building className="h-4 w-4 text-gray-500" />
+                  TP (DUSP)
+                  <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search TP (DUSP)..." />
+                  <CommandList>
+                    <CommandEmpty>No TP (DUSP) found.</CommandEmpty>
+                    <CommandGroup className="max-h-[300px] overflow-y-auto">
+                      {inventories && Array.from(
+                        new Set(inventories.map(inv => inv.site?.dusp_tp_id_display).filter(Boolean))
+                      ).sort().map((tpName) => (
+                        <CommandItem
+                          key={tpName}
+                          onSelect={() => {
+                            setSelectedTPFilters(
+                              selectedTPFilters.includes(tpName)
+                                ? selectedTPFilters.filter(item => item !== tpName)
+                                : [...selectedTPFilters, tpName]
+                            );
+                          }}
+                        >
+                          <div className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                            selectedTPFilters.includes(tpName)
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
+                          )}>
+                            {selectedTPFilters.includes(tpName) && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          {tpName}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Site Filter - For super admin, DUSP users, and TP users */}
+          {(isSuperAdmin || isDUSPUser || isTPUser  || isTPSiteUser) && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 h-10"
+                >
+                  <Building className="h-4 w-4 text-gray-500" />
+                  Site
+                  <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[220px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search sites..." />
+                  <CommandList>
+                    <CommandEmpty>No sites found.</CommandEmpty>
+                    <CommandGroup className="max-h-[300px] overflow-y-auto">
+                      {inventories && Array.from(
+                        new Set(inventories.map(inv => inv.site?.sitename).filter(Boolean))
+                      ).sort().map((siteName) => (
+                        <CommandItem
+                          key={siteName}
+                          onSelect={() => {
+                            setSelectedSiteFilters(
+                              selectedSiteFilters.includes(siteName)
+                                ? selectedSiteFilters.filter(item => item !== siteName)
+                                : [...selectedSiteFilters, siteName]
+                            );
+                          }}
+                        >
+                          <div className={cn(
+                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                            selectedSiteFilters.includes(siteName)
+                              ? "bg-primary border-primary"
+                              : "opacity-50"
+                          )}>
+                            {selectedSiteFilters.includes(siteName) && (
+                              <Check className="h-3 w-3 text-white" />
+                            )}
+                          </div>
+                          {siteName}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Status Filter */}
+          {/* <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 h-10"
+              >
+                <CheckCircle className="h-4 w-4 text-gray-500" />
+                Status
+                <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-0">
+              <Command>
+                <CommandInput placeholder="Search status..." />
+                <CommandList>
+                  <CommandEmpty>No status found.</CommandEmpty>
+                  <CommandGroup className="max-h-[300px] overflow-y-auto">
+                    {["Active", "Inactive", "Out of Stock"].map((statusName) => (
+                      <CommandItem
+                        key={statusName}
+                        onSelect={() => {
+                          setSelectedStatusFilters(
+                            selectedStatusFilters.includes(statusName)
+                              ? selectedStatusFilters.filter(item => item !== statusName)
+                              : [...selectedStatusFilters, statusName]
+                          );
+                        }}
+                      >
+                        <div className={cn(
+                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary/30",
+                          selectedStatusFilters.includes(statusName)
+                            ? "bg-primary border-primary"
+                            : "opacity-50"
+                        )}>
+                          {selectedStatusFilters.includes(statusName) && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                        {statusName}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover> */}
+
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 h-10"
+            onClick={handleResetFilters}
+          >
+            <RotateCcw className="h-4 w-4 text-gray-500" />
+            Reset
           </Button>
         </div>
+
+        <Button
+          variant="secondary"
+          className="flex items-center gap-2 ml-auto"
+          onClick={() => {
+            setAppliedItemFilters(selectedItemFilters);
+            setAppliedTPFilters(selectedTPFilters);
+            setAppliedSiteFilters(selectedSiteFilters);
+            setAppliedStatusFilters(selectedStatusFilters);
+          }}
+        >
+          <Filter className="h-4 w-4" />
+          Apply Filters
+        </Button>
       </div>
+
+      {/* Active Filters Bar */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap gap-2 items-center mb-4">
+          {appliedItemFilters.length > 0 && (
+            <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
+              <span>Item: {appliedItemFilters.length}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => {
+                  setAppliedItemFilters([]);
+                  setSelectedItemFilters([]);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {appliedTPFilters.length > 0 && (
+            <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
+              <span>TP: {appliedTPFilters.length}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => {
+                  setAppliedTPFilters([]);
+                  setSelectedTPFilters([]);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {appliedSiteFilters.length > 0 && (
+            <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
+              <span>Site: {appliedSiteFilters.length}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => {
+                  setAppliedSiteFilters([]);
+                  setSelectedSiteFilters([]);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+          {appliedStatusFilters.length > 0 && (
+            <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
+              <span>Status: {appliedStatusFilters.length}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-4 w-4 p-0 ml-1"
+                onClick={() => {
+                  setAppliedStatusFilters([]);
+                  setSelectedStatusFilters([]);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          )}
+        </div>
+      )}
+
       <div className="rounded-md border">
         {isLoadingInventories ? (
           <Table>
@@ -278,11 +645,11 @@ export const InventoryList = ({
               <TableRow>
                 <TableHead>No.</TableHead>
                 <TableHead>Item Name</TableHead>
-                <TableHead>Type</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead>Nadi Center</TableHead>
-                <TableHead>Request Date</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Site Name</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Request Date</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -325,14 +692,85 @@ export const InventoryList = ({
             <TableHeader>
               <TableRow>
                 <TableHead>No.</TableHead>
-                <TableHead>Item Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Quantity</TableHead>
-                {/* Add DUSP TP column for super admin */}
-                {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
-                <TableHead>Nadi Center</TableHead>
-                <TableHead>Request Date</TableHead>
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("name")}
+                >
+                  <div className="flex items-center">
+                    Item Name
+                    {sortField === "name" ? (
+                      <span className="ml-2">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    ) : (
+                      <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("quantity")}
+                >
+                  <div className="flex items-center">
+                    Quantity
+                    {sortField === "quantity" ? (
+                      <span className="ml-2">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    ) : (
+                      <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("type")}
+                >
+                  <div className="flex items-center">
+                    Type
+                    {sortField === "type" ? (
+                      <span className="ml-2">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    ) : (
+                      <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </TableHead>
+                {isSuperAdmin && (
+                  <TableHead
+                    className="cursor-pointer"
+                    onClick={() => handleSort("tp")}
+                  >
+                    <div className="flex items-center">
+                      TP (DUSP)
+                      {sortField === "tp" ? (
+                        <span className="ml-2">
+                          {sortDirection === "asc" ? "↑" : "↓"}
+                        </span>
+                      ) : (
+                        <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </TableHead>
+                )}
+                <TableHead
+                  className="cursor-pointer"
+                  onClick={() => handleSort("site")}
+                >
+                  <div className="flex items-center">
+                    Site Name
+                    {sortField === "site" ? (
+                      <span className="ml-2">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    ) : (
+                      <ChevronsUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Request Date</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -349,16 +787,16 @@ export const InventoryList = ({
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
                       <TableCell>{inventory?.name || ""}</TableCell>
+                      <TableCell>{inventory?.quantity || "0"}</TableCell>
                       <TableCell>{inventory?.type?.name || ""}</TableCell>
-                      <TableCell>{inventory?.quantity || ""}</TableCell>
                       {isSuperAdmin && (
                         <TableCell>
                           {inventory?.site?.dusp_tp_id_display || "N/A"}
                         </TableCell>
                       )}
                       <TableCell>{inventory?.site.sitename || ""}</TableCell>
-                      <TableCell>{requestDate || ""}</TableCell>
                       <TableCell>{"Status"}</TableCell>
+                      <TableCell>{requestDate || ""}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button

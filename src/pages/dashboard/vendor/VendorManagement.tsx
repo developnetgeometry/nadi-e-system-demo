@@ -4,7 +4,15 @@ import { PageHeader } from "@/components/ui/dashboard/PageHeader";
 import { PageContainer } from "@/components/ui/dashboard/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Building2, MapPin, FileText, Plus } from "lucide-react";
+import {
+  Users,
+  Building2,
+  MapPin,
+  FileText,
+  Plus,
+  Calendar,
+  BarChart3,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -68,9 +76,9 @@ const VendorManagement = () => {
       color: "bg-purple-500",
     },
     {
-      title: "Pending Reports",
+      title: "Total Reports",
       value: stats.pendingReports,
-      icon: MapPin,
+      icon: BarChart3,
       color: "bg-orange-500",
     },
   ];
@@ -113,7 +121,7 @@ const VendorManagement = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -151,16 +159,33 @@ const VendorManagement = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <FileText className="mr-2 h-5 w-5" />
-                Contracts & Reports
+                <Calendar className="mr-2 h-5 w-5" />
+                Contracts
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-gray-600 mb-4">
-                View contracts and vendor reports
+                View and manage vendor contracts
               </p>
               <Button asChild className="w-full">
                 <Link to="/vendor/contracts">View Contracts</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="mr-2 h-5 w-5" />
+                Reports
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-4">
+                View vendor reports and analytics
+              </p>
+              <Button asChild className="w-full">
+                <Link to="/vendor/reports">View Reports</Link>
               </Button>
             </CardContent>
           </Card>

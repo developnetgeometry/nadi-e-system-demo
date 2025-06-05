@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EventQRCodeGenerator } from "@/components/programmes/EventQRCodeGenerator";
 import { CalendarIcon, Clock, Edit, MapPin, User } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,11 +64,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
       try {
         setLoading(true);
-        
+
         // Fetch event details with joins to get category, subcategory, program, and module names
         const { data: event, error } = await supabase
           .from("nd_event")
-          .select(`
+          .select(
+            `
             id,
             program_name,
             description,
@@ -86,7 +87,8 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             nd_event_subcategory:subcategory_id(id, name),
             nd_event_program:program_id(id, name),
             nd_event_module:module_id(id, name)
-          `)
+          `
+          )
           .eq("id", eventId)
           .single();
 
@@ -116,9 +118,11 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         setEventDetails(formattedEvent);
 
         // Fetch participants
-        const { data: participantsData, error: participantsError } = await supabase
-          .from("nd_event_participant")
-          .select(`
+        const { data: participantsData, error: participantsError } =
+          await supabase
+            .from("nd_event_participant")
+            .select(
+              `
             id,
             attendance,
             nd_member_profile:member_id(
@@ -126,13 +130,14 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               fullname,
               email
             )
-          `)
-          .eq("event_id", eventId);
+          `
+            )
+            .eq("event_id", eventId);
 
         if (participantsError) throw participantsError;
 
         // Transform participant data
-        const formattedParticipants = participantsData.map(participant => ({
+        const formattedParticipants = participantsData.map((participant) => ({
           id: participant.id,
           fullname: participant.nd_member_profile?.fullname || "Unknown",
           email: participant.nd_member_profile?.email || "No email",
@@ -207,7 +212,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   };
 
   // Check if event can be edited (status is draft or postponed)
-  const canEditEvent = eventDetails && ["draft", "postponed"].includes(eventDetails.status_name.toLowerCase());
+  const canEditEvent =
+    eventDetails &&
+    ["draft", "postponed"].includes(eventDetails.status_name.toLowerCase());
 
   const handleEdit = () => {
     if (eventDetails) {
@@ -246,8 +253,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
       <DialogContent className="max-h-[85vh] overflow-y-auto max-w-3xl">
         <DialogHeader className="flex flex-row items-center justify-between">
           <div>
-            <DialogTitle className="text-xl">{eventDetails.program_name}</DialogTitle>
-            <div className="mt-2">{getStatusBadge(eventDetails.status_name)}</div>
+            <DialogTitle className="text-xl">
+              {eventDetails.program_name}
+            </DialogTitle>
+            <div className="mt-2">
+              {getStatusBadge(eventDetails.status_name)}
+            </div>
           </div>
           {canEditEvent && (
             <Button variant="outline" size="sm" onClick={handleEdit}>
@@ -303,7 +314,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   </div>
                   <div className="mt-2 text-sm">
                     <span className="font-medium">Mode: </span>
-                    <span>{eventDetails.program_mode === 1 ? "Online" : "Physical"}</span>
+                    <span>
+                      {eventDetails.program_mode === 1 ? "Online" : "Physical"}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -342,7 +355,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                     </div>
                     <div className="text-sm mt-2">
                       <span className="font-medium">Max Participants: </span>
-                      <span>{eventDetails.total_participant || "No limit"}</span>
+                      <span>
+                        {eventDetails.total_participant || "No limit"}
+                      </span>
                     </div>
                     <div className="text-sm mt-2">
                       <span className="font-medium">Trainer: </span>
@@ -367,6 +382,19 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                 <p className="text-sm whitespace-pre-line">
                   {eventDetails.description}
                 </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Registration QR Code
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EventQRCodeGenerator
+                  eventId={eventId!}
+                  eventTitle={eventDetails.program_name}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -401,11 +429,17 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                             <td className="p-2">{participant.email}</td>
                             <td className="p-2">
                               {participant.attendance ? (
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-green-50 text-green-700 border-green-200"
+                                >
                                   Present
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-gray-50 text-gray-700 border-gray-200"
+                                >
                                   Not Recorded
                                 </Badge>
                               )}

@@ -1,9 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
+import { createUser } from "@/routes/api/createUser";
 
 export const insertMemberData = async (formData: {
   identity_no_type: string;
   identity_no: string;
-  isIcNumberValid: boolean; // check if valid
+  isIcNumberExist: boolean;
+  isIcNumberValid: boolean;
   isUnder12: boolean;
   parent_fullname: string;
   parent_ic_no: string;
@@ -34,7 +36,6 @@ export const insertMemberData = async (formData: {
   ethnic_id: number | string;
   occupation_id: number | string;
   type_sector: number | string;
-  socio_id: number | string;
   ict_knowledge: number | string;
   education_level: number | string;
   oku_status: boolean | string;
@@ -56,21 +57,19 @@ export const insertMemberData = async (formData: {
   let userId, memberId;
 
   try {
-    // Create the user account
-    const { data: userData, error: createUserError } = await supabase.functions.invoke("create-user", {
-      body: {
-        email: formData.email,
-        fullName: formData.fullname,
-        userType: "member",
-        userGroup: 7,
-        phoneNumber: formData.mobile_no,
-        icNumber: formData.identity_no,
-        password: formData.password,
-      },
+    // Create the user account using the createUser function
+    const userData = await createUser({
+      email: formData.email,
+      fullName: formData.fullname,
+      userType: "member",
+      userGroup: 7,
+      phoneNumber: formData.mobile_no,
+      icNumber: formData.identity_no,
+      password: formData.password,
     });
 
-    if (createUserError || !userData) {
-      throw new Error(createUserError?.message || "Failed to create user");
+    if (!userData || !userData.id) {
+      throw new Error("Failed to create user");
     }
 
     userId = userData.id;
@@ -80,6 +79,7 @@ export const insertMemberData = async (formData: {
       .from("nd_member_profile")
       .insert({
         identity_no: formData.identity_no,
+        identity_no_type: formData.identity_no_type,
         fullname: formData.fullname,
         ref_id: formData.ref_id,
         community_status: formData.community_status,
@@ -91,7 +91,6 @@ export const insertMemberData = async (formData: {
         ethnic_id: formData.ethnic_id,
         occupation_id: formData.occupation_id,
         type_sector: formData.type_sector,
-        socio_id: formData.socio_id,
         ict_knowledge: formData.ict_knowledge,
         education_level: formData.education_level,
         oku_status: formData.oku_status,

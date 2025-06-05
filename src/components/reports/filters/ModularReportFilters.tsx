@@ -7,6 +7,8 @@ import { NadiFilter } from "./NadiFilter";
 import { DateFilter } from "./DateFilter";
 import { PhaseFilter } from "./PhaseFilter";
 import { TPFilter } from "./TPFilter";
+import { PillarFilter } from "./PillarFilter";
+import { ProgramFilter } from "./ProgramFilter";
 import { DUSP, Phase, NADISite } from "@/hooks/report/use-report-filters";
 
 type ModularReportFiltersProps = {
@@ -17,13 +19,16 @@ type ModularReportFiltersProps = {
         nadi?: boolean;
         tp?: boolean;
         date?: boolean;
+        pillar?: boolean; // nd_event_subcategory
+        program?: boolean; // nd_event_program
     };
 
     // Filter state (all optional based on showFilters)
     duspFilter?: (string | number)[];
     setDuspFilter?: (value: (string | number)[]) => void;
     phaseFilter?: string | number | null;
-    setPhaseFilter?: (value: string | number | null) => void;    nadiFilter?: (string | number)[];
+    setPhaseFilter?: (value: string | number | null) => void;
+    nadiFilter?: (string | number)[];
     setNadiFilter?: (value: (string | number)[]) => void;
     tpFilter?: (string | number)[];
     setTpFilter?: (value: (string | number)[]) => void;
@@ -31,6 +36,12 @@ type ModularReportFiltersProps = {
     setMonthFilter?: (value: string | number | null) => void;
     yearFilter?: string | number | null;
     setYearFilter?: (value: string | number | null) => void;
+    pillarFilter?: (string | number)[];
+    setPillarFilter?: (value: (string | number)[]) => void;
+    pillarOptions?: { id: string | number; name: string }[];
+    programFilter?: (string | number)[];
+    setProgramFilter?: (value: (string | number)[]) => void;
+    programOptions?: { id: string | number; name: string }[];
 
     // Filter data (all optional based on showFilters)
     dusps?: DUSP[];
@@ -46,7 +57,7 @@ type ModularReportFiltersProps = {
 
 export const ModularReportFilters = ({
     // Configuration
-    showFilters = { dusp: true, phase: true, nadi: true, tp: false, date: true },
+    showFilters = { dusp: false, phase: false, nadi: false, tp: false, date: false, pillar: false, program: false },
 
     // Filter state
     duspFilter = [],
@@ -61,6 +72,13 @@ export const ModularReportFilters = ({
     setMonthFilter = () => { },
     yearFilter = null,
     setYearFilter = () => { },
+    // Destructure new filter props
+    pillarFilter = [],
+    setPillarFilter = () => { },
+    pillarOptions = [],
+    programFilter = [],
+    setProgramFilter = () => { },
+    programOptions = [],
 
     // Filter data
     dusps = [],
@@ -78,7 +96,9 @@ export const ModularReportFilters = ({
         (showFilters.phase && phaseFilter !== null) ||
         (showFilters.nadi && nadiFilter.length > 0) ||
         (showFilters.tp && tpFilter.length > 0) ||
-        (showFilters.date && (monthFilter !== null || yearFilter !== null));
+        (showFilters.date && (monthFilter !== null || yearFilter !== null)) ||
+        (showFilters.pillar && pillarFilter.length > 0) ||
+        (showFilters.program && programFilter.length > 0);
 
     // Reset only the filters that are enabled
     const resetFilters = () => {
@@ -90,6 +110,9 @@ export const ModularReportFilters = ({
             setMonthFilter(null);
             setYearFilter(null);
         }
+        if (showFilters.pillar) setPillarFilter([]);
+        if (showFilters.program) setProgramFilter([]);
+
     };
 
     return (
@@ -106,24 +129,6 @@ export const ModularReportFilters = ({
                     />
                 )}
 
-                {/* Phase Filter */}
-                {showFilters.phase && (
-                    <PhaseFilter
-                        phaseFilter={phaseFilter}
-                        setPhaseFilter={setPhaseFilter}
-                        phases={phases}
-                        isLoading={isLoading}
-                    />
-                )}                {/* NADI Filter */}
-                {showFilters.nadi && (
-                    <NadiFilter
-                        selectedItems={nadiFilter}
-                        setSelectedItems={setNadiFilter}
-                        nadiSites={nadiSites}
-                        isLoading={isLoading}
-                    />
-                )}
-                
                 {/* TP Filter */}
                 {showFilters.tp && (
                     <TPFilter
@@ -133,6 +138,47 @@ export const ModularReportFilters = ({
                         isLoading={isLoading}
                     />
                 )}
+
+                {/* Phase Filter */}
+                {showFilters.phase && (
+                    <PhaseFilter
+                        phaseFilter={phaseFilter}
+                        setPhaseFilter={setPhaseFilter}
+                        phases={phases}
+                        isLoading={isLoading}
+                    />
+                )}
+
+                {/* NADI Filter */}
+                {showFilters.nadi && (
+                    <NadiFilter
+                        selectedItems={nadiFilter}
+                        setSelectedItems={setNadiFilter}
+                        nadiSites={nadiSites}
+                        isLoading={isLoading}
+                    />
+                )}
+
+                {/* Pillar Filter */}
+                {showFilters.pillar && (
+                    <PillarFilter
+                        pillarFilter={pillarFilter || []}
+                        setPillarFilter={setPillarFilter || (() => { })}
+                        pillarOptions={pillarOptions || []}
+                        isLoading={isLoading}
+                    />
+                )}
+
+                {/* Program Filter */}
+                {showFilters.program && (
+                    <ProgramFilter
+                        programFilter={programFilter || []}
+                        setProgramFilter={setProgramFilter || (() => { })}
+                        programOptions={programOptions || []}
+                        isLoading={isLoading}
+                    />
+                )}
+
 
                 {/* Month and Year Filters */}
                 {showFilters.date && (
@@ -146,6 +192,7 @@ export const ModularReportFilters = ({
                         isLoading={false}
                     />
                 )}
+
 
                 {/* Spacer */}
                 <div className="flex-1"></div>
@@ -195,7 +242,7 @@ export const ModularReportFilters = ({
                             onClear={() => setNadiFilter([])}
                         />
                     )}
-                    
+
                     {showFilters.tp && tpFilter.length > 0 && (
                         <FilterBadge
                             label="TP"
@@ -219,6 +266,26 @@ export const ModularReportFilters = ({
                             label="Year"
                             value={yearOptions.find(y => y.id === yearFilter)?.label || String(yearFilter)}
                             onClear={() => setYearFilter(null)}
+                        />
+                    )}
+
+                    {showFilters.pillar && pillarFilter && pillarFilter.length > 0 && (
+                        <FilterBadge
+                            label="Pillar"
+                            value={pillarFilter.length > 1
+                                ? `${pillarFilter.length} selected`
+                                : (pillarOptions || []).find(p => p.id === pillarFilter[0])?.name || String(pillarFilter[0])}
+                            onClear={() => setPillarFilter && setPillarFilter([])}
+                        />
+                    )}
+
+                    {showFilters.program && programFilter && programFilter.length > 0 && (
+                        <FilterBadge
+                            label="Program"
+                            value={programFilter.length > 1
+                                ? `${programFilter.length} selected`
+                                : (programOptions || []).find(p => p.id === programFilter[0])?.name || String(programFilter[0])}
+                            onClear={() => setProgramFilter && setProgramFilter([])}
                         />
                     )}
                 </div>

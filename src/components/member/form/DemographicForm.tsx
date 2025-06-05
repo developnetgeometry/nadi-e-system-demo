@@ -7,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DialogTitle } from "@/components/ui/dialog";
 
 type DemographicData = {
   nationality_id: string;
@@ -15,7 +14,6 @@ type DemographicData = {
   ethnic_id: string;
   occupation_id: string;
   type_sector: string;
-  socio_id: string;
   income_range: string;
   ict_knowledge: string;
   education_level: string;
@@ -29,7 +27,6 @@ type DemographicFormProps = DemographicData & {
   ethnics: { id: string; eng: string }[];
   occupations: { id: string; eng: string }[];
   typeSectors: { id: string; eng: string }[];
-  socioeconomics: { id: string; eng: string }[];
   incomeLevels: { id: string; eng: string }[];
   ictKnowledge: { id: string; eng: string }[];
   educationLevels: { id: string; eng: string }[];
@@ -41,7 +38,6 @@ export function DemographicForm({
   ethnic_id,
   occupation_id,
   type_sector,
-  socio_id,
   income_range,
   ict_knowledge,
   education_level,
@@ -52,14 +48,13 @@ export function DemographicForm({
   ethnics,
   occupations,
   typeSectors,
-  socioeconomics,
   incomeLevels,
   ictKnowledge,
   educationLevels,
 }: DemographicFormProps) {
   return (
     <>
-      <DialogTitle className="mb-4">Demographic Information</DialogTitle>
+      <div className="mb-4">Demographic Information</div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Nationality */}
@@ -159,26 +154,6 @@ export function DemographicForm({
               {typeSectors.map((sector) => (
                 <SelectItem key={sector.id} value={sector.id.toString()}>
                   {sector.eng}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Socioeconomic */}
-        <div className="space-y-2 mb-4">
-          <Label className="flex items-center">Socioeconomic</Label>
-          <Select
-            value={socio_id || ""}
-            onValueChange={(value) => updateFields({ socio_id: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select socioeconomic" />
-            </SelectTrigger>
-            <SelectContent>
-              {socioeconomics.map((socio) => (
-                <SelectItem key={socio.id} value={socio.id.toString()}>
-                  {socio.eng}
                 </SelectItem>
               ))}
             </SelectContent>

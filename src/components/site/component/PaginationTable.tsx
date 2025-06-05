@@ -51,7 +51,7 @@ export const PaginationTable = ({
         if (key === "available") {
             return <Badge className="bg-green-100 text-black border border-green-500 ...">{value}</Badge>;
         }
-        if (key === "status") {
+        if (key === "maintenance") {
             return <Badge className="bg-amber-100 text-black border border-amber-500 ...">{value}</Badge>;
         }
         if (key === "action") {

@@ -12,6 +12,9 @@ export interface Inventory {
   quantity?: number;
   site_id?: number;
   site?: Site;
+  nd_inventory_attachment?: InventoryAttachment[];
+  image_url?: string;
+  category_id?: number;
   created_by?: string;
   created_at?: string;
   updated_by?: string;
@@ -40,4 +43,14 @@ export interface InventoryStatsCardProps {
   value: string;
   color?: string;
   description: string;
+}
+
+export interface InventoryAttachment {
+  id?: string;
+  file_path: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  inventory_id?: string;
 }

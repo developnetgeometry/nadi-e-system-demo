@@ -9,6 +9,7 @@ import ClaimDashboard from "@/pages/dashboard/claim/ClaimDashboard";
 import ClaimSettings from "@/pages/dashboard/claim/ClaimSettings";
 import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
 import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
+import ActivityLogs from "@/pages/dashboard/compliance/ActivityLogs";
 import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
 import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
 import DashboardPage from "@/pages/dashboard/Dashboard";
@@ -36,6 +37,7 @@ import NadiDashboard from "@/pages/dashboard/NadiDashboard";
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import POSSales from "@/pages/dashboard/pos/POSSales";
 import Products from "@/pages/dashboard/pos/Products";
+import POSPickupDropOff from "@/pages/dashboard/pos/POSPickupDropOff";
 import POSTransactions from "@/pages/dashboard/pos/Transactions";
 import OthersProgrammesPage from "@/pages/dashboard/programmes/OthersProgrammes";
 import ProgrammesDashboard from "@/pages/dashboard/programmes/ProgrammesDashboard";
@@ -69,75 +71,78 @@ import { RouteObject } from "react-router-dom";
 
 import ProgrammeRegistration from "@/pages/dashboard/programmes/ProgrammeRegistration";
 import ProgrammeEdit from "@/pages/dashboard/programmes/ProgrammeRegistration";
+import ClaimRegister from "@/pages/dashboard/claim/ClaimRegister";
+import ClaimReports from "@/pages/dashboard/claim/ClaimReports";
 
-import { vendorRoutes } from "@/routes/module-routes/module.vendor.routes";
+import { hrRoutes } from "@/routes/module-routes/module.hr.routes";
+import { vendorRoutes } from "./module-routes/module.vendor.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
-  {
-    path: "/hr",
-    element: (
-      // <ProtectedRoute requiredPermission="view_hr_dashboard">
-      <HRDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="view_hr_dashboard">
-      <HRSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/employees",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_employees">
-      <Employees />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/site-staff",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_site_staff">
-      <SiteStaff />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/attendance",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_attendance">
-      <Attendance />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/leave",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_leave">
-      <Leave />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/payroll",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_leave">
-      <Payroll />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/hr/staff-training",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_leave">
-      <StaffTraining />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/hr",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_hr_dashboard">
+  //     <HRDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_hr_dashboard">
+  //     <HRSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/employees",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_employees">
+  //     <Employees />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/site-staff",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_site_staff">
+  //     <SiteStaff />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/attendance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_attendance">
+  //     <Attendance />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/leave",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_leave">
+  //     <Leave />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/payroll",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_leave">
+  //     <Payroll />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/hr/staff-training",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_leave">
+  //     <StaffTraining />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // POS Routes
   {
     path: "/pos",
@@ -171,14 +176,14 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/pos/PUDO",
-  //   element: (
-  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
-  //     <PUDO />
-  //     // </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/pos/pudo",
+    element: (
+      // <ProtectedRoute requiredPermission="view_pos_transactions">
+      <POSPickupDropOff />
+      // </ProtectedRoute>
+    ),
+  },
   // Claim Routes
   {
     path: "/claim",
@@ -193,6 +198,22 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="manage_claim_settings">
       <ClaimSettings />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/claim/register",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_claim_settings">
+      <ClaimRegister />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/claim/report",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_claim_settings">
+      <ClaimReports />
       // </ProtectedRoute>
     ),
   },
@@ -264,18 +285,18 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   {
-    path: "/programmes/registration",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeRegistration />
-      // </ProtectedRoute>
-    ),
-  },
-  {
     path: "/programmes/edit/:id",
     element: (
       // <ProtectedRoute requiredPermission="manage_programme_settings">
       <ProgrammeEdit />
+      // </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/programmes/registration",
+    element: (
+      // <ProtectedRoute requiredPermission="manage_programme_settings">
+      <ProgrammeRegistration />
       // </ProtectedRoute>
     ),
   },
@@ -356,6 +377,14 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Compliance Routes
+  {
+    path: "/compliance/activity",
+    element: (
+      // <ProtectedRoute requiredPermission="view_activity_logs">
+      <ActivityLogs />
+      // </ProtectedRoute>
+    ),
+  },
   {
     path: "/compliance/audit",
     element: (
@@ -667,5 +696,6 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
+  ...hrRoutes,
   ...vendorRoutes,
 ];

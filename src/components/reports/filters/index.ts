@@ -9,3 +9,5 @@ export { FilterBadge } from './component/FilterBadge';
 export { DateFilter } from './DateFilter';
 export { NadiFilter } from './NadiFilter';
 export { ModularReportFilters } from './ModularReportFilters';
+export { PillarFilter } from './PillarFilter';
+export { ProgramFilter } from './ProgramFilter';

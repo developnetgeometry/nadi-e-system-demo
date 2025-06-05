@@ -17,7 +17,7 @@ import {
     PDFPhaseQuarterInfo
 
 } from "../../components/PDFComponents";
-import { StaffDistribution, StaffVacancy, TurnoverRate, HRStaffMember } from "@/hooks/report/use-hr-salary-data";
+import { staffPerformanceIncentive, staffSalary, staffVacancy } from "@/hooks/report/use-hr-salary-pdf-data";
 
 
 // Define props for the PDF Report
@@ -29,16 +29,10 @@ interface HRSalaryReportPDFProps {
     periodValue?: string;
 
     // Data for reports
-    staff: HRStaffMember[];
-    totalStaff: number;
-    activeNadiSites: number;
-    sitesWithIncentives: number;
-    averageSalary: number;
-    averageIncentive: number;
-    employeeDistribution: StaffDistribution[];
-    vacancies: StaffVacancy[];
-    turnoverRates: TurnoverRate[];
-    averageTurnoverRate: number;
+    staffSalary: staffSalary[];
+    staffPerformanceIncentive: staffPerformanceIncentive[];
+    staffVacancy: staffVacancy[];
+   
 
     // Logos
     mcmcLogo?: string;
@@ -54,6 +48,8 @@ interface HRSalaryReportPDFProps {
     staffDistributionChart?: string;
     salaryChart?: string;
     vacancyChart?: string;
+    incentiveChart?: string;
+    incentiveDistributionChart?: string;
 }
 
 // PDF styles for HR Salary report
@@ -166,7 +162,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         textAlign: "center",
-        color: "#0000FF",
+        color: "black",
     }, chartContainer: {
         flexDirection: "row",
         marginBottom: 20,
@@ -215,27 +211,26 @@ const styles = StyleSheet.create({
 export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
     duspLabel = "",
     phaseLabel = "PILOT", // Default to match the image
-    periodType = "QUARTER / YEAR",
-    periodValue = "4/2024", // Default to match the image
-    staff = [],
-    totalStaff = 0,
-    activeNadiSites = 0,
-    sitesWithIncentives = 0,
-    averageSalary = 0,
-    averageIncentive = 0,
-    employeeDistribution = [],
-    vacancies = [],
-    turnoverRates = [],
-    averageTurnoverRate = 0,
+    periodType = "All Time", // Default to match the image
+    periodValue = "All Time", // Default to match the image
+
+    staffVacancy = [],
+    staffPerformanceIncentive = [],
+    staffSalary = [],
+
     mcmcLogo = "",
     duspLogo = "",
     monthFilter = null,
     yearFilter = null,
     currentMonth = new Date().getMonth() + 1,
     currentYear = new Date().getFullYear(),
+
     staffDistributionChart = "",
     salaryChart = "",
-    vacancyChart = ""
+    vacancyChart = "",
+    incentiveChart = "",
+    incentiveDistributionChart = "",
+
 }) => {
     // Format salary to RM format
     const formatCurrency = (amount: number) => {
@@ -250,7 +245,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 <PDFHeader mcmcLogo={mcmcLogo} duspLogo={duspLogo} />
 
                 <PDFMetaSection
-                    reportTitle="Salary & HR Management"
+                    reportTitle="1.0 Salary & HR Management"
                     phaseLabel={phaseLabel}
                     periodType={periodType}
                     periodValue={periodValue}
@@ -260,40 +255,28 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 {/* Staff Distribution Section */}
                 <View style={styles.chartContainer}>
-                    <View style={styles.pieChartPlaceholder}>                        {staffDistributionChart ? (
-                            <Image src={staffDistributionChart} style={{ width: 360, height: 220, objectFit: "contain" }} />
-                        ) : (
-                            <>
-                                <Text>Number of Staff by Designation (Total: 5)</Text>
-                                <Text>Manager (2)</Text>
-                                <Text>Assistant Manager (1)</Text>
-                                <Text>Part-timer (2)</Text>
-                            </>
-                        )}
+                    <View style={styles.pieChartPlaceholder}>                        
+                        {staffDistributionChart ? (
+                            <Image src={staffDistributionChart} style={{ objectFit: "contain" }} />
+                        ) : null}
                     </View>
 
                     <View style={styles.summaryBoxContainer}>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Number of Employees</Text>
-                            <Text style={styles.summaryValue}>Total : {totalStaff || "XX"}</Text>
+                            <Text style={styles.summaryValue}>Total : {staffSalary.length || "XX"}</Text>
                         </View>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Salary</Text>
-                            <Text style={styles.summaryValue}>Total : RM {formatCurrency((averageSalary * totalStaff) || 0)}</Text>
+                            <Text style={styles.summaryValue}>Total : RM {formatCurrency((staffSalary.reduce((total, staff) => total + (staff.salary || 0), 0)) || 0)}</Text>
                         </View>
                     </View>
-                </View>                {/* Salary Bar Chart */}
+                </View>                
+                {/* Salary Bar Chart */}
                 <View style={styles.barChartPlaceholder}>
                     {salaryChart ? (
-                        <Image src={salaryChart} style={{ width: 520, height: 240, objectFit: "contain" }} />
-                    ) : (
-                        <>
-                            <Text>Salary Amount (RM) by Designation</Text>
-                            <Text>Manager: RM 5000</Text>
-                            <Text>Assistant Manager: RM 3000</Text>
-                            <Text>Part-timer: RM 2000</Text>
-                        </>
-                    )}
+                        <Image src={salaryChart} style={{ objectFit: "contain" }} />
+                    ) : null}
                 </View>
 
                 <PDFFooter customText="This document is system-generated from e-System." />
@@ -309,7 +292,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Number of Employees</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{totalStaff || "XX"}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffSalary.length || "XX"}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -322,29 +305,18 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 </View>
 
                 {/* Staff Table */}
-                <View style={styles.dataTable}>
-                    <View style={styles.tableHeader}>
-                        <Text style={[styles.tableHeaderCell, { width: '5%' }]}>NO</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '25%' }]}>NADI & STATE</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '20%' }]}>FULL NAME</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>POSITION</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>JOIN DATE</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '10%' }]}>SERVICES PERIOD</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '10%', borderRightWidth: 0 }]}>SALARY (RM)</Text>
-                    </View>
-
-                    {staff.slice(0, 20).map((member, index) => (
-                        <View key={index} style={styles.tableRow}>
-                            <Text style={[styles.tableCell, { width: '5%' }]}>{index + 1}.</Text>
-                            <Text style={[styles.tableCell, { width: '25%' }]}>{member.sitename}, {member.state}</Text>
-                            <Text style={[styles.tableCell, { width: '20%' }]}>{member.fullname}</Text>
-                            <Text style={[styles.tableCell, { width: '15%' }]}>{member.position}</Text>
-                            <Text style={[styles.tableCell, { width: '15%' }]}>{member.join_date}</Text>
-                            <Text style={[styles.tableCell, { width: '10%' }]}>{member.service_period}</Text>
-                            <Text style={[styles.tableCell, { width: '10%', borderRightWidth: 0 }]}>{formatCurrency(member.salary || 0)}</Text>
-                        </View>
-                    ))}
-                </View>
+                <PDFTable
+                    data={staffSalary}
+                    columns={[
+                        { header: "NO", key: (_, i) => `${i + 1}.`,width: "5%"  },
+                        { header: "NADI & STATE", key: row => `${row.sitename}, ${row.state}` },
+                        { header: "FULL NAME", key: "staffName" },
+                        { header: "POSITION", key: "position" },
+                        { header: "JOIN DATE", key: "staffJoiningDate" },
+                        { header: "SERVICES PERIOD", key: "service_period" },
+                        { header: "SALARY (RM)", key: "salary", render: v => formatCurrency(v || 0) },
+                    ]}
+                />
 
                 <PDFFooter customText="This document is system-generated from e-System." />
             </Page>
@@ -353,40 +325,31 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
             <Page size="A4" style={styles.page}>
 
                 <PDFSectionTitle title="1.2 PERFORMANCE INCENTIVE (MANAGER / ASSISTANT MANAGER / PART TIMER)" />
-                {/* Staff Distribution Section */}
+                {/* Staff Distribution Section (for incentives) */}
                 <View style={styles.chartContainer}>
                     <View style={styles.pieChartPlaceholder}>
-                        {staffDistributionChart ? (
-                            <Image src={staffDistributionChart} style={{ width: 320, height: 250, objectFit: "contain" }} />
-                        ) : (
-                            <>
-                                <Text>Number of Staff by Designation (Total: 5)</Text>
-                                <Text>Manager (2)</Text>
-                                <Text>Assistant Manager (1)</Text>
-                                <Text>Part-timer (2)</Text>
-                            </>
-                        )}
+                        {incentiveDistributionChart ? (
+                            <Image src={incentiveDistributionChart} style={{ width: 320, height: 250, objectFit: "contain" }} />
+                        ) : null}
                     </View>
 
                     <View style={styles.summaryBoxContainer}>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Number of Employees</Text>
-                            <Text style={styles.summaryValue}>Total : {totalStaff || "XX"}</Text>
+                            <Text style={styles.summaryValue}>Total : {staffPerformanceIncentive.length || "XX"}</Text>
                         </View>
                         <View style={styles.summaryBox}>
                             <Text style={styles.summaryTitle}>Performance Incentive</Text>
-                            <Text style={styles.summaryValue}>Total : RM {formatCurrency((averageIncentive * totalStaff) || 0)}</Text>
+                            <Text style={styles.summaryValue}>Total : RM {formatCurrency(staffPerformanceIncentive.reduce((total, staff) => total + (staff.incentive || 0), 0))}</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Performance Incentive Bar Chart */}
                 <View style={styles.barChartPlaceholder}>
-                    <Text>Performance Incentives (RM) by Designation</Text>
-                    <Text>Manager: RM 2000</Text>
-                    <Text>Assistant Manager: RM 1500</Text>
-                    <Text>Part-timer: RM 1000</Text>
-                    {/* This would be a bar chart in real implementation */}
+                    {incentiveChart ? (
+                        <Image src={incentiveChart} style={{ objectFit: "contain" }} />
+                    ) : null}
                 </View>
 
                 <PDFFooter customText="This document is system-generated from e-System." />
@@ -401,7 +364,7 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                     <View style={{ flexDirection: "row" }}>
                         <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
                             <Text style={{ fontSize: 8 }}>Number of Employees</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{totalStaff || "XX"}</Text>
+                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffPerformanceIncentive.length || "XX"}</Text>
                         </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
@@ -414,29 +377,18 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 </View>
 
                 {/* Performance Incentive Table */}
-                <View style={styles.dataTable}>
-                    <View style={styles.tableHeader}>
-                        <Text style={[styles.tableHeaderCell, { width: '5%' }]}>NO</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '25%' }]}>NADI & STATE</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '20%' }]}>FULL NAME</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>POSITION</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>DATE START WORK</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '15%' }]}>DATE END WORK</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '5%', borderRightWidth: 0 }]}>DURATION</Text>
-                    </View>
-
-                    {staff.slice(0, 20).map((member, index) => (
-                        <View key={index} style={styles.tableRow}>
-                            <Text style={[styles.tableCell, { width: '5%' }]}>{index + 1}.</Text>
-                            <Text style={[styles.tableCell, { width: '25%' }]}>{member.sitename}, {member.state}</Text>
-                            <Text style={[styles.tableCell, { width: '20%' }]}>{member.fullname}</Text>
-                            <Text style={[styles.tableCell, { width: '15%' }]}>{member.position}</Text>
-                            <Text style={[styles.tableCell, { width: '15%' }]}>{member.date_start_work}</Text>
-                            <Text style={[styles.tableCell, { width: '15%' }]}>{member.date_end_work}</Text>
-                            <Text style={[styles.tableCell, { width: '5%', borderRightWidth: 0 }]}>{member.duration}</Text>
-                        </View>
-                    ))}
-                </View>
+                <PDFTable
+                    data={staffPerformanceIncentive}
+                    columns={[
+                        { header: "NO", key: (_, i) => `${i + 1}.`,width: "5%" },
+                        { header: "NADI & STATE", key: row => `${row.sitename}, ${row.state}` },
+                        { header: "FULL NAME", key: "staffName" },
+                        { header: "POSITION", key: "position" },
+                        { header: "DATE START WORK", key: "startWorkDate" },
+                        { header: "DATE END WORK", key: "endWorkDate" },
+                        { header: "DURATION", key: "duration" },
+                    ]}
+                />
 
                 <PDFFooter customText="This document is system-generated from e-System." />
             </Page>
@@ -452,29 +404,22 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                         {/* Vacancies Pie Chart */}
                         {vacancyChart ? (
                             <Image src={vacancyChart} style={{ width: 360, height: 270, objectFit: "contain" }} />
-                        ) : (
-                            <>
-                                <Text>Number of Vacancies by Designation (Total: 5)</Text>
-                                <Text>Manager (3)</Text>
-                                <Text>Assistant Manager (2)</Text>
-                            </>
-                        )}
+                        ) : null}
                     </View>
 
                     <View style={styles.summaryBoxContainer}>
-                        <View style={styles.summaryBox}>
-                            <Text style={styles.summaryTitle}>Number of Vacancies</Text>
-                            <Text style={styles.summaryValue}>
-                                {vacancies.reduce((sum, vacancy) => sum + vacancy.open, 0) || 5}
-                            </Text>
-                        </View>
-
-                        <View style={styles.summaryBox}>
-                            <Text style={styles.summaryTitle}>Turnover Rate</Text>
-                            <Text style={styles.summaryValue}>
-                                {averageTurnoverRate ? `${averageTurnoverRate}%` : '0.3%'}
-                            </Text>
-                        </View>
+                          <View style={styles.summaryBox}>
+                              <Text style={styles.summaryTitle}>Number of Vacancies</Text>
+                              <Text style={styles.summaryValue}>
+                                  {staffVacancy.length || "XX"}
+                              </Text>
+                          </View>
+                          <View style={styles.summaryBox}>
+                              <Text style={styles.summaryTitle}>Turnover Rate</Text>
+                              <Text style={styles.summaryValue}>
+                                  {0.4}%
+                              </Text>
+                          </View>
                     </View>
                 </View>
 
@@ -489,18 +434,18 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10, position: "relative" }}>
                     <View style={{ flexDirection: "row" }}>
-                        <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0 }}>
-                            <Text style={{ fontSize: 8 }}>Number of Vacancies</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{vacancies.reduce((sum, vacancy) => sum + vacancy.open, 0) || "X"}</Text>
-                        </View>
-                        <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
-                            <Text style={{ fontSize: 8 }}>Manager</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{vacancies.find(v => v.position === 'Manager')?.open || "X"}</Text>
-                        </View>
-                        <View style={{ ...styles.totalBox, padding: 10, width: 80, marginVertical: 0, marginLeft: 10 }}>
-                            <Text style={{ fontSize: 8 }}>Assistant Manager</Text>
-                            <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{vacancies.find(v => v.position === 'Assistant Manager')?.open || "X"}</Text>
-                        </View>
+                          <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0 }}>
+                              <Text style={{ fontSize: 8 }}>Number of Vacancies</Text>
+                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffVacancy.length}</Text>
+                          </View>
+                          <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0, marginLeft: 10 }}>
+                              <Text style={{ fontSize: 8 }}>Manager</Text>
+                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffVacancy.filter(v => v.position === 'Manager')?.length}</Text>
+                          </View>
+                          <View style={{ ...styles.totalBox, padding: 10, width: 100, marginVertical: 0, marginLeft: 10 }}>
+                              <Text style={{ fontSize: 8 }}>Assistant Manager</Text>
+                              <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{staffVacancy.filter(v => v.position === 'Assistant Manager')?.length}</Text>
+                          </View>
                     </View>
                     <View style={{ position: "absolute", bottom: 0, right: 0 }}>
                         <PDFPhaseQuarterInfo
@@ -512,24 +457,15 @@ export const HRSalaryReportPDF: React.FC<HRSalaryReportPDFProps> = ({
                 </View>
 
                 {/* Vacancies Table */}
-                <View style={styles.dataTable}>
-                    <View style={styles.tableHeader}>
-                        <Text style={[styles.tableHeaderCell, { width: '5%' }]}>NO</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '40%' }]}>NADI</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '30%' }]}>STATE</Text>
-                        <Text style={[styles.tableHeaderCell, { width: '25%', borderRightWidth: 0 }]}>POSITION</Text>
-                    </View>
-
-                    {/* Show only 8 rows as in the image */}
-                    {[...Array(8)].map((_, index) => (
-                        <View key={index} style={styles.tableRow}>
-                            <Text style={[styles.tableCell, { width: '5%' }]}>{index + 1}.</Text>
-                            <Text style={[styles.tableCell, { width: '40%' }]}>{index % 2 === 0 ? 'BATU 1 SUNGAI PINGGAN' : 'KAMPUNG BERUAS'}</Text>
-                            <Text style={[styles.tableCell, { width: '30%' }]}>{index % 2 === 0 ? 'JOHOR' : 'PAHANG'}</Text>
-                            <Text style={[styles.tableCell, { width: '25%', borderRightWidth: 0 }]}>{index % 2 === 0 ? 'MANAGER' : 'ASSISTANT MANAGER'}</Text>
-                        </View>
-                    ))}
-                </View>
+                <PDFTable
+                    data={staffVacancy}
+                    columns={[
+                        { header: "NO", key: (_, i) => `${i + 1}.`,width: "5%"  },
+                        { header: "NADI", key: "sitename" },
+                        { header: "STATE", key:"state" },
+                        { header: "POSITION", key:"position" },
+                    ]}
+                />
 
                 <PDFFooter customText="This document is system-generated from e-System." />
             </Page>
