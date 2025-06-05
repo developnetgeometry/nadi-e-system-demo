@@ -1801,7 +1801,7 @@ const HRDashboard: React.FC = () => {
 
                       calendarCells.push(
                         <div
-                          key={day}
+                          key={`${year}-${month}-${day}`}
                           className={`p-2 rounded-md border text-center min-h-[60px] ${
                             isToday ? "border-blue-500 border-2" : ""
                           } ${
@@ -1896,7 +1896,11 @@ const HRDashboard: React.FC = () => {
                             );
                           })
                           .map((holiday) => (
-                            <TableRow key={`${holiday.date}-${holiday.id || holiday.desc}`}>
+                            <TableRow
+                              key={`${holiday.date}-${
+                                holiday.id || holiday.desc
+                              }`}
+                            >
                               <TableCell>
                                 {format(
                                   new Date(holiday.date),
