@@ -294,6 +294,10 @@ const SiteClosureDetailDialog: React.FC<SiteClosureDetailDialogProps> = ({
                     <TableCell>{closure.nd_site_profile?.nd_site?.[0]?.standard_code || 'N/A'}</TableCell>
                   </TableRow>
                   <TableRow>
+                    <TableCell className="font-medium">Ref ID MCMC</TableCell>
+                    <TableCell>{closure.nd_site_profile?.nd_site?.[0]?.refid_mcmc || 'N/A'}</TableCell>
+                  </TableRow>
+                  <TableRow>
                     <TableCell className="font-medium">Organization</TableCell>
                     <TableCell>
                       {closure.nd_site_profile?.organizations?.name || 'N/A'}
