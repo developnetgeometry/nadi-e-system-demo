@@ -125,25 +125,27 @@ const Refresh = async ({
                 <PDFSectionTitle title="5.2 REFRESH TRAINING (MANAGER / ASSISTANT MANAGER)" />
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        {/* total NADI sites with refresh */}
-                        <Text>Total NADI{"\n"}</Text>
-                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{Array.from(new Set(refresh.map(item => item.site_id))).length}</Text>
-                    </View>
-                    <View style={styles.totalBox}>
-                        {/* Total number of employee sites with refresh */}
-                        <Text>Number of {"\n"} Employee</Text>
-                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.length}</Text>
-                    </View>
-                    <View style={styles.totalBox}>
-                        {/* Manager sites with refresh */}
-                        <Text>Manager{"\n"}</Text>
-                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.filter(v => v.participant_position === 'Manager').length}</Text>
-                    </View>
-                    <View style={styles.totalBox}>
-                        {/* Assistant Manager sites with refresh */}
-                        <Text>Assistant{"\n"}Manager</Text>
-                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.filter(v => v.participant_position === 'Assistant Manager').length}</Text>
+                    <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
+                        <View style={styles.totalBox}>
+                            {/* total NADI sites with refresh */}
+                            <Text>Total NADI{"\n"}</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{Array.from(new Set(refresh.map(item => item.site_id))).length}</Text>
+                        </View>
+                        <View style={styles.totalBox}>
+                            {/* Total number of employee sites with refresh */}
+                            <Text>Number of {"\n"} Employee</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.length}</Text>
+                        </View>
+                        <View style={styles.totalBox}>
+                            {/* Manager sites with refresh */}
+                            <Text>Manager{"\n"}</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.filter(v => v.participant_position === 'Manager').length}</Text>
+                        </View>
+                        <View style={styles.totalBox}>
+                            {/* Assistant Manager sites with refresh */}
+                            <Text>Assistant{"\n"}Manager</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{refresh.filter(v => v.participant_position === 'Assistant Manager').length}</Text>
+                        </View>
                     </View>
                     {!header && (
                         <View style={{ alignSelf: "flex-end" }}>
@@ -168,7 +170,7 @@ const Refresh = async ({
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
                             { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
-                            { key: "participant_fullname", header: "FULL NAME"},
+                            { key: "participant_fullname", header: "FULL NAME" },
                             { key: "participant_position", header: "POSITION" },
                             { key: "programme_name", header: "PROGRAM NAME" },
                             { key: "programme_method", header: "METHOD" },
@@ -181,7 +183,7 @@ const Refresh = async ({
                 )}
                 <PDFFooter />
             </Page>
-        </Document>
+        </Document >
     );
     // Create a blob from the PDF document (main report and appendix title page)
     const reportBlob = await pdf(RefreshDoc).toBlob();

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { debounce } from "lodash"; // Import lodash debounce
 import { SiteProfileSelect } from "../components/SiteProfileSelect";
 import { useSiteProfiles } from "../hook/useSiteProfile";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 type PersonalData = {
   fullname: string;
@@ -14,6 +16,7 @@ type PersonalData = {
   dob: string;
   mobile_no: string;
   email: string;
+  isEmailExist: boolean;
   gender: string;
   status_membership: string;
   status_entrepreneur: boolean | string | null;
@@ -35,6 +38,7 @@ export function PersonalForm({
   dob,
   mobile_no,
   email,
+  isEmailExist,
   gender,
   status_membership,
   status_entrepreneur,
@@ -45,10 +49,42 @@ export function PersonalForm({
   statusMemberships,
   registrationMethods,
 }: PersonalFormProps) {
-
-
-
   const { profiles = [], loading, error: siteProfilesError } = useSiteProfiles();
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [hasCheckedEmail, setHasCheckedEmail] = useState(false);
+  const [lastValidatedEmail, setLastValidatedEmail] = useState<string | null>(null);
+  const debounceEmailRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!email || email.length < 5) {
+      setHasCheckedEmail(false);
+      return;
+    }
+    if (email === lastValidatedEmail) return;
+
+    if (debounceEmailRef.current) {
+      clearTimeout(debounceEmailRef.current);
+    }
+
+    debounceEmailRef.current = setTimeout(async () => {
+      setCheckingEmail(true);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (!error) {
+        const exists = !!data;
+        updateFields({ isEmailExist: !exists });
+        setHasCheckedEmail(true);
+        setLastValidatedEmail(email);
+      }
+
+      setCheckingEmail(false);
+    }, 500);
+  }, [email, updateFields, lastValidatedEmail]);
 
   return (
     <>
@@ -120,6 +156,22 @@ export function PersonalForm({
             value={email}
             onChange={(e) => updateFields({ email: e.target.value })}
           />
+          {email.length > 5 && (
+            <div className="mt-1 flex items-center space-x-1 text-sm">
+              {checkingEmail ? (
+                <span className="text-gray-500 italic">Checking...</span>
+              ) : hasCheckedEmail ? (
+                isEmailExist ? (
+                  <span/>
+                ) : (
+                  <span className="text-red-600 flex items-center">
+                    <XCircle className="w-4 h-4 mr-1" />
+                    This email already exists in the system
+                  </span>
+                )
+              ) : null}
+            </div>
+          )}
         </div>
 
         {/* Gender */}
