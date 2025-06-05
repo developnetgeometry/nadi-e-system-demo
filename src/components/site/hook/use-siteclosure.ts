@@ -82,7 +82,7 @@ export const fetchlListClosureData = async (
       nd_site_profile:nd_site_profile(
           id,
           sitename,
-          nd_site:nd_site(standard_code),
+          nd_site:nd_site(standard_code,refid_mcmc),
           region_id:nd_region(id, eng),
           state_id:nd_state(id, name),
           organizations:organizations(
@@ -223,7 +223,7 @@ export const fetchClosureDetail = async (
       nd_site_profile:nd_site_profile(
           id,
           sitename,
-          nd_site:nd_site(standard_code),
+          nd_site:nd_site(standard_code,refid_mcmc),
           organizations:organizations(
               id,
               name,
