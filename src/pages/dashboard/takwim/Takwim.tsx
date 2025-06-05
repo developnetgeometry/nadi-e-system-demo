@@ -248,7 +248,7 @@ export default function Takwim() {
                   {format(date, "PPP")}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className="w-auto p-3" align="end">
                 <Calendar
                   mode="single"
                   selected={date}
@@ -265,9 +265,13 @@ export default function Takwim() {
                   }}
                   modifiersStyles={{
                     weekend: { color: "#ea384c" },
-                    holiday: { color: "#ea384c", fontWeight: "bold" },
+                    holiday: {
+                      color: "#ea384c",
+                      fontWeight: "bold",
+                      backgroundColor: "#ffe4e6",
+                    },
                     hasEvent: {
-                      backgroundColor: "#d6bcfa",
+                      backgroundColor: "#e9d5ff",
                       borderRadius: "100%",
                     },
                     today: {
@@ -282,62 +286,317 @@ export default function Takwim() {
 
           <TabsContent value="calendar" className="space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>{format(date, "MMMM yyyy")}</CardTitle>
-                <CardDescription>
-                  View and manage events for the selected date
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <div>
+                  <CardTitle>{format(date, "MMMM yyyy")}</CardTitle>
+                  <CardDescription>
+                    View events for the selected date
+                  </CardDescription>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const newDate = new Date(date);
+                      newDate.setMonth(date.getMonth() - 1);
+                      setDate(newDate);
+                    }}
+                    title="Previous month"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-chevron-left"
+                    >
+                      <path d="m15 18-6-6 6-6" />
+                    </svg>
+                  </Button>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="min-w-[130px]">
+                        {format(date, "MMMM yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <div className="p-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newDate = new Date(date);
+                              newDate.setFullYear(date.getFullYear() - 1);
+                              setDate(newDate);
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="lucide lucide-chevron-left"
+                            >
+                              <path d="m15 18-6-6 6-6" />
+                            </svg>
+                          </Button>
+                          <div className="font-medium">
+                            {date.getFullYear()}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newDate = new Date(date);
+                              newDate.setFullYear(date.getFullYear() + 1);
+                              setDate(newDate);
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="lucide lucide-chevron-right"
+                            >
+                              <path d="m9 18 6-6-6-6" />
+                            </svg>
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {Array.from({ length: 12 }, (_, i) => {
+                            const monthDate = new Date(
+                              date.getFullYear(),
+                              i,
+                              1
+                            );
+                            return (
+                              <Button
+                                key={i}
+                                variant={
+                                  i === date.getMonth() ? "default" : "outline"
+                                }
+                                size="sm"
+                                className="text-xs"
+                                onClick={() => {
+                                  const newDate = new Date(date);
+                                  newDate.setMonth(i);
+                                  setDate(newDate);
+                                }}
+                              >
+                                {format(monthDate, "MMM")}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      const newDate = new Date(date);
+                      newDate.setMonth(date.getMonth() + 1);
+                      setDate(newDate);
+                    }}
+                    title="Next month"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-chevron-right"
+                    >
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const today = new Date();
+                      setDate(today);
+                    }}
+                    title="Today"
+                  >
+                    Today
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-4 w-full">
-                  {/* Calendar */}
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(newDate) => newDate && setDate(newDate)}
-                    className="pointer-events-auto w-full rounded-lg border"
-                    initialFocus
-                    modifiers={{
-                      weekend: (date) => isSaturday(date) || isSunday(date),
-                      holiday: (date) => isHoliday(date),
-                      hasEvent: (date) => hasEvent(date),
-                      today: (date) =>
-                        format(date, "yyyy-MM-dd") ===
-                        format(new Date(), "yyyy-MM-dd"),
-                    }}
-                    modifiersStyles={{
-                      weekend: { color: "#ea384c" },
-                      holiday: {
-                        color: "#ea384c",
-                        fontWeight: "bold",
-                        backgroundColor: "#ffe4e6",
-                      },
-                      hasEvent: {
-                        backgroundColor: "#e9d5ff",
-                        borderRadius: "100%",
-                        fontWeight: "bold",
-                      },
-                      today: {
-                        border: "2px solid #7e22ce",
-                        borderRadius: "100%",
-                      },
-                    }}
-                  />
+                  {/* Calendar Header - Days of Week */}
+                  <div className="grid grid-cols-7 gap-2 mb-2 font-semibold text-center">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                      (day) => (
+                        <div
+                          key={day}
+                          className={day === "Sun" ? "text-red-500" : ""}
+                        >
+                          {day}
+                        </div>
+                      )
+                    )}
+                  </div>
 
-                  {/* <CalendarMonthView /> */}
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {(() => {
+                      // Get current year and month from the selected date
+                      const year = date.getFullYear();
+                      const month = date.getMonth();
+
+                      // Get the first day of the month
+                      const firstDayOfMonth = new Date(year, month, 1);
+                      // Get the last day of the month
+                      const lastDayOfMonth = new Date(year, month + 1, 0);
+
+                      // Calculate the starting day of the week (0 = Sunday, 6 = Saturday)
+                      const startingDayOfWeek = firstDayOfMonth.getDay();
+
+                      // Calculate the total days in the month
+                      const daysInMonth = lastDayOfMonth.getDate();
+
+                      // Create array to hold all calendar cells
+                      const calendarCells = [];
+
+                      // Add empty cells for days before the first of the month
+                      for (let i = 0; i < startingDayOfWeek; i++) {
+                        calendarCells.push(
+                          <div
+                            key={`empty-${i}`}
+                            className="p-2 rounded-md border border-gray-100"
+                          ></div>
+                        );
+                      }
+
+                      // Add cells for each day of the month
+                      for (let day = 1; day <= daysInMonth; day++) {
+                        const currentDate = new Date(year, month, day);
+                        const formattedDate = format(currentDate, "yyyy-MM-dd");
+                        const isWeekend =
+                          isSaturday(currentDate) || isSunday(currentDate);
+                        const isToday =
+                          format(currentDate, "yyyy-MM-dd") ===
+                          format(new Date(), "yyyy-MM-dd");
+                        const hasEventOnDay = hasEvent(currentDate);
+                        const isHolidayOnDay = isHoliday(currentDate);
+                        const isSelected =
+                          currentDate.getDate() === date.getDate() &&
+                          currentDate.getMonth() === date.getMonth() &&
+                          currentDate.getFullYear() === date.getFullYear();
+
+                        // Find holiday information for the current day
+                        const holiday = holidays.find(
+                          (h) => h.date === formattedDate
+                        );
+
+                        // Find events for the current day
+                        const dayEvents = events.filter(
+                          (event) =>
+                            event.startDate.toDateString() ===
+                              currentDate.toDateString() ||
+                            event.endDate.toDateString() ===
+                              currentDate.toDateString() ||
+                            (event.startDate <= currentDate &&
+                              event.endDate >= currentDate)
+                        );
+
+                        calendarCells.push(
+                          <div
+                            key={day}
+                            onClick={() => setDate(new Date(year, month, day))}
+                            className={`p-2 rounded-md border cursor-pointer min-h-[70px] transition-colors ${
+                              isSelected ? "ring-2 ring-purple-500" : ""
+                            } ${
+                              isHolidayOnDay
+                                ? "bg-red-50 border-red-200"
+                                : hasEventOnDay
+                                ? "bg-purple-50 border-purple-200"
+                                : "border-gray-200 hover:bg-gray-50"
+                            } ${isToday ? "border-purple-500 border-2" : ""}`}
+                          >
+                            <div
+                              className={`font-medium ${
+                                isWeekend ? "text-red-500" : ""
+                              }`}
+                            >
+                              {day}
+                            </div>
+                            {isHolidayOnDay && holiday && (
+                              <div
+                                className="text-xs text-red-500 mt-1 truncate"
+                                title={holiday.desc}
+                              >
+                                {holiday.desc}
+                              </div>
+                            )}
+                            {hasEventOnDay && dayEvents.length > 0 && (
+                              <div className="text-xs text-purple-600 mt-1">
+                                {dayEvents.length > 1 ? (
+                                  `${dayEvents.length} events`
+                                ) : (
+                                  <span
+                                    className="truncate block"
+                                    title={dayEvents[0].title}
+                                  >
+                                    {dayEvents[0].title}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return calendarCells;
+                    })()}
+                  </div>
+
                   {/* Legend */}
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-400" />{" "}
+                      <div className="w-4 h-4 rounded bg-red-50 border border-red-200" />{" "}
                       Holiday
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-purple-400" />{" "}
+                      <div className="w-4 h-4 rounded bg-purple-50 border border-purple-200" />{" "}
                       Event
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full border border-purple-700" />{" "}
+                      <div className="w-4 h-4 rounded border-2 border-purple-500" />{" "}
                       Today
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded ring-2 ring-purple-500" />{" "}
+                      Selected
                     </div>
                   </div>
 
