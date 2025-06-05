@@ -996,6 +996,9 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
             {item.nd_site_profile?.sitename || "N/A"}
             <div className="text-xs text-muted-foreground">
               {item.nd_site_profile?.nd_site?.[0]?.standard_code || "N/A"}
+              {item.nd_site_profile?.nd_site?.[0]?.refid_mcmc && (
+                <span> ({item.nd_site_profile.nd_site[0].refid_mcmc})</span>
+              )}
             </div>
           </>
         ),

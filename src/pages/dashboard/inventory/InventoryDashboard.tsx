@@ -8,6 +8,8 @@ import { useSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { InventoryStatsCardProps, InventoryStatsData } from "@/types/inventory";
 import { Plus, Settings } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -31,14 +33,84 @@ const InventoryDashboard = () => {
     value: 0,
   };
 
-  const { useInventoriesQuery } = useInventories();
+  // const { useInventoriesQuery } = useInventories();
 
-  const {
-    data: inventories,
-    isLoading: isLoadingInventories,
-    error: errorInventories,
-    refetch,
-  } = useInventoriesQuery();
+  // const {
+  //   data: inventories,
+  //   isLoading: isLoadingInventories,
+  //   error: errorInventories,
+  //   refetch,
+  // } = useInventoriesQuery();
+
+  // Fetch inventories with filtering based on user type
+  const { data: inventories, isLoading: isLoadingInventories, error: errorInventories, refetch } = useQuery({
+    queryKey: ['inventories', parsedMetadata?.group_profile?.site_profile_id, isTpSiteUser, parsedMetadata?.user_type],
+    queryFn: async () => {
+      let inventoryQuery = supabase
+        .from('nd_inventory')
+        .select(`
+          *,
+          nd_inventory_type!type_id(id, name),
+          nd_site!site_id(
+            id,
+            site_profile_id,
+            nd_site_profile!site_profile_id(
+              id,
+              sitename,
+              dusp_tp_id,
+              organizations!dusp_tp_id(name)
+            )
+          ),
+          nd_inventory_attachment!left(file_path)
+        `)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
+      // For tp_site users - filter by site_profile_id
+      if (isTpSiteUser && parsedMetadata?.group_profile?.site_profile_id) {
+        const userSiteProfileId = parsedMetadata.group_profile.site_profile_id;
+        
+        const { data: siteData, error: siteError } = await supabase
+          .from('nd_site')
+          .select('id')
+          .eq('site_profile_id', userSiteProfileId);
+        
+        if (siteError) throw siteError;
+        
+        const siteIds = siteData?.map(site => site.id) || [];
+        
+        if (siteIds.length > 0) {
+          inventoryQuery = inventoryQuery.in('site_id', siteIds);
+        } else {
+          // No sites found for this user, return empty array
+          return [];
+        }
+      }
+      // For other users (!isTpSiteUser) - show all inventory (no additional filter)
+
+      const { data: inventoryData, error: inventoryError } = await inventoryQuery;
+      
+      if (inventoryError) 
+        throw inventoryError;
+
+      if (!inventoryData || inventoryData.length === 0) 
+        return [];
+
+      const transformedInventories = inventoryData.map(inventory => ({
+        ...inventory,
+        type: inventory.nd_inventory_type,
+        site: {
+          ...inventory.nd_site?.nd_site_profile,
+          dusp_tp_id: inventory.nd_site?.nd_site_profile?.dusp_tp_id,
+          dusp_tp_id_display: inventory.nd_site?.nd_site_profile?.organizations?.name || 'N/A'
+        },
+        image_url: inventory.nd_inventory_attachment?.[0]?.file_path || null
+      }));
+      
+      return transformedInventories;
+    },
+    enabled: true,
+  });
 
   useEffect(() => {
     if (!isDialogOpen) {
