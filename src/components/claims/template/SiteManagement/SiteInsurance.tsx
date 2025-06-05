@@ -151,7 +151,7 @@ const Insurance = async ({
                             { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
                             { key: "state", header: "STATE" },
-                            { key: "duration", header: "DURATION" },
+                            { key: "duration", header: "DURATION",align: "center" },
                         ]}
                     />
                 ) : (

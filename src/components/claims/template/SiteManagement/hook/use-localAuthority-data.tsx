@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface localAuthorityData {
     site_id: string;
     standard_code: string;
@@ -21,38 +23,31 @@ export const fetchlocalAuthorityData = async ({
     nadiFilter = [],
     tpFilter = null,
 }) => {
-    console.log("Fetching local authority data with filters:", { 
-        startDate, 
-        endDate, 
-        duspFilter, 
-        phaseFilter, 
-        nadiFilter, 
-        tpFilter 
-    });
-    
-    // Mock data (replace with actual API call in production)
-    const localAuthority = [
-        {
-            site_id: "1",
-            standard_code: "J01N001",
-            site_name: "NADI Kampung Pulai Sebatang",
-            refId: "J02C001",
-            state: "Johor"
-        },
-        {
-            site_id: "2",
-            standard_code: "C11N010",
-            site_name: "NADI Kuala Tahan",
-            refId: "C09C005",
-            state: "Pahang"
-        }
-        
-    ];
-    
-    // Return the data in the same format as the hook
-    return { 
-        localAuthority: localAuthority as localAuthorityData[]
-    };
+    // Fetch from nd_site_profile where local_authority is TRUE
+    let query = supabase
+        .from("nd_site_profile")
+        .select(`
+            id,
+            sitename,
+            local_authority,
+            nd_site:nd_site(standard_code, refid_tp),
+            state_id:nd_state(name)
+        `)
+        .eq("local_authority", true);
+    if (phaseFilter) query = query.eq("phase_id", Number(phaseFilter));
+    if (nadiFilter && nadiFilter.length > 0) query = query.in("id", nadiFilter.map(Number));
+    // Add TP and DUSP filter logic if needed
+    const { data: siteDetails, error } = await query;
+    if (error) throw error;
+    if (!siteDetails || siteDetails.length === 0) return { localAuthority: [] };
+    const localAuthority = siteDetails.map(site => ({
+        site_id: String(site.id),
+        standard_code: site.nd_site?.[0]?.standard_code || "",
+        site_name: site.sitename || "",
+        refId: site.nd_site?.[0]?.refid_tp || "",
+        state: site.state_id?.name || ""
+    }));
+    return { localAuthority };
 }
 
 // For backward compatibility
