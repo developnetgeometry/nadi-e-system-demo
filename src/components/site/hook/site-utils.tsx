@@ -99,7 +99,7 @@ export const fetchSiteBySiteId = async (
     const { data: site } = await supabase
       .from("nd_site")
       .select("site_profile_id")
-      .eq("id", siteId)
+      .eq("site_profile_id", siteId)
       .single();
 
     if (!site) {

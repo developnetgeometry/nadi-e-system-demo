@@ -162,7 +162,9 @@ export function StaffFormDialog({
 
         if (error) throw error;
         if (data) {
-          setAvailableSites(data);
+          setAvailableSites(
+            data.map((site) => ({ ...site, id: site.id.toString() }))
+          );
         }
       } catch (err) {
         console.error("Error fetching sites:", err);
@@ -191,7 +193,9 @@ export function StaffFormDialog({
           .order("eng");
 
         if (error) throw error;
-        if (data) setRaces(data);
+        if (data) {
+          setRaces(data.map((race) => ({ ...race, id: race.id.toString() })));
+        }
       } catch (err) {
         console.error("Error fetching races:", err);
       }
@@ -205,7 +209,14 @@ export function StaffFormDialog({
           .order("eng");
 
         if (error) throw error;
-        if (data) setReligions(data);
+        if (data) {
+          setReligions(
+            data.map((religion) => ({
+              ...religion,
+              id: religion.id.toString(),
+            }))
+          );
+        }
       } catch (err) {
         console.error("Error fetching religions:", err);
       }
@@ -219,7 +230,14 @@ export function StaffFormDialog({
           .order("eng");
 
         if (error) throw error;
-        if (data) setNationalities(data);
+        if (data) {
+          setNationalities(
+            data.map((nationality) => ({
+              ...nationality,
+              id: nationality.id.toString(),
+            }))
+          );
+        }
       } catch (err) {
         console.error("Error fetching nationalities:", err);
       }
@@ -233,7 +251,11 @@ export function StaffFormDialog({
           .order("eng");
 
         if (error) throw error;
-        if (data) setMaritalStatuses(data);
+        if (data) {
+          setMaritalStatuses(
+            data.map((status) => ({ ...status, id: status.id.toString() }))
+          );
+        }
       } catch (err) {
         console.error("Error fetching marital statuses:", err);
       }
@@ -247,7 +269,9 @@ export function StaffFormDialog({
           .order("name");
 
         if (error) throw error;
-        if (data) setCities(data);
+        if (data) {
+          setCities(data.map((city) => ({ ...city, id: city.id.toString() })));
+        }
       } catch (err) {
         console.error("Error fetching cities:", err);
       }
@@ -261,7 +285,11 @@ export function StaffFormDialog({
           .order("eng");
 
         if (error) throw error;
-        if (data) setGenders(data);
+        if (data) {
+          setGenders(
+            data.map((gender) => ({ ...gender, id: gender.id.toString() }))
+          );
+        }
       } catch (err) {
         console.error("Error fetching genders:", err);
       }
@@ -275,7 +303,11 @@ export function StaffFormDialog({
           .order("name");
 
         if (error) throw error;
-        if (data) setStates(data);
+        if (data) {
+          setStates(
+            data.map((state) => ({ ...state, id: state.id.toString() }))
+          );
+        }
       } catch (err) {
         console.error("Error fetching states:", err);
       }
@@ -289,7 +321,9 @@ export function StaffFormDialog({
           .order("bank_name");
 
         if (error) throw error;
-        if (data) setBanks(data);
+        if (data) {
+          setBanks(data.map((bank) => ({ ...bank, id: bank.id.toString() })));
+        }
       } catch (err) {
         console.error("Error fetching banks:", err);
       }
@@ -439,6 +473,23 @@ export function StaffFormDialog({
     }
   }, [open, user]);
 
+  // Helper function to properly clean up dialog state before closing
+  const cleanupAndClose = () => {
+    // Reset select UI components first to avoid React Portal cleanup issues
+    const selectDropdowns = document.querySelectorAll(
+      "[data-radix-select-content]"
+    );
+    selectDropdowns.forEach((el) => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+
+    // Then reset form and close dialog
+    form.reset();
+    setTimeout(() => {
+      onOpenChange(false);
+    }, 0);
+  };
+
   const onSubmit = async (data: StaffFormValues) => {
     console.log("Form data submitted:", data);
     setIsSubmitting(true);
@@ -519,8 +570,12 @@ export function StaffFormDialog({
           " "
         )} at ${selectedSite?.sitename || "Unknown site"}`,
       });
-      onOpenChange(false);
+
+      // Reset form first, then close dialog with a small delay
       form.reset();
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 50);
     } catch (error: any) {
       console.error("Error adding staff:", error);
       toast({
