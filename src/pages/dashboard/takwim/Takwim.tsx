@@ -221,12 +221,12 @@ export default function Takwim() {
               Manage and schedule events for your organization
             </p>
           </div>
-          <Button
+          {/* <Button
             onClick={() => setIsEventDialogOpen(true)}
             className="bg-purple-600 hover:bg-purple-700"
           >
             <Plus className="mr-2 h-4 w-4" /> Add Event
-          </Button>
+          </Button> */}
         </div>
 
         <Tabs

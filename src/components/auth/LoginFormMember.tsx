@@ -2,25 +2,32 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useLogin } from "@/hooks/auth";
+import { useMemberLogin } from "@/hooks/auth";
 
 export const LoginFormMember = () => {
-  const { email, setEmail, password, setPassword, loading, handleLogin } =
-    useLogin();
+  const { icNumber, setIcNumber, password, setPassword, loading, handleLogin } =
+    useMemberLogin();
 
   return (
     <form onSubmit={handleLogin} className="space-y-6">
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email
+          <Label
+            htmlFor="icNumber"
+            className="text-sm font-medium text-gray-700"
+          >
+            Identification No
           </Label>
           <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@example.com"
+            id="icNumber"
+            type="text"
+            value={icNumber}
+            onChange={(e) => {
+              // Remove any spaces or dashes that might be entered
+              const cleanedValue = e.target.value.replace(/[\s-]/g, "");
+              setIcNumber(cleanedValue);
+            }}
+            placeholder="Enter your identification number without dashes"
             className="w-full px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             required
           />
@@ -60,7 +67,7 @@ export const LoginFormMember = () => {
         size="lg"
         disabled={loading}
       >
-        {loading ? "Signing in..." : "Sign in"}
+        {loading ? "Signing in..." : "Member Sign In"}
       </Button>
 
       <div className="relative my-6">
