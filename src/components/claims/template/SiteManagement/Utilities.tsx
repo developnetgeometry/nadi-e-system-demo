@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     totalBox: {
-        padding: 20,
         backgroundColor: "#fff",
         borderWidth: 1,
         borderColor: "#000",
         borderStyle: "solid",
         textAlign: "center",
-        fontSize: 12,
-        width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
+        fontSize: 8,
+        padding: 10,
+        width: 80
     },
     attachmentContainer: {
         marginTop: 20,
@@ -136,14 +136,16 @@ const Utilities = async ({
 
                 <PDFSectionTitle title="2.5 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        {/* total NADI sites with utility */}
-                        <Text>Total NADI{"\n"}{utility.length}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
+                        <View style={{ ...styles.totalBox }}>
+                            <Text>Total NADI</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{utility.length}</Text>
+                        </View>
                     </View>
-                    <View style={{ alignSelf: "flex-end" }}>
-                        {/* when header not provided, show phase and quarter info */}
-                        {!header && (
+                    {!header && (
+                        <View style={{ alignSelf: "flex-end" }}>
+                            {/* when header not provided, show phase and quarter info */}
                             <PDFPhaseQuarterInfo
                                 phaseLabel={phaseLabel}
                                 claimType={claimType}
@@ -151,14 +153,14 @@ const Utilities = async ({
                                 startDate={startDate}
                                 endDate={endDate}
                             />
-                        )}
-                    </View>
+                        </View>
+                    )}
                 </View>
 
                 {utility.length > 0 ? (
                     <PDFTable
                         data={utility}
-                        columns={[                            
+                        columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
                             { key: "standard_code", header: "REFID" },
                             { key: "site_name", header: "NADI" },
