@@ -43,6 +43,7 @@ type FormData = {
   dob: string;
   mobile_no: string;
   email: string;
+  isEmailExist: boolean;
   gender: string;
   registration_status: boolean;
   status_membership: string;
@@ -100,6 +101,7 @@ const INITIAL_DATA: FormData = {
   dob: null,
   mobile_no: "",
   email: "",
+  isEmailExist: false,
   gender: null,
   registration_status: true,
   status_membership: "1",
@@ -203,6 +205,7 @@ const RegistrationPage = () => {
       if (!emailRegex.test(data.email)) {
         return showValidationError("Invalid email format. Please enter a valid email address eg: (abc@gmail.com).");
       }
+      if (!data.isEmailExist) return showValidationError("Email already exists in the system.");
       if (!data.gender) return showValidationError("Gender is required.");
       if (!data.status_membership) return showValidationError("Membership status is required.");
     }
