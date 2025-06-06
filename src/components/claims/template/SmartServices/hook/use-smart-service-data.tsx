@@ -106,7 +106,7 @@ export const fetchSmartServiceData = async ({
                 )
             )
         `)
-        .in('category_id.id', [1, 2]);
+        .in('category_id', [1, 2]);
 
     // Apply filters if provided
     if (startDate && endDate) {
