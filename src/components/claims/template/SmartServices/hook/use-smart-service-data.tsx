@@ -55,30 +55,6 @@ export const fetchSmartServiceData = async ({
     //     tpFilter
     // });
 
-   
-
-    let queryLookup = supabase
-        .from("nd_event_category")
-        .select(`
-            id,
-            name,
-            nd_event_subcategory:nd_event_subcategory(
-                id,
-                name,
-                category_id:nd_event_category(
-                    id,
-                    name
-                )
-            )
-        `).in('id', [1, 2]);
-
-    const { data: categoryData, error: categoryError } = await queryLookup; 
-
-    if (categoryError) {
-        console.error("Error fetching category data:", categoryError);
-    }else{
-        console.log("Category data fetched:", categoryData);
-    }
 
     let query = supabase
         .from("nd_event")
@@ -130,7 +106,7 @@ export const fetchSmartServiceData = async ({
                 )
             )
         `)
-        .in('category_id', [1, 2]);
+        .in('category_id.id', [1, 2]);
 
     // Apply filters if provided
     if (startDate && endDate) {
