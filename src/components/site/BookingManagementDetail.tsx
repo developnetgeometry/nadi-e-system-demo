@@ -25,6 +25,7 @@ import { useMemberSiteId, useSiteId, useTpManagerSiteId } from "@/hooks/use-site
 import { addDays } from "date-fns";
 import { PaginationCard } from "./component/PaginationCard";
 import { PaginationTable } from "./component/PaginationTable";
+import SiteDashboard from "@/pages/dashboard/site/SiteDashboard";
 
 type FilterParams = {
     availability: string,
@@ -209,11 +210,9 @@ export const BookingManagementDetail = () => {
         !selectedSite
     ) {
         return (
-            <TpAdminDashBoard
-                pcsInTpsAdminSite={pcsInTpsAdminSites}
-                tpAdminOrgId={tpAdminOrganizationId}
-                setSelecTedSite={setSelectedSite}
-                tpsSites={tpsSites}
+            <SiteDashboard 
+                isBookingsEnabled={true}
+                setSelectedSite={setSelectedSite}
             />
         );
     }
