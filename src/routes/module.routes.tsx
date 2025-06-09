@@ -81,8 +81,9 @@ import { assetRoutes } from "./module-routes/module.asset.routes";
 import { financeRoutes } from "./module-routes/module.finance.routes";
 import { workflowRoutes } from "./module-routes/module.workflow.management.routes";
 import { siteRoutes } from "./module-routes/module.site.routes";
-import {complianceRoutes} from "./module-routes/module.compliance.routes";
+import { complianceRoutes } from "./module-routes/module.compliance.routes";
 import { posRoutes } from "./module-routes/module.pos.routes";
+import { claimRoutes } from "./module-routes/module.claim.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -192,38 +193,38 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // Claim Routes
-  {
-    path: "/claim",
-    element: (
-      // <ProtectedRoute requiredPermission="view_claims">
-      <ClaimDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/claim/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_claim_settings">
-      <ClaimSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/claim/register",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_claim_settings">
-      <ClaimRegister />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/claim/report",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_claim_settings">
-      <ClaimReports />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/claim",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_claims">
+  //     <ClaimDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/claim/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_claim_settings">
+  //     <ClaimSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/claim/register",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_claim_settings">
+  //     <ClaimRegister />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/claim/report",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_claim_settings">
+  //     <ClaimReports />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Asset Routes
   // {
   //   path: "/asset",
@@ -709,6 +710,7 @@ export const moduleRoutes: RouteObject[] = [
   ...posRoutes,
   ...siteRoutes,
   ...assetRoutes,
+  ...claimRoutes,
   ...financeRoutes,
   ...vendorRoutes,
   ...complianceRoutes,
