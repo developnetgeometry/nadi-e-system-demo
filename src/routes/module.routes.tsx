@@ -78,6 +78,7 @@ import { hrRoutes } from "@/routes/module-routes/module.hr.routes";
 import { vendorRoutes } from "./module-routes/module.vendor.routes";
 import { announcementRoutes } from "./module-routes/module.announcement.routes";
 import { assetRoutes } from "./module-routes/module.asset.routes";
+import { financeRoutes } from "./module-routes/module.finance.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -253,22 +254,22 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // Finance Routes
-  {
-    path: "/finance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_finance">
-      <FinanceDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/finance/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_finance_settings">
-      <FinanceSettings />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/finance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_finance">
+  //     <FinanceDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/finance/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_finance_settings">
+  //     <FinanceSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Programmes Routes
   {
     path: "/programmes",
@@ -701,5 +702,6 @@ export const moduleRoutes: RouteObject[] = [
   ...announcementRoutes,
   ...hrRoutes,
   ...assetRoutes,
+  ...financeRoutes,
   ...vendorRoutes,
 ];
