@@ -84,6 +84,7 @@ import { siteRoutes } from "./module-routes/module.site.routes";
 import { complianceRoutes } from "./module-routes/module.compliance.routes";
 import { posRoutes } from "./module-routes/module.pos.routes";
 import { claimRoutes } from "./module-routes/module.claim.routes";
+import { programmeRoutes } from "./module-routes/module.program.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -713,5 +714,6 @@ export const moduleRoutes: RouteObject[] = [
   ...claimRoutes,
   ...financeRoutes,
   ...vendorRoutes,
+  ...programmeRoutes,
   ...complianceRoutes,
 ];
