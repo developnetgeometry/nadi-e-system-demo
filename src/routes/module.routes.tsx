@@ -82,6 +82,7 @@ import { financeRoutes } from "./module-routes/module.finance.routes";
 import { workflowRoutes } from "./module-routes/module.workflow.management.routes";
 import { siteRoutes } from "./module-routes/module.site.routes";
 import {complianceRoutes} from "./module-routes/module.compliance.routes";
+import { posRoutes } from "./module-routes/module.pos.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -150,46 +151,46 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // POS Routes
-  {
-    path: "/pos",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_dashboard">
-      <POSDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/products",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_products">
-      <Products />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/transactions",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_transactions">
-      <POSTransactions />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/sales",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_transactions">
-      <POSSales />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/pudo",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_transactions">
-      <POSPickupDropOff />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/pos",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_dashboard">
+  //     <POSDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/products",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_products">
+  //     <Products />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/transactions",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
+  //     <POSTransactions />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/sales",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
+  //     <POSSales />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/pudo",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
+  //     <POSPickupDropOff />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Claim Routes
   {
     path: "/claim",
@@ -705,6 +706,7 @@ export const moduleRoutes: RouteObject[] = [
   ...workflowRoutes,
   ...announcementRoutes,
   ...hrRoutes,
+  ...posRoutes,
   ...siteRoutes,
   ...assetRoutes,
   ...financeRoutes,
