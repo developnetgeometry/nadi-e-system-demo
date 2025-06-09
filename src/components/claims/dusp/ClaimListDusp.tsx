@@ -24,7 +24,9 @@ export function ClaimListDusp() {
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedClaim, setSelectedClaim] = useState<number | null>(null);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [sortField, setSortField] = useState<string>("year");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Filter states
   const [search, setSearch] = useState<string>("");
@@ -63,8 +65,17 @@ export function ClaimListDusp() {
     exportToCSV(exportData, `claim_list_dusp_${new Date().toISOString().split("T")[0]}`);
   };
 
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
   const filteredClaims = useMemo(() => {
-    return claimDUSPData?.filter((claim) => {
+    let claims = claimDUSPData?.filter((claim) => {
       return (
         (!search ||
           claim.tp_dusp_id.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -80,8 +91,35 @@ export function ClaimListDusp() {
           (filterPaymentStatus === "Paid" && claim.payment_status) ||
           (filterPaymentStatus === "Unpaid" && !claim.payment_status))
       );
-    });
-  }, [claimDUSPData, search, filterYear, filterMonth, filterStatus, filterPaymentStatus]);
+    }) ?? [];
+
+    // Sorting
+    if (sortField) {
+      claims = [...claims].sort((a, b) => {
+        let aValue = a[sortField];
+        let bValue = b[sortField];
+        if (sortField === "status") {
+          aValue = a.claim_status.name;
+          bValue = b.claim_status.name;
+        }
+        if (sortField === "tp") {
+          aValue = a.tp_dusp_id.name;
+          bValue = b.tp_dusp_id.name;
+        }
+        if (aValue === undefined || bValue === undefined) return 0;
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortOrder === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+        return sortOrder === "asc"
+          ? (aValue as number) - (bValue as number)
+          : (bValue as number) - (aValue as number);
+      });
+    }
+
+    return claims;
+  }, [claimDUSPData, search, filterYear, filterMonth, filterStatus, filterPaymentStatus, sortField, sortOrder]);
 
   const paginatedClaims = useMemo(() => {
     return filteredClaims?.slice(
@@ -202,12 +240,24 @@ export function ClaimListDusp() {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[60px] text-center">No.</TableHead>
-            <TableHead>TP Name</TableHead>
-            <TableHead>Reference Number</TableHead>
-            <TableHead>Year</TableHead>
-            <TableHead>Month</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Payment Status</TableHead>
+            <TableHead sortable
+              sorted={sortField === "tp" ? sortOrder : null}
+              onSort={() => handleSort("tp")}>TP Name</TableHead>
+            <TableHead sortable
+              sorted={sortField === "ref_no" ? sortOrder : null}
+              onSort={() => handleSort("ref_no")}>Reference Number</TableHead>
+            <TableHead sortable
+              sorted={sortField === "year" ? sortOrder : null}
+              onSort={() => handleSort("year")}>Year</TableHead>
+            <TableHead sortable
+              sorted={sortField === "month" ? sortOrder : null}
+              onSort={() => handleSort("month")}>Month</TableHead>
+            <TableHead sortable
+              sorted={sortField === "status" ? sortOrder : null}
+              onSort={() => handleSort("status")}>Status</TableHead>
+            <TableHead sortable
+              sorted={sortField === "payment_status" ? sortOrder : null}
+              onSort={() => handleSort("payment_status")}>Payment Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>

@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface PillarData {
     pillar: string;
     programs: {
@@ -9,7 +11,7 @@ export interface PillarData {
 }
 export interface programmeImplementedData {
     id: string;
-    programme_name?: string;
+    programme_name: string;
     programme_method?: string;
     programme_date?: string;
     programme_time?: string;
@@ -44,109 +46,140 @@ export const fetchSmartServiceData = async ({
     tpFilter = null,
 }) => {
 
-    console.log("Fetching  SmartService data with filters:", {
-        startDate,
-        endDate,
-        duspFilter,
-        phaseFilter,
-        nadiFilter,
-        tpFilter
-    });
+    // console.log("Fetching  SmartService data with filters:", {
+    //     startDate,
+    //     endDate,
+    //     duspFilter,
+    //     phaseFilter,
+    //     nadiFilter,
+    //     tpFilter
+    // });
 
-    // Mock data (replace with actual API call in production)
-    const pillarData = [
-        {
-            pillar: "ENTREPRENEUR",
-            programs: [
-                { name: "ENTREPRENEUR", no_of_programme: 13, no_of_participation: 13 },
-                { name: "EMPOWERHER", no_of_programme: 13, no_of_participation: 13 },
-                { name: "*KIDVENTURE", no_of_programme: null, no_of_participation: null },
-            ]
-        },
-        {
-            pillar: "LIFELONG LEARNING",
-            programs: [
-                { name: "TINY TECHIES", no_of_programme: 13, no_of_participation: 13 },
-                { name: "NURTURE (DILEA & CYBERSECURITY)", no_of_programme: 13, no_of_participation: 13 },
-                { name: "NURTURE (EKELAS & EKELAS USAHAWAN)", no_of_programme: 12, no_of_participation: 10 },
-                { name: "SKILL FORGE (ESPORT)", no_of_programme: 13, no_of_participation: 13 },
-                { name: "SKILL FORGE (MAHIR)", no_of_programme: 120, no_of_participation: 110 },
-            ]
-        },
-        {
-            pillar: "WELLBEING",
-            programs: [
-                { name: "FLOURISHER", no_of_programme: 13, no_of_participation: 13 },
-                { name: "MENWELL", no_of_programme: 13, no_of_participation: 13 },
-                { name: "CARE", no_of_programme: 0, no_of_participation: 0 },
-            ]
-        },
-        {
-            pillar: "AWARENESS",
-            programs: [
-                { name: "SAFE", no_of_programme: 13, no_of_participation: 13 },
-                { name: "SHEILD", no_of_programme: 13, no_of_participation: 13 },
-            ]
-        },
-        {
-            pillar: "GOVERNMENT INITIATIVES",
-            programs: [
-                { name: "GOVERNMENT INITIATIVES", no_of_programme: 13, no_of_participation: 13 },
-            ]
-        }
-    ];
-    const programmeImplementedData = [
-        {
-            id: "1",
-            programme_name: "Programme A",
-            programme_method: "Physical",
-            programme_date: "2023-10-01",
-            programme_time: "10:00 AM-11:00 AM",
-            programme_remarks: "Remarks for Programme A",
-            programme_participation: 50,
-            attachments_path: ["https://images.unsplash.com/photo-1486365227551-f3f90034a57c?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmlyZHxlbnwwfHwwfHx8MA%3D%3D", "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"]
-        },
-        {
-            id: "2",
-            programme_name: "Programme B",
-            programme_method: "Online",
-            programme_date: "2023-10-02",
-            programme_time: "11:00 AM-12:00 PM",
-            programme_remarks: "Remarks for Programme B",
-            programme_participation: 30,
-            // attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"]
-        }
-    ];
-    const programmeParticipationData = [
-        {
-            id: "1",
-            programme_name: "Programme A",
-            programme_date: "2023-10-01",
-            participant_name: "John Doe",
-            participant_ic: "1234567890",
-            participant_membership: "Member A",
-            participant_phone: "0123456789",
-            participant_age: "30",
-            participant_gender: "M",
-            participant_race: "Malay",
-            participant_oku: "No"
-        },
-        {
-            id: "2",
-            programme_name: "Programme B",
-            programme_date: "2023-10-02",
-            participant_name: "Jane Smith",
-            participant_ic: "0987654321",
-            participant_membership: "Member B",
-            participant_phone: "0987654321",
-            participant_age: "28",
-            participant_gender: "M",
-            participant_race: "Malay",
-            participant_oku: "No"
-        }
-    ];
 
-    // Return the data in the same format as the hook
+    let query = supabase
+        .from("nd_event")
+        .select(`
+            id,
+            category_id,
+            subcategory_id,
+            program_id:nd_event_program(
+                id,
+                name,
+                subcategory_id:nd_event_subcategory(
+                    id,
+                    name,
+                    category_id:nd_event_category(
+                        id,
+                        name
+                    )
+                )
+            ),
+            module_id,
+            status_id,
+            site_id:nd_site(
+                id,
+                standard_code,
+                refid_mcmc,
+                site_profile_id:nd_site_profile(
+                    id,
+                    sitename,
+                    state_id:nd_state(name)
+                )
+            ),
+            program_method:nd_program_method(name),
+            program_name,
+            start_datetime,
+            end_datetime,
+            description,
+            nd_event_participant:nd_event_participant(
+                id,
+                member_id:nd_member_profile(
+                    id,
+                    fullname,
+                    identity_no,
+                    status_membership:nd_status_membership(name),
+                    mobile_no,
+                    age,
+                    gender:nd_genders(bm),
+                    participant_race:nd_races(bm),
+                    oku_status
+                )
+            )
+        `)
+        .in('category_id', [1, 2]);
+
+    // Apply filters if provided
+    if (startDate && endDate) {
+        query = query.gte('start_datetime', startDate).lte('end_datetime', endDate);
+    }
+
+    if (nadiFilter && nadiFilter.length > 0) {
+        // Use the raw column name for filtering, not the joined object
+        query = query.in('site_id.site_profile_id.id', nadiFilter);
+    }
+
+
+
+    const { data: eventData, error } = await query;
+
+    console.log("Even data fetched:", eventData);
+
+    if (error || !Array.isArray(eventData)) {
+        console.error("Error fetching even data data:", error);
+        return { pillarData: [], programmeImplementedData: [], programmeParticipationData: [] };
+    }
+
+    const programmeImplementedData = eventData.map(event => ({
+        id: event.id || '',
+        programme_name: event.program_name || '',
+        programme_method: event.program_method?.name || '',
+        programme_date: event.start_datetime ? new Date(event.start_datetime).toISOString().split('T')[0] : '',
+        programme_time: event.start_datetime && event.end_datetime ? `${new Date(event.start_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}-${new Date(event.end_datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}` : '',
+        programme_participation: event.nd_event_participant?.length || 0,
+        programme_remarks: event.description || '',
+    }));
+
+    const programmeParticipationData = eventData.flatMap(event => event.nd_event_participant.map(participant => ({
+        id: participant.id || '',
+        programme_name: event.program_name || '',
+        programme_date: event.start_datetime ? new Date(event.start_datetime).toISOString().split('T')[0] : '',
+        participant_name: participant.member_id?.fullname || '',
+        participant_ic: participant.member_id?.identity_no || '',
+        participant_membership: participant.member_id?.status_membership?.name || '',
+        participant_phone: participant.member_id?.mobile_no || '',
+        participant_age: participant.member_id?.age?.toString() || '',
+        participant_gender: participant.member_id?.gender?.bm || '',
+        participant_race: participant.member_id?.participant_race?.bm || '',
+        participant_oku: participant.member_id?.oku_status || ''
+    })));
+
+
+    const pillarData = eventData.reduce((pillars, event) => {
+        const subcategoryName = event.program_id?.subcategory_id?.name || "Unknown Subcategory";
+        const programName = event.program_id?.name || "Unknown Program";
+
+        // Find or create the pillar (subcategory)
+        let pillar = pillars.find(p => p.pillar === subcategoryName);
+        if (!pillar) {
+            pillar = { pillar: subcategoryName, programs: [] };
+            pillars.push(pillar);
+        }
+
+        // Find or create the program within the pillar
+        let program = pillar.programs.find(p => p.name === programName);
+        if (!program) {
+            program = { name: programName, no_of_programme: 0, no_of_participation: 0 };
+            pillar.programs.push(program);
+        }
+
+        // Update program counts
+        program.no_of_programme += 1;
+        program.no_of_participation += event.nd_event_participant?.length || 0;
+
+        return pillars;
+        
+    }, []);
+
     return {
         pillarData: pillarData as PillarData[],
         programmeImplementedData: programmeImplementedData as programmeImplementedData[],

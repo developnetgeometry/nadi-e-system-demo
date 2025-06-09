@@ -36,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Download, Search, Settings, Trash2, Filter, RotateCcw, Building, Box, CheckCircle, Check, ChevronsUpDown, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 
 interface InventoryListProps {
@@ -143,8 +144,18 @@ export const InventoryList = ({
     setSearchInventory(value || "");
   };
 
-  const { data: inventoryTypes = [], isLoading: isLoadingInventoryType } =
-    useInventoryTypesQuery();
+  const { data: inventoryTypes = [], isLoading: isLoadingInventoryType } = useQuery({
+    queryKey: ['inventory-types'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('nd_inventory_type')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   if (isLoadingInventories || isLoadingInventoryType) {
     return (

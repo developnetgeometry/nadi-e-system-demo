@@ -32,14 +32,14 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     totalBox: {
-        padding: 20,
         backgroundColor: "#fff",
         borderWidth: 1,
         borderColor: "#000",
         borderStyle: "solid",
         textAlign: "center",
-        fontSize: 12,
-        width: 170, /* Fixed width to match PDFPhaseQuarterInfo */
+        fontSize: 8,
+        padding: 10,
+        width: 80
     },
     attachmentContainer: {
         marginTop: 20,
@@ -92,7 +92,7 @@ const AwarenessPromotion = async ({
         nadiFilter,
         tpFilter
     });
-    console.log("anp data:",anp);
+    console.log("anp data:", anp);
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
@@ -124,14 +124,16 @@ const AwarenessPromotion = async ({
 
                 <PDFSectionTitle title="2.6 AWARENESS & PROMOTION PROGRAMME" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={styles.totalBox}>
-                        {/* total NADI sites with anp */}
-                        <Text>Total NADI{"\n"}{anp.length}</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
+                        <View style={{ ...styles.totalBox }}>
+                            <Text>Total NADI</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{anp.length}</Text>
+                        </View>
                     </View>
-                    <View style={{ alignSelf: "flex-end" }}>
-                        {/* when header not provided, show phase and quarter info */}
-                        {!header && (
+                    {!header && (
+                        <View style={{ alignSelf: "flex-end" }}>
+                            {/* when header not provided, show phase and quarter info */}
                             <PDFPhaseQuarterInfo
                                 phaseLabel={phaseLabel}
                                 claimType={claimType}
@@ -139,8 +141,8 @@ const AwarenessPromotion = async ({
                                 startDate={startDate}
                                 endDate={endDate}
                             />
-                        )}
-                    </View>
+                        </View>
+                    )}
                 </View>
 
                 {anp.length > 0 ? (

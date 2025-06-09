@@ -32,27 +32,24 @@ export const fetchNMSData = async ({
     const nms = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "J05N006",
+            site_name: "NADI Felda Nitar 2",
+            refId: "DG_PI1M_017",
+            state: "Johor",
             attachments_path: [
                 "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"
             ]
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "B09N002",
+            site_name: "NADI Felda Gedangsa",
+            refId: "DG_PI1M_036",
+            state: "Selangor",
             attachments_path: [
                 "https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"
-            ]
-        }
-
-        
-        
+            ]
+        }
     ];
     
     // Return the data in the same format as the hook

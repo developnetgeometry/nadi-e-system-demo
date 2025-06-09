@@ -32,24 +32,24 @@ export const fetchMonitoringData = async ({
     const monitor = [
         {
             site_id: "1",
-            standard_code: "SC001",
-            site_name: "Site A",
-            refId: "REF001",
-            state: "State A",
+            standard_code: "Q13N004",
+            site_name: "NADI Sungai Melekun",
+            refId: "Q11C004",
+            state: "Sarawak",
             
         },
         {
             site_id: "2",
-            standard_code: "SC002",
-            site_name: "Site B",
-            refId: "REF002",
-            state: "State B",
+            standard_code: "Q13N003",
+            site_name: "NADI Kampung Gedong",
+            refId: "Q11C003",
+            state: "Sarawak",
             attachments_path: ["https://ruanewybqxrdfvrdyeqr.supabase.co/storage/v1/object/public/site-attachment/site-agreement/119/site%20attachment.png"]
         }
 
         
-        
-    ];
+        
+    ];
     
     // Return the data in the same format as the hook
     return { 

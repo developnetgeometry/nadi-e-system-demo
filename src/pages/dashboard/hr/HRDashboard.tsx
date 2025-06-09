@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -8,6 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Users,
   Briefcase,
@@ -25,7 +30,11 @@ import {
   UserCircle,
   School,
   Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { useHolidays } from "@/hooks/use-holidays";
+import { isHoliday } from "@/utils/holidayUtils";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -276,12 +285,7 @@ const payrollTrend = [
   },
 ];
 
-const holidays = [
-  { date: "2025-05-01", description: "Labor Day" },
-  { date: "2025-05-10", description: "Vesak Day" },
-  { date: "2025-05-19", description: "Hari Raya Puasa" },
-  { date: "2025-05-31", description: "Gawai Day" },
-];
+// Holiday data is now fetched from the useHolidays hook
 
 // Colors for charts
 const COLORS = [
@@ -470,11 +474,36 @@ const nadiSiteSummary = nadiSiteAttendance.map((site) => {
 const HRDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRegion, setSelectedRegion] = useState<string>("South");
-  const [selectedNadiSite, setSelectedNadiSite] = useState<number>(0);
-
-  // Get the current date
+  const [selectedNadiSite, setSelectedNadiSite] = useState<number>(0); // State for calendar navigation
   const today = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth()); // Current month (0-indexed)
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear()); // Current year
+
+  // Get the current date for display
   const currentDate = format(today, "EEEE, MMMM d, yyyy");
+
+  // Fetch holidays using the useHolidays hook
+  const {
+    holidays,
+    states,
+    isLoading: isLoadingHolidays,
+    setCurrentYear,
+  } = useHolidays(selectedYear);
+
+  // State for filtering holidays by state
+  const [selectedState, setSelectedState] = useState<number | null>(null);
+
+  // Update holidays when year changes
+  useEffect(() => {
+    setCurrentYear(selectedYear);
+  }, [selectedYear, setCurrentYear]);
+
+  // Filter holidays based on selected state
+  const filteredHolidays = selectedState
+    ? holidays.filter((holiday) =>
+        holiday.states?.some((state) => state.id === selectedState)
+      )
+    : holidays;
 
   // Get the attendance data for the selected region
   const regionAttendanceData = attendanceDataByRegion[selectedRegion] || [];
@@ -1099,7 +1128,9 @@ const HRDashboard: React.FC = () => {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis
                           dataKey="date"
-                          tickFormatter={(date) => new Date(date).getDate()}
+                          tickFormatter={(date) =>
+                            new Date(date).getDate().toString()
+                          }
                         />
                         <YAxis />
                         <Tooltip content={<CustomTooltip />} />
@@ -1207,7 +1238,9 @@ const HRDashboard: React.FC = () => {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis
                               dataKey="date"
-                              tickFormatter={(date) => new Date(date).getDate()}
+                              tickFormatter={(date) =>
+                                new Date(date).getDate().toString()
+                              }
                             />
                             <YAxis />
                             <Tooltip content={<CustomTooltip />} />
@@ -1551,57 +1584,357 @@ const HRDashboard: React.FC = () => {
           {/* Calendar Tab */}
           <TabsContent value="calendar">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium">
-                  Public Holidays & Off Days (May 2025)
-                </CardTitle>
+              <CardHeader>
+                <div className="flex flex-row items-center justify-between pb-2">
+                  <div>
+                    <CardTitle className="text-lg font-medium">
+                      Public Holidays & Off Days
+                    </CardTitle>
+                    <CardDescription>
+                      {format(
+                        new Date(selectedYear, selectedMonth, 1),
+                        "MMMM yyyy"
+                      )}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newMonth =
+                          selectedMonth === 0 ? 11 : selectedMonth - 1;
+                        const newYear =
+                          selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+                        setSelectedMonth(newMonth);
+                        setSelectedYear(newYear);
+                      }}
+                      title="Previous month"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="min-w-[130px]">
+                          {format(
+                            new Date(selectedYear, selectedMonth, 1),
+                            "MMMM yyyy"
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="center">
+                        <div className="p-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedYear(selectedYear - 1)}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="font-medium">{selectedYear}</div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedYear(selectedYear + 1)}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {Array.from({ length: 12 }, (_, i) => {
+                              const monthDate = new Date(selectedYear, i, 1);
+                              return (
+                                <Button
+                                  key={i}
+                                  variant={
+                                    i === selectedMonth ? "default" : "outline"
+                                  }
+                                  size="sm"
+                                  className="text-xs"
+                                  onClick={() => setSelectedMonth(i)}
+                                >
+                                  {format(monthDate, "MMM")}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newMonth =
+                          selectedMonth === 11 ? 0 : selectedMonth + 1;
+                        const newYear =
+                          selectedMonth === 11
+                            ? selectedYear + 1
+                            : selectedYear;
+                        setSelectedMonth(newMonth);
+                        setSelectedYear(newYear);
+                      }}
+                      title="Next month"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const today = new Date();
+                        setSelectedMonth(today.getMonth());
+                        setSelectedYear(today.getFullYear());
+                      }}
+                      title="Today"
+                    >
+                      Today
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-4">
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={selectedState?.toString() || "all"}
+                      onValueChange={(value) =>
+                        setSelectedState(value === "all" ? null : Number(value))
+                      }
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filter by state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All States</SelectItem>
+                        {states.map((state) => (
+                          <SelectItem
+                            key={state.id}
+                            value={state.id.toString()}
+                          >
+                            {state.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedState && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedState(null)}
+                        className="h-8 px-2 text-xs"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-7 gap-2">
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                    const dateStr = `2025-05-${day
-                      .toString()
-                      .padStart(2, "0")}`;
-                    const holiday = holidays.find((h) => h.date === dateStr);
+                {isLoadingHolidays && (
+                  <div className="flex justify-center items-center p-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-2">Loading holidays...</span>
+                  </div>
+                )}
 
-                    return (
+                {/* Calendar days header */}
+                <div className="grid grid-cols-7 gap-2 mb-2 font-semibold text-center">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day) => (
                       <div
                         key={day}
-                        className={`p-2 rounded-md border text-center ${
-                          holiday
-                            ? "bg-red-50 border-red-200"
-                            : "border-gray-200"
-                        }`}
+                        className={day === "Sun" ? "text-red-500" : ""}
                       >
-                        <div className="font-medium">{day}</div>
-                        {holiday && (
-                          <div className="text-xs text-red-500 mt-1">
-                            {holiday.description}
-                          </div>
-                        )}
+                        {day}
                       </div>
-                    );
-                  })}
+                    )
+                  )}
+                </div>
+
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7 gap-2">
+                  {(() => {
+                    const year = selectedYear;
+                    const month = selectedMonth;
+
+                    // Get the first day of the month
+                    const firstDayOfMonth = new Date(year, month, 1);
+                    // Get the last day of the month
+                    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+                    // Calculate the starting day of the week (0 = Sunday, 6 = Saturday)
+                    const startingDayOfWeek = firstDayOfMonth.getDay();
+
+                    // Calculate the total days in the month
+                    const daysInMonth = lastDayOfMonth.getDate();
+
+                    // Create array to hold all calendar cells
+                    const calendarCells = [];
+
+                    // Add empty cells for days before the first of the month
+                    for (let i = 0; i < startingDayOfWeek; i++) {
+                      calendarCells.push(
+                        <div
+                          key={`empty-${i}`}
+                          className="p-2 rounded-md border border-gray-100"
+                        ></div>
+                      );
+                    }
+
+                    // Add cells for each day of the month
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const currentDate = new Date(year, month, day);
+                      const dateStr = format(currentDate, "yyyy-MM-dd");
+                      const holiday = filteredHolidays.find(
+                        (h) => h.date === dateStr
+                      );
+                      const isWeekend =
+                        currentDate.getDay() === 0 ||
+                        currentDate.getDay() === 6;
+                      const isToday =
+                        new Date().getFullYear() === year &&
+                        new Date().getMonth() === month &&
+                        new Date().getDate() === day;
+
+                      calendarCells.push(
+                        <div
+                          key={`${year}-${month}-${day}`}
+                          className={`p-2 rounded-md border text-center min-h-[60px] ${
+                            isToday ? "border-blue-500 border-2" : ""
+                          } ${
+                            holiday
+                              ? "bg-red-50 border-red-200"
+                              : isWeekend
+                              ? "bg-gray-50"
+                              : "border-gray-200"
+                          }`}
+                        >
+                          <div
+                            className={`font-medium ${
+                              isWeekend ? "text-red-500" : ""
+                            }`}
+                          >
+                            {day}
+                          </div>
+                          {holiday && (
+                            <>
+                              <div
+                                className="text-xs text-red-500 mt-1 truncate"
+                                title={holiday.desc}
+                              >
+                                {holiday.desc}
+                              </div>
+                              {holiday.states && holiday.states.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {holiday.states.length === 1
+                                    ? holiday.states[0].name
+                                    : `${holiday.states.length} states`}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return calendarCells;
+                  })()}
+                </div>
+
+                {/* Calendar Legend */}
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-red-50 border border-red-200" />
+                    Holiday
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-gray-50 border border-gray-200" />
+                    Weekend
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded border-2 border-blue-500" />
+                    Today
+                  </div>
                 </div>
 
                 <div className="mt-6">
-                  <h3 className="font-medium mb-2">Holiday Details</h3>
+                  <h3 className="font-medium mb-2">
+                    Holiday Details for{" "}
+                    {format(
+                      new Date(selectedYear, selectedMonth, 1),
+                      "MMMM yyyy"
+                    )}
+                  </h3>
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
                         <TableHead>Description</TableHead>
+                        <TableHead>States</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {holidays.map((holiday) => (
-                        <TableRow key={holiday.date}>
-                          <TableCell>
-                            {new Date(holiday.date).toLocaleDateString()}
+                      {isLoadingHolidays ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-4">
+                            <div className="flex justify-center items-center">
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary mr-2"></div>
+                              Loading holidays...
+                            </div>
                           </TableCell>
-                          <TableCell>{holiday.description}</TableCell>
                         </TableRow>
-                      ))}
+                      ) : (
+                        filteredHolidays
+                          .filter((holiday) => {
+                            const holidayDate = new Date(holiday.date);
+                            return (
+                              holidayDate.getMonth() === selectedMonth &&
+                              holidayDate.getFullYear() === selectedYear
+                            );
+                          })
+                          .map((holiday) => (
+                            <TableRow
+                              key={`${holiday.date}-${
+                                holiday.id || holiday.desc
+                              }`}
+                            >
+                              <TableCell>
+                                {format(
+                                  new Date(holiday.date),
+                                  "EEEE, MMMM d, yyyy"
+                                )}
+                              </TableCell>
+                              <TableCell>{holiday.desc}</TableCell>
+                              <TableCell>
+                                {holiday.states && holiday.states.length > 0
+                                  ? holiday.states
+                                      .map((state) => state.name)
+                                      .join(", ")
+                                  : "All States"}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                      )}
+                      {!isLoadingHolidays &&
+                        filteredHolidays.filter((holiday) => {
+                          const holidayDate = new Date(holiday.date);
+                          return (
+                            holidayDate.getMonth() === selectedMonth &&
+                            holidayDate.getFullYear() === selectedYear
+                          );
+                        }).length === 0 && (
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-center py-4 text-gray-500"
+                            >
+                              No holidays for this month
+                            </TableCell>
+                          </TableRow>
+                        )}
                     </TableBody>
                   </Table>
                 </div>

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
 import { getStartAndEndDate } from "../hook/getStartAndEndDate";
+import { useRef } from "react";
 
 type ClaimData = {
     claim_type: string;
@@ -35,16 +36,20 @@ export function ClaimDateForm({
     phase_id,
     updateFields,
 }: ClaimDateFormProps) {
+    const runningNoRef = useRef(Date.now().toString()); // Static on mount
+    const runningNo = runningNoRef.current;
+
     useEffect(() => {
-        if (dusp_name && tp_name && year) {
+        // Ensure claim_type is set before running the logic
+        if (dusp_name && tp_name && year && claim_type) {
             const yy = year.toString().slice(-2);
             let generatedRefNo = "";
 
             if (claim_type === "YEARLY") {
-                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-YEARLY`;
+                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-YEARLY_${runningNo}`;
             } else if (claim_type === "QUARTERLY" && quarter) {
                 const q = `Q${quarter}`;
-                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-QUARTERLY`;
+                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-QUARTERLY_${runningNo}`;
             } else if (claim_type === "MONTHLY" && quarter && month) {
                 const monthNames = [
                     "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -52,22 +57,35 @@ export function ClaimDateForm({
                 ];
                 const q = `Q${quarter}`;
                 const mmm = monthNames[month - 1];
-                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-${mmm}`;
+                generatedRefNo = `${dusp_name}-${tp_name}-${yy}-${q}-${mmm}-MONTHLY_${runningNo}`;
             }
 
             try {
-                const { start_date: calculatedStartDate, end_date: calculatedEndDate } = getStartAndEndDate(claim_type, year, quarter, month);
-                updateFields({ start_date: calculatedStartDate, end_date: calculatedEndDate });
+                // Run getStartAndEndDate based on conditions
+                if (claim_type === "YEARLY" && year) {
+                    const { start_date: calculatedStartDate, end_date: calculatedEndDate } = getStartAndEndDate(claim_type, year);
+                    updateFields({ start_date: calculatedStartDate, end_date: calculatedEndDate });
+                }
+                if (claim_type === "QUARTERLY" && year && quarter) {
+                    const { start_date: calculatedStartDate, end_date: calculatedEndDate } = getStartAndEndDate(claim_type, year, quarter);
+                    updateFields({ start_date: calculatedStartDate, end_date: calculatedEndDate });
+                }
+                if (claim_type === "MONTHLY" && year && quarter && month) {
+                    const { start_date: calculatedStartDate, end_date: calculatedEndDate } = getStartAndEndDate(claim_type, year, quarter, month);
+                    updateFields({ start_date: calculatedStartDate, end_date: calculatedEndDate });
+                }
             } catch (error) {
                 console.error("Error calculating start and end dates:", error);
             }
-        updateFields({ ref_no: generatedRefNo, phase_id: null });
+
+            updateFields({ ref_no: generatedRefNo, phase_id: null });
         }
     }, [dusp_name, tp_name, year, quarter, month, claim_type, updateFields]);
 
     return (
         <>
             <header className="mb-4">Reference</header>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-mute-foreground rounded-md p-4 mb-4">
                 {/* DUSP */}
                 <div className="space-y-2">

@@ -23,8 +23,9 @@ export const useFetchClaimMCMC = () => {
             tp_dusp_id (id, name, parent_id (id, name))
           `)
           .in("claim_status", [3, 4]) // Filter by claim status
-          .order("year", { ascending: false })
-          .order("month", { ascending: false });
+          .order("month", { ascending: false, nullsFirst: false  })
+          .order("quarter", { ascending: false, nullsFirst: false   })
+          .order("year", { ascending: false });
 
         if (claimAppError) {
           console.error("Error fetching nd_claim_application:", claimAppError);

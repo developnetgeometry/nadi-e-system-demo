@@ -20,6 +20,9 @@ type FormData = {
   identity_no_type: string;
   identity_no: string;
   isIcNumberExist: boolean;
+  isIcYearValid: boolean;
+  isIcMonthValid: boolean;
+  isIcDayValid: boolean;
   isIcNumberValid: boolean;
   isUnder12: boolean;
   parent_fullname: string;
@@ -40,6 +43,7 @@ type FormData = {
   dob: string;
   mobile_no: string;
   email: string;
+  isEmailExist: boolean;
   gender: string;
   registration_status: boolean;
   status_membership: string;
@@ -76,6 +80,9 @@ const INITIAL_DATA: FormData = {
   identity_no_type: null,
   identity_no: "",
   isIcNumberExist: false,
+  isIcYearValid: false,
+  isIcMonthValid: false,
+  isIcDayValid: false,
   isIcNumberValid: false,
   isUnder12: false,
   parent_fullname: "",
@@ -94,6 +101,7 @@ const INITIAL_DATA: FormData = {
   dob: null,
   mobile_no: "",
   email: "",
+  isEmailExist: false,
   gender: null,
   registration_status: true,
   status_membership: "1",
@@ -169,6 +177,9 @@ const RegistrationPage = () => {
       if (!data.identity_no) return showValidationError("IC number is required.");
       if (data.identity_no_type === "1") {
         if (data.identity_no.length !== 12) return showValidationError("IC number must be 12 digits.");
+        if (!data.isIcYearValid) return showValidationError("IC year is invalid.");
+        if (!data.isIcMonthValid) return showValidationError("IC month is invalid.");
+        if (!data.isIcDayValid) return showValidationError("IC day is invalid.");
         if (!data.isIcNumberValid) return showValidationError("IC number is invalid.");
       }
       if (!data.isIcNumberExist) return showValidationError("Identity number already exists in the system.");
@@ -194,6 +205,7 @@ const RegistrationPage = () => {
       if (!emailRegex.test(data.email)) {
         return showValidationError("Invalid email format. Please enter a valid email address eg: (abc@gmail.com).");
       }
+      if (!data.isEmailExist) return showValidationError("Email already exists in the system.");
       if (!data.gender) return showValidationError("Gender is required.");
       if (!data.status_membership) return showValidationError("Membership status is required.");
     }
@@ -243,7 +255,7 @@ const RegistrationPage = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Member Registration</h1>
-      <Card>
+      <Card className="relative">
         {loading && (
           <div className="absolute inset-0 bg-white/70 z-50 flex items-center justify-center">
             <Loader2 className="animate-spin w-10 h-10 text-primary" />
