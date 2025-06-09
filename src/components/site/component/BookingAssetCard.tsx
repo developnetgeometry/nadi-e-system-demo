@@ -154,14 +154,17 @@ const BookingPcCardDetails = ({
 }: BookingPcCardDetailsProps) => {
 
     const [channel, setChannel] = useState<RealtimeChannel | null>(null);
-    console.log("channel", channel);
+    const [message, setMessage] = useState<string>("");
 
     useEffect(() => {
         async function setUpChannel() {
-            const supabaseChannel = supabase.channel(`remote-${name}`);
-            supabaseChannel.on("broadcast", { event: "answer" }, async (msg) => {
-                console.log("PC message: ", msg);
-            })
+            const supabaseChannel = supabase.channel(`remote-${name}`, {
+                config: {
+                broadcast: {
+                    self: true
+                }
+            }
+            });
             supabaseChannel.subscribe();
             setChannel(supabaseChannel);
         }
@@ -174,12 +177,21 @@ const BookingPcCardDetails = ({
         };
     }, [])
 
+    useEffect(() => {
+        if (channel) {
+            channel.on("broadcast", { event: "answer" }, (msg) => {
+                console.log("Received message from channel:", msg);
+            });
+        }
+    }, [channel, message]);
+
     async function handleShutDown() {
         await channel.send({
             type: "broadcast",
             event: "answer",
             payload: { command: "shutdown" }
         })
+        setMessage("shutdown");
         toast({
             description: `${name} shutdown`
         })
@@ -415,8 +427,6 @@ const Details = ({
     status
 }) => {
 
-    // Query for upcoming facility booking.
-    // and other facility booking information
     const facilityActionButtons = [
         {
             name: "Close Room",
@@ -518,25 +528,6 @@ const Details = ({
                             <div className="flex items-center gap-2">
                                 <p className="text-gray-500">Last Maintenance: </p>
                                 <p>-</p>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-                <div className="space-y-2">
-                    <h1 className="font-medium">Equipment and Amenities</h1>
-                    <Card className="px-5 py-3 space-y-2">
-                        <div className="flex flex-col justify-center">
-                            <h1>Equipment:</h1>
-                            <div className="flex items-center gap-2">
-                                <Badge>Small Whiteboard</Badge>
-                                <Badge>Monitor</Badge>
-                            </div>
-                        </div>
-                        <div className="flex flex-col justify-center">
-                            <h1>Amenties: </h1>
-                            <div className="flex items-center gap-2">
-                                <Badge>Air Conditioning</Badge>
-                                <Badge>WiFi</Badge>
                             </div>
                         </div>
                     </Card>

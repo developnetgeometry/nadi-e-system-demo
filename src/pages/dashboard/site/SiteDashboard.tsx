@@ -85,7 +85,15 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableSkeleton } from "@/components/site/TableSkeleton";
 
-const SiteDashboard = () => {
+interface SiteDashboardProps {
+  isBookingsEnabled?: boolean;
+  setSelectedSite?: React.Dispatch<React.SetStateAction<Site | null>>;
+}
+
+export const SiteDashboard = ({
+  isBookingsEnabled = false,
+  setSelectedSite
+}: SiteDashboardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const userMetadata = useUserMetadata();
@@ -627,9 +635,9 @@ const SiteDashboard = () => {
     <>
       <div className="space-y-1">
         <div>
-          <h1 className="text-xl font-bold">Site Management</h1>
+          <h1 className="text-xl font-bold">{!isBookingsEnabled ? "Site Management" : "Booking Management"}</h1>
           <p className="text-gray-500 mt-1">
-            Manage all physical centres and locations
+            Manage all physical PC and Facility in locations
           </p>
         </div>
 
@@ -1461,7 +1469,7 @@ const SiteDashboard = () => {
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => handleViewDetailsClick(site.id)}
+                            onClick={() => !isBookingsEnabled ? handleViewDetailsClick(site.id): setSelectedSite(site)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
