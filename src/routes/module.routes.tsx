@@ -76,6 +76,7 @@ import ClaimReports from "@/pages/dashboard/claim/ClaimReports";
 
 import { hrRoutes } from "@/routes/module-routes/module.hr.routes";
 import { vendorRoutes } from "./module-routes/module.vendor.routes";
+import { announcementRoutes } from "./module-routes/module.announcement.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -549,38 +550,38 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Announcements Routes
-  {
-    path: "/announcements",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Announcements />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/announcements/list",
-    element: (
-      // <ProtectedRoute>
-      <AnnouncementsList />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/announcements/create-announcement",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <CreateAnnouncement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/announcements/announcements-settings",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <AnnouncementSettings />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/announcements",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Announcements />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/announcements/list",
+  //   element: (
+  //     // <ProtectedRoute>
+  //     <AnnouncementsList />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/announcements/create-announcement",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <CreateAnnouncement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/announcements/announcements-settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <AnnouncementSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Takwim Routes
   {
     path: "/takwim",
@@ -696,6 +697,7 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
+  ...announcementRoutes,
   ...hrRoutes,
   ...vendorRoutes,
 ];
