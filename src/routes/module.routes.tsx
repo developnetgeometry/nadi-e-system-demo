@@ -77,6 +77,7 @@ import ClaimReports from "@/pages/dashboard/claim/ClaimReports";
 import { hrRoutes } from "@/routes/module-routes/module.hr.routes";
 import { vendorRoutes } from "./module-routes/module.vendor.routes";
 import { announcementRoutes } from "./module-routes/module.announcement.routes";
+import { assetRoutes } from "./module-routes/module.asset.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -219,38 +220,38 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Asset Routes
-  {
-    path: "/asset",
-    element: (
-      // <ProtectedRoute requiredPermission="view_assets">
-      <AssetDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/asset/detail/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="view_assets">
-      <AssetDetails />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/asset/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_asset_settings">
-      <AssetSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/asset/maintenance",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_asset_settings">
-      <MaintenanceDashboard />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/asset",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_assets">
+  //     <AssetDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/asset/detail/:id",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_assets">
+  //     <AssetDetails />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/asset/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_asset_settings">
+  //     <AssetSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/asset/maintenance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_asset_settings">
+  //     <MaintenanceDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Finance Routes
   {
     path: "/finance",
@@ -699,5 +700,6 @@ export const moduleRoutes: RouteObject[] = [
   },
   ...announcementRoutes,
   ...hrRoutes,
+  ...assetRoutes,
   ...vendorRoutes,
 ];
