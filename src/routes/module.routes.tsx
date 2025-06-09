@@ -81,6 +81,7 @@ import { assetRoutes } from "./module-routes/module.asset.routes";
 import { financeRoutes } from "./module-routes/module.finance.routes";
 import { workflowRoutes } from "./module-routes/module.workflow.management.routes";
 import { siteRoutes } from "./module-routes/module.site.routes";
+import {complianceRoutes} from "./module-routes/module.compliance.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -382,30 +383,30 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Compliance Routes
-  {
-    path: "/compliance/activity",
-    element: (
-      // <ProtectedRoute requiredPermission="view_activity_logs">
-      <ActivityLogs />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/compliance/audit",
-    element: (
-      // <ProtectedRoute requiredPermission="view_audit_logs">
-      <AuditLogs />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/compliance/reports",
-    element: (
-      // <ProtectedRoute requiredPermission="view_compliance_reports">
-      <ComplianceReports />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/compliance/activity",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_activity_logs">
+  //     <ActivityLogs />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/compliance/audit",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_audit_logs">
+  //     <AuditLogs />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/compliance/reports",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_compliance_reports">
+  //     <ComplianceReports />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Workflow Routes - Keep only configuration related routes
   // {
   //   path: "/workflow",
@@ -708,4 +709,5 @@ export const moduleRoutes: RouteObject[] = [
   ...assetRoutes,
   ...financeRoutes,
   ...vendorRoutes,
+  ...complianceRoutes,
 ];
