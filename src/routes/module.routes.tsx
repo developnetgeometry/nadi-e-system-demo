@@ -80,6 +80,7 @@ import { announcementRoutes } from "./module-routes/module.announcement.routes";
 import { assetRoutes } from "./module-routes/module.asset.routes";
 import { financeRoutes } from "./module-routes/module.finance.routes";
 import { workflowRoutes } from "./module-routes/module.workflow.management.routes";
+import { siteRoutes } from "./module-routes/module.site.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -432,102 +433,110 @@ export const moduleRoutes: RouteObject[] = [
   // },
 
   // Site Management Routes
-  {
-    path: "/site-management", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="site_management">
-      <SiteManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/site", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <SiteDetails />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site", //For staff
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Site />
-      // </ProtectedRoute>
-    ),
-  },
   // {
-  //   path: "/site-management/approval", //For superadmin
+  //   path: "/site-management", //For superadmin
   //   element: (
-  //     // <ProtectedRoute requiredPermission="view_site_details">
-  //     <SiteClosureApproval />
+  //     // <ProtectedRoute requiredPermission="site_management">
+  //     <SiteManagement />
   //     // </ProtectedRoute>
   //   ),
   // },
-  {
-    path: "/site-management/utilities-billing",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <UtilitiesBilling />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/insurance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Insurance />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/usage",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Usage />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/kpi-performance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <KPI />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/nms",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <NMS />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/booking-management",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <BookingManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/inventory-management",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <InventoryDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/inventory-management/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <InventorySettings />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/site-management/site", //For superadmin
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <SiteDetails />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site", //For staff
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Site />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // // {
+  // //   path: "/site-management/approval", //For superadmin
+  // //   element: (
+  // //     // <ProtectedRoute requiredPermission="view_site_details">
+  // //     <SiteClosureApproval />
+  // //     // </ProtectedRoute>
+  // //   ),
+  // // },
+  // {
+  //   path: "/site-management/utilities-billing",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <UtilitiesBilling />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/insurance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Insurance />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/usage",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Usage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/closure",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <NADIClosure />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/kpi-performance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <KPI />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/nms",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <NMS />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/booking-management",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <BookingManagement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/inventory-management",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <InventoryDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/inventory-management/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <InventorySettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/docket-status", //For superadmin
     element: (
@@ -600,14 +609,6 @@ export const moduleRoutes: RouteObject[] = [
     element: (
       // <ProtectedRoute requiredPermission="">
       <DashboardPage />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/closure",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <NADIClosure />
       // </ProtectedRoute>
     ),
   },
@@ -703,6 +704,7 @@ export const moduleRoutes: RouteObject[] = [
   ...workflowRoutes,
   ...announcementRoutes,
   ...hrRoutes,
+  ...siteRoutes,
   ...assetRoutes,
   ...financeRoutes,
   ...vendorRoutes,
