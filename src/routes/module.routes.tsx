@@ -85,6 +85,7 @@ import { complianceRoutes } from "./module-routes/module.compliance.routes";
 import { posRoutes } from "./module-routes/module.pos.routes";
 import { claimRoutes } from "./module-routes/module.claim.routes";
 import { programmeRoutes } from "./module-routes/module.program.routes";
+import { serviceRoutes } from "./module-routes/module.service.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -335,22 +336,22 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Service Routes
-  {
-    path: "/services/info",
-    element: (
-      // <ProtectedRoute requiredPermission="view_services">
-      <ServiceInfo />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/services/transactions",
-    element: (
-      // <ProtectedRoute requiredPermission="view_service_transactions">
-      <ServiceTransactions />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/services/info",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_services">
+  //     <ServiceInfo />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/services/transactions",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_service_transactions">
+  //     <ServiceTransactions />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Community Routes
   {
     path: "/community",
@@ -716,4 +717,5 @@ export const moduleRoutes: RouteObject[] = [
   ...vendorRoutes,
   ...programmeRoutes,
   ...complianceRoutes,
+  ...serviceRoutes,
 ];
