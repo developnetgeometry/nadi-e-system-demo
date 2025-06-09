@@ -279,63 +279,63 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // Programmes Routes
-  {
-    path: "/programmes",
-    element: (
-      // <ProtectedRoute requiredPermission="view_programmes">
-      <ProgrammesDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/edit/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeEdit />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/registration",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeRegistration />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/nadi4u",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <SmartServicesNadi4UPage />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/nadi2u",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <SmartServicesNadi2UPage />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/programmes",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_programmes">
+  //     <ProgrammesDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <ProgrammeSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/edit/:id",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <ProgrammeEdit />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/registration",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <ProgrammeRegistration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/nadi4u",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <SmartServicesNadi4UPage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/nadi2u",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <SmartServicesNadi2UPage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
 
-  {
-    path: "/programmes/others",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <OthersProgrammesPage />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/programmes/others",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <OthersProgrammesPage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Service Routes
   // {
   //   path: "/services/info",
@@ -354,22 +354,22 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // Community Routes
-  {
-    path: "/community",
-    element: (
-      // <ProtectedRoute requiredPermission="view_community">
-      <CommunityDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/community/moderation",
-    element: (
-      // <ProtectedRoute requiredPermission="moderate_community">
-      <CommunityModeration />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/community",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_community">
+  //     <CommunityDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/community/moderation",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="moderate_community">
+  //     <CommunityModeration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Financial Routes
   {
     path: "/financial/wallet",
