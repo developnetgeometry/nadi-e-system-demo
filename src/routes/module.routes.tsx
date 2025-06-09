@@ -79,6 +79,7 @@ import { vendorRoutes } from "./module-routes/module.vendor.routes";
 import { announcementRoutes } from "./module-routes/module.announcement.routes";
 import { assetRoutes } from "./module-routes/module.asset.routes";
 import { financeRoutes } from "./module-routes/module.finance.routes";
+import { workflowRoutes } from "./module-routes/module.workflow.management.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -405,30 +406,30 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Workflow Routes - Keep only configuration related routes
-  {
-    path: "/workflow",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_workflows">
-      <WorkflowDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/configuration",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-      <WorkflowConfiguration />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/configuration/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-      <WorkflowConfiguration />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/workflow",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_workflows">
+  //     <WorkflowDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/workflow/configuration",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_workflow_configuration">
+  //     <WorkflowConfiguration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/workflow/configuration/:id",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_workflow_configuration">
+  //     <WorkflowConfiguration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
 
   // Site Management Routes
   {
@@ -699,6 +700,7 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
+  ...workflowRoutes,
   ...announcementRoutes,
   ...hrRoutes,
   ...assetRoutes,
