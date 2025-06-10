@@ -89,6 +89,7 @@ import { serviceRoutes } from "./module-routes/module.service.routes";
 import { communityRoutes } from "./module-routes/module.community.routes";
 import {financialRoutes} from "./module-routes/module.financial.routes";
 import { takwimRoutes } from "./module-routes/module.takwim.routes";
+import { reportRoutes } from "./module-routes/module.report.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -611,7 +612,7 @@ export const moduleRoutes: RouteObject[] = [
   //     // </ProtectedRoute>
   //   ),
   // },
-
+  
   {
     path: "/dashboard/home",
     element: (
@@ -645,70 +646,72 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  {
-    path: "/reports",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/nadi-e-system",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportNadiESystem />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/internet-access",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportInternetAccess />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/site-management",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportSiteManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/hr-salary",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportHRSalary />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/training",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportTraining />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/cm",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportCM />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/smart-services",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportSmartService />
-      // </ProtectedRoute>
-    ),
-  },
+
+  // Reports Routes
+  // {
+  //   path: "/reports",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/nadi-e-system",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportNadiESystem />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/internet-access",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportInternetAccess />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/site-management",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportSiteManagement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/hr-salary",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportHRSalary />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/training",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportTraining />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/cm",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportCM />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/smart-services",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportSmartService />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   ...workflowRoutes,
   ...announcementRoutes,
   ...hrRoutes,
@@ -724,4 +727,5 @@ export const moduleRoutes: RouteObject[] = [
   ...communityRoutes,
   ...financialRoutes,
   ...takwimRoutes,
+  ...reportRoutes,
 ];
