@@ -88,6 +88,7 @@ import { programmeRoutes } from "./module-routes/module.program.routes";
 import { serviceRoutes } from "./module-routes/module.service.routes";
 import { communityRoutes } from "./module-routes/module.community.routes";
 import {financialRoutes} from "./module-routes/module.financial.routes";
+import { takwimRoutes } from "./module-routes/module.takwim.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -602,14 +603,14 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // Takwim Routes
-  {
-    path: "/takwim",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <Takwim />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/takwim",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <Takwim />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
 
   {
     path: "/dashboard/home",
@@ -722,4 +723,5 @@ export const moduleRoutes: RouteObject[] = [
   ...serviceRoutes,
   ...communityRoutes,
   ...financialRoutes,
+  ...takwimRoutes,
 ];

@@ -4,19 +4,31 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-// import page based on module from menu
-import Takwim from "@/pages/dashboard/takwim/Takwim";
+
+const TakwimPage = lazy(() => import("@/pages/dashboard/takwim/Takwim"));
 
 export const takwimRoutes = [
   // Setup routes for the module
   {
     path: "/takwim",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Takwim />
-      // </ProtectedRoute>
+      <Suspense fallback={<LoadingSpinner />}>
+        {/*<ProtectedRoute requiredPermission="view_site_details"> */}
+        <TakwimPage />
+        {/*</ProtectedRoute> */}
+      </Suspense>
     ),
-  },
+  },  
+  // {
+  //   path: "/takwim/settings",
+  //   element: (
+  //     <Suspense fallback={<LoadingSpinner />}>
+  //       {/*<ProtectedRoute requiredPermission="view_site_details"> */}
+  //       <TakwimSettings />
+  //       {/*</ProtectedRoute> */}
+  //     </Suspense>
+  //   ),
+  // },
 ];
 
 export const TakwimRoutes = () => {
