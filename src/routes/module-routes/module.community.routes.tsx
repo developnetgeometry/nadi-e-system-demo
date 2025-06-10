@@ -3,9 +3,10 @@ import { Route, Routes } from "react-router-dom";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import CommunityDashboard from "@/pages/dashboard/community/CommunityDashboard";
-import CommunityModeration from "@/pages/dashboard/community/CommunityModeration";
 
+
+const CommunityDashboardPage = lazy(() => import("@/pages/dashboard/community/CommunityDashboard"));
+const CommunityModerationPage = lazy(() => import("@/pages/dashboard/community/CommunityModeration"));
 
 export const communityRoutes = [
     {
@@ -13,7 +14,7 @@ export const communityRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <CommunityDashboard />
+                <CommunityDashboardPage />
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
@@ -23,7 +24,7 @@ export const communityRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <CommunityModeration />
+                <CommunityModerationPage />
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),

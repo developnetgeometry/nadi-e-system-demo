@@ -4,13 +4,12 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
+
 // Lazy load components
-const ClaimDashboard = lazy(() => import("@/pages/dashboard/claim/ClaimDashboard"));
-const ClaimSettings = lazy(() => import("@/pages/dashboard/claim/ClaimSettings"));
-const ClaimRegister = lazy(() => import("@/pages/dashboard/claim/ClaimRegister"));
-// const ClaimRegister = lazy(() => import("@/pages/dashboard/claim/ClaimRegister"));
-// const ClaimList = lazy(() => import("@/pages/dashboard/claim/ClaimList"));
-// const ClaimReport = lazy(() => import("@/pages/dashboard/claim/ClaimReport"));
+const ClaimDashboardPage = lazy(() => import("@/pages/dashboard/claim/ClaimDashboard"));
+const ClaimSettingsPage = lazy(() => import("@/pages/dashboard/claim/ClaimSettings"));
+const ClaimRegisterPage = lazy(() => import("@/pages/dashboard/claim/ClaimRegister"));
+const ClaimReportPage = lazy(() => import("@/pages/dashboard/claim/ClaimReports"));
 
 export const claimRoutes = [
     {
@@ -18,7 +17,7 @@ export const claimRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <ClaimDashboard />
+                <ClaimDashboardPage />
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
@@ -28,7 +27,7 @@ export const claimRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <ClaimSettings />
+                <ClaimSettingsPage />
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
@@ -38,7 +37,7 @@ export const claimRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <ClaimRegister/>
+                <ClaimRegisterPage/>
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
@@ -48,31 +47,11 @@ export const claimRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <ClaimRegister/>
+                <ClaimReportPage/>
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
     },
-    // {
-    //     path: "/claim/list-record",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <ClaimList />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
-    // {
-    //     path: "/claim/report",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <ClaimReport />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
 ];
 
 export const ClaimRoutes = () => {

@@ -4,31 +4,33 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-import SiteManagement from "@/pages/dashboard/site/SiteManagement";
-import Usage from "@/pages/dashboard/site/Usage";
-import  BookingManagement  from "@/pages/dashboard/site/BookingManagement";
-import SiteClosure from "@/pages/dashboard/site/SiteClosure";
-import Insurance from "@/pages/dashboard/site/Insurance";
+// import SiteManagement from "@/pages/dashboard/site/SiteManagement";
+// import SiteDetails from "@/pages/dashboard/site/SiteDetail";
+// import Site from "@/pages/dashboard/site/Site";
+// import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
+// import Insurance from "@/pages/dashboard/site/Insurance";
+// import Usage from "@/pages/dashboard/site/Usage";
+// import NADIClosure from "@/pages/dashboard/site/SiteClosure";
+// import KPI from "@/pages/dashboard/site/KPIPerformance";
+// import NMS from "@/pages/dashboard/site/NMS";
+// import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
+// import BookingManagement from "@/pages/dashboard/site/BookingManagement";
+import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
 import InventoryManagement from "@/pages/dashboard/site/InventoryManagement";
-import UtilitiesBilling from "@/pages/dashboard/site/UtilitiesBilling";
 import VendorManagement from "@/pages/dashboard/vendor/VendorManagement";
-import KPIPerformance from "@/pages/dashboard/site/KPIPerformance";
-import NMS from "@/pages/dashboard/site/NMS";
-import SiteDetails from "@/pages/dashboard/site/SiteDetail";
 
-
-
-// Implement lazy loading for the Dashboard component
-const SiteManagementPage = lazy(() => Promise.resolve({ default: SiteManagement }));
-const UsagePage = lazy(() => Promise.resolve({ default: Usage }));
-const BookingManagementPage = lazy(() => Promise.resolve({ default: BookingManagement }));
-const SiteClosurePage = lazy(() => Promise.resolve({ default: SiteClosure }));
-const InsurancePage = lazy(() => Promise.resolve({ default: Insurance }));
-const InventoryManagementPage = lazy(() => Promise.resolve({ default: InventoryManagement }));
-const UtilitiesBillingPage = lazy(() => Promise.resolve({ default: UtilitiesBilling }));
-const VendorManagementPage = lazy(() => Promise.resolve({ default: VendorManagement }));
-const KPIPerformancePage = lazy(() => Promise.resolve({ default: KPIPerformance }));
-const NMSPage = lazy(() => Promise.resolve({ default: NMS }));
+const SiteManagementPage = lazy(() => import("@/pages/dashboard/site/SiteManagement"));
+const SiteDetailsPage = lazy(() => import("@/pages/dashboard/site/SiteDetail"));
+const SitePage = lazy(() => import("@/pages/dashboard/site/Site"));
+const UtilitiesBillingPage = lazy(() => import("@/pages/dashboard/site/UtilitiesBilling"));
+const InsurancePage = lazy(() => import("@/pages/dashboard/site/Insurance"));
+const UsagePage = lazy(() => import("@/pages/dashboard/site/Usage"));
+const NADIClosurePage = lazy(() => import("@/pages/dashboard/site/SiteClosure"));
+const KPIPage = lazy(() => import("@/pages/dashboard/site/KPIPerformance"));
+const NMSPage = lazy(() => import("@/pages/dashboard/site/NMS"));
+const BookingManagementPage = lazy(() => import("@/pages/dashboard/site/BookingManagement"));
+const InventoryDashboardPage = lazy(() => import("@/pages/dashboard/inventory/InventoryDashboard"));
+const InventorySettingsPage = lazy(() => import("@/pages/dashboard/inventory/InventorySettings"));
 
 export const siteRoutes = [
   {
@@ -46,57 +48,17 @@ export const siteRoutes = [
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <SiteDetails />
+        <SiteDetailsPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
   },
   {
-    path: "/site-management/usage",
+    path: "/site",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <UsagePage />
-        {/* </ProtectedRoute> */}
-      </Suspense>
-    ),
-  },
-  {
-    path: "/site-management/booking-management",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* <ProtectedRoute requiredPermission=""> */}
-        <BookingManagementPage />
-        {/* </ProtectedRoute> */}
-      </Suspense>
-    ),
-  },
-  {
-    path: "/site-management/site-closure",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* <ProtectedRoute requiredPermission=""> */}
-        <SiteClosurePage />
-        {/* </ProtectedRoute> */}
-      </Suspense>
-    ),
-  },
-  {
-    path: "/site-management/insurance",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* <ProtectedRoute requiredPermission=""> */}
-        <InsurancePage />
-        {/* </ProtectedRoute> */}
-      </Suspense>
-    ),
-  },
-  {
-    path: "/site-management/inventory-management",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* <ProtectedRoute requiredPermission=""> */}
-        <InventoryManagementPage />
+        <SitePage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
@@ -112,11 +74,31 @@ export const siteRoutes = [
     ),
   },
   {
-    path: "/site-management/vendor-management",
+    path: "/site-management/insurance",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <VendorManagementPage/>
+        <InsurancePage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/usage",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <UsagePage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/closure",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <NADIClosurePage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
@@ -126,7 +108,7 @@ export const siteRoutes = [
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <KPIPerformancePage />
+        <KPIPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
@@ -137,6 +119,36 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <NMSPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/booking-management",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <BookingManagementPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/inventory-management",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <InventoryDashboardPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/inventory-management/settings",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <InventorySettingsPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

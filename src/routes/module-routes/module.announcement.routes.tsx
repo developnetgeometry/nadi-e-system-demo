@@ -4,43 +4,59 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-// import page based on module from menu
-import Announcements from "@/pages/dashboard/announcements/Announcements";
-import AnnouncementSettings from "@/pages/dashboard/announcements/AnnouncementSettings";
-import CreateAnnouncement from "@/pages/dashboard/announcements/CreateAnnouncement";
+const AnnouncementsPage = lazy(() => import("@/pages/dashboard/announcements/Announcements"));
+const AnnouncementSettingsPage = lazy(() => import("@/pages/dashboard/announcements/AnnouncementSettings"));
+const CreateAnnouncementPage = lazy(() => import("@/pages/dashboard/announcements/CreateAnnouncement"));
+const AnnouncementListPage = lazy(() => import("@/pages/dashboard/announcements/AnnouncementList"));
 
-export const dashboardRoutes = [
+export const announcementRoutes = [
   // Setup routes for the module
   {
     path: "/announcements",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Announcements />
-      // </ProtectedRoute>
+      <Suspense fallback={<LoadingSpinner />}>
+        {/*<ProtectedRoute requiredPermission="view_site_details"> */}
+        <AnnouncementsPage />
+        {/*</ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/announcements/list",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/*<ProtectedRoute requiredPermission="view_site_details"> */}
+        <AnnouncementListPage />
+        {/*</ProtectedRoute> */}
+      </Suspense>
     ),
   },
   {
     path: "/announcements/create-announcement",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <CreateAnnouncement />
-      // </ProtectedRoute>
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* // <ProtectedRoute requiredPermission="view_site_details"> */}
+        <CreateAnnouncementPage />
+        {/* // </ProtectedRoute> */}
+      </Suspense>
     ),
   },
   {
     path: "/announcements/announcements-settings",
     element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <AnnouncementSettings />
-      // </ProtectedRoute>
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* // <ProtectedRoute requiredPermission="view_site_details"> */}
+        <AnnouncementSettingsPage />
+        {/* // </ProtectedRoute> */}
+      </Suspense>
     ),
   },
 ];
 
-export const DashboardRoutes = () => {
+export const AnnouncementRoutes = () => {
   return (
     <Routes>
-      {dashboardRoutes.map((route, index) => (
+      {announcementRoutes.map((route, index) => (
         <Route key={index} path={route.path} element={route.element} />
       ))}
     </Routes>

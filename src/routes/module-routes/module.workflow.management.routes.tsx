@@ -4,9 +4,10 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-// import page based on module from menu
-import WorkflowConfiguration from "@/pages/dashboard/workflow/WorkflowConfiguration";
-import WorkflowDashboard from "@/pages/workflow/Dashboard";
+
+const WorkflowConfigurationPage = lazy(() => import("@/pages/dashboard/workflow/WorkflowConfiguration"));
+const WorkflowDashboardPage = lazy(() => import("@/pages/dashboard/workflow/WorkflowDashboard"));
+
 
 export const workflowRoutes = [
   // Setup routes for the module
@@ -15,7 +16,7 @@ export const workflowRoutes = [
     path: "/workflow",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflows">
-      <WorkflowDashboard />
+      <WorkflowDashboardPage />
       // </ProtectedRoute>
     ),
   },
@@ -23,7 +24,7 @@ export const workflowRoutes = [
     path: "/workflow/configuration",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-      <WorkflowConfiguration />
+      <WorkflowConfigurationPage />
       // </ProtectedRoute>
     ),
   },
@@ -31,7 +32,7 @@ export const workflowRoutes = [
     path: "/workflow/configuration/:id",
     element: (
       // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-      <WorkflowConfiguration />
+      <WorkflowConfigurationPage />
       // </ProtectedRoute>
     ),
   },

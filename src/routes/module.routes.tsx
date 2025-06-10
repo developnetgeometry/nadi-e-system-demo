@@ -76,6 +76,20 @@ import ClaimReports from "@/pages/dashboard/claim/ClaimReports";
 
 import { hrRoutes } from "@/routes/module-routes/module.hr.routes";
 import { vendorRoutes } from "./module-routes/module.vendor.routes";
+import { announcementRoutes } from "./module-routes/module.announcement.routes";
+import { assetRoutes } from "./module-routes/module.asset.routes";
+import { financeRoutes } from "./module-routes/module.finance.routes";
+import { workflowRoutes } from "./module-routes/module.workflow.management.routes";
+import { siteRoutes } from "./module-routes/module.site.routes";
+import { complianceRoutes } from "./module-routes/module.compliance.routes";
+import { posRoutes } from "./module-routes/module.pos.routes";
+import { claimRoutes } from "./module-routes/module.claim.routes";
+import { programmeRoutes } from "./module-routes/module.program.routes";
+import { serviceRoutes } from "./module-routes/module.service.routes";
+import { communityRoutes } from "./module-routes/module.community.routes";
+import {financialRoutes} from "./module-routes/module.financial.routes";
+import { takwimRoutes } from "./module-routes/module.takwim.routes";
+import { reportRoutes } from "./module-routes/module.report.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -144,386 +158,394 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // POS Routes
-  {
-    path: "/pos",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_dashboard">
-      <POSDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/products",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_products">
-      <Products />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/transactions",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_transactions">
-      <POSTransactions />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/sales",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_transactions">
-      <POSSales />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pos/pudo",
-    element: (
-      // <ProtectedRoute requiredPermission="view_pos_transactions">
-      <POSPickupDropOff />
-      // </ProtectedRoute>
-    ),
-  },
-  // Claim Routes
-  {
-    path: "/claim",
-    element: (
-      // <ProtectedRoute requiredPermission="view_claims">
-      <ClaimDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/claim/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_claim_settings">
-      <ClaimSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/claim/register",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_claim_settings">
-      <ClaimRegister />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/claim/report",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_claim_settings">
-      <ClaimReports />
-      // </ProtectedRoute>
-    ),
-  },
-  // Asset Routes
-  {
-    path: "/asset",
-    element: (
-      // <ProtectedRoute requiredPermission="view_assets">
-      <AssetDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/asset/detail/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="view_assets">
-      <AssetDetails />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/asset/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_asset_settings">
-      <AssetSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/asset/maintenance",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_asset_settings">
-      <MaintenanceDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  // Finance Routes
-  {
-    path: "/finance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_finance">
-      <FinanceDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/finance/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_finance_settings">
-      <FinanceSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  // Programmes Routes
-  {
-    path: "/programmes",
-    element: (
-      // <ProtectedRoute requiredPermission="view_programmes">
-      <ProgrammesDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeSettings />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/edit/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeEdit />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/registration",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <ProgrammeRegistration />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/nadi4u",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <SmartServicesNadi4UPage />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/programmes/nadi2u",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <SmartServicesNadi2UPage />
-      // </ProtectedRoute>
-    ),
-  },
-
-  {
-    path: "/programmes/others",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_programme_settings">
-      <OthersProgrammesPage />
-      // </ProtectedRoute>
-    ),
-  },
-  // Service Routes
-  {
-    path: "/services/info",
-    element: (
-      // <ProtectedRoute requiredPermission="view_services">
-      <ServiceInfo />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/services/transactions",
-    element: (
-      // <ProtectedRoute requiredPermission="view_service_transactions">
-      <ServiceTransactions />
-      // </ProtectedRoute>
-    ),
-  },
-  // Community Routes
-  {
-    path: "/community",
-    element: (
-      // <ProtectedRoute requiredPermission="view_community">
-      <CommunityDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/community/moderation",
-    element: (
-      // <ProtectedRoute requiredPermission="moderate_community">
-      <CommunityModeration />
-      // </ProtectedRoute>
-    ),
-  },
-  // Financial Routes
-  {
-    path: "/financial/wallet",
-    element: (
-      // <ProtectedRoute requiredPermission="view_wallet">
-      <Wallet />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/financial/transactions",
-    element: (
-      // <ProtectedRoute requiredPermission="view_financial_transactions">
-      <FinancialTransactions />
-      // </ProtectedRoute>
-    ),
-  },
-  // Compliance Routes
-  {
-    path: "/compliance/activity",
-    element: (
-      // <ProtectedRoute requiredPermission="view_activity_logs">
-      <ActivityLogs />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/compliance/audit",
-    element: (
-      // <ProtectedRoute requiredPermission="view_audit_logs">
-      <AuditLogs />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/compliance/reports",
-    element: (
-      // <ProtectedRoute requiredPermission="view_compliance_reports">
-      <ComplianceReports />
-      // </ProtectedRoute>
-    ),
-  },
-  // Workflow Routes - Keep only configuration related routes
-  {
-    path: "/workflow",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_workflows">
-      <WorkflowDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/configuration",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-      <WorkflowConfiguration />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/workflow/configuration/:id",
-    element: (
-      // <ProtectedRoute requiredPermission="manage_workflow_configuration">
-      <WorkflowConfiguration />
-      // </ProtectedRoute>
-    ),
-  },
-
-  // Site Management Routes
-  {
-    path: "/site-management", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="site_management">
-      <SiteManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/site", //For superadmin
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <SiteDetails />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site", //For staff
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Site />
-      // </ProtectedRoute>
-    ),
-  },
   // {
-  //   path: "/site-management/approval", //For superadmin
+  //   path: "/pos",
   //   element: (
-  //     // <ProtectedRoute requiredPermission="view_site_details">
-  //     <SiteClosureApproval />
+  //     // <ProtectedRoute requiredPermission="view_pos_dashboard">
+  //     <POSDashboard />
   //     // </ProtectedRoute>
   //   ),
   // },
-  {
-    path: "/site-management/utilities-billing",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <UtilitiesBilling />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/insurance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Insurance />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/usage",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Usage />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/kpi-performance",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <KPI />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/nms",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <NMS />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/booking-management",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <BookingManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/inventory-management",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <InventoryDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/inventory-management/settings",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <InventorySettings />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/pos/products",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_products">
+  //     <Products />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/transactions",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
+  //     <POSTransactions />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/sales",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
+  //     <POSSales />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/pos/pudo",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_pos_transactions">
+  //     <POSPickupDropOff />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Claim Routes
+  // {
+  //   path: "/claim",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_claims">
+  //     <ClaimDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/claim/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_claim_settings">
+  //     <ClaimSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/claim/register",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_claim_settings">
+  //     <ClaimRegister />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/claim/report",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_claim_settings">
+  //     <ClaimReports />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Asset Routes
+  // {
+  //   path: "/asset",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_assets">
+  //     <AssetDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/asset/detail/:id",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_assets">
+  //     <AssetDetails />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/asset/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_asset_settings">
+  //     <AssetSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/asset/maintenance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_asset_settings">
+  //     <MaintenanceDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Finance Routes
+  // {
+  //   path: "/finance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_finance">
+  //     <FinanceDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/finance/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_finance_settings">
+  //     <FinanceSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Programmes Routes
+  // {
+  //   path: "/programmes",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_programmes">
+  //     <ProgrammesDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <ProgrammeSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/edit/:id",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <ProgrammeEdit />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/registration",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <ProgrammeRegistration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/nadi4u",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <SmartServicesNadi4UPage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/programmes/nadi2u",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <SmartServicesNadi2UPage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+
+  // {
+  //   path: "/programmes/others",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_programme_settings">
+  //     <OthersProgrammesPage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Service Routes
+  // {
+  //   path: "/services/info",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_services">
+  //     <ServiceInfo />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/services/transactions",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_service_transactions">
+  //     <ServiceTransactions />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Community Routes
+  // {
+  //   path: "/community",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_community">
+  //     <CommunityDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/community/moderation",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="moderate_community">
+  //     <CommunityModeration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Financial Routes
+  // {
+  //   path: "/financial/wallet",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_wallet">
+  //     <Wallet />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/financial/transactions",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_financial_transactions">
+  //     <FinancialTransactions />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Compliance Routes
+  // {
+  //   path: "/compliance/activity",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_activity_logs">
+  //     <ActivityLogs />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/compliance/audit",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_audit_logs">
+  //     <AuditLogs />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/compliance/reports",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_compliance_reports">
+  //     <ComplianceReports />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // Workflow Routes - Keep only configuration related routes
+  // {
+  //   path: "/workflow",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_workflows">
+  //     <WorkflowDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/workflow/configuration",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_workflow_configuration">
+  //     <WorkflowConfiguration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/workflow/configuration/:id",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="manage_workflow_configuration">
+  //     <WorkflowConfiguration />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+
+  // Site Management Routes
+  // {
+  //   path: "/site-management", //For superadmin
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="site_management">
+  //     <SiteManagement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/site", //For superadmin
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <SiteDetails />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site", //For staff
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Site />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // // {
+  // //   path: "/site-management/approval", //For superadmin
+  // //   element: (
+  // //     // <ProtectedRoute requiredPermission="view_site_details">
+  // //     <SiteClosureApproval />
+  // //     // </ProtectedRoute>
+  // //   ),
+  // // },
+  // {
+  //   path: "/site-management/utilities-billing",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <UtilitiesBilling />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/insurance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Insurance />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/usage",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Usage />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/closure",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <NADIClosure />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/kpi-performance",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <KPI />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/nms",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <NMS />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/booking-management",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <BookingManagement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/inventory-management",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <InventoryDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/site-management/inventory-management/settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <InventorySettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   {
     path: "/docket-status", //For superadmin
     element: (
@@ -549,61 +571,53 @@ export const moduleRoutes: RouteObject[] = [
     ),
   },
   // Announcements Routes
-  {
-    path: "/announcements",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <Announcements />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/announcements/list",
-    element: (
-      // <ProtectedRoute>
-      <AnnouncementsList />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/announcements/create-announcement",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <CreateAnnouncement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/announcements/announcements-settings",
-    element: (
-      // <ProtectedRoute requiredPermission="view_site_details">
-      <AnnouncementSettings />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/announcements",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <Announcements />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/announcements/list",
+  //   element: (
+  //     // <ProtectedRoute>
+  //     <AnnouncementsList />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/announcements/create-announcement",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <CreateAnnouncement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/announcements/announcements-settings",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_site_details">
+  //     <AnnouncementSettings />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Takwim Routes
-  {
-    path: "/takwim",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <Takwim />
-      // </ProtectedRoute>
-    ),
-  },
-
+  // {
+  //   path: "/takwim",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <Takwim />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  
   {
     path: "/dashboard/home",
     element: (
       // <ProtectedRoute requiredPermission="">
       <DashboardPage />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/site-management/closure",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <NADIClosure />
       // </ProtectedRoute>
     ),
   },
@@ -632,70 +646,86 @@ export const moduleRoutes: RouteObject[] = [
       // </ProtectedRoute>
     ),
   },
-  {
-    path: "/reports",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportDashboard />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/nadi-e-system",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportNadiESystem />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/internet-access",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportInternetAccess />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/site-management",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportSiteManagement />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/hr-salary",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportHRSalary />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/training",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportTraining />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/cm",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportCM />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/reports/smart-services",
-    element: (
-      // <ProtectedRoute requiredPermission="">
-      <ReportSmartService />
-      // </ProtectedRoute>
-    ),
-  },
+
+  // Reports Routes
+  // {
+  //   path: "/reports",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportDashboard />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/nadi-e-system",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportNadiESystem />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/internet-access",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportInternetAccess />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/site-management",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportSiteManagement />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/hr-salary",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportHRSalary />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/training",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportTraining />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/cm",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportCM />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/reports/smart-services",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="">
+  //     <ReportSmartService />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  ...workflowRoutes,
+  ...announcementRoutes,
   ...hrRoutes,
+  ...posRoutes,
+  ...siteRoutes,
+  ...assetRoutes,
+  ...claimRoutes,
+  ...financeRoutes,
   ...vendorRoutes,
+  ...programmeRoutes,
+  ...complianceRoutes,
+  ...serviceRoutes,
+  ...communityRoutes,
+  ...financialRoutes,
+  ...takwimRoutes,
+  ...reportRoutes,
 ];
