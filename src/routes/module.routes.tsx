@@ -87,6 +87,7 @@ import { claimRoutes } from "./module-routes/module.claim.routes";
 import { programmeRoutes } from "./module-routes/module.program.routes";
 import { serviceRoutes } from "./module-routes/module.service.routes";
 import { communityRoutes } from "./module-routes/module.community.routes";
+import {financialRoutes} from "./module-routes/module.financial.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
@@ -371,22 +372,22 @@ export const moduleRoutes: RouteObject[] = [
   //   ),
   // },
   // Financial Routes
-  {
-    path: "/financial/wallet",
-    element: (
-      // <ProtectedRoute requiredPermission="view_wallet">
-      <Wallet />
-      // </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/financial/transactions",
-    element: (
-      // <ProtectedRoute requiredPermission="view_financial_transactions">
-      <FinancialTransactions />
-      // </ProtectedRoute>
-    ),
-  },
+  // {
+  //   path: "/financial/wallet",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_wallet">
+  //     <Wallet />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/financial/transactions",
+  //   element: (
+  //     // <ProtectedRoute requiredPermission="view_financial_transactions">
+  //     <FinancialTransactions />
+  //     // </ProtectedRoute>
+  //   ),
+  // },
   // Compliance Routes
   // {
   //   path: "/compliance/activity",
@@ -720,4 +721,5 @@ export const moduleRoutes: RouteObject[] = [
   ...complianceRoutes,
   ...serviceRoutes,
   ...communityRoutes,
+  ...financialRoutes,
 ];
