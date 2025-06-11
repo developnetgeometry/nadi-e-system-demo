@@ -1173,14 +1173,16 @@ const Transactions = () => {
             </div>
           )}
           <div className="flex justify-end gap-2 mt-4">
-            <Button 
-              variant="secondary"
-              className="border print:hidden"
-              onClick={handlePrint}
-            >
-              <Printer className="h-5 w-5"/>
-              Print
-            </Button>
+            {parsedMetadata?.user_type !== 'member' && (
+              <Button 
+                variant="secondary"
+                className="border print:hidden"
+                onClick={handlePrint}
+              >
+                <Printer className="h-5 w-5"/>
+                Print
+              </Button>
+            )}
             <Button 
               variant="default" 
               onClick={() => setIsReceiptDialogOpen(false)}
