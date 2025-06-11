@@ -392,6 +392,15 @@ const POSSales = () => {
     return calculateTotal(subtotal);
   }, [subtotal, 0]);
 
+  const calculatePhotocopyPrice = (numberOfPages: number) => {
+    if (numberOfPages <= 10) {
+      return 0; // First 10 pages are free
+    } else {
+      const chargeablePages = numberOfPages - 10;
+      return Math.round(chargeablePages * 0.10 * 100) / 100; // RM0.10 for each page after 10
+    }
+  };
+
   const handlePayment = () => {
     if(cartItems.length === 0) {
       toast({
@@ -553,7 +562,13 @@ const POSSales = () => {
         
         if (selectedService) {
           const quantity = field === 'numberOfPages' ? value : prev.numberOfPages;
-          updated.subtotal = parseFloat((selectedService.fee * quantity).toFixed(2));
+          
+          // Special pricing for photocopy service (category_id 3)
+          if (printingItem?.id === 3) {
+            updated.subtotal = calculatePhotocopyPrice(quantity);
+          } else {
+            updated.subtotal = Math.round(selectedService.fee * quantity * 100) / 100;
+          }
         }
       }
       
@@ -1253,7 +1268,7 @@ const POSSales = () => {
                         className="h-4 w-4 rounded-full"
                       />
                       <Label htmlFor={`service-${charge.id}`} className="flex-1">
-                        {charge.description} - RM{charge.fee.toFixed(2)}
+                        {charge.description} - {printingItem?.id === 3 ? 'First 10 pages FREE, then RM0.10/page' : `RM${charge.fee.toFixed(2)}`}
                       </Label>
                     </div>
                   ))}
@@ -1284,6 +1299,15 @@ const POSSales = () => {
                     <Plus className="h-5 w-5" />
                   </Button>
                 </div>
+                {/* Show pricing breakdown for photocopy service */}
+                {printingItem?.id === 3 && printOptions.numberOfPages > 0 && (
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    {printOptions.numberOfPages <= 10 
+                      ? `${printOptions.numberOfPages} pages (FREE)`
+                      : `10 pages (FREE) + ${printOptions.numberOfPages - 10} pages × RM0.10`
+                    }
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between pt-4 border-t font-medium">
