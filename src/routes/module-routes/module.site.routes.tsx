@@ -31,7 +31,8 @@ const NMSPage = lazy(() => import("@/pages/dashboard/site/NMS"));
 const BookingManagementPage = lazy(() => import("@/pages/dashboard/site/BookingManagement"));
 const InventoryDashboardPage = lazy(() => import("@/pages/dashboard/inventory/InventoryDashboard"));
 const InventorySettingsPage = lazy(() => import("@/pages/dashboard/inventory/InventorySettings"));
-const PhasePage = lazy(() => import("@/pages/dashboard/site/Phase"));
+const PhaseOverviewPage = lazy(() => import("@/pages/dashboard/site/Phase"));
+const PhaseFormPage = lazy(() => import("@/components/site/PhaseForm"));
 
 export const siteRoutes = [
   {
@@ -159,7 +160,17 @@ export const siteRoutes = [
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <PhasePage />
+        <PhaseOverviewPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/phase/form/:id?",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <PhaseFormPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
