@@ -15,9 +15,9 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 // import NMS from "@/pages/dashboard/site/NMS";
 // import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 // import BookingManagement from "@/pages/dashboard/site/BookingManagement";
-import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
-import InventoryManagement from "@/pages/dashboard/site/InventoryManagement";
-import VendorManagement from "@/pages/dashboard/vendor/VendorManagement";
+// import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
+// import InventoryManagement from "@/pages/dashboard/site/InventoryManagement";
+// import VendorManagement from "@/pages/dashboard/vendor/VendorManagement";
 
 const SiteManagementPage = lazy(() => import("@/pages/dashboard/site/SiteManagement"));
 const SiteDetailsPage = lazy(() => import("@/pages/dashboard/site/SiteDetail"));
@@ -31,6 +31,7 @@ const NMSPage = lazy(() => import("@/pages/dashboard/site/NMS"));
 const BookingManagementPage = lazy(() => import("@/pages/dashboard/site/BookingManagement"));
 const InventoryDashboardPage = lazy(() => import("@/pages/dashboard/inventory/InventoryDashboard"));
 const InventorySettingsPage = lazy(() => import("@/pages/dashboard/inventory/InventorySettings"));
+const PhasePage = lazy(() => import("@/pages/dashboard/site/Phase"));
 
 export const siteRoutes = [
   {
@@ -149,6 +150,16 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <InventorySettingsPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/phase",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <PhasePage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
