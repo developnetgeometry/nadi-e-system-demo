@@ -13,6 +13,7 @@ import {
   Phase,
   Region,
   Site,
+  SiteOption,
   SiteStatus,
   Socioeconomic,
   Space,
@@ -532,5 +533,78 @@ export const fetchAllDuns = async (): Promise<Dun[]> => {
   } catch (error) {
     console.error("Error fetching all duns:", error);
     throw error;
+  }
+};
+
+// Function to fetch sites for a specific TP organization
+export const fetchTPSites = async (
+  organizationId: string
+): Promise<SiteOption[]> => {
+  if (!organizationId) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_profile")
+      .select(
+        `
+        id,
+        sitename,
+        nd_site:nd_site(standard_code)
+      `
+      )
+      .eq("dusp_tp_id", organizationId)
+      .order("sitename", { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((site) => ({
+      id: site.id,
+      label: `${site.sitename} (${
+        site.nd_site?.[0]?.standard_code || "No Code"
+      })`,
+    }));
+  } catch (error) {
+    console.error("Error fetching TP sites:", error);
+    return [];
+  }
+};
+
+// Function to fetch all sites for SuperAdmin
+export const fetchAllSites = async (
+  organizationId?: string
+): Promise<SiteOption[]> => {
+  try {
+    const query = supabase
+      .from("nd_site_profile")
+      .select(
+        `
+        id,
+        sitename,
+        nd_site:nd_site(standard_code),
+        organizations:dusp_tp_id(
+          id, name, type,
+          parent:parent_id(name)
+        )
+      `
+      )
+      .order("sitename", { ascending: true });
+
+    if (organizationId) {
+      query.eq("dusp_tp_id", organizationId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return (data || []).map((site) => ({
+      id: String(site.id),
+      label: `${site.sitename} (${
+        site.nd_site?.[0]?.standard_code || "No Code"
+      }) - ${site.organizations?.name || "N/A"}`,
+    }));
+  } catch (error) {
+    console.error("Error fetching all sites:", error);
+    return [];
   }
 };

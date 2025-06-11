@@ -19,11 +19,12 @@ import { toast } from "@/hooks/use-toast";
 import { useUserGroup } from "@/hooks/use-user-group";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { useDateRangeValidation } from "@/hooks/useDateRangeValidation";
-import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
+import { SUPABASE_URL } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { DateInput } from "../../ui/date-input";
 import TimeInput from "../../ui/TimePicker";
+import { fetchAllSites, fetchTPSites } from "../hook/site-utils";
 import { useSessionVisibility } from "../hook/use-session-visibility";
 import { useSiteClosureForm } from "../hook/use-site-closure-form";
 import { useSiteCode } from "../hook/use-site-code";
@@ -42,76 +43,6 @@ interface SiteClosureFormProps {
   editData?: any;
   clearEditData?: () => void;
 }
-
-export interface SiteOption {
-  id: string;
-  label: string;
-}
-
-// Function to fetch sites for a specific TP organization
-export const fetchTPSites = async (
-  organizationId: string
-): Promise<SiteOption[]> => {
-  if (!organizationId) return [];
-
-  try {
-    const { data, error } = await supabase
-      .from("nd_site_profile")
-      .select(
-        `
-        id,
-        sitename,
-        nd_site:nd_site(standard_code)
-      `
-      )
-      .eq("dusp_tp_id", organizationId)
-      .order("sitename", { ascending: true });
-
-    if (error) throw error;
-
-    return (data || []).map((site) => ({
-      id: site.id,
-      label: `${site.sitename} (${
-        site.nd_site?.[0]?.standard_code || "No Code"
-      })`,
-    }));
-  } catch (error) {
-    console.error("Error fetching TP sites:", error);
-    return [];
-  }
-};
-
-// Function to fetch all sites for SuperAdmin
-const fetchAllSites = async (): Promise<SiteOption[]> => {
-  try {
-    const { data, error } = await supabase
-      .from("nd_site_profile")
-      .select(
-        `
-        id,
-        sitename,
-        nd_site:nd_site(standard_code),
-        organizations:dusp_tp_id(
-          id, name, type,
-          parent:parent_id(name)
-        )
-      `
-      )
-      .order("sitename", { ascending: true });
-
-    if (error) throw error;
-
-    return (data || []).map((site) => ({
-      id: site.id,
-      label: `${site.sitename} (${
-        site.nd_site?.[0]?.standard_code || "No Code"
-      }) - ${site.organizations?.name || "N/A"}`,
-    }));
-  } catch (error) {
-    console.error("Error fetching all sites:", error);
-    return [];
-  }
-};
 
 const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   open,
@@ -313,7 +244,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
   // Update time fields based on session selection
   useEffect(() => {
     if (formState.session) {
-      let updatedState = {
+      const updatedState = {
         ...formState,
         start_time: "",
         end_time: "",

@@ -27,10 +27,11 @@ import { Site, Space } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { fetchTPSites, SiteOption } from "../site/component/SiteClosure";
 import {
+  fetchAllSites,
   fetchSiteBySiteId,
   fetchSiteBySiteProfileId,
+  fetchTPSites,
 } from "../site/hook/site-utils";
 import { Textarea } from "../ui/textarea";
 
@@ -40,46 +41,6 @@ export interface AssetFormDialogProps {
   asset?: Asset | null;
   defaultSiteId?: string | null; // default site id passed from parent componenet in site.id form not site_profile.id
 }
-
-// Function to fetch all sites for SuperAdmin
-export const fetchAllSites = async (
-  organizationId: string
-): Promise<SiteOption[]> => {
-  try {
-    const query = supabase
-      .from("nd_site_profile")
-      .select(
-        `
-        id,
-        sitename,
-        nd_site:nd_site(standard_code),
-        organizations:dusp_tp_id(
-          id, name, type,
-          parent:parent_id(name)
-        )
-      `
-      )
-      .order("sitename", { ascending: true });
-
-    if (organizationId) {
-      query.eq("dusp_tp_id", organizationId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    return (data || []).map((site) => ({
-      id: String(site.id),
-      label: `${site.sitename} (${
-        site.nd_site?.[0]?.standard_code || "No Code"
-      }) - ${site.organizations?.name || "N/A"}`,
-    }));
-  } catch (error) {
-    console.error("Error fetching all sites:", error);
-    return [];
-  }
-};
 
 export const AssetFormDialog = ({
   open,
@@ -211,7 +172,7 @@ export const AssetFormDialog = ({
       setSelectedSite(null);
       refetchSites();
     }
-  }, [duspId, refetchTPs]);
+  }, [duspId, refetchTPs, refetchSites]);
 
   useEffect(() => {
     if (tpId) {
@@ -219,7 +180,7 @@ export const AssetFormDialog = ({
       setSiteId("");
       setSelectedSite(null);
     }
-  }, [tpId]);
+  }, [tpId, refetchSites]);
 
   useEffect(() => {
     if (!open) {
