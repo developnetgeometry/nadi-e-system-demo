@@ -23,7 +23,10 @@ const GenerateMaintenanceReportCM = ({
 
     const doc = new jsPDF();
 
-    await headerNadiDocs(doc);
+    await headerNadiDocs(
+      doc,
+      maintenanceRequest.asset?.site?.dusp_tp?.parent?.logo_url
+    );
     footerNadiDocs(doc, CURRENT_DATE);
 
     const rows1 = [

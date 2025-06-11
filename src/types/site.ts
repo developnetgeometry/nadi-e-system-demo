@@ -30,6 +30,7 @@ export interface Site {
     parent?: {
       id: string;
       name: string;
+      logo_url?: string;
     };
   }; // Add dusp_tp field for organization details
   nd_site_status: {

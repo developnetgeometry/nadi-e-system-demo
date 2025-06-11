@@ -23,7 +23,10 @@ const GenerateMaintenanceReportPM = ({
 
     const doc = new jsPDF();
 
-    await headerNadiDocs(doc);
+    await headerNadiDocs(
+      doc,
+      maintenanceRequest.asset?.site?.dusp_tp?.parent?.logo_url
+    );
     footerNadiDocs(doc, CURRENT_DATE);
 
     const rows1 = [
@@ -41,7 +44,7 @@ const GenerateMaintenanceReportPM = ({
       ],
       [
         {
-          content: "SITE DETAILS",
+          content: "ATTENDANCE FORM",
           colSpan: 4,
           styles: {
             halign: "center",

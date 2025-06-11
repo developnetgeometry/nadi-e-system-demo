@@ -44,7 +44,7 @@ export const fetchSites = async (
         nd_parliament:nd_parliaments(id),
         nd_dun:nd_duns(id),
         nd_mukim:nd_mukims(id),
-        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name))
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name,logo_url))
       `
       )
       .order("created_at", { ascending: false });
@@ -123,7 +123,7 @@ export const fetchSiteBySiteId = async (
         nd_parliament:nd_parliaments(id),
         nd_dun:nd_duns(id),
         nd_mukim:nd_mukims(id),
-        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name))
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name,logo_url))
       `
       )
       .eq("id", siteProfileId)
@@ -162,7 +162,7 @@ export const fetchSiteBySiteProfileId = async (
         nd_parliament:nd_parliaments(id),
         nd_dun:nd_duns(id),
         nd_mukim:nd_mukims(id),
-        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name))
+        dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name,logo_url))
       `
       )
       .eq("id", siteProfileId)
