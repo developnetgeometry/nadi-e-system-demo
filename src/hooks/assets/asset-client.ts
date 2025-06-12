@@ -31,7 +31,7 @@ export const assetClient = {
       query = query.eq("site_id", Number(siteId));
     }
 
-    query = query.order("id");
+    query = query.order("created_at", { ascending: true });
 
     const { data, error } = await query;
 
@@ -296,7 +296,8 @@ export const assetClient = {
             is_using,
             created_by
           )
-        `)
+        `
+        )
         .eq("site_id", siteId?.id);
 
       if (error) throw error;
@@ -305,7 +306,10 @@ export const assetClient = {
     }
   },
 
-  fetchAssetsBySiteId: async (siteProfileId: number | null, siteId?: number) => {
+  fetchAssetsBySiteId: async (
+    siteProfileId: number | null,
+    siteId?: number
+  ) => {
     let site_id = siteId;
 
     if (siteProfileId) {
@@ -313,7 +317,7 @@ export const assetClient = {
         .from("nd_site")
         .select("id")
         .eq("site_profile_id", siteProfileId)
-        .single()
+        .single();
 
       if (errorSiteProfile) throw errorSiteProfile;
 
@@ -343,8 +347,9 @@ export const assetClient = {
           is_using,
           created_by
         )
-      `)
-      .eq("site_id", site_id)
+      `
+      )
+      .eq("site_id", site_id);
 
     if (error) throw error;
 
@@ -356,19 +361,23 @@ export const assetClient = {
 
     const { data, error } = await supabase
       .from("nd_site_profile")
-      .select(`
+      .select(
+        `
           nd_site (
             nd_asset (
               *,
               nd_booking (*)
             )
           )
-      `)
-      .eq("dusp_tp_id", tpOrgId)
+      `
+      )
+      .eq("dusp_tp_id", tpOrgId);
 
     if (error) throw error;
 
-    const assetsOnly = data.flatMap((siteItem) => siteItem.nd_site.flatMap((site) => site.nd_asset));
+    const assetsOnly = data.flatMap((siteItem) =>
+      siteItem.nd_site.flatMap((site) => site.nd_asset)
+    );
 
     return assetsOnly;
   },
@@ -389,5 +398,5 @@ export const assetClient = {
       console.error("Error toggling site active status:", error);
       throw error;
     }
-  }
+  },
 };
