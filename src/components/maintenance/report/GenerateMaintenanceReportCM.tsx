@@ -8,7 +8,11 @@ import "@/fonts/Verdana-normal.js";
 import "@/fonts/VerdanaBd-bold.js";
 import { useVendorManager } from "@/hooks/use-vendor";
 import { MaintenanceRequest } from "@/types/maintenance";
-import { footerNadiDocs, headerNadiDocs } from "./utils";
+import {
+  footerNadiDocs,
+  getBase64ImageWithSize,
+  headerNadiDocs,
+} from "./utils";
 
 type MaintenanceReportProps = {
   maintenanceRequest: MaintenanceRequest;
@@ -544,6 +548,8 @@ const GenerateMaintenanceReportCM = ({
     // add Page 2
     doc.addPage();
 
+    footerNadiDocs(doc, CURRENT_DATE);
+
     autoTable(doc, {
       startY: 10,
       body: [
@@ -572,16 +578,55 @@ const GenerateMaintenanceReportCM = ({
       tableWidth: "auto",
     });
 
-    footerNadiDocs(doc, CURRENT_DATE);
+    const appendixRows: unknown[] = [];
+    const imageCache: Record<
+      number,
+      { dataUrl: string; width: number; height: number }
+    > = {};
+    const rowHeights: number[] = [];
+
+    if (maintenanceRequest?.updates?.length > 0) {
+      for (let i = 0; i < maintenanceRequest.updates.length; i++) {
+        const update = maintenanceRequest.updates[i];
+
+        if (update.attachment) {
+          try {
+            const imageData = await getBase64ImageWithSize(update.attachment);
+            const drawWidth = 85 - 4;
+            const scaledHeight =
+              (imageData.height / imageData.width) * drawWidth;
+
+            imageCache[i] = imageData;
+            rowHeights[i] = scaledHeight + 8; // add small buffer for padding
+          } catch (e) {
+            imageCache[i] = undefined;
+            rowHeights[i] = 50;
+          }
+        } else {
+          imageCache[i] = undefined;
+          rowHeights[i] = 50;
+        }
+        appendixRows.push([
+          `${i + 1}.`,
+          {
+            content: "",
+            styles: {
+              minCellHeight: rowHeights[i],
+            },
+          },
+          update.description || "No description",
+        ]);
+      }
+    } else {
+      appendixRows.push(["1.", "", ""]);
+      appendixRows.push(["2.", "", ""]);
+      appendixRows.push(["3.", "", ""]);
+    }
 
     autoTable(doc, {
       startY: 20,
       head: [["NO.", "PICTURE", "REMARKS"]],
-      body: [
-        ["1.", "", ""],
-        ["2.", "", ""],
-        ["3.", "", ""],
-      ],
+      body: appendixRows,
       theme: "grid",
       styles: {
         fontSize: FONT_SIZE,
@@ -608,9 +653,36 @@ const GenerateMaintenanceReportCM = ({
         1: { cellWidth: 85 },
         2: { cellWidth: 85 },
       },
+      didDrawCell: (data) => {
+        const columnIndex = data.column.index;
+        const rowIndex = data.row.index;
+
+        if (data.section === "body" && columnIndex === 1) {
+          const imageData = imageCache[rowIndex];
+          if (!imageData) return;
+
+          const { dataUrl, width: imgWidth, height: imgHeight } = imageData;
+
+          const padding = 4;
+          const targetWidth = 85 - padding;
+          const aspectRatio = imgHeight / imgWidth;
+
+          const drawWidth = targetWidth;
+          const drawHeight = drawWidth * aspectRatio;
+
+          const x = data.cell.x + (data.cell.width - drawWidth) / 2;
+          const y = data.cell.y + (data.cell.height - drawHeight) / 2;
+
+          try {
+            doc.addImage(dataUrl, "JPEG", x, y, drawWidth, drawHeight);
+          } catch (err) {
+            console.warn(`Image rendering failed at row ${rowIndex + 1}:`, err);
+          }
+        }
+      },
     });
 
-    doc.save("all-in-one-table.pdf");
+    doc.save(`CM Report - ${maintenanceRequest?.no_docket}.pdf`);
   };
 
   return (

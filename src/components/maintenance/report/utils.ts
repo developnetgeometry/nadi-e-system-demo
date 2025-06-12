@@ -21,29 +21,29 @@ export function footerNadiDocs(doc: jsPDF, date: Date) {
   doc.text(rightText, rightTextX, pageHeight - 15);
 }
 
-export async function headerNadiDocs(doc: jsPDF, duspLogoUrl: string) {
-  const getBase64ImageWithSize = async (
-    url: string
-  ): Promise<{ dataUrl: string; width: number; height: number }> => {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          resolve({
-            dataUrl: reader.result as string,
-            width: img.width,
-            height: img.height,
-          });
-        };
-        img.src = reader.result as string;
+export const getBase64ImageWithSize = async (
+  url: string
+): Promise<{ dataUrl: string; width: number; height: number }> => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({
+          dataUrl: reader.result as string,
+          width: img.width,
+          height: img.height,
+        });
       };
-      reader.readAsDataURL(blob);
-    });
-  };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(blob);
+  });
+};
 
+export async function headerNadiDocs(doc: jsPDF, duspLogoUrl: string) {
   const [mcmcLogoData, duspLogoData] = await Promise.all([
     getBase64ImageWithSize(
       "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/MCMC_Logo.png/1088px-MCMC_Logo.png"
