@@ -97,6 +97,7 @@ export const fetchSiteBySiteId = async (
     return null;
   }
   try {
+    // siteId here is from nd_site.id
     const { data: site } = await supabase
       .from("nd_site")
       .select("site_profile_id")
