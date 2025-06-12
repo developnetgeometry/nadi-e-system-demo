@@ -2,9 +2,11 @@ import { format } from "date-fns";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import { useSiteManager } from "@/components/site/hook/use-site-staff";
 import { Button } from "@/components/ui/button";
 import "@/fonts/Verdana-normal.js";
 import "@/fonts/VerdanaBd-bold.js";
+import { useVendorManager } from "@/hooks/use-vendor";
 import { MaintenanceRequest } from "@/types/maintenance";
 import { footerNadiDocs, headerNadiDocs } from "./utils";
 
@@ -17,6 +19,9 @@ const GenerateMaintenanceReportCM = ({
 }: MaintenanceReportProps) => {
   const FONT_SIZE = 8;
   const HEADER_BG_COLOR: [number, number, number] = [220, 220, 220];
+
+  const vendorManager = useVendorManager(maintenanceRequest?.vendor?.id);
+  const siteManager = useSiteManager(maintenanceRequest?.asset?.site?.id);
 
   const generatePDF = async () => {
     const CURRENT_DATE = new Date();
@@ -373,7 +378,7 @@ const GenerateMaintenanceReportCM = ({
           content: "NAME",
         },
         {
-          content: "AHMAD BIN ABU",
+          content: vendorManager?.fullname.toUpperCase(),
         },
       ],
       [
@@ -431,7 +436,7 @@ const GenerateMaintenanceReportCM = ({
           content: "NAME",
         },
         {
-          content: "NUR SITI",
+          content: siteManager?.nd_staff_profile?.fullname.toUpperCase(),
         },
       ],
       [
@@ -447,7 +452,7 @@ const GenerateMaintenanceReportCM = ({
           content: "CONTACT NO.",
         },
         {
-          content: "012-3456789",
+          content: siteManager?.nd_staff_profile?.mobile_no,
         },
       ],
       [
