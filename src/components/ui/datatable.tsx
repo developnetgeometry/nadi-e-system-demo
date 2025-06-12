@@ -15,10 +15,10 @@ import {
   Download,
   Trash2,
   FileText,
-  View,
-  ArrowUp,
+  View,  ArrowUp,
   ArrowUpDown,
   X,
+  Info as InfoIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -59,6 +59,7 @@ export interface Column {
   filterable?: boolean; // Indicates if the column is filterable
   visible?: boolean; // Indicates if the column is visible (default: true)
   filterType?: "string" | "number" | "date"; // Type of filter (default: string)
+  align?: "left" | "center" | "right"; // Text alignment for the column (default: left)
 }
 
 interface DataTableProps {
@@ -144,26 +145,28 @@ const DataTable: React.FC<DataTableProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<any>(null);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");  // Use an array to store sort configurations for multi-column sorting
   const [sortConfig, setSortConfig] = useState<{
     key: string;
-    direction: "asc" | "desc" | null;
-  } | null>(null);
+    direction: "asc" | "desc";
+    priority: number; // Lower number = higher priority
+  }[]>([]);
   const [columnFilters, setColumnFilters] = useState<{ [key: string]: any[] }>(
     {}
   );
 
   const visibleColumns = columns.filter((column) => column.visible !== false);
-
   const filteredData = data
     .filter((row) =>
       columns.every((column) => {
-        const cellValue =
-          typeof column.key === "function"
-            ? column.key(row, 0)
-            : row[column.key];
+        // Skip filtering if column is not filterable or if key is a function
+        if (column.filterable !== true || typeof column.key === "function") {
+          return true;
+        }
+        
+        const cellValue = row[column.key];
 
-        const filterValues = columnFilters[column.key as string] || [];
+        const filterValues = columnFilters[column.key] || [];
         if (filterValues.length > 0 && cellValue != null) {
           switch (column.filterType) {            case "number":              // Handle case when only min or max is provided
               const minValue = filterValues[0];
@@ -226,20 +229,29 @@ const DataTable: React.FC<DataTableProps> = ({
           .includes(searchQuery.toLowerCase());
       })
     );
-
   const sortedData = React.useMemo(() => {
-    if (!sortConfig || !sortConfig.key) return filteredData;
+    if (!sortConfig.length) return filteredData;
 
+    // Sort the sortConfig array by priority (lower number = higher priority)
+    const sortConfigByPriority = [...sortConfig].sort((a, b) => a.priority - b.priority);
+    
     const sorted = [...filteredData].sort((a, b) => {
-      const aValue =
-        typeof sortConfig.key === "string" ? a[sortConfig.key] : null;
-      const bValue =
-        typeof sortConfig.key === "string" ? b[sortConfig.key] : null;
-
-      if (aValue == null || bValue == null) return 0;
-
-      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
+      // Iterate through each sort config in order of priority
+      for (const config of sortConfigByPriority) {
+        if (typeof config.key !== "string") continue;
+        
+        const aValue = a[config.key];
+        const bValue = b[config.key];
+        
+        // Skip this sort if the values are equal or null
+        if (aValue == null || bValue == null || aValue === bValue) continue;
+        
+        // Compare values based on the sort direction
+        if (aValue < bValue) return config.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return config.direction === "asc" ? 1 : -1;
+      }
+      
+      // If we've compared all sort configs and values are equal, return 0
       return 0;
     });
 
@@ -347,53 +359,96 @@ const DataTable: React.FC<DataTableProps> = ({
       return column.key(row, index);
     }
     return row[column.key];
-  };
-
-  const handleSort = (key: string) => {
+  };  const handleSort = (key: string, event?: React.MouseEvent) => {
+    // Only allow sorting on string column keys (not function keys)
+    if (typeof key !== "string" || key === "") return;
+    
+    // Support multi-column sorting by default (no shift key required)
     setSortConfig((prev) => {
-      if (prev?.key === key) {
-        if (prev.direction === "asc") return { key, direction: "desc" };
-        if (prev.direction === "desc") return null; // Reset to default
-        return { key, direction: "asc" };
-      }
-      return { key, direction: "asc" };
-    });
-  };
-
-  const renderSortIcon = (sortDirection: "asc" | "desc" | null) => {
-    if (sortDirection === "asc") {
-      return <ArrowUp className="h-4 w-4 text-gray-500 ml-2" />;
-    } else if (sortDirection === "desc") {
-      return <ArrowUp className="h-4 w-4 rotate-180 text-gray-500 ml-2" />;
-    } else {
-      return null; // No icon for unsorted columns
-    }
-  };
-
-  const handleFilterChange = (key: string, value: string | string[]) => {
-    setColumnFilters((prev) => {
-      const currentValues = prev[key] || [];
-
-      if (Array.isArray(value)) {
-        // For range-based filters (number, date)
-        return { ...prev, [key]: value };
+      // Find if this column is already being sorted
+      const existingIndex = prev.findIndex(config => config.key === key);
+      
+      // Create a copy of the previous sort configurations
+      const newSortConfig = [...prev];
+      
+      if (existingIndex !== -1) {
+        // Store the priority that's being removed (if we're going to remove it)
+        const priorityToRemove = newSortConfig[existingIndex].priority;
+        
+        // Toggle direction for an existing sort
+        if (newSortConfig[existingIndex].direction === "asc") {
+          newSortConfig[existingIndex].direction = "desc";
+        } else {
+          // Remove this sort configuration if it was already descending
+          newSortConfig.splice(existingIndex, 1);
+          
+          // Adjust priorities of remaining sorts
+          // This ensures that if we remove sort 2, sort 3 becomes sort 2, etc.
+          newSortConfig.forEach((config) => {
+            if (config.priority > priorityToRemove) {
+              config.priority -= 1;
+            }
+          });
+        }
       } else {
+        // Add a new sort configuration (always keep existing sorts)
+        // Add the new sort with the lowest priority (highest number)
+        newSortConfig.push({
+          key,
+          direction: "asc",
+          priority: newSortConfig.length
+        });
+      }
+      
+      return newSortConfig;
+    });
+  };  const renderSortIcon = (columnKey: string | ((row: any, index: number) => React.ReactNode)) => {
+    if (typeof columnKey !== "string") return null;
+    
+    // Find if this column has an active sort
+    const sortItem = sortConfig.find(config => config.key === columnKey);
+    
+    if (!sortItem) return null; // No sort for this column
+    
+    const { direction } = sortItem;
+    
+    return (
+      <div className="flex items-center ml-2">
+        <ArrowUp 
+          className={`h-4 w-4 ${direction === "desc" ? "rotate-180 text-orange-500" : "text-blue-500"}`} 
+        />
+      </div>
+    );
+  };const handleFilterChange = (key: string, value: string | string[]) => {
+    setColumnFilters((prev) => {
+      // Create a completely new object to avoid reference issues
+      const newFilters = { ...prev };
+      
+      if (Array.isArray(value)) {
+        // For number and date filters (arrays)
+        // Always create a new array to ensure state updates properly
+        newFilters[key] = [...value];
+      } else {
+        const currentValues = [...(prev[key] || [])];
+        
         if (currentValues.includes(value)) {
           // Remove the value if it already exists
-          return { ...prev, [key]: currentValues.filter((v: string) => v !== value) };
+          newFilters[key] = currentValues.filter((v: string) => v !== value);
         } else {
           // Add the value if it doesn't exist
-          return { ...prev, [key]: [...currentValues, value] };
+          newFilters[key] = [...currentValues, value];
         }
       }
+      
+      return newFilters;
     });
+    
     setCurrentPage(1); // Reset to the first page whenever a filter is applied
-  };
-
-  const clearAllFilters = () => {
+  };  const clearAllFilters = () => {
     setColumnFilters({});
     setSearchQuery("");
-    setSortConfig(null); // Reset the sorting configuration
+    setSortConfig([]); // Reset to empty array for multi-column sorting
+    setCurrentPage(1); // Reset to first page
   };
 
   const renderFilterIndicator = (columnKey: string) => {
@@ -404,54 +459,71 @@ const DataTable: React.FC<DataTableProps> = ({
     const filterValues = columnFilters[column.key as string] || [];
 
     switch (column.filterType) {      case "number":
+        // Using local state to manage inputs independently before sending to the main state
         return (
           <div className="flex flex-col gap-2 p-2">
             <div className="flex flex-row items-center gap-2">
               <span className="text-sm text-gray-500 w-8">Min:</span>
-              <Input
-                type="number"
+              <Input                type="text"
+                inputMode="decimal"
                 placeholder="Min"
                 value={filterValues[0] || ""}
                 onChange={(e) => {
-                  const newMin = e.target.value;
-                  const currentMax = filterValues[1] || "";
-                  
-                  // Validate: if max exists, ensure min <= max
-                  if (currentMax !== "" && newMin !== "" && Number(newMin) > Number(currentMax)) {
-                    // If min > max, set max equal to min
-                    handleFilterChange(column.key as string, [newMin, newMin]);
-                  } else {
-                    handleFilterChange(column.key as string, [newMin, currentMax]);
+                  // Allow numeric input with decimal point and negative values
+                  const value = e.target.value;
+                  if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
+                    let minVal = value;
+                    const maxVal = filterValues[1] || "";
+                    
+                    // Only apply min/max constraint when both values exist and are valid numbers
+                    if (maxVal !== "" && minVal !== "" && 
+                        !isNaN(Number(minVal)) && !isNaN(Number(maxVal)) && 
+                        Number(minVal) > Number(maxVal)) {
+                      // We only show a warning instead of auto-changing values
+                      toast.warning("Min value should not be greater than Max value");
+                    }
+                    
+                    // Always update with exactly what the user typed
+                    handleFilterChange(column.key as string, [minVal, maxVal]);
                   }
-                }}
-                onKeyDown={(e) => {
+                }}                onKeyDown={(e) => {
+                  // Handle special key presses for decimals and negative values
                   if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
-                    handleFilterChange(column.key as string, ["", filterValues[1] || ""]);
+                    const maxVal = filterValues[1] || "";
+                    handleFilterChange(column.key as string, ["", maxVal]);
                   }
                 }}
               />
             </div>
             <div className="flex flex-row items-center gap-2">
               <span className="text-sm text-gray-500 w-8">Max:</span>
-              <Input
-                type="number"
+              <Input                type="text"
+                inputMode="decimal"
                 placeholder="Max"
                 value={filterValues[1] || ""}
                 onChange={(e) => {
-                  const currentMin = filterValues[0] || "";
-                  const newMax = e.target.value;
-                  
-                  // Validate: if min exists, ensure max >= min
-                  if (currentMin !== "" && newMax !== "" && Number(newMax) < Number(currentMin)) {
-                    // If max < min, set min equal to max
-                    handleFilterChange(column.key as string, [newMax, newMax]);
-                  } else {
-                    handleFilterChange(column.key as string, [currentMin, newMax]);
+                  // Allow numeric input with decimal point and negative values
+                  const value = e.target.value;
+                  if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
+                    const minVal = filterValues[0] || "";
+                    let maxVal = value;
+                    
+                    // Only apply min/max constraint when both values exist and are valid numbers
+                    if (minVal !== "" && maxVal !== "" && 
+                        !isNaN(Number(minVal)) && !isNaN(Number(maxVal)) && 
+                        Number(maxVal) < Number(minVal)) {
+                      // We only show a warning instead of auto-changing values
+                      toast.warning("Max value should not be less than Min value");
+                    }
+                    
+                    // Always update with exactly what the user typed
+                    handleFilterChange(column.key as string, [minVal, maxVal]);
                   }
-                }}
-                onKeyDown={(e) => {
+                }}                onKeyDown={(e) => {
+                  // Handle special key presses for decimals and negative values
                   if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
-                    handleFilterChange(column.key as string, [filterValues[0] || "", ""]);
+                    const minVal = filterValues[0] || "";
+                    handleFilterChange(column.key as string, [minVal, ""]);
                   }
                 }}
               />
@@ -549,13 +621,11 @@ const DataTable: React.FC<DataTableProps> = ({
           </Command>
         );
     }
-  };
-  const isFilterApplied =
+  };  const isFilterApplied =
     (Object.keys(columnFilters).length > 0 && 
      Object.values(columnFilters).some(values => values.some(v => v !== ""))) ||
-    sortConfig !== null ||
+    sortConfig.length > 0 ||
     searchQuery.trim() !== "";
-
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
@@ -565,10 +635,9 @@ const DataTable: React.FC<DataTableProps> = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-1/3"
         />
-      </div>
-      <div className="flex justify-between items-center mb-4">        <div className="flex flex-wrap gap-4 items-center">
+      </div>      <div className="flex justify-between items-center mb-4">        <div className="flex flex-wrap gap-4 items-center">
           {columns.map((column) =>
-            column.filterable ? (
+            column.filterable === true && typeof column.key === "string" ? (
               <div key={column.key as string} className="flex items-center gap-1">
                 <Popover>
                   <PopoverTrigger asChild>
@@ -682,23 +751,19 @@ const DataTable: React.FC<DataTableProps> = ({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50 border-b border-gray-100">
-                {visibleColumns.map((column, colIndex) => (
-                  <TableHead
+              <TableRow className="bg-gray-50 border-b border-gray-100">                {visibleColumns.map((column, colIndex) => (                  <TableHead
                     key={colIndex}
                     style={{ width: column.width }}
-                    className="py-3 px-6 text-sm font-semibold text-gray-900 cursor-pointer"
-                    onClick={() =>
-                      handleSort(typeof column.key === "string" ? column.key : "")
-                    }
-                  >
-                    <div className="flex items-center">
+                    className={`py-3 px-6 text-sm font-semibold text-gray-900 select-none text-center ${typeof column.key === "string" ? "cursor-pointer" : "cursor-default"}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent event bubbling
+                      if (typeof column.key === "string") {
+                        handleSort(column.key, e);
+                      }
+                    }}
+                  ><div className="flex items-center justify-center">
                       {column.header}
-                      {renderSortIcon(
-                        sortConfig?.key === column.key
-                          ? sortConfig.direction
-                          : null
-                      )}
+                      {typeof column.key === "string" ? renderSortIcon(column.key) : null}
                     </div>
                   </TableHead>
                 ))}
@@ -734,10 +799,9 @@ const DataTable: React.FC<DataTableProps> = ({
                       rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                     }`}
                   >
-                    {visibleColumns.map((column, colIndex) => (
-                      <TableCell
+                    {visibleColumns.map((column, colIndex) => (                      <TableCell
                         key={`${rowIndex}-${colIndex}`}
-                        className="py-4 px-6 text-sm text-gray-900"
+                        className={`py-4 px-6 text-sm text-gray-900 ${column.align ? `text-${column.align}` : ''}`}
                       >
                         {column.render
                           ? column.render(
