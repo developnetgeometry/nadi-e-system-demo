@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, ReactElement, ReactNode } from "react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
   View,
   ArrowUp,
   ArrowUpDown,
+  X,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -48,10 +49,11 @@ import {
 } from "@/components/ui/command";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar2 } from "@/components/ui/calendar-2";
+import { format } from "date-fns";
 
 export interface Column {
   key: string | ((row: any, index: number) => any); // Dynamic key or accessor function
-  header: string;
+  header: string | React.ReactNode | any;  // Header text or custom React component
   width?: string; // Optional column width
   render?: (value: any, row: any, index: number) => React.ReactNode; // Custom cell renderer
   filterable?: boolean; // Indicates if the column is filterable
@@ -70,6 +72,67 @@ interface DataTableProps {
   onViewDetails?: (row: any) => void;
   isLoading?: boolean;
 }
+
+// Helper function to extract text from React elements
+const getTextFromReactElement = (element: React.ReactNode): string => {
+  // If it's a string, return it directly
+  if (typeof element === 'string') {
+    return element;
+  }
+  
+  // If null or undefined, return empty string
+  if (element === null || element === undefined) {
+    return '';
+  }
+  
+  // If it's a React element with props
+  if (React.isValidElement(element)) {
+    // Check for direct text children
+    if (typeof element.props.children === 'string') {
+      return element.props.children;
+    }
+    
+    // For nested elements, recursively extract text
+    if (element.props.children) {
+      const extractTextFromChildren = (children: React.ReactNode): string[] => {
+        const textParts: string[] = [];
+        
+        // Handle single child
+        if (!Array.isArray(children)) {
+          const text = getTextFromReactElement(children);
+          if (text) textParts.push(text);
+          return textParts;
+        }
+        
+        // Handle array of children
+        React.Children.forEach(children, (child) => {
+          // Skip null/undefined
+          if (child === null || child === undefined) return;
+          
+          // Direct text nodes
+          if (typeof child === 'string') {
+            textParts.push(child);
+          } 
+          // React elements - recursively extract text
+          else if (React.isValidElement(child)) {
+            const text = getTextFromReactElement(child);
+            if (text) textParts.push(text);
+          }
+        });
+        
+        return textParts;
+      };
+      
+      const textParts = extractTextFromChildren(element.props.children);
+      if (textParts.length > 0) {
+        return textParts.join(' ').trim();
+      }
+    }
+  }
+  
+  // Couldn't extract text
+  return '';
+};
 
 const DataTable: React.FC<DataTableProps> = ({
   data = [],
@@ -102,17 +165,32 @@ const DataTable: React.FC<DataTableProps> = ({
 
         const filterValues = columnFilters[column.key as string] || [];
         if (filterValues.length > 0 && cellValue != null) {
-          switch (column.filterType) {
-            case "number":
-              return filterValues.every((filterValue, index) => {
-                if (index === 0 && filterValue !== "") {
-                  return cellValue >= Number(filterValue);
-                }
-                if (index === 1 && filterValue !== "") {
-                  return cellValue <= Number(filterValue);
-                }
-                return true;
-              });
+          switch (column.filterType) {            case "number":              // Handle case when only min or max is provided
+              const minValue = filterValues[0];
+              const maxValue = filterValues[1];
+              const numericValue = Number(cellValue);
+              const numericMin = minValue !== "" ? Number(minValue) : null;
+              const numericMax = maxValue !== "" ? Number(maxValue) : null;
+              
+              // Check if the cell value is a valid number
+              if (isNaN(numericValue)) {
+                return false; // Filter out non-numeric values when number filter is applied
+              }
+              
+              // If both min and max are provided
+              if (numericMin !== null && numericMax !== null) {
+                return numericValue >= numericMin && numericValue <= numericMax;
+              }
+              // If only min is provided
+              else if (numericMin !== null) {
+                return numericValue >= numericMin;
+              }
+              // If only max is provided
+              else if (numericMax !== null) {
+                return numericValue <= numericMax;
+              }
+              // If no filter is applied
+              return true;
             case "date":
               return filterValues.every((filterValue, index) => {
                 if (index === 0 && filterValue !== "") {
@@ -199,18 +277,54 @@ const DataTable: React.FC<DataTableProps> = ({
         setRowToDelete(null);
       }
     }
+  };  // Helper function to escape CSV values
+  const escapeCsvValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    
+    const stringValue = String(value);
+    
+    // If the value contains quotes, commas, or newlines, it needs special handling
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      // Escape quotes by doubling them and wrap in quotes
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    
+    return stringValue;
   };
 
   const handleExport = () => {
-    const headers = columns.map((col) => col.header).join(",");
+    // Extract header text - handle both string and React elements
+    const headers = columns.map((col) => {
+      // If header is a string, use it directly
+      if (typeof col.header === 'string') {
+        return escapeCsvValue(col.header);
+      }
+      
+      // For React elements, try to extract text content
+      if (col.header && typeof col.header === 'object') {
+        // Extract text from React elements
+        const spanContent = getTextFromReactElement(col.header);
+        if (spanContent) return escapeCsvValue(spanContent);
+        
+        // Fallback to column key as header if we can't extract text
+        return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${columns.indexOf(col) + 1}`);
+      }
+      
+      // Default fallback
+      return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${columns.indexOf(col) + 1}`);
+    }).join(",");
+    
     const rows = filteredData
       .map((row) =>
         columns
           .map((col) => {
+            let cellValue;
             if (typeof col.key === "function") {
-              return col.key(row, data.indexOf(row));
+              cellValue = col.key(row, data.indexOf(row));
+            } else {
+              cellValue = row[col.key];
             }
-            return row[col.key];
+            return escapeCsvValue(cellValue);
           })
           .join(",")
       )
@@ -286,51 +400,120 @@ const DataTable: React.FC<DataTableProps> = ({
     return columnFilters[columnKey] ? (
       <span className="ml-2 text-xs text-blue-500">(Filtered)</span>
     ) : null;
-  };
-
-  const renderFilterUI = (column: Column) => {
+  };  const renderFilterUI = (column: Column) => {
     const filterValues = columnFilters[column.key as string] || [];
 
-    switch (column.filterType) {
-      case "number":
+    switch (column.filterType) {      case "number":
         return (
-          <div className="flex flex-col gap-2">
-            <Input
-              type="number"
-              placeholder="Min"
-              value={filterValues[0] || ""}
-              onChange={(e) =>
-                handleFilterChange(column.key as string, [e.target.value, filterValues[1]])
-              }
-            />
-            <Input
-              type="number"
-              placeholder="Max"
-              value={filterValues[1] || ""}
-              onChange={(e) =>
-                handleFilterChange(column.key as string, [filterValues[0], e.target.value])
-              }
-            />
+          <div className="flex flex-col gap-2 p-2">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-sm text-gray-500 w-8">Min:</span>
+              <Input
+                type="number"
+                placeholder="Min"
+                value={filterValues[0] || ""}
+                onChange={(e) => {
+                  const newMin = e.target.value;
+                  const currentMax = filterValues[1] || "";
+                  
+                  // Validate: if max exists, ensure min <= max
+                  if (currentMax !== "" && newMin !== "" && Number(newMin) > Number(currentMax)) {
+                    // If min > max, set max equal to min
+                    handleFilterChange(column.key as string, [newMin, newMin]);
+                  } else {
+                    handleFilterChange(column.key as string, [newMin, currentMax]);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
+                    handleFilterChange(column.key as string, ["", filterValues[1] || ""]);
+                  }
+                }}
+              />
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-sm text-gray-500 w-8">Max:</span>
+              <Input
+                type="number"
+                placeholder="Max"
+                value={filterValues[1] || ""}
+                onChange={(e) => {
+                  const currentMin = filterValues[0] || "";
+                  const newMax = e.target.value;
+                  
+                  // Validate: if min exists, ensure max >= min
+                  if (currentMin !== "" && newMax !== "" && Number(newMax) < Number(currentMin)) {
+                    // If max < min, set min equal to max
+                    handleFilterChange(column.key as string, [newMax, newMax]);
+                  } else {
+                    handleFilterChange(column.key as string, [currentMin, newMax]);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
+                    handleFilterChange(column.key as string, [filterValues[0] || "", ""]);
+                  }
+                }}
+              />
+            </div>
+            {(filterValues[0] || filterValues[1]) && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2" 
+                onClick={() => handleFilterChange(column.key as string, ["", ""])}
+              >
+                Clear
+              </Button>
+            )}
           </div>
-        );
-      case "date":
+        );case "date":
         return (
-          <div
-            className="flex flex-col items-center p-1 border rounded-md shadow-md bg-white"
-            style={{ width: "fit-content", height: "fit-content" }}
-          >
+          <div className="flex flex-col items-center p-2">
             <Calendar2
               mode="range"
               selected={{
                 from: filterValues[0] ? new Date(filterValues[0]) : undefined,
                 to: filterValues[1] ? new Date(filterValues[1]) : undefined,
-              }}
-              onSelect={({ from, to }) =>
+              }}              onSelect={(selectedRange) => {
+                // If no range is selected, clear the filter
+                if (!selectedRange || (!selectedRange.from && !selectedRange.to)) {
+                  handleFilterChange(column.key as string, ["", ""]);
+                  return;
+                }
+                
+                // Get the current selection
+                const currentFrom = filterValues[0] ? new Date(filterValues[0]) : undefined;
+                const currentTo = filterValues[1] ? new Date(filterValues[1]) : undefined;
+                
+                // Check if the user clicked the same date to reset
+                const isResetFrom = currentFrom && selectedRange?.from && 
+                  currentFrom.getFullYear() === selectedRange.from.getFullYear() && 
+                  currentFrom.getMonth() === selectedRange.from.getMonth() && 
+                  currentFrom.getDate() === selectedRange.from.getDate() &&
+                  !selectedRange.to;
+                  
+                const isResetTo = currentTo && selectedRange?.to && 
+                  currentTo.getFullYear() === selectedRange.to.getFullYear() && 
+                  currentTo.getMonth() === selectedRange.to.getMonth() && 
+                  currentTo.getDate() === selectedRange.to.getDate() &&
+                  currentFrom && selectedRange.from &&
+                  currentFrom.getFullYear() === selectedRange.from.getFullYear() && 
+                  currentFrom.getMonth() === selectedRange.from.getMonth() && 
+                  currentFrom.getDate() === selectedRange.from.getDate();
+                
+                // If it's the same date being selected twice, reset the value
+                if (isResetFrom || isResetTo) {
+                  handleFilterChange(column.key as string, ["", ""]);
+                  return;
+                }
+                
+                // Otherwise, proceed with the normal date selection                // Format dates in ISO format for consistent storage
                 handleFilterChange(column.key as string, [
-                  from ? `${from.getFullYear()}-${String(from.getMonth() + 1).padStart(2, "0")}-${String(from.getDate()).padStart(2, "0")}` : "",
-                  to ? `${to.getFullYear()}-${String(to.getMonth() + 1).padStart(2, "0")}-${String(to.getDate()).padStart(2, "0")}` : "",
-                ])
-              }
+                  selectedRange?.from ? format(selectedRange.from, "yyyy-MM-dd") : "",
+                  selectedRange?.to ? format(selectedRange.to, "yyyy-MM-dd") : "",
+                ]);
+              }}
               initialFocus
               className="p-3 pointer-events-auto w-full"
             />
@@ -338,9 +521,8 @@ const DataTable: React.FC<DataTableProps> = ({
         );
       case "string":
       default:
-        return (
-          <Command>
-            <CommandInput placeholder={`Search ${column.header}...`} />
+        return (          <Command>
+            <CommandInput placeholder={`Search...`} />
             <CommandList>
               <CommandEmpty>No options found.</CommandEmpty>
               <CommandGroup>
@@ -368,9 +550,9 @@ const DataTable: React.FC<DataTableProps> = ({
         );
     }
   };
-
   const isFilterApplied =
-    Object.keys(columnFilters).length > 0 ||
+    (Object.keys(columnFilters).length > 0 && 
+     Object.values(columnFilters).some(values => values.some(v => v !== ""))) ||
     sortConfig !== null ||
     searchQuery.trim() !== "";
 
@@ -384,25 +566,98 @@ const DataTable: React.FC<DataTableProps> = ({
           className="w-1/3"
         />
       </div>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex justify-between items-center mb-4">        <div className="flex flex-wrap gap-4 items-center">
           {columns.map((column) =>
             column.filterable ? (
-              <Popover key={column.key as string}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    Filter {column.header}
-                    {columnFilters[column.key as string]?.length > 0 && (
-                      <span className="text-blue-500">
-                        (Filtered: {columnFilters[column.key as string].join(", ")})
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[220px] p-0">
-                  {renderFilterUI(column)}
-                </PopoverContent>
-              </Popover>
+              <div key={column.key as string} className="flex items-center gap-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className={`flex items-center gap-2 ${
+                        columnFilters[column.key as string]?.length > 0 && 
+                        columnFilters[column.key as string].some(val => val !== "") 
+                          ? 'text-blue-500 border-blue-500' 
+                          : ''
+                      }`}
+                    >                      {column.filterType === "date" && 
+                       columnFilters[column.key as string]?.length > 0 && 
+                       (columnFilters[column.key as string][0] !== "" || columnFilters[column.key as string][1] !== "") ? (
+                        <div className="flex items-center gap-1">
+                          <CalendarIcon className="h-4 w-4" />
+                          <span>
+                            {columnFilters[column.key as string][0] && 
+                             columnFilters[column.key as string][1] ? (
+                              <>
+                                {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")} - 
+                                {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}
+                              </>
+                            ) : columnFilters[column.key as string][0] ? (
+                              <>From: {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")}</>
+                            ) : (
+                              <>To: {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}</>
+                            )}
+                          </span>
+                          
+                          {/* X button inside date filter */}
+                          <span 
+                            className="ml-1 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFilterChange(column.key as string, ["", ""]);
+                            }}
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          {column?.header}
+                          {columnFilters[column.key as string]?.length > 0 && 
+                           columnFilters[column.key as string].some(val => val !== "") && (
+                             <>
+                              <div className="w-2 h-2 rounded-full bg-blue-500 ml-1"></div>
+                              {column.filterType === "number" && (
+                                <span className="ml-1 text-xs">
+                                  {columnFilters[column.key as string][0] && columnFilters[column.key as string][1] 
+                                    ? `${columnFilters[column.key as string][0]}-${columnFilters[column.key as string][1]}`
+                                    : columnFilters[column.key as string][0] 
+                                      ? `≥ ${columnFilters[column.key as string][0]}` 
+                                      : `≤ ${columnFilters[column.key as string][1]}`}
+                                </span>
+                              )}
+                              {column.filterType === "string" && columnFilters[column.key as string].length > 0 && (
+                                <span className="ml-1 text-xs">
+                                  {columnFilters[column.key as string].length > 5
+                                    ? `(${columnFilters[column.key as string].length} selected)`
+                                    : `(${columnFilters[column.key as string].join(", ")})`}
+                                </span>
+                              )}
+                              
+                              {/* X button for string and number filters */}
+                              <span 
+                                className="ml-1 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (column.filterType === "string") {
+                                    handleFilterChange(column.key as string, []);
+                                  } else {
+                                    handleFilterChange(column.key as string, ["", ""]);
+                                  }
+                                }}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </span>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className={`p-0 ${column.filterType === 'date' ? 'w-auto' : 'w-[220px]'}`}>
+                    {renderFilterUI(column)}
+                  </PopoverContent>                </Popover>
+              </div>
             ) : null
           )}
         </div>
