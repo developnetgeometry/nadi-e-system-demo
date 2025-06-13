@@ -97,27 +97,6 @@ export const BookingAssetCard = ({
                             </CardDescription>
                         )}
                         {children}
-                        {isFacility && (
-                            <div className="w-full flex items-center justify-between gap-1 mt-3">
-                                {status === "in-use" || status === "Maintenance" ? (
-                                    <Button size="sm" className="bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 px-2 py-0.5 flex items-center text-[11px] gap-1 w-fit">
-                                        <SquarePen className="h-2 w-2" />
-                                        Report Issue
-                                    </Button>
-                                ) : (
-                                    <>
-                                        <Button size="sm" className="flex flex-grow items-center px-2 py-0.5 text-[11px] gap-1 w-fit">
-                                            <Plus className="h-2 w-2" />
-                                            Reserve Now
-                                        </Button>
-                                        <Button size="sm" className="bg-white flex-grow hover:bg-gray-50 text-gray-700 border border-gray-300 px-2 py-0.5 flex items-center text-[11px] gap-1 w-fit">
-                                            <SquarePen className="h-2 w-2" />
-                                            Report Issue
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        )}
                     </CardContent>
                     {(started !== "-" && duration !== "-") && <CardFooter className="pt-1 flex justify-center items-center text-[10px] font-light text-gray-500">{`Started: ${started} | Duration: ${duration}`}</CardFooter>}
                 </Card>
@@ -133,6 +112,11 @@ export const BookingAssetCard = ({
                 <BookingFacilityCardDetails
                     name={assetName}
                     status={status}
+                    id={id}
+                    assetType={assetType}
+                    requesterName={requesterName}
+                    duration={duration}
+                    started={started}
                 />
             )}
         </Dialog>
@@ -363,12 +347,22 @@ const RemotePc = ({ value }) => {
 
 interface BookingFacilityCardDetailsProps {
     name: string,
-    status: string
+    status: string,
+    id: string,
+    assetType?: string,
+    requesterName?: string,
+    duration?: string,
+    started?: React.ReactNode
 }
 
 const BookingFacilityCardDetails = ({
     name,
-    status
+    status,
+    id,
+    assetType,
+    requesterName,
+    duration,
+    started
 }: BookingFacilityCardDetailsProps) => {
 
     return (
@@ -388,10 +382,6 @@ const BookingFacilityCardDetails = ({
                         value="Details">Details</TabsTrigger>
                     <TabsTrigger
                         className="flex-grow text-md px-2 py-1 min-w-max data-[state=active]:bg-muted rounded whitespace-nowrap"
-                        key="Bookings"
-                        value="Bookings">Bookings</TabsTrigger>
-                    <TabsTrigger
-                        className="flex-grow text-md px-2 py-1 min-w-max data-[state=active]:bg-muted rounded whitespace-nowrap"
                         key="Maintenance"
                         value="Maintenance">Maintenance</TabsTrigger>
                     <TabsTrigger
@@ -399,12 +389,14 @@ const BookingFacilityCardDetails = ({
                         key="Settings"
                         value="Settings">Settings</TabsTrigger>
                 </TabsList>
-                <Details
+                <DetailsFacility
                     status={status}
                     value="Details"
-                />
-                <Bookings
-                    value="Bookings"
+                    id={id}
+                    type={assetType}
+                    requesterName={requesterName}
+                    duration={duration}
+                    started={started}
                 />
                 <Maintenance
                     value="Maintenance"
@@ -417,15 +409,25 @@ const BookingFacilityCardDetails = ({
     )
 }
 
-interface detailsPprops {
+interface DetailsFacilityProps {
     value: string
     status: string
+    id: string
+    type: string
+    requesterName?: string
+    duration?: string
+    started?: React.ReactNode
 }
 
-const Details = ({
+const DetailsFacility = ({
     value,
-    status
-}) => {
+    status,
+    id,
+    type,
+    requesterName,
+    duration,
+    started
+}: DetailsFacilityProps) => {
 
     const facilityActionButtons = [
         {
@@ -457,16 +459,8 @@ const Details = ({
         <TabsContent className="w-full flex items-start gap-4" value={value}>
             <section className="py-5 space-y-4 w-[40%]">
                 <div className="space-y-2">
-                    <h1 className="font-medium">Quick Action</h1>
-                    <BulkActionButtons
-                        buttonsData={facilityActionButtons}
-                        className="grid grid-cols-2 my-0"
-                        useHeader={false}
-                    />
-                </div>
-                <div className="space-y-2">
                     <h1 className="font-medium">Status</h1>
-                    <Card className="px-4 py-3 space-y-2">
+                    <Card className={`${status === 'Available' ? 'bg-green-50' : status === 'in-use' ? 'bg-blue-50' : 'bg-red-50'} px-4 py-3 space-y-2`}>
                         {status === "Available" ? (
                             <h2 className="flex items-center gap-2">
                                 <CircleDot className="size-4" />
@@ -478,12 +472,8 @@ const Details = ({
                                     <CircleDot className="size-4" />
                                     {status}
                                 </h2>
-                                <h3 className="font-semibold">Sarah Johnson</h3>
-                                <p className="text-sm text-gray-500">Time: 13:00 - Duration: 2h</p>
-                                <small className="flex text-gray-500 gap-2 items-center">
-                                    <User className="size-5" />
-                                    8 Attendees
-                                </small>
+                                <h3 className="font-semibold">{requesterName}</h3>
+                                <p className="text-sm text-gray-500">Time: {started} | Duration: {duration}</p>
                             </>
                         )}
                     </Card>
@@ -509,11 +499,7 @@ const Details = ({
                         <div className="flex flex-col items-start gap-3">
                             <div className="flex items-center gap-2">
                                 <p className="text-gray-500">ID: </p>
-                                <p>-</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <p className="text-gray-500">Capacity: </p>
-                                <p>-</p>
+                                <p>{id ? id : "-"}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <p className="text-gray-500">Next Maintenance: </p>
@@ -523,7 +509,7 @@ const Details = ({
                         <div className="flex flex-col items-start justify-between gap-3">
                             <div className="flex items-center gap-2">
                                 <p className="text-gray-500">Type: </p>
-                                <p>-</p>
+                                <p>{type ? type : "-"}</p>
                             </div>
                             <div className="flex items-center gap-2">
                                 <p className="text-gray-500">Last Maintenance: </p>
@@ -539,92 +525,6 @@ const Details = ({
                     </Card>
                 </div>
             </section>
-        </TabsContent>
-    )
-}
-
-const Bookings = ({ value }) => {
-    const [date, setDate] = useState<Date>();
-    return (
-        <TabsContent className="w-full space-y-4" value={value}>
-            <header className="flex items-center justify-between">
-                <h1 className="text-xl font-semibold">Manage Booking</h1>
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button className="flex items-center gap-3">
-                            <Plus />
-                            Add Booking
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent>
-                        <SheetHeader>
-                            <SheetTitle>Booking Scheduled</SheetTitle>
-                            <SheetDescription>
-                                Set a notes and date for scheduled booking of this facility.
-                            </SheetDescription>
-                        </SheetHeader>
-                        <div className="flex flex-col space-y-6 py-4">
-                            <div className="flex flex-col items-start gap-4">
-                                <Label htmlFor="name" className="text-right">
-                                    Booking Date
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-[240px] justify-start text-left font-normal",
-                                                !date && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <CalendarIcon />
-                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={date}
-                                            onSelect={setDate}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="flex flex-col items-start gap-4">
-                                <Label htmlFor="maintenance" className="text-right">
-                                    Notes
-                                </Label>
-                                <Input id="maintenance" className="col-span-3" placeholder="Enter maintenance details" />
-                            </div>
-                        </div>
-                        <SheetFooter>
-                            <SheetClose asChild>
-                                <Button className="w-full" type="submit">Schedule</Button>
-                            </SheetClose>
-                        </SheetFooter>
-                    </SheetContent>
-                </Sheet>
-            </header>
-            <Card className="px-5 py-4">
-                <div className="flex justify-between">
-                    <div>
-                        <p className="text-lg font-medium">John Smith</p>
-                        <small className="text-gray-600">14:00 | 2h</small>
-                    </div>
-                    <div className="space-x-3">
-                        <Button className="bg-white  hover:bg-gray-100 border border-gray-300 text-black">Edit</Button>
-                        <Button className="bg-red-500 hover:bg-red-400">Cancel</Button>
-                    </div>
-                </div>
-            </Card>
-            <header className="text-start">
-                <h1 className="text-xl font-semibold">Recurring Bookings</h1>
-            </header>
-            <Card className="flex flex-col items-center justify-center px-5 py-7 space-y-5">
-                <p className="text-gray-500">Set up recurring bookings for this facility</p>
-                <Button>Configure Recurring Schedule</Button>
-            </Card>
         </TabsContent>
     )
 }
