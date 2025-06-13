@@ -48,7 +48,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { Calendar2 } from "@/components/ui/calendar-2";
+import { Calendar} from "@/components/ui/calendar";
 import { format } from "date-fns";
 
 export interface Column {
@@ -559,7 +559,7 @@ const DataTable: React.FC<DataTableProps> = ({
         );case "date":
         return (
           <div className="flex flex-col items-center p-2">
-            <Calendar2
+            <Calendar
               mode="range"
               selected={{
                 from: filterValues[0] ? new Date(filterValues[0]) : undefined,

@@ -12,13 +12,12 @@ const Phase = () => {
     const userType = parsedMetadata?.user_type;
     const organizationId = parsedMetadata?.organization_id;
     const siteId = parsedMetadata?.group_profile?.site_profile_id;    
-    
-    // Dummy data for the DataTable
+      // Dummy data for the DataTable
     const data = [
-        { id: 1, name: "Phase 1", status: "Completed", startDate: "2025-01-01", endDate: "2025-03-01", budget: 150000, completion: 100 },
-        { id: 2, name: "Phase 2", status: "In Progress", startDate: "2025-04-01", endDate: "2025-06-01", budget: 250000, completion: 45 },
-        { id: 3, name: "Phase 3", status: "Not Started", startDate: "2025-07-01", endDate: "2025-09-01", budget: 180000, completion: 0 },
-    ];    
+        { id: 1, name: "Phase 1", status: "Completed", startDate: "2025-01-01", endDate: "2025-03-01", budget: 150000, completion: 100, lastUpdate: "2025-03-01T14:30:00" },
+        { id: 2, name: "Phase 2", status: "In Progress", startDate: "2025-04-01", endDate: "2025-06-01", budget: 250000, completion: 45, lastUpdate: "2025-02-20T11:15:00" },
+        { id: 3, name: "Phase 3", status: "Not Started", startDate: "2025-07-01", endDate: "2025-09-01", budget: 180000, completion: 0, lastUpdate: "2025-02-20T11:15:00" },
+    ];
     
     // Handle view phase details
     const handleViewPhase = (phaseId: number) => {
@@ -44,7 +43,6 @@ const Phase = () => {
             key: (_, i) => `${i + 1}.`, 
             header: "No",  // Simple text header
             width: "5%", 
-            filterable: false,
             visible: true,
             align: "center"
         },
@@ -105,8 +103,7 @@ const Phase = () => {
             filterable: true, 
             visible: true, 
             filterType: "number", 
-            width: "12%" 
-        },{ 
+            width: "12%"        },{ 
             key: "completion", 
             header: (
                 <div className="flex items-center gap-2">
@@ -114,10 +111,26 @@ const Phase = () => {
                     <span>Completion</span>
                 </div>
             ), 
-            filterable: true, 
+            // filterable: false, 
             visible: true, 
-            filterType: "number", 
+            // filterType: "number", 
             width: "10%",
+            align: "center"
+        },
+        { 
+            key: "lastUpdate", 
+            header: (
+                <div className="flex items-center gap-2">
+                    <Clock size={16} />
+                    <span>Last Update</span>
+                </div>
+            ),
+            render: (value) => {
+                const date = new Date(value);
+                return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            },
+            visible: true, 
+            width: "15%",
             align: "center"
         },
         {
@@ -146,7 +159,6 @@ const Phase = () => {
             header: "Actions",
             align: "center",    
             width: "10%",
-            filterable: false,
             visible: true,
         },
     ];
