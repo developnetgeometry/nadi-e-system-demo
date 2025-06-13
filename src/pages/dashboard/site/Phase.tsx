@@ -100,12 +100,13 @@ const Phase = () => {
                     <span>Budget (RM)</span>
                 </div>
             ),
+            render: (value) => `RM ${value.toLocaleString()}`,
             align: "right",
             filterable: true, 
             visible: true, 
             filterType: "number", 
             width: "12%" 
-        },        { 
+        },{ 
             key: "completion", 
             header: (
                 <div className="flex items-center gap-2">

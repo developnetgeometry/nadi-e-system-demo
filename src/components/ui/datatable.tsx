@@ -302,11 +302,22 @@ const DataTable: React.FC<DataTableProps> = ({
     }
     
     return stringValue;
-  };
-
-  const handleExport = () => {
+  };  const handleExport = () => {
+    // Filter columns for export - include string keys and specific function keys (like numbering columns)
+    const exportableColumns = columns.filter(col => {
+      // Always include string keys
+      if (typeof col.key === "string") return true;
+      
+      // Special case for numbering columns (like "No" column that uses index)
+      // Detect columns that have a function key but a simple header like "No"
+      const isNumberingColumn = typeof col.key === "function" && 
+                               (typeof col.header === "string" && ["No", "#", "Number"].includes(col.header));
+      
+      return isNumberingColumn;
+    });
+    
     // Extract header text - handle both string and React elements
-    const headers = columns.map((col) => {
+    const headers = exportableColumns.map((col) => {
       // If header is a string, use it directly
       if (typeof col.header === 'string') {
         return escapeCsvValue(col.header);
@@ -319,23 +330,29 @@ const DataTable: React.FC<DataTableProps> = ({
         if (spanContent) return escapeCsvValue(spanContent);
         
         // Fallback to column key as header if we can't extract text
-        return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${columns.indexOf(col) + 1}`);
+        return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${exportableColumns.indexOf(col) + 1}`);
       }
       
       // Default fallback
-      return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${columns.indexOf(col) + 1}`);
-    }).join(",");
-    
-    const rows = filteredData
-      .map((row) =>
-        columns
+      return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${exportableColumns.indexOf(col) + 1}`);
+    }).join(",");    const rows = filteredData
+      .map((row, rowIndex) =>
+        exportableColumns
           .map((col) => {
             let cellValue;
+            
+            // Handle both string keys and function keys
             if (typeof col.key === "function") {
-              cellValue = col.key(row, data.indexOf(row));
+              // For function keys, evaluate the function
+              cellValue = col.key(row, rowIndex);
             } else {
+              // For string keys, get the value directly
               cellValue = row[col.key];
             }
+            
+            // For custom rendered cells, we should export the raw data value, not the rendered JSX
+            // This ensures we get clean data in the CSV without HTML or React elements
+            
             return escapeCsvValue(cellValue);
           })
           .join(",")
