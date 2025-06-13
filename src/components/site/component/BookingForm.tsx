@@ -25,6 +25,8 @@ import { bookingClient } from "@/hooks/booking/booking-client";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
 import { Card } from "@/components/ui/card";
+import { SiteSpace } from "@/types/site";
+import { Asset } from "@/types/asset";
 
 interface BookingFormInput {
     pc?: string,
@@ -44,6 +46,8 @@ interface BookingFormProps {
     setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
+    setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
+    setSeletedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
 
 const BookingForm = ({
@@ -53,7 +57,9 @@ const BookingForm = ({
     isFacility,
     setBookingCalendarData,
     setBookingsData,
-    setOpen
+    setOpen,
+    setSelectedFacilitiesData,
+    setSeletedPcsData
 }: BookingFormProps) => {
     const [userName, setUserName] = useState("");
     const debouncedUserName = useDebounce(userName, 600);
@@ -97,7 +103,8 @@ const BookingForm = ({
                 requester_id: userId,
                 id: bookingId,
                 created_at: new Date().toISOString(),
-                is_using: true,
+                is_active: true,
+                purpose: formData.purpose,
                 site_id: siteId
             }
 
@@ -111,8 +118,22 @@ const BookingForm = ({
             setBookingsData((prevBook) => [
                 ...prevBook,
                 newBookingData
-            ])
+            ]);
 
+            setSeletedPcsData?.((prevPcs) => prevPcs.map((pc) => {
+                if (pc.name === formData.pc) {
+                    return {
+                        ...pc,
+                        nd_booking: [
+                            ...pc.nd_booking,
+                            newBookingData
+                        ]
+                    }
+                }
+                return pc;
+            }));
+            
+            
             setOpen(false);
             toast({
                 title: "Add new booking success",
@@ -139,7 +160,6 @@ const BookingForm = ({
         try {
             const { id: spaceId } = await bookingClient.getSpaceByName(formData.facility, siteId);
             const { id: userId } = await fetchUserByName(formData.userName);
-            console.log("submiited requester id", userId);
             const startTime = stringToDateWithTime(formData.startTime);
             const endTime = stringToDateWithTime(formData.endTime);
             const bookingId = crypto.randomUUID();
@@ -152,12 +172,11 @@ const BookingForm = ({
                 requester_id: userId,
                 id: bookingId,
                 created_at: new Date().toISOString(),
-                is_using: true,
+                is_active: true,
                 site_id: siteId
             }
 
             const newBookingData = await bookingPcMutation.mutateAsync(submitedFormData);
-            console.log(newBookingData)
 
             setBookingCalendarData((prevBook) => [
                 ...prevBook,
