@@ -29,7 +29,6 @@ import { useEffect, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import {
   fetchAllSites,
-  fetchSiteBySiteId,
   fetchSiteBySiteProfileId,
   fetchTPSites,
 } from "../site/hook/site-utils";
@@ -201,15 +200,14 @@ export const AssetFormDialog = ({
 
   useEffect(() => {
     const fetchSite = async () => {
-      const site = await fetchSiteBySiteId(siteId! || defaultSiteId);
+      const site = await fetchSiteBySiteProfileId(siteId! || defaultSiteId);
       if (site) {
         setSelectedSite(site);
-        if (!isStaffUser && !isTpSiteUser) {
-          const locations = (site.nd_site_space ?? []).map(
-            (s): Space => s.nd_space
-          );
-          setLocations(locations);
-        }
+        console.log("site", site);
+        const locations = (site.nd_site_space ?? []).map(
+          (s): Space => s.nd_space
+        );
+        setLocations(locations);
 
         if (asset) {
           const match = (site.nd_site_space ?? []).find(
@@ -256,7 +254,7 @@ export const AssetFormDialog = ({
       retail_type: Number(assetRetailType),
       qty_unit: Number(formData.get("quantity")),
       location_id: Number(assetLocationId) || null,
-      site_id: Number(site?.nd_site?.[0]?.id),
+      site_id: Number(site?.id),
     };
 
     try {
