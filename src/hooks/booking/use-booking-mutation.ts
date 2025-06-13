@@ -20,7 +20,11 @@ export const useBookingMutation = () => {
             mutationKey: ["assets", siteId, organizationId],
             mutationFn: (
               newBooking: Booking
-            ) => bookingClient.postNewBooking(newBooking, isBookingAllowed)
+            ) => bookingClient.postNewBooking(newBooking, isBookingAllowed),
+            onSuccess: (data) => {
+                // Optionally handle success, e.g., show a notification
+                console.log("Booking created successfully:", data);
+            }
         });
 
     return {

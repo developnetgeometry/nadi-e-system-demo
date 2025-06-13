@@ -44,6 +44,7 @@ export interface Site {
     standard_code: string;
     refid_tp: string;
     refid_mcmc: string;
+    nd_asset: Asset[];
   }[];
   nd_phases: {
     name: string;

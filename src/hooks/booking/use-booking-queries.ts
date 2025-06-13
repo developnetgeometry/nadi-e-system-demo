@@ -93,13 +93,7 @@ export const useBookingQueries = () => {
     const usesitesSpacesBookings = (siteId: number) =>
         useQuery({
             queryKey: ["sitesSpaceBookings", siteId],
-            queryFn: () => {
-                try {
-                    return bookingClient.getSitesSpaceBookings(siteId)
-                } catch (error) {
-                    console.log(error.message)
-                }
-            },
+            queryFn: () => bookingClient.getSitesSpaceBookings(siteId),
             enabled: !!siteId
         })
 

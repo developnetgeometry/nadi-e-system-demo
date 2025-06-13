@@ -10,6 +10,7 @@ export interface Asset {
   brand_id?: number;
   nd_brand?: Brand;
   is_active?: boolean;
+  is_using?: boolean;
   nd_booking?: Booking[];
   remark?: string;
   asset_group?: string;

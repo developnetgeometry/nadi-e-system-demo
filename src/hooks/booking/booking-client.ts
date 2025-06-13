@@ -12,12 +12,21 @@ export const bookingClient = {
         const { error, data } = await supabase
             .from("nd_booking")
             .insert(bookingData)
-            .select("*")
+            .select(`*,
+                nd_asset (*),
+                profiles (*),
+                nd_site_space (
+                    *,
+                    nd_space (*))`)
             .maybeSingle()
 
         if (error) {
             console.error("Failed add new booking", error);
             throw error;
+        }
+
+        if (!data) {
+            throw new Error("No booking data returned from Supabase.");
         }
 
         return data;
@@ -379,13 +388,13 @@ export const bookingClient = {
 
         if (error) throw error;
 
-        const filtered = data?.map((space) => space?.nd_site_space?.site_id === siteData?.id);
+        const filtered = data?.filter((space) => space?.nd_site_space?.site_id === siteData?.id);
 
         return filtered;
     },
 
     getAllSpaceBookingsInTpsSites: async (siteIds: number[]) => {
-        const {data, error} = await supabase
+        const { data, error } = await supabase
             .from("nd_booking")
             .select(`
                 *,
@@ -404,7 +413,8 @@ export const bookingClient = {
     getBookingBySiteSpaceId: async (id: number) => {
         const { data, error } = await supabase
             .from("nd_booking")
-            .select("*")
+            .select(`*,
+                profiles (*)`)
             .eq("site_space_id", id)
             .maybeSingle()
 

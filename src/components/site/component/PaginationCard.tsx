@@ -23,8 +23,6 @@ export const PaginationCard = ({
         currentPage,
         currentItems,
         handlePageChange,
-        setCurrentPage,
-        startIndex,
         totalPages
     } = usePaginationClient(items, 8);
 
