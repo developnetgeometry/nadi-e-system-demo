@@ -26,9 +26,10 @@ import { Inventory } from "@/types/inventory";
 import { Site } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { fetchSiteBySiteProfileId, fetchSites } from "../site/hook/site-utils";
+import { SelectOne } from "../ui/SelectOne";
 import { Textarea } from "../ui/textarea";
 import { useInventoryImage } from "./hooks/use-inventory-image";
 
@@ -142,6 +143,21 @@ export const InventoryFormDialog = ({
     isLoading: isLoadingInventoryType,
     error,
   } = useInventoryTypesQuery();
+
+  const siteOptions = useMemo(() => {
+    if (!sites || sites.length === 0) return [];
+
+    return sites
+      .filter((site) =>
+        isSuperAdmin || isDUSPUser
+          ? !tpId || site?.dusp_tp_id?.toString() === tpId
+          : true
+      )
+      .map((site) => ({
+        id: site.nd_site[0].id.toString(),
+        label: site.sitename,
+      }));
+  }, [sites, isSuperAdmin, isDUSPUser, tpId]);
 
   useEffect(() => {
     if (inventory) {
@@ -656,36 +672,16 @@ export const InventoryFormDialog = ({
                 !isTpSiteUser && (
                   <div className="space-y-2">
                     <Label htmlFor="type">Site</Label>
-                    <Select
-                      name="site"
-                      required
+                    <SelectOne
+                      options={siteOptions}
                       value={siteId}
-                      onValueChange={setSiteId}
+                      onChange={(value) => setSiteId(value as string)}
+                      placeholder="Select site"
                       disabled={
                         ((isSuperAdmin || isDUSPUser) && !tpId) ||
                         sites.length === 0
                       }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select site" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sites
-                          .filter((site) =>
-                            isSuperAdmin || isDUSPUser
-                              ? !tpId || site?.dusp_tp_id?.toString() === tpId
-                              : true
-                          )
-                          .map((site, index) => (
-                            <SelectItem
-                              key={index}
-                              value={site.nd_site[0].id.toString()}
-                            >
-                              {site.sitename}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
                 )}
 

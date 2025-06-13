@@ -5,14 +5,10 @@ import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 
-import AssetDashboard from "@/pages/dashboard/asset/AssetDashboard";
-import AssetDetails from "@/pages/dashboard/asset/AssetDetails";
-import AssetSettings from "@/pages/dashboard/asset/AssetSettings";
-
-// Implement lazy loading for the Dashboard component
-const AssetDashboardPage = lazy(() => Promise.resolve({ default: AssetDashboard }));
-const AssetDetailsPage = lazy(() => Promise.resolve({ default: AssetDetails }));
-const AssetSettingsPage = lazy(() => Promise.resolve({ default: AssetSettings }));
+const AssetDashboardPage = lazy(() => import("@/pages/dashboard/asset/AssetDashboard"));
+const AssetDetailsPage = lazy(() => import("@/pages/dashboard/asset/AssetDetails"));
+const AssetSettingsPage = lazy(() => import("@/pages/dashboard/asset/AssetSettings"));
+const MaintenanceDashboardPage = lazy(() => import("@/pages/dashboard/maintenance/MaintenanceDashboard"));
 
 
 export const assetRoutes = [
@@ -42,6 +38,16 @@ export const assetRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <AssetSettingsPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/asset/maintenance",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <MaintenanceDashboardPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

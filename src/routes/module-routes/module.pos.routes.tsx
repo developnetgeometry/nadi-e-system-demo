@@ -6,14 +6,16 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 import POSDashboard from "@/pages/dashboard/pos/POSDashboard";
 import Products from "@/pages/dashboard/pos/Products";
-import Transactions from "@/pages/dashboard/pos/Transactions";
-import Pudo from "@/pages/dashboard/pos/Pudo";
+import POSTransactions from "@/pages/dashboard/pos/Transactions";
+import POSSales from "@/pages/dashboard/pos/POSSales";
+import POSPickupDropOff from "@/pages/dashboard/pos/POSPickupDropOff";
 
-// Implement lazy loading for the Dashboard component
-const POSDashboardPage = lazy(() => Promise.resolve({ default: POSDashboard }));
-const ProductsPage = lazy(() => Promise.resolve({ default: Products }));
-const TransactionsPage = lazy(() => Promise.resolve({ default: Transactions }));
-const PudoPage = lazy(() => Promise.resolve({ default: Pudo }));
+const POSDashboardPage = lazy(() => import("@/pages/dashboard/pos/POSDashboard"));
+const ProductsPage = lazy(() => import("@/pages/dashboard/pos/Products"));
+const POSTransactionsPage = lazy(() => import("@/pages/dashboard/pos/Transactions"));
+const POSSalesPage = lazy(() => import("@/pages/dashboard/pos/POSSales"));
+const POSPickupDropOffPage = lazy(() => import("@/pages/dashboard/pos/POSPickupDropOff"));
+
 
 export const posRoutes = [
   {
@@ -41,7 +43,17 @@ export const posRoutes = [
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <TransactionsPage />
+        <POSTransactionsPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/pos/sales",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <POSSalesPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
@@ -51,7 +63,7 @@ export const posRoutes = [
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <PudoPage />
+        <POSPickupDropOffPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

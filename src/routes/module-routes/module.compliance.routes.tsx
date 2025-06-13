@@ -4,17 +4,28 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-import AuditLogs from "@/pages/dashboard/compliance/AuditLogs";
-import ComplianceReports from "@/pages/dashboard/compliance/ComplianceReports";
+const ActivityLogsPage = lazy(() => import("@/pages/dashboard/compliance/ActivityLogs"));
+const AuditLogsPage = lazy(() => import("@/pages/dashboard/compliance/AuditLogs"));
+const ComplianceReportsPage = lazy(() => import("@/pages/dashboard/compliance/ComplianceReports"));
 
 export const complianceRoutes = [
   // Compliance Routes
+  {
+    path: "/compliance/activity",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission="view_audit_logs"> */}
+        <ActivityLogsPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
   {
     path: "/compliance/audit",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission="view_audit_logs"> */}
-        <AuditLogs />
+        <AuditLogsPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
@@ -23,8 +34,8 @@ export const complianceRoutes = [
     path: "/compliance/reports",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
-        // {/* <ProtectedRoute requiredPermission="view_compliance_reports"> */}
-        <ComplianceReports />
+        {/* <ProtectedRoute requiredPermission="view_compliance_reports"> */}
+        <ComplianceReportsPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

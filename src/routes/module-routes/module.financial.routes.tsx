@@ -3,14 +3,13 @@ import { Route, Routes } from "react-router-dom";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-
 // Replace direct imports with lazy loading
 const FinancialTransactions = lazy(() => import("@/pages/dashboard/financial/Transactions"));
 const Wallet = lazy(() => import("@/pages/dashboard/financial/Wallet"));
 
 export const financialRoutes = [
     {
-        path: "/financial",
+        path: "/financial/transactions",
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}

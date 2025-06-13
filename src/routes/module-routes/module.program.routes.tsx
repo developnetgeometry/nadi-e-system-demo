@@ -4,12 +4,17 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
-// Lazy load components
-const ProgrammesDashboard = lazy(() => import("@/pages/dashboard/programmes/ProgrammesDashboard"));
-const ProgrammeSettings = lazy(() => import("@/pages/dashboard/programmes/ProgrammeSettings"));
-// const ProgrammeRegister = lazy(() => import("@/pages/dashboard/programmes/ProgrammeRegister"));
-// const ProgrammeNADI4U = lazy(() => import("@/pages/dashboard/programmes/ProgrammeNADI4U"));
-// const ProgrammeNADI2U = lazy(() => import("@/pages/dashboard/programmes/ProgrammeNADI2U"));
+
+
+const ProgrammesDashboardPage = lazy(() => import("@/pages/dashboard/programmes/ProgrammesDashboard"));
+const ProgrammeSettingsPage = lazy(() => import("@/pages/dashboard/programmes/ProgrammeSettings"));
+const ProgrammeEditPage = lazy(() => import("@/pages/dashboard/programmes/ProgrammeRegistration"));
+const ProgrammeRegistrationPage = lazy(() => import("@/pages/dashboard/programmes/ProgrammeRegistration"));
+const SmartServicesNadi4UPage = lazy(() => import("@/pages/dashboard/programmes/SmartServicesNadi4U"));
+const SmartServicesNadi2UPage = lazy(() => import("@/pages/dashboard/programmes/SmartServicesNadi2U"));
+const OthersProgrammesPage = lazy(() => import("@/pages/dashboard/programmes/OthersProgrammes"));
+
+
 
 export const programmeRoutes = [
     {
@@ -17,7 +22,7 @@ export const programmeRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <ProgrammesDashboard />
+                <ProgrammesDashboardPage />
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
@@ -27,51 +32,62 @@ export const programmeRoutes = [
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
-                <ProgrammeSettings />
+                <ProgrammeSettingsPage />
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
     },
-    // {
-    //     path: "/programmes/register",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <ProgrammeRegister />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
-    // {
-    //     path: "/programmes/NADI4U",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <ProgrammeNADI4U />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
-    // {
-    //     path: "/programmes/NADI2U",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <ProgrammeNADI2U />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
-    // {
-    //     path: "/programmes/others",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <ProgrammeSettings />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
+    {
+        path: "/programmes/edit/:id",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <ProgrammeEditPage />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
+        path: "/programmes/registration",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <ProgrammeRegistrationPage />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
+        path: "/programmes/nadi4u",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <SmartServicesNadi4UPage />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
+        path: "/programmes/nadi2u",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <SmartServicesNadi2UPage />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
+        path: "/programmes/others",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <OthersProgrammesPage />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    
 ];
 
 export const ProgrammeRoutes = () => {

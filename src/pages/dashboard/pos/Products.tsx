@@ -151,18 +151,62 @@ const Products = () => {
 
   // Fetch transactions with items
   const { data: inventoryData, isLoading, error } = useQuery({
-    queryKey: ['inventories', parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin],
+    queryKey: ['inventories', parsedMetadata?.group_profile?.site_profile_id, isSuperAdmin, isTPUser, parsedMetadata?.organization_id],
     queryFn: async () => {
       // Fetch inventory data
       let inventoryQuery = supabase
         .from('nd_inventory')
         .select(`*, 
           type:nd_inventory_type!type_id(id, name),
-          category:nd_inventory_category!category_id(id, name)
-        `);
+          category:nd_inventory_category!category_id(id, name),
+          nd_inventory_attachment!left(file_path),
+          nd_site!site_id(
+            id,
+            site_profile_id,
+            nd_site_profile!site_profile_id(
+              id,
+              sitename,
+              dusp_tp_id,
+              organizations!dusp_tp_id(name)
+            )
+          )
+        `)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+
         
-      // If not super admin, filter by site_id
-      if (!isSuperAdmin) {
+      // Filter based on user type
+      if (isTPUser && parsedMetadata?.organization_id) {
+        // For TP users, filter by organization_id through site relationship
+        const { data: sitesData, error: sitesError } = await supabase
+          .from('nd_site_profile')
+          .select('id')
+          .eq('dusp_tp_id', parsedMetadata.organization_id);
+        
+        if (sitesError) throw sitesError;
+        
+        const siteProfileIds = sitesData?.map(site => site.id) || [];
+        
+        if (siteProfileIds.length > 0) {
+          const { data: ndSitesData, error: ndSitesError } = await supabase
+            .from('nd_site')
+            .select('id')
+            .in('site_profile_id', siteProfileIds);
+          
+          if (ndSitesError) throw ndSitesError;
+          
+          const siteIds = ndSitesData?.map(site => site.id) || [];
+          
+          if (siteIds.length > 0) {
+            inventoryQuery = inventoryQuery.in('site_id', siteIds);
+          } else {
+            return [];
+          }
+        } else {
+          return [];
+        }
+      } else if (!isSuperAdmin && !isTPUser) {
+        // For site-specific users (like tp_site)
         const siteProfileId = parsedMetadata?.group_profile?.site_profile_id || null;
         
         if (!siteProfileId) {
@@ -191,6 +235,11 @@ const Products = () => {
         console.error('Error fetching inventory:', inventoryError);
         throw inventoryError;
       }
+
+      const processedInventoryResult = inventoryResult?.map(item => ({
+        ...item,
+        image_url: item.nd_inventory_attachment?.[0]?.file_path || null
+      })) || [];
 
       const { data: servicesResult, error: servicesError } = await supabase
         .from('nd_category_service')
@@ -235,7 +284,7 @@ const Products = () => {
       }) || [];
 
       // Combine inventory and services
-      const combinedData = [...(inventoryResult || []), ...transformedServices];
+      const combinedData = [...processedInventoryResult, ...transformedServices];
       
       return combinedData;
     }
@@ -653,6 +702,9 @@ const Products = () => {
         let valueA, valueB;
 
         switch (sortField) {
+          case "index":
+            valueA = filteredInventories.indexOf(a) + 1;
+            valueB = filteredInventories.indexOf(b) + 1;
           case "productId":
             valueA = formatProductId(a);
             valueB = formatProductId(b);
@@ -721,7 +773,7 @@ const Products = () => {
         {/* Filter Buttons */}
         <div className="flex flex-wrap gap-2">
           {/* Product ID Filter */}
-          <Popover>
+          {/* <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -768,7 +820,7 @@ const Products = () => {
                 </CommandList>
               </Command>
             </PopoverContent>
-          </Popover>
+          </Popover> */}
 
           {/* Product Name Filter */}
           <Popover>
@@ -905,7 +957,7 @@ const Products = () => {
       {/* Active Filters Bar */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 items-center mb-4">
-          {appliedProductIdFilters.length > 0 && (
+          {/* {appliedProductIdFilters.length > 0 && (
             <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
               <span>Product ID: {appliedProductIdFilters.length}</span>
               <Button
@@ -920,7 +972,7 @@ const Products = () => {
                 <X className="h-3 w-3" />
               </Button>
             </Badge>
-          )}
+          )} */}
           {appliedNameFilters.length > 0 && (
             <Badge variant="outline" className="gap-1 px-3 py-1 h-6">
               <span>Name: {appliedNameFilters.length}</span>
@@ -968,11 +1020,11 @@ const Products = () => {
                 <TableRow>
                   <TableHead
                     className="cursor-pointer"
-                    onClick={() => handleSort("productId")}
+                    onClick={() => handleSort("index")}
                   >
                     <div className="flex items-center">
-                      Product ID
-                      {sortField === "productId" ? (
+                      No.
+                      {sortField === "index" ? (
                         <span className="ml-2">
                           {sortDirection === "asc" ? "↑" : "↓"}
                         </span>
@@ -1080,7 +1132,7 @@ const Products = () => {
                 {filteredInventories.length > 0 ? (
                   filteredInventories.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-mono text-xs">{formatProductId(item)}</TableCell>
+                      <TableCell className="font-mono">{filteredInventories.indexOf(item) + 1}</TableCell>
                       <TableCell>{item.name || 'N/A'}</TableCell>
                       <TableCell>{item.category?.name || 'N/A'}</TableCell>
                       <TableCell>{item.price ? `RM ${item.price.toFixed(2)}` : 'N/A'}</TableCell>
