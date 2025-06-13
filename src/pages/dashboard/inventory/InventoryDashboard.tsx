@@ -22,6 +22,8 @@ const InventoryDashboard = () => {
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
   const isTpSiteUser = parsedMetadata?.user_type === "tp_site";
+  const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id; // Add this line
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const { siteId: tpSiteId } = useTpManagerSiteId(isTpSiteUser);
 
   const finalSiteId = isTpSiteUser ? tpSiteId : siteId;
@@ -44,7 +46,7 @@ const InventoryDashboard = () => {
 
   // Fetch inventories with filtering based on user type
   const { data: inventories, isLoading: isLoadingInventories, error: errorInventories, refetch } = useQuery({
-    queryKey: ['inventories', parsedMetadata?.group_profile?.site_profile_id, isTpSiteUser, parsedMetadata?.user_type],
+    queryKey: ['inventories', parsedMetadata?.group_profile?.site_profile_id, isTpSiteUser, parsedMetadata?.user_type, parsedMetadata?.organization_id],
     queryFn: async () => {
       let inventoryQuery = supabase
         .from('nd_inventory')
@@ -66,8 +68,41 @@ const InventoryDashboard = () => {
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
-      // For tp_site users - filter by site_profile_id
-      if (isTpSiteUser && parsedMetadata?.group_profile?.site_profile_id) {
+      // Add TP user filtering logic (same as Products.tsx)
+      const isTPUser = parsedMetadata?.user_group_name === "TP" && !!parsedMetadata?.organization_id;
+      const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+
+      if (isTPUser && parsedMetadata?.organization_id) {
+        // For TP users, filter by organization_id through site relationship
+        const { data: sitesData, error: sitesError } = await supabase
+          .from('nd_site_profile')
+          .select('id')
+          .eq('dusp_tp_id', parsedMetadata.organization_id);
+        
+        if (sitesError) throw sitesError;
+        
+        const siteProfileIds = sitesData?.map(site => site.id) || [];
+        
+        if (siteProfileIds.length > 0) {
+          const { data: ndSitesData, error: ndSitesError } = await supabase
+            .from('nd_site')
+            .select('id')
+            .in('site_profile_id', siteProfileIds);
+          
+          if (ndSitesError) throw ndSitesError;
+          
+          const siteIds = ndSitesData?.map(site => site.id) || [];
+          
+          if (siteIds.length > 0) {
+            inventoryQuery = inventoryQuery.in('site_id', siteIds);
+          } else {
+            return [];
+          }
+        } else {
+          return [];
+        }
+      } else if (isTpSiteUser && parsedMetadata?.group_profile?.site_profile_id) {
+        // For tp_site users - filter by site_profile_id
         const userSiteProfileId = parsedMetadata.group_profile.site_profile_id;
         
         const { data: siteData, error: siteError } = await supabase
@@ -82,11 +117,10 @@ const InventoryDashboard = () => {
         if (siteIds.length > 0) {
           inventoryQuery = inventoryQuery.in('site_id', siteIds);
         } else {
-          // No sites found for this user, return empty array
           return [];
         }
       }
-      // For other users (!isTpSiteUser) - show all inventory (no additional filter)
+      // For SuperAdmin and other users - no additional filtering (show all)
 
       const { data: inventoryData, error: inventoryError } = await inventoryQuery;
       
@@ -111,6 +145,7 @@ const InventoryDashboard = () => {
     },
     enabled: true,
   });
+
 
   useEffect(() => {
     if (!isDialogOpen) {
