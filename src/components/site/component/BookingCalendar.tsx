@@ -17,7 +17,6 @@ import { Dialog } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { BookingFormDialog } from "./BookingFormDialog";
-import BookingAssetCard from "./BookingAssetCard";
 import { getDuration } from "../utils/duration";
 import { useUserName } from "@/hooks/use-user";
 import { assetClient } from "@/hooks/assets/asset-client";
@@ -29,6 +28,7 @@ import { DatePickerWithRange } from "@/components/ui/dateRangePicker";
 import { toTwentyFourFormat } from "../utils/dateTimeConverter";
 import { Input } from "@/components/ui/input";
 import { exportToCSV } from "@/utils/export-utils";
+import { SiteSpace } from "@/types/site";
 
 interface BookingCalendarProp {
     bookingType: string,
@@ -43,6 +43,8 @@ interface BookingCalendarProp {
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     isLoading?: boolean,
     isFacility?: boolean,
+    setSeletedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>,
+    setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>,
     isMember: boolean,
     isTpSite: boolean
 }
@@ -61,75 +63,85 @@ export const BookingCalendar = ({
     setBookingCalendarData,
     setBookingsData,
     onChangeFilter,
-    isLoading
+    isLoading,
+    setSeletedPcsData,
+    setSelectedFacilitiesData
 }: BookingCalendarProp) => {
+    console.log("BookingCalendar", bookingData)
     const [formattedBookingData, setFormattedBookingData] = useState<BodyTableData[]>([]);
     const [assetTypeName, setAssetTypeName] = useState<string>(`all ${bookingType}`);
     const [searchInput, setSearchInput] = useState("");
     const [open, setOpen] = useState(false);
     const { fetchUserById } = useUserName();
 
-    const PcHeadTable = [
-        {key: "userName", label:"User"},
-        {key: "bookingAssetTypeName", label:"PC Name"},
-        {key: "startTime", label:"Start Time"},
-        {key: "endTime", label:"End Time"},
-        {key: "duration", label:"Duration"}
+    const pcHeadTable = [
+        { key: "userName", label: "User" },
+        { key: "bookingAssetTypeName", label: "PC Name" },
+        { key: "startTime", label: "Start Time" },
+        { key: "endTime", label: "End Time" },
+        { key: "duration", label: "Duration" }
     ];
 
-    const FacilityHeadTable = [
-        {key: "userName",label:"Member ID"},
-        {key: "bookingAssetTypeName",label:"Name"},
-        {key: "startTime",label:"Time"},
-        {key: "endTime",label:"Date"},
-        {key: "duration",label:"Facility"}
+    const facilityHeadTable = [
+        { key: "userName", label: "Member ID" },
+        { key: "bookingAssetTypeName", label: "Name" },
+        { key: "startTime", label: "Time" },
+        { key: "endTime", label: "Date" },
+        { key: "duration", label: "Facility" }
     ];
 
     useEffect(() => {
         let isActive = true;
 
-        async function preparePcBookingData(currentFilteredPcsData: Booking[]) {
-            if (!currentFilteredPcsData || currentFilteredPcsData.length === 0) {
+        async function prepareBookingData(currentFilteredBookingData: Booking[]) {
+            if (!currentFilteredBookingData || currentFilteredBookingData.length === 0) {
                 setFormattedBookingData([]);
                 return;
             };
 
             const processed = await Promise.all(
-                currentFilteredPcsData.map(async (pc) => {
-
-                    const user = await fetchUserById(pc.created_by);
-                    const full_name = user.full_name ?? "-";
-
+                currentFilteredBookingData.map(async (booking) => {
+                    const user = await fetchUserById(booking.created_by);
+                    const full_name = user?.full_name ?? "-";
+                    console.log("Booking site space", booking.nd_site_space)
                     return {
                         userName: full_name,
-                        bookingAssetTypeName: pc.nd_asset?.name,
-                        startTime: toTwentyFourFormat(new Date(pc.booking_start)),
-                        endTime: toTwentyFourFormat(new Date(pc.booking_end)),
-                        duration: getDuration(pc.booking_start, pc.booking_end)
+                        bookingAssetTypeName: !isFacility ? booking.nd_asset?.name : booking.nd_site_space.nd_space.eng,
+                        startTime: toTwentyFourFormat(new Date(booking.booking_start)),
+                        endTime: toTwentyFourFormat(new Date(booking.booking_end)),
+                        duration: getDuration(booking.booking_start, booking.booking_end)
                     };
                 })
             );
 
             if (isActive) {
-                setFormattedBookingData(processed)
+                setFormattedBookingData(processed);
             }
         }
 
-        preparePcBookingData(bookingData);
+        prepareBookingData(bookingData);
 
         return () => {
             isActive = false;
         };
-    }, [bookingData])
+    }, [bookingData]);
 
     const handleFilter = (date: DateRange, assetTypeName: string, searchInput: string) => {
         onChangeFilter(date, assetTypeName, searchInput);
     }
 
     useEffect(() => {
+        if (
+            !date ||
+            bookingData.length === 0 ||
+            (assetTypeName === `all ${bookingType}` && searchInput.trim() === "")
+        ) {
+            return;
+        }
+
         handleFilter(date, assetTypeName, searchInput);
     }, [date, assetTypeName, searchInput]);
-
+    
     return (
         <section className="w-full flex flex-col gap-4 mt-4">
             {header && (
@@ -188,13 +200,15 @@ export const BookingCalendar = ({
                             setBookingsData={setBookingsData}
                             isLoading={isLoading}
                             assetsName={assetTypeNames.filter((name) => name !== "all pc")}
+                            setSelectedFacilitiesData={setSelectedFacilitiesData}
+                            setSeletedPcsData={setSeletedPcsData}
                         />
                     </Dialog>
                 )}
             </div>
             <BookingListsTable
                 isFacility={isFacility}
-                headTable={isFacility ? FacilityHeadTable : PcHeadTable}
+                headTable={isFacility ? facilityHeadTable : pcHeadTable}
                 bodyTableData={formattedBookingData}
                 withTableTitle={false}
                 className="mt-0 border border-gray-100"
