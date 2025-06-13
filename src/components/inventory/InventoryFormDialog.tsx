@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { SelectOne } from '@/components/ui/SelectOne';
 import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/ui/file-upload";
 import {
@@ -25,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Inventory } from "@/types/inventory";
 import { Site } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
 import { fetchSiteBySiteId, fetchSites } from "../site/hook/site-utils";
 import { useTpManagerSiteId } from "@/hooks/use-site-id";
@@ -141,6 +142,17 @@ export const InventoryFormDialog = ({
     isLoading: isLoadingInventoryType,
     error,
   } = useInventoryTypesQuery();
+
+  const siteOptions = useMemo(() => {
+    if(!sites || sites.length === 0) return [];
+
+    return sites
+      .filter((site) => (isSuperAdmin || isDUSPUser) ? (!tpId || site?.dusp_tp_id?.toString() === tpId) : true)
+      .map((site) => ({
+        id: site.nd_site[0].id.toString(),
+        label: site.sitename
+      }));
+  }, [sites, isSuperAdmin, isDUSPUser, tpId]);
 
   useEffect(() => {
     if (inventory) {
@@ -620,29 +632,13 @@ export const InventoryFormDialog = ({
               {(isSuperAdmin || isDUSPUser || isTPUser || isStaffUser) && !isTpSiteUser && (
                 <div className="space-y-2">
                   <Label htmlFor="type">Site</Label>
-                  <Select
-                    name="site"
-                    required
+                  <SelectOne
+                    options={siteOptions}
                     value={siteId}
-                    onValueChange={setSiteId}
+                    onChange={(value) => setSiteId(value as string)}
+                    placeholder="Select site"
                     disabled={(isSuperAdmin || isDUSPUser) && !tpId || sites.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select site" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sites
-                        .filter((site) => (isSuperAdmin || isDUSPUser) ? (!tpId || site?.dusp_tp_id?.toString() === tpId) : true)
-                        .map((site, index) => (
-                          <SelectItem
-                            key={index}
-                            value={site.nd_site[0].id.toString()}
-                          >
-                            {site.sitename}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
               )}
 
