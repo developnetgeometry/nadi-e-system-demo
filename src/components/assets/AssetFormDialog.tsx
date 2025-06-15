@@ -119,7 +119,7 @@ export const AssetFormDialog = ({
   });
 
   // Fetch sites for TP user
-  const { data: tpSites = [], isLoading: isLoadingSites } = useQuery({
+  const { data: tpSites = [], isLoading: isLoadingTpSites } = useQuery({
     queryKey: ["tpSites", organizationId],
     queryFn: () => fetchTPSites(organizationId || ""),
     enabled: !!organizationId && isTPUser && open,
@@ -153,7 +153,12 @@ export const AssetFormDialog = ({
         setAssetType(String(asset.type_id));
         setAssetBrandId(String(asset.brand_id));
       }
-      if (!duspsIsLoading && !tpsIsLoading) {
+      if (
+        !duspsIsLoading &&
+        !tpsIsLoading &&
+        !isLoadingAllSites &&
+        !isLoadingTpSites
+      ) {
         setDuspId(String(asset.site?.dusp_tp?.parent?.id));
         setTpId(String(asset.site?.dusp_tp_id));
         setSiteId(String(asset.site_id));
@@ -161,7 +166,15 @@ export const AssetFormDialog = ({
         setAssetLocationId(String(asset.location_id));
       }
     }
-  }, [asset, brandIsLoading, assetTypeIsLoading, duspsIsLoading, tpsIsLoading]);
+  }, [
+    asset,
+    brandIsLoading,
+    assetTypeIsLoading,
+    duspsIsLoading,
+    tpsIsLoading,
+    isLoadingAllSites,
+    isLoadingTpSites,
+  ]);
 
   useEffect(() => {
     if (duspId) {
@@ -233,7 +246,7 @@ export const AssetFormDialog = ({
 
     setIsSubmitting(true);
 
-    if (!siteId && !isStaffUser && !isTpSiteUser) {
+    if (!siteId && !selectedSite && !isStaffUser && !isTpSiteUser) {
       toast({
         title: "Error",
         description: "Please select a Site.",
@@ -243,7 +256,9 @@ export const AssetFormDialog = ({
       return;
     }
 
-    const site = await fetchSiteBySiteProfileId(siteId! || defaultSiteId);
+    const site = await fetchSiteBySiteProfileId(
+      siteId! || defaultSiteId || String(selectedSite?.id)
+    );
 
     const asset = {
       name: String(formData.get("name")),
@@ -405,14 +420,14 @@ export const AssetFormDialog = ({
                   </Label>
                   <SelectOne
                     options={isTPUser ? tpSites : allSites}
-                    value={siteId}
+                    value={selectedSite?.id}
                     onChange={(value) => {
                       const newSiteId = value as string;
                       setSiteId(newSiteId);
                     }}
                     placeholder="Select a site"
                     disabled={
-                      (isTPUser ? isLoadingSites : isLoadingAllSites) ||
+                      (isTPUser ? isLoadingTpSites : isLoadingAllSites) ||
                       isSubmitting
                     }
                   />
