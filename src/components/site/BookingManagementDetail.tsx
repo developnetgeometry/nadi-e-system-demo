@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookCheck, ChevronLeft, CircleCheckBig, FolderXIcon, MonitorCheck, RotateCcwSquare, Server, UserCheck } from "lucide-react";
+import { ChevronLeft, CircleCheckBig, FolderXIcon, MonitorCheck, RotateCcwSquare, Server, UserCheck } from "lucide-react";
 import { StatsCard } from "../dashboard/StatsCard";
 import FilterBar from "./component/FilterBar";
 import { Badge } from "../ui/badge";
@@ -13,9 +13,7 @@ import { getDuration } from "./utils/duration";
 import { Asset } from "@/types/asset";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { SiteProfile, SiteSpace } from "@/types/site";
-import { TpAdminDashBoard } from "./component/TpAdminDashboard";
-import { Button } from "../ui/button";
+import { SiteSpace } from "@/types/site";
 import { NoBookingFound } from "./component/NoBookingFound";
 import { useUserName } from "@/hooks/use-user";
 import { BulkActionButtons } from "./component/BulkActionButtons";
@@ -25,11 +23,13 @@ import { useMemberSiteId, useSiteId, useTpManagerSiteId } from "@/hooks/use-site
 import { PaginationCard } from "./component/PaginationCard";
 import { PaginationTable } from "./component/PaginationTable";
 import SiteDashboard from "@/pages/dashboard/site/SiteDashboard";
+import { Button } from "../ui/button";
 
 type FilterParams = {
     availability: string,
     typeTabs: string,
-    searchQuery?: string
+    searchQuery?: string,
+    spaceName?: string,
 };
 
 export const BookingManagementDetail = () => {
@@ -63,17 +63,13 @@ export const BookingManagementDetail = () => {
     const {
         useAssetsByTypeQuery,
         useAssetBySite,
-        useAllAssets,
         useAssetsInTpsSites
     } = useAssets();
     const {
         useBookingQuery,
         useTpsSites,
         useBookingAssetInTpsSites,
-        useAllBookings,
-        useAllSpaces,
         useSitesSpaces,
-        useAllSpacesBookings,
         usesitesSpacesBookings,
         useBookingSpacesInTpsSites,
         useSpacesBySite
@@ -86,41 +82,29 @@ export const BookingManagementDetail = () => {
     const siteId = memberSiteId ? Number(memberSiteId) : tpManagerSiteId ? Number(tpManagerSiteId) : undefined;
 
     // All pcs and pcs booking data
-    const { data: allPcs, isLoading: isAllPcsLoading } = useAllAssets(isSuperAdmin);
     const { data: sitesPcs, isLoading: isSitesPcsLoading } = useAssetsByTypeQuery(siteId);
-    const { data: allBookingPcs, isLoading: isAllBookingPcsLoading } = useAllBookings(isSuperAdmin);
     const { data: pcsBooking, isLoading: isBookingLoading } = useBookingQuery(siteId);
     const { data: tpsSitesPcsBookings, isLoading: isTpsSitesPcsBookingsLoading } = useBookingAssetInTpsSites(tpsSiteIds);
 
     // All Facilities and facilies data
-    const { data: allFacilies, isLoading: isAllFacilitiesLoading } = useAllSpaces(isSuperAdmin);
     const { data: sitesFacilities, isLoading: isSitesFacilities } = useSitesSpaces(siteId);
-    const { data: allBookingFacilities, isLoading: isAllBookingFacilitiesLoading } = useAllSpacesBookings(isSuperAdmin);
     const { data: facilitiesBooking, isLoading: isFacilitiesBooking } = usesitesSpacesBookings(siteId);
-    const { data: tpsSitesFacilitiesBookings, isLoading: isTpsSitesFacilitiesBookingsLoading } = useBookingSpacesInTpsSites(
-        tpsSiteIds
-    );
+    const { data: tpsSitesFacilitiesBookings, isLoading: isTpsSitesFacilitiesBookingsLoading } = useBookingSpacesInTpsSites(tpsSiteIds);
 
     // All PC in tp admin sites
     const { data: pcsInTpsAdminSites, isLoading: pcsInTpsAdminSitesLoading } = useAssetsInTpsSites(tpAdminOrganizationId);
 
     // State to share to the TP admin dashboard (choosing a site)
-    const [selectedSite, setSelectedSite] = useState<SiteProfile | null>();
-
-    const { data: tpsSitePcs, isLoading: isAssetTpsSiteLoading } = useAssetBySite(
-        selectedSite?.id
-    );
-
-    const { data: tpsSitesFacilities, isLoading: isTpsSitesFacilities } = useSpacesBySite(
-        selectedSite?.id
-    );
+    const [selectedSiteId, setSelectedSiteId] = useState<number | null>();
+    const { data: tpsSitePcs, isLoading: isAssetTpsSiteLoading } = useAssetBySite(selectedSiteId);
+    const { data: tpsSitesFacilities, isLoading: isTpsSitesFacilities } = useSpacesBySite(selectedSiteId);
 
     function handleResetselectedSite() {
-        setSelectedSite(null);
+        setSelectedSiteId(null);
     }
 
     const filterededBookingInTpSite = (!!tpsSitesPcsBookings ? tpsSitesPcsBookings : tpsSitesFacilitiesBookings)
-        ?.filter((pcBooking) => pcBooking?.nd_asset?.site_id === selectedSite?.id)
+        ?.filter((pcBooking) => pcBooking?.nd_asset?.site_id === selectedSiteId)
 
     // State to share to the pc calendar component (UI update when submitted a form)
     const [pcsBookingsData, setPcsBookingsData] = useState([]);
@@ -128,18 +112,14 @@ export const BookingManagementDetail = () => {
 
     useEffect(() => {
         const sourcePcBooking =
-            isSuperAdmin
-                ? allBookingPcs
-                : isTpAdmin
-                    ? filterededBookingInTpSite
-                    : pcsBooking;
+            (isTpAdmin || isSuperAdmin)
+                ? filterededBookingInTpSite
+                : pcsBooking;
 
         const sourceFacilitiesBooking =
-            isSuperAdmin
-                ? allBookingFacilities
-                : isTpAdmin
-                    ? filterededBookingInTpSite
-                    : facilitiesBooking;
+            (isTpAdmin || isSuperAdmin)
+                ? filterededBookingInTpSite
+                : facilitiesBooking;
 
         if (sourcePcBooking) {
             setPcsBookingsData(sourcePcBooking);
@@ -150,11 +130,11 @@ export const BookingManagementDetail = () => {
     }, [
         pcsBooking,
         facilitiesBooking,
-        allBookingFacilities,
-        allBookingPcs,
         tpsSitesPcsBookings,
         tpsSitesFacilitiesBookings,
-        selectedSite
+        selectedSiteId,
+        isSuperAdmin,
+        isTpAdmin
     ]);
 
     // State to share to the PC and Faility status to update the availability
@@ -162,18 +142,14 @@ export const BookingManagementDetail = () => {
     const [selectedFacilitiesData, setSelectedFacilitiesData] = useState<SiteSpace[]>([]);
     useEffect(() => {
         const sourcePcsData =
-            isSuperAdmin
-                ? allPcs
-                : isTpAdmin
-                    ? tpsSitePcs
-                    : sitesPcs;
+            (isTpAdmin || isSuperAdmin)
+                ? tpsSitePcs
+                : sitesPcs;
 
         const sourceFacilitiesData =
-            isSuperAdmin
-                ? allFacilies
-                : isTpAdmin
-                    ? tpsSitesFacilities
-                    : sitesFacilities;
+            (isTpAdmin || isSuperAdmin)
+                ? tpsSitesFacilities
+                : sitesFacilities;
 
         if (sourcePcsData) {
             setSelectedPcsData(sourcePcsData);
@@ -182,12 +158,13 @@ export const BookingManagementDetail = () => {
             setSelectedFacilitiesData(sourceFacilitiesData);
         }
     }, [
-        allPcs,
         pcsInTpsAdminSites,
         sitesPcs,
-        allFacilies,
         tpsSitesFacilities,
-        sitesFacilities
+        tpsSitePcs,
+        sitesFacilities,
+        isTpAdmin,
+        isSuperAdmin
     ]);
 
 
@@ -197,11 +174,7 @@ export const BookingManagementDetail = () => {
         isBookingLoading ||
         isTpsSitesLoading ||
         isTpsSitesPcsBookingsLoading ||
-        isAllPcsLoading ||
-        isAllBookingPcsLoading ||
-        isAllFacilitiesLoading ||
         isSitesFacilities ||
-        isAllBookingFacilitiesLoading ||
         isFacilitiesBooking ||
         isTpsSitesFacilitiesBookingsLoading ||
         isTpsSitesFacilities ||
@@ -214,13 +187,13 @@ export const BookingManagementDetail = () => {
     }
 
     if (
-        isTpAdmin &&
-        !selectedSite
+        (isTpAdmin || isSuperAdmin) &&
+        !selectedSiteId
     ) {
         return (
             <SiteDashboard
                 isBookingsEnabled={true}
-                setSelectedSite={setSelectedSite}
+                setSelectedSiteId={setSelectedSiteId}
             />
         );
     }
@@ -229,7 +202,7 @@ export const BookingManagementDetail = () => {
         <div className="relative">
 
             <>
-                {isTpAdmin && (
+                {(isTpAdmin || isSuperAdmin) && (
                     <Button className="absolute top-0 left-0 items-center gap-2 font-medium text-base" onClick={handleResetselectedSite}>
                         <ChevronLeft className="h-32" />
                         Choose Other Site
@@ -293,7 +266,6 @@ const BookingContent = ({
     facilitiesBooking,
     facilitiesData
 }: BookingContentProps) => {
-    console.log("pcs data", pcsData);
 
     const totalPcs = pcsData.length;
     const pcInUse = pcsData.filter(pc => pc.is_using === true).length;
@@ -327,7 +299,7 @@ const BookingContent = ({
                 value="PC Bookings"
                 pcStats={{
                     totalPcs: pcsData.length,
-                    pcInUse:  pcInUse,
+                    pcInUse: pcInUse,
                     pcAvailable: pcAvailable
                 }}
                 pcsData={pcsData}
@@ -351,6 +323,10 @@ const BookingContent = ({
             <FacilityBooking
                 value="Facility Bookings"
                 facilitiesData={facilitiesData}
+                isTpSite={isTpSite}
+                isMember={isMember}
+                setBookingsData={setFacilitiesBookingsData}
+                setSelectedFacilitiesData={setSelectedFacilitiesData}
             />
             <FacilityCalender
                 isMember={isMember}
@@ -541,7 +517,6 @@ export const PcCalender = ({
     }, [bookingsData, date]);
 
     const onChangeFilter = (
-        date: DateRange,
         assetTypeName: string,
         searchInput: string = ""
     ) => {
@@ -589,17 +564,29 @@ export const PcCalender = ({
 interface FacilityBookingProps {
     value: string,
     facilitiesData: SiteSpace[]
+    isTpSite?: boolean
+    isMember?: boolean
+    setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
+    setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
 }
 
 const FacilityBooking = ({
     value,
-    facilitiesData
+    facilitiesData,
+    isTpSite,
+    isMember,
+    setBookingsData,
+    setSelectedFacilitiesData
 }: FacilityBookingProps) => {
     return (
         <TabsContent className="w-full" value={value}>
             <AssetStatus
                 header="Facility Status"
                 spaceData={facilitiesData}
+                isTpSite={isTpSite}
+                isMember={isMember}
+                setSelectedFacilitiesData={setSelectedFacilitiesData}
+                setBookingsData={setBookingsData}
             />
         </TabsContent>
     )
@@ -651,13 +638,12 @@ const FacilityCalender = ({
     }, [bookingsData, date]);
 
     const onChangeFilter = (
-        date: DateRange,
         assetTypeName: string,
         searchInput: string = ""
     ) => {
         let filtered = rawBookingCalendarData;
 
-        if (assetTypeName.toLowerCase() !== "all pc") {
+        if (assetTypeName.toLowerCase() !== "all facilities") {
             filtered = filtered.filter((booking) =>
                 booking.nd_site_space.nd_space.eng.toLowerCase() === assetTypeName.toLowerCase()
             );
@@ -701,14 +687,31 @@ interface AssetStatusProps {
     spaceData?: SiteSpace[]
     isLoading?: boolean
     header?: string
+    isTpSite?: boolean
+    isMember?: boolean
+    setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
+    setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
 }
 
 const AssetStatus = ({
     assetData,
     spaceData,
     isLoading,
-    header
+    header,
+    isTpSite,
+    isMember,
+    setBookingsData,
+    setSelectedFacilitiesData
 }: AssetStatusProps) => {
+    const { useSpaces } = useBookingQueries();
+    const { data: spaces, isLoading: allSpacesLoading } = useSpaces();
+    const { fetchUserById } = useUserName();
+
+    const [rawPcsData, setRawPcsData] = useState([]);
+    const [pcs, setPcs] = useState([]);
+
+    const [rawFacilitiesData, setRawFacilitiesData] = useState([]);
+    const [facilities, setFacilities] = useState([]);
 
     const statusBadges = [
         {
@@ -725,13 +728,6 @@ const AssetStatus = ({
         }
     ];
 
-    const { fetchUserById } = useUserName();
-    const [rawPcsData, setRawPcsData] = useState([]);
-    const [pcs, setPcs] = useState([]);
-
-    const [rawFacilitiesData, setRawFacilitiesData] = useState([]);
-    const [facilities, setFacilities] = useState([]);
-
     useEffect(() => {
         let isActive = true;
 
@@ -744,15 +740,15 @@ const AssetStatus = ({
             }
 
             const processedFacilities = await Promise.all(
-                currentFilteredFacilitiesData.map(async (facility) => {
-                    const booking: Booking = await bookingClient.getBookingBySiteSpaceId(facility?.id);
+                currentFilteredFacilitiesData.map((facility) => {
+                    const booking = facility.nd_booking.find((booking) => booking.site_space_id === facility.id && booking.is_active);
                     return {
                         id: facility.id,
                         status: booking?.is_active ? "in-use" : "Available",
                         type: facility.nd_space?.eng,
                         name: facility.nd_space?.eng,
                         spec: facility?.nd_site_profile?.sitename,
-                        staffName: booking ? booking.profiles.full_name : "-",
+                        staffName: booking ? booking.profiles?.full_name : "-",
                         startDate: booking ? new Date(booking.booking_start).toLocaleTimeString() : "-",
                         duration: booking ? getDuration(booking.booking_start, booking.booking_end) : "-",
                         icon: <Server />,
@@ -810,17 +806,18 @@ const AssetStatus = ({
                         status: pc?.is_using === true ? "in-use" : "Available",
                         type: pc.nd_brand?.nd_brand_type?.name,
                         name: pc.name,
+                        spaceName: pc?.nd_space?.eng,
                         spec: pc?.nd_brand.name,
                         staffName: isBooking ? full_name : "-",
                         startDate: isBooking ? new Date(booking.booking_start).toLocaleTimeString() : "-",
                         duration: isBooking ? getDuration(booking.booking_start, booking.booking_end) : "-",
                         icon: <Server />,
-                        bgCustomClass: !isBooking
-                            ? "bg-green-100 hover:bg-muted border-gray-300"
-                            : "bg-blue-100 hover:bg-muted border-gray-300",
-                        customClass: !isBooking
-                            ? "bg-green-200 text-green-600 hover:bg-green-300 font-semibold"
-                            : "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold",
+                        bgCustomClass: pc?.is_using
+                            ? "bg-blue-100 hover:bg-muted border-gray-300"
+                            : "bg-green-100 hover:bg-muted border-gray-300",
+                        customClass: pc?.is_using
+                            ? "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold"
+                            : "bg-green-200 text-green-600 hover:bg-green-300 font-semibold",
                     };
                 })
             );
@@ -838,42 +835,64 @@ const AssetStatus = ({
         };
     }, [assetData])
 
-    function onPcsFilterChange({ availability, typeTabs, searchQuery }: FilterParams) {
+    function onPcsFilterChange({ availability, typeTabs, searchQuery, spaceName }: FilterParams) {
         if (rawPcsData.length === 0) return;
 
         let filtered = [...rawPcsData];
 
-        if (availability !== "all") {
-            filtered = filtered.filter((pc) => pc.status === availability);
+        // Filter by availability
+        if (availability && availability !== "all") {
+            filtered = filtered.filter((pc) =>
+                pc.status?.toLowerCase() === availability.toLowerCase()
+            );
         }
 
-        if (typeTabs !== "all") {
-            filtered = filtered.filter((pc) => pc.type === typeTabs);
+        // Filter by type
+        if (typeTabs && typeTabs !== "all") {
+            filtered = filtered.filter((pc) =>
+                pc.type?.toLowerCase() === typeTabs.toLowerCase()
+            );
         }
 
-        if (searchQuery) {
-            filtered = filtered.filter((pc) => pc.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        // Filter by search query
+        if (searchQuery?.trim()) {
+            filtered = filtered.filter((pc) =>
+                pc.name?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Filter by space
+        if (spaceName && spaceName !== "All Spaces") {
+            filtered = filtered.filter((pc) =>
+                pc.spaceName?.toLowerCase().includes(spaceName.toLowerCase())
+            );
         }
 
         setPcs(filtered);
     }
 
-
+    // Sama untuk Facilities
     function onSpacesFilterChange({ availability, typeTabs, searchQuery }: FilterParams) {
         if (rawFacilitiesData.length === 0) return;
 
         let filtered = [...rawFacilitiesData];
 
-        if (availability !== "all") {
-            filtered = filtered.filter((pc) => pc.status === availability);
+        if (availability && availability !== "all") {
+            filtered = filtered.filter((facility) =>
+                facility.status?.toLowerCase() === availability.toLowerCase()
+            );
         }
 
-        if (typeTabs !== "all") {
-            filtered = filtered.filter((pc) => pc.type === typeTabs);
+        if (typeTabs && typeTabs !== "all") {
+            filtered = filtered.filter((facility) =>
+                facility.type?.toLowerCase() === typeTabs.toLowerCase()
+            );
         }
 
-        if (searchQuery) {
-            filtered = filtered.filter((pc) => pc.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (searchQuery?.trim()) {
+            filtered = filtered.filter((facility) =>
+                facility.name?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
         }
 
         setFacilities(filtered);
@@ -889,6 +908,18 @@ const AssetStatus = ({
             onSpacesFilterChange(filterParams);
         }
     }
+
+    if (allSpacesLoading) {
+        return <LoadingSpinner />;
+    }
+
+    const allSpaces = [
+        ...spaces,
+        {
+            id: 0,
+            eng: "All Spaces"
+        }
+    ]
 
     return (
         <>
@@ -918,6 +949,7 @@ const AssetStatus = ({
                                     isFacility={false}
                                     showCenterType={false}
                                     showPcBookingFilter={true}
+                                    allSpaces={allSpaces}
                                 />
                                 <NoBookingFound
                                     description="There are no PCs in this site"
@@ -936,6 +968,7 @@ const AssetStatus = ({
                                     isFacility={false}
                                     showCenterType={false}
                                     showPcBookingFilter={true}
+                                    allSpaces={allSpaces}
                                 />
                                 <PaginationCard
                                     items={pcs}
@@ -976,6 +1009,10 @@ const AssetStatus = ({
                                 <PaginationCard
                                     items={facilities}
                                     isFacility={true}
+                                    setBookingsData={setBookingsData}
+                                    isTpSite={isTpSite}
+                                    isMember={isMember}
+                                    setSelectedFacilitiesData={setSelectedFacilitiesData}
                                 />
                             </>
 
