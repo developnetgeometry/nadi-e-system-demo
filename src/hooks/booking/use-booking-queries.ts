@@ -76,6 +76,12 @@ export const useBookingQueries = () => {
             enabled: isSuperAdmin
         })
 
+    const useSpaces = () => 
+        useQuery({
+            queryKey: ["spaces"],
+            queryFn: () => bookingClient.getSpace()
+        })
+
     const useSitesSpaces = (siteId: number) =>
         useQuery({
             queryKey: ["sitesSpaces", siteId],
@@ -104,11 +110,11 @@ export const useBookingQueries = () => {
             enabled: siteIds.length > 0
         })
 
-    const useSpacesBySite = (site_id: number) =>
+    const useSpacesBySite = (siteProfileId: number | null, siteId?: number) =>
         useQuery({
-            queryKey: ["sitesSpaces", site_id],
-            queryFn: () => bookingClient.getSitesSpaces(site_id),
-            enabled: !!site_id
+            queryKey: (!siteProfileId ? ["sitesSpaces", siteId] : !siteId ? ["sitesSpaces", siteProfileId] : ["sitesSpaces", siteProfileId, siteId]),
+            queryFn: () => bookingClient.getSitesSpaces(siteProfileId, siteId),
+            enabled: !!siteProfileId || !!siteId
         })
 
     const useAllRegion = (stateId: number) => 
@@ -143,6 +149,13 @@ export const useBookingQueries = () => {
             queryFn: () => bookingClient.getMaintenancePc()
         });
 
+    const useSpaceMaintenanceById = (spaceId: number) =>
+        useQuery({
+            queryKey: ["spaceMaintenance", spaceId],
+            queryFn: () => bookingClient.getMaintenanceBySpaceId(spaceId),
+            enabled: !!spaceId
+        })
+
     return {
         useBookingQuery,
         useBookingAssetBrandQuery,
@@ -160,6 +173,8 @@ export const useBookingQueries = () => {
         useAllState,
         useUserProfileByName,
         useTriggerPcCommands,
-        useMaintenancePc
+        useMaintenancePc,
+        useSpaces,
+        useSpaceMaintenanceById
     };
 };
