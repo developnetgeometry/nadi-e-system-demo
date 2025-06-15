@@ -38,7 +38,7 @@ interface BookingCalendarProp {
     setDate: React.Dispatch<React.SetStateAction<DateRange>>,
     header?: string;
     bookingData: Booking[],
-    onChangeFilter: (date: DateRange, assetTypeName: string, searchInput: string) => void,
+    onChangeFilter: (assetTypeName: string, searchInput: string) => void,
     setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
     isLoading?: boolean,
@@ -67,11 +67,12 @@ export const BookingCalendar = ({
     setSeletedPcsData,
     setSelectedFacilitiesData
 }: BookingCalendarProp) => {
-    console.log("BookingCalendar", bookingData)
     const [formattedBookingData, setFormattedBookingData] = useState<BodyTableData[]>([]);
     const [assetTypeName, setAssetTypeName] = useState<string>(`all ${bookingType}`);
     const [searchInput, setSearchInput] = useState("");
     const [open, setOpen] = useState(false);
+    const setOfAssetName = new Set(assetTypeNames);
+    const uniqueAssetNames = [...setOfAssetName];
     const { fetchUserById } = useUserName();
 
     const pcHeadTable = [
@@ -103,7 +104,7 @@ export const BookingCalendar = ({
                 currentFilteredBookingData.map(async (booking) => {
                     const user = await fetchUserById(booking.created_by);
                     const full_name = user?.full_name ?? "-";
-                    console.log("Booking site space", booking.nd_site_space)
+
                     return {
                         userName: full_name,
                         bookingAssetTypeName: !isFacility ? booking.nd_asset?.name : booking.nd_site_space.nd_space.eng,
@@ -126,21 +127,13 @@ export const BookingCalendar = ({
         };
     }, [bookingData]);
 
-    const handleFilter = (date: DateRange, assetTypeName: string, searchInput: string) => {
-        onChangeFilter(date, assetTypeName, searchInput);
+    const handleFilter = (assetTypeName: string, searchInput: string) => {
+        onChangeFilter(assetTypeName, searchInput);
     }
 
     useEffect(() => {
-        if (
-            !date ||
-            bookingData.length === 0 ||
-            (assetTypeName === `all ${bookingType}` && searchInput.trim() === "")
-        ) {
-            return;
-        }
-
-        handleFilter(date, assetTypeName, searchInput);
-    }, [date, assetTypeName, searchInput]);
+        handleFilter(assetTypeName, searchInput);
+    }, [assetTypeName, searchInput]);
     
     return (
         <section className="w-full flex flex-col gap-4 mt-4">
@@ -166,7 +159,7 @@ export const BookingCalendar = ({
                         <SelectContent>
                             <SelectGroup>
                                 {
-                                    assetTypeNames.map((assetName, i) => (
+                                    uniqueAssetNames.map((assetName, i) => (
                                         <SelectItem key={`assetName${i}`} value={assetName}>{assetName}</SelectItem>
                                     ))
                                 }
