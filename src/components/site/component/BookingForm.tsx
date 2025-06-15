@@ -27,6 +27,7 @@ import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
 import { Card } from "@/components/ui/card";
 import { SiteSpace } from "@/types/site";
 import { Asset } from "@/types/asset";
+import { formatToISO } from "../utils/formatToIso";
 
 interface BookingFormInput {
     pc?: string,
@@ -77,7 +78,7 @@ const BookingForm = ({
                 : undefined;
 
     const form = useForm<BookingFormInput>({});
-    const {setValue} = form;
+    const { setValue } = form;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { useBookingPcMutation } = useBookingMutation();
@@ -89,16 +90,16 @@ const BookingForm = ({
         setIsSubmitting(true);
 
         try {
-            const { id: assetId } = await assetClient.fetchAssetByName(formData.pc);
+            const { id: assetId } = await assetClient.fetchAssetByName(formData.pc, siteId);
             const { id: userId } = await fetchUserByName(formData.userName);
-            const startTime = stringToDateWithTime(formData.startTime);
-            const endTime = stringToDateWithTime(formData.endTime);
+            const startTime = stringToDateWithTime(formData.startTime, formData.date);
+            const endTime = stringToDateWithTime(formData.endTime, formData.date);
             const bookingId = crypto.randomUUID();
 
-            const submitedFormData: Booking = {
+            const submittedFormData: Booking = {
                 asset_id: assetId,
-                booking_start: startTime.toISOString(),
-                booking_end: endTime.toISOString(),
+                booking_start: formatToISO(startTime),
+                booking_end: formatToISO(endTime),
                 created_by: userId,
                 requester_id: userId,
                 id: bookingId,
@@ -108,7 +109,7 @@ const BookingForm = ({
                 site_id: siteId
             }
 
-            const newBookingData = await bookingPcMutation.mutateAsync(submitedFormData);
+            const newBookingData = await bookingPcMutation.mutateAsync(submittedFormData);
 
             setBookingCalendarData((prevBook) => [
                 ...prevBook,
@@ -132,8 +133,8 @@ const BookingForm = ({
                 }
                 return pc;
             }));
-            
-            
+
+
             setOpen(false);
             toast({
                 title: "Add new booking success",
@@ -270,17 +271,17 @@ const BookingForm = ({
                     <LoadingSpinner />
                 ) : userProfile?.map((user) => (
                     <Card onClick={() => {
-                            setValue("userName", user.full_name);
-                            setUserName("");
-                        }} 
-                        className="w-full px-3 py-2 flex flex-col justify-between items-start cursor-pointer" 
+                        setValue("userName", user.full_name);
+                        setUserName("");
+                    }}
+                        className="w-full px-3 py-2 flex flex-col justify-between items-start cursor-pointer"
                         key={user.id}
                     >
                         <header className="w-full flex items-center justify-between">
                             <h1 className="text-base font-medium">{user.full_name}</h1>
                             <small className="flex items-center">
                                 Select
-                                <ChevronRight className="size-4"/>
+                                <ChevronRight className="size-4" />
                             </small>
                         </header>
                         <small className="text-gray-600"> {user.email}</small>
