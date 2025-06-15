@@ -87,12 +87,12 @@ import { TableSkeleton } from "@/components/site/TableSkeleton";
 
 interface SiteDashboardProps {
   isBookingsEnabled?: boolean;
-  setSelectedSite?: React.Dispatch<React.SetStateAction<Site | null>>;
+  setSelectedSiteId?: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 export const SiteDashboard = ({
   isBookingsEnabled = false,
-  setSelectedSite
+  setSelectedSiteId
 }: SiteDashboardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -538,8 +538,7 @@ export const SiteDashboard = ({
 
   // Get total PC
   const getTotalPC = (site: Site) => {
-    console.log("site in site dashboard", site);
-    return site?.nd_site[0].nd_asset?.length || 0;
+    return site?.nd_site[0]?.nd_site_profile?.nd_asset?.filter(pc => pc?.type_id === 3).length || 0;
   };
 
   const hasActiveFilters =
@@ -636,7 +635,7 @@ export const SiteDashboard = ({
       </>
     );
   }
-  console.log("sitesData", sitesData);
+
   return (
     <>
       <div className="space-y-1">
@@ -1492,7 +1491,7 @@ export const SiteDashboard = ({
                           <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => !isBookingsEnabled ? handleViewDetailsClick(site.id) : setSelectedSite(site)}
+                            onClick={() => !isBookingsEnabled ? handleViewDetailsClick(site.id) : setSelectedSiteId(site.id)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
