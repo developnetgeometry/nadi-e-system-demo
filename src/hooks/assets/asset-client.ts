@@ -151,7 +151,19 @@ export const assetClient = {
       );
     }
 
-    const { data, error } = await supabase.from("nd_asset").select(`
+    const assetTypePcsName = "PC";
+    const { data: assetTypeData, error: errorAssetType } = await supabase
+      .from("nd_asset_type")
+      .select("id")
+      .eq("name", assetTypePcsName)
+      .single();
+    if (errorAssetType) throw errorAssetType;
+    const assetTypePcsId = assetTypeData.id;
+
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select(
+        `
         *,
         nd_brand (
             id,
@@ -161,36 +173,38 @@ export const assetClient = {
               name
             )
           ),
-        nd_booking (
-            id,
-            booking_start,
-            booking_end,
-            is_using,
-            created_by
-          ),
+        nd_booking (*),
+        nd_space (*),
         nd_asset_type!inner (
             category_id
           )  
-      `);
+      `
+      )
+      .eq("type_id", assetTypePcsId);
 
     if (error) throw error;
 
     return data;
   },
 
-  fetchAssetByName: async (assetName: string) => {
+  fetchAssetByName: async (assetName: string, siteId: number) => {
     const { data, error } = await supabase
       .from("nd_asset")
-      .select("id")
-      .eq("name", assetName)
-      .single();
+      .select(`*, nd_site(nd_site_profile (*))`)
+      .eq("name", assetName);
 
     if (error) {
       console.error("Error fetching asset by name", error);
       throw error;
     }
 
-    return data;
+    const filtered = data.find(
+      (item) => item.nd_site.nd_site_profile.id === siteId
+    );
+
+    return {
+      id: filtered?.id,
+    };
   },
 
   fetchAssetCategories: async (): Promise<AssetCategory[]> => {
@@ -234,15 +248,14 @@ export const assetClient = {
 
   fetchAssetsByType: async (siteProfileId: number) => {
     if (siteProfileId) {
-      const { data: siteId, error: errorSiteId } = await supabase
-        .from("nd_site")
+      const assetTypePcsName = "PC";
+      const { data: assetTypeData, error: errorAssetType } = await supabase
+        .from("nd_asset_type")
         .select("id")
-        .eq("site_profile_id", siteProfileId)
+        .eq("name", assetTypePcsName)
         .single();
-
-      if (errorSiteId) {
-        throw errorSiteId;
-      }
+      if (errorAssetType) throw errorAssetType;
+      const assetTypePcsId = assetTypeData.id;
 
       const { data, error } = await supabase
         .from("nd_asset")
@@ -257,16 +270,14 @@ export const assetClient = {
               name
             )
           ),
+          nd_space (*),
           nd_booking (
-            id,
-            booking_start,
-            booking_end,
-            is_using,
-            created_by
+            *
           )
         `
         )
-        .eq("site_id", siteId?.id);
+        .eq("site_id", siteProfileId)
+        .eq("type_id", assetTypePcsId);
 
       if (error) throw error;
 
@@ -278,18 +289,26 @@ export const assetClient = {
     siteProfileId: number | null,
     siteId?: number
   ) => {
-    let site_id = siteId;
+    let site_id = siteProfileId;
+    const assetTypePcsName = "PC";
+    const { data: assetTypeData, error: errorAssetType } = await supabase
+      .from("nd_asset_type")
+      .select("id")
+      .eq("name", assetTypePcsName)
+      .single();
+    if (errorAssetType) throw errorAssetType;
+    const assetTypePcsId = assetTypeData.id;
 
-    if (siteProfileId) {
+    if (!site_id) {
       const { data: siteProfile, error: errorSiteProfile } = await supabase
         .from("nd_site")
-        .select("id")
-        .eq("site_profile_id", siteProfileId)
+        .select("site_profile_id")
+        .eq("id", siteId)
         .single();
 
       if (errorSiteProfile) throw errorSiteProfile;
 
-      site_id = siteProfile?.id;
+      site_id = siteProfile?.site_profile_id;
     }
 
     const { data, error } = await supabase
@@ -297,7 +316,7 @@ export const assetClient = {
       .select(
         `
         *, 
-        nd_site (
+        nd_site_profile (
           id
         ), 
         nd_brand (
@@ -308,19 +327,17 @@ export const assetClient = {
             name
           )
         ),
+        nd_space (*),
         nd_booking (
-          id,
-          booking_start,
-          booking_end,
-          is_using,
-          created_by
+          *
         )
       `
       )
-      .eq("site_id", site_id);
+      .eq("site_id", site_id)
+      .eq("type_id", assetTypePcsId);
 
     if (error) throw error;
-
+    console.log("data assets", data);
     return data;
   },
 
@@ -331,21 +348,17 @@ export const assetClient = {
       .from("nd_site_profile")
       .select(
         `
-          nd_site (
-            nd_asset (
+          nd_asset (
               *,
               nd_booking (*)
             )
-          )
       `
       )
       .eq("dusp_tp_id", tpOrgId);
 
     if (error) throw error;
 
-    const assetsOnly = data.flatMap((siteItem) =>
-      siteItem.nd_site.flatMap((site) => site.nd_asset)
-    );
+    const assetsOnly = data.flatMap((siteItem) => siteItem.nd_asset);
 
     return assetsOnly;
   },

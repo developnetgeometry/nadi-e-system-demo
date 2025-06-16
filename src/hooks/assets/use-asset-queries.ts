@@ -71,11 +71,11 @@ export const useAssetQueries = () => {
       enabled: isSuperAdmin,
     });
 
-  const useAssetBySite = (tps_sites_id: number) =>
+  const useAssetBySite = (siteProfileId: number | null, siteId?: number) =>
     useQuery({
-      queryKey: ["tpsAssets", tps_sites_id],
-      queryFn: () => assetClient.fetchAssetsBySiteId(tps_sites_id),
-      enabled: !!tps_sites_id,
+      queryKey: ["tpsAssets", siteProfileId, siteId],
+      queryFn: () => assetClient.fetchAssetsBySiteId(siteProfileId, siteId),
+      enabled: !!siteProfileId || !!siteId,
     });
 
   const useAssetsInTpsSites = (tpOrgId: string) =>
