@@ -15,7 +15,7 @@ import {
   Download,
   Trash2,
   FileText,
-  View,  ArrowUp,
+  View, ArrowUp,
   ArrowUpDown,
   X,
   Info as InfoIcon,
@@ -48,7 +48,7 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { Calendar} from "@/components/ui/calendar";
+import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
 export interface Column {
@@ -80,57 +80,57 @@ const getTextFromReactElement = (element: React.ReactNode): string => {
   if (typeof element === 'string') {
     return element;
   }
-  
+
   // If null or undefined, return empty string
   if (element === null || element === undefined) {
     return '';
   }
-  
+
   // If it's a React element with props
   if (React.isValidElement(element)) {
     // Check for direct text children
     if (typeof element.props.children === 'string') {
       return element.props.children;
     }
-    
+
     // For nested elements, recursively extract text
     if (element.props.children) {
       const extractTextFromChildren = (children: React.ReactNode): string[] => {
         const textParts: string[] = [];
-        
+
         // Handle single child
         if (!Array.isArray(children)) {
           const text = getTextFromReactElement(children);
           if (text) textParts.push(text);
           return textParts;
         }
-        
+
         // Handle array of children
         React.Children.forEach(children, (child) => {
           // Skip null/undefined
           if (child === null || child === undefined) return;
-          
+
           // Direct text nodes
           if (typeof child === 'string') {
             textParts.push(child);
-          } 
+          }
           // React elements - recursively extract text
           else if (React.isValidElement(child)) {
             const text = getTextFromReactElement(child);
             if (text) textParts.push(text);
           }
         });
-        
+
         return textParts;
       };
-      
+
       const textParts = extractTextFromChildren(element.props.children);
       if (textParts.length > 0) {
         return textParts.join(' ').trim();
       }
     }
   }
-  
+
   // Couldn't extract text
   return '';
 };
@@ -163,23 +163,24 @@ const DataTable: React.FC<DataTableProps> = ({
         if (column.filterable !== true || typeof column.key === "function") {
           return true;
         }
-        
+
         const cellValue = row[column.key];
 
         const filterValues = columnFilters[column.key] || [];
         if (filterValues.length > 0 && cellValue != null) {
-          switch (column.filterType) {            case "number":              // Handle case when only min or max is provided
+          switch (column.filterType) {
+            case "number":              // Handle case when only min or max is provided
               const minValue = filterValues[0];
               const maxValue = filterValues[1];
               const numericValue = Number(cellValue);
               const numericMin = minValue !== "" ? Number(minValue) : null;
               const numericMax = maxValue !== "" ? Number(maxValue) : null;
-              
+
               // Check if the cell value is a valid number
               if (isNaN(numericValue)) {
                 return false; // Filter out non-numeric values when number filter is applied
               }
-              
+
               // If both min and max are provided
               if (numericMin !== null && numericMax !== null) {
                 return numericValue >= numericMin && numericValue <= numericMax;
@@ -234,23 +235,23 @@ const DataTable: React.FC<DataTableProps> = ({
 
     // Sort the sortConfig array by priority (lower number = higher priority)
     const sortConfigByPriority = [...sortConfig].sort((a, b) => a.priority - b.priority);
-    
+
     const sorted = [...filteredData].sort((a, b) => {
       // Iterate through each sort config in order of priority
       for (const config of sortConfigByPriority) {
         if (typeof config.key !== "string") continue;
-        
+
         const aValue = a[config.key];
         const bValue = b[config.key];
-        
+
         // Skip this sort if the values are equal or null
         if (aValue == null || bValue == null || aValue === bValue) continue;
-        
+
         // Compare values based on the sort direction
         if (aValue < bValue) return config.direction === "asc" ? -1 : 1;
         if (aValue > bValue) return config.direction === "asc" ? 1 : -1;
       }
-      
+
       // If we've compared all sort configs and values are equal, return 0
       return 0;
     });
@@ -292,55 +293,55 @@ const DataTable: React.FC<DataTableProps> = ({
   };  // Helper function to escape CSV values
   const escapeCsvValue = (value: any): string => {
     if (value === null || value === undefined) return '';
-    
+
     const stringValue = String(value);
-    
+
     // If the value contains quotes, commas, or newlines, it needs special handling
     if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
       // Escape quotes by doubling them and wrap in quotes
       return `"${stringValue.replace(/"/g, '""')}"`;
     }
-    
+
     return stringValue;
-  };  const handleExport = () => {
+  }; const handleExport = () => {
     // Filter columns for export - include string keys and specific function keys (like numbering columns)
     const exportableColumns = columns.filter(col => {
       // Always include string keys
       if (typeof col.key === "string") return true;
-      
+
       // Special case for numbering columns (like "No" column that uses index)
       // Detect columns that have a function key but a simple header like "No"
-      const isNumberingColumn = typeof col.key === "function" && 
-                               (typeof col.header === "string" && ["No", "#", "Number"].includes(col.header));
-      
+      const isNumberingColumn = typeof col.key === "function" &&
+        (typeof col.header === "string" && ["No", "#", "Number"].includes(col.header));
+
       return isNumberingColumn;
     });
-    
+
     // Extract header text - handle both string and React elements
     const headers = exportableColumns.map((col) => {
       // If header is a string, use it directly
       if (typeof col.header === 'string') {
         return escapeCsvValue(col.header);
       }
-      
+
       // For React elements, try to extract text content
       if (col.header && typeof col.header === 'object') {
         // Extract text from React elements
         const spanContent = getTextFromReactElement(col.header);
         if (spanContent) return escapeCsvValue(spanContent);
-        
+
         // Fallback to column key as header if we can't extract text
         return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${exportableColumns.indexOf(col) + 1}`);
       }
-      
+
       // Default fallback
       return escapeCsvValue(typeof col.key === 'string' ? col.key : `Column ${exportableColumns.indexOf(col) + 1}`);
-    }).join(",");    const rows = filteredData
+    }).join(","); const rows = filteredData
       .map((row, rowIndex) =>
         exportableColumns
           .map((col) => {
             let cellValue;
-            
+
             // Handle both string keys and function keys
             if (typeof col.key === "function") {
               // For function keys, evaluate the function
@@ -349,10 +350,10 @@ const DataTable: React.FC<DataTableProps> = ({
               // For string keys, get the value directly
               cellValue = row[col.key];
             }
-            
+
             // For custom rendered cells, we should export the raw data value, not the rendered JSX
             // This ensures we get clean data in the CSV without HTML or React elements
-            
+
             return escapeCsvValue(cellValue);
           })
           .join(",")
@@ -376,29 +377,29 @@ const DataTable: React.FC<DataTableProps> = ({
       return column.key(row, index);
     }
     return row[column.key];
-  };  const handleSort = (key: string, event?: React.MouseEvent) => {
+  }; const handleSort = (key: string, event?: React.MouseEvent) => {
     // Only allow sorting on string column keys (not function keys)
     if (typeof key !== "string" || key === "") return;
-    
+
     // Support multi-column sorting by default (no shift key required)
     setSortConfig((prev) => {
       // Find if this column is already being sorted
       const existingIndex = prev.findIndex(config => config.key === key);
-      
+
       // Create a copy of the previous sort configurations
       const newSortConfig = [...prev];
-      
+
       if (existingIndex !== -1) {
         // Store the priority that's being removed (if we're going to remove it)
         const priorityToRemove = newSortConfig[existingIndex].priority;
-        
+
         // Toggle direction for an existing sort
         if (newSortConfig[existingIndex].direction === "asc") {
           newSortConfig[existingIndex].direction = "desc";
         } else {
           // Remove this sort configuration if it was already descending
           newSortConfig.splice(existingIndex, 1);
-          
+
           // Adjust priorities of remaining sorts
           // This ensures that if we remove sort 2, sort 3 becomes sort 2, etc.
           newSortConfig.forEach((config) => {
@@ -416,38 +417,38 @@ const DataTable: React.FC<DataTableProps> = ({
           priority: newSortConfig.length
         });
       }
-      
+
       return newSortConfig;
     });
-  };  const renderSortIcon = (columnKey: string | ((row: any, index: number) => React.ReactNode)) => {
+  }; const renderSortIcon = (columnKey: string | ((row: any, index: number) => React.ReactNode)) => {
     if (typeof columnKey !== "string") return null;
-    
+
     // Find if this column has an active sort
     const sortItem = sortConfig.find(config => config.key === columnKey);
-    
+
     if (!sortItem) return null; // No sort for this column
-    
+
     const { direction } = sortItem;
-    
+
     return (
       <div className="flex items-center ml-2">
-        <ArrowUp 
-          className={`h-4 w-4 ${direction === "desc" ? "rotate-180 text-orange-500" : "text-blue-500"}`} 
+        <ArrowUp
+          className={`h-4 w-4 ${direction === "desc" ? "rotate-180 text-orange-500" : "text-blue-500"}`}
         />
       </div>
     );
-  };const handleFilterChange = (key: string, value: string | string[]) => {
+  }; const handleFilterChange = (key: string, value: string | string[]) => {
     setColumnFilters((prev) => {
       // Create a completely new object to avoid reference issues
       const newFilters = { ...prev };
-      
+
       if (Array.isArray(value)) {
         // For number and date filters (arrays)
         // Always create a new array to ensure state updates properly
         newFilters[key] = [...value];
       } else {
         const currentValues = [...(prev[key] || [])];
-        
+
         if (currentValues.includes(value)) {
           // Remove the value if it already exists
           newFilters[key] = currentValues.filter((v: string) => v !== value);
@@ -456,12 +457,12 @@ const DataTable: React.FC<DataTableProps> = ({
           newFilters[key] = [...currentValues, value];
         }
       }
-      
+
       return newFilters;
     });
-    
+
     setCurrentPage(1); // Reset to the first page whenever a filter is applied
-  };  const clearAllFilters = () => {
+  }; const clearAllFilters = () => {
     setColumnFilters({});
     setSearchQuery("");
     setSortConfig([]); // Reset to empty array for multi-column sorting
@@ -472,16 +473,17 @@ const DataTable: React.FC<DataTableProps> = ({
     return columnFilters[columnKey] ? (
       <span className="ml-2 text-xs text-blue-500">(Filtered)</span>
     ) : null;
-  };  const renderFilterUI = (column: Column) => {
+  }; const renderFilterUI = (column: Column) => {
     const filterValues = columnFilters[column.key as string] || [];
 
-    switch (column.filterType) {      case "number":
+    switch (column.filterType) {
+      case "number":
         // Using local state to manage inputs independently before sending to the main state
         return (
           <div className="flex flex-col gap-2 p-2">
             <div className="flex flex-row items-center gap-2">
               <span className="text-sm text-gray-500 w-8">Min:</span>
-              <Input                type="text"
+              <Input type="text"
                 inputMode="decimal"
                 placeholder="Min"
                 value={filterValues[0] || ""}
@@ -491,19 +493,19 @@ const DataTable: React.FC<DataTableProps> = ({
                   if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
                     let minVal = value;
                     const maxVal = filterValues[1] || "";
-                    
+
                     // Only apply min/max constraint when both values exist and are valid numbers
-                    if (maxVal !== "" && minVal !== "" && 
-                        !isNaN(Number(minVal)) && !isNaN(Number(maxVal)) && 
-                        Number(minVal) > Number(maxVal)) {
+                    if (maxVal !== "" && minVal !== "" &&
+                      !isNaN(Number(minVal)) && !isNaN(Number(maxVal)) &&
+                      Number(minVal) > Number(maxVal)) {
                       // We only show a warning instead of auto-changing values
                       toast.warning("Min value should not be greater than Max value");
                     }
-                    
+
                     // Always update with exactly what the user typed
                     handleFilterChange(column.key as string, [minVal, maxVal]);
                   }
-                }}                onKeyDown={(e) => {
+                }} onKeyDown={(e) => {
                   // Handle special key presses for decimals and negative values
                   if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
                     const maxVal = filterValues[1] || "";
@@ -514,7 +516,7 @@ const DataTable: React.FC<DataTableProps> = ({
             </div>
             <div className="flex flex-row items-center gap-2">
               <span className="text-sm text-gray-500 w-8">Max:</span>
-              <Input                type="text"
+              <Input type="text"
                 inputMode="decimal"
                 placeholder="Max"
                 value={filterValues[1] || ""}
@@ -524,19 +526,19 @@ const DataTable: React.FC<DataTableProps> = ({
                   if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
                     const minVal = filterValues[0] || "";
                     let maxVal = value;
-                    
+
                     // Only apply min/max constraint when both values exist and are valid numbers
-                    if (minVal !== "" && maxVal !== "" && 
-                        !isNaN(Number(minVal)) && !isNaN(Number(maxVal)) && 
-                        Number(maxVal) < Number(minVal)) {
+                    if (minVal !== "" && maxVal !== "" &&
+                      !isNaN(Number(minVal)) && !isNaN(Number(maxVal)) &&
+                      Number(maxVal) < Number(minVal)) {
                       // We only show a warning instead of auto-changing values
                       toast.warning("Max value should not be less than Min value");
                     }
-                    
+
                     // Always update with exactly what the user typed
                     handleFilterChange(column.key as string, [minVal, maxVal]);
                   }
-                }}                onKeyDown={(e) => {
+                }} onKeyDown={(e) => {
                   // Handle special key presses for decimals and negative values
                   if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
                     const minVal = filterValues[0] || "";
@@ -546,17 +548,17 @@ const DataTable: React.FC<DataTableProps> = ({
               />
             </div>
             {(filterValues[0] || filterValues[1]) && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-2" 
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
                 onClick={() => handleFilterChange(column.key as string, ["", ""])}
               >
                 Clear
               </Button>
             )}
           </div>
-        );case "date":
+        ); case "date":
         return (
           <div className="flex flex-col items-center p-2">
             <Calendar
@@ -564,39 +566,39 @@ const DataTable: React.FC<DataTableProps> = ({
               selected={{
                 from: filterValues[0] ? new Date(filterValues[0]) : undefined,
                 to: filterValues[1] ? new Date(filterValues[1]) : undefined,
-              }}              onSelect={(selectedRange) => {
+              }} onSelect={(selectedRange) => {
                 // If no range is selected, clear the filter
                 if (!selectedRange || (!selectedRange.from && !selectedRange.to)) {
                   handleFilterChange(column.key as string, ["", ""]);
                   return;
                 }
-                
+
                 // Get the current selection
                 const currentFrom = filterValues[0] ? new Date(filterValues[0]) : undefined;
                 const currentTo = filterValues[1] ? new Date(filterValues[1]) : undefined;
-                
+
                 // Check if the user clicked the same date to reset
-                const isResetFrom = currentFrom && selectedRange?.from && 
-                  currentFrom.getFullYear() === selectedRange.from.getFullYear() && 
-                  currentFrom.getMonth() === selectedRange.from.getMonth() && 
+                const isResetFrom = currentFrom && selectedRange?.from &&
+                  currentFrom.getFullYear() === selectedRange.from.getFullYear() &&
+                  currentFrom.getMonth() === selectedRange.from.getMonth() &&
                   currentFrom.getDate() === selectedRange.from.getDate() &&
                   !selectedRange.to;
-                  
-                const isResetTo = currentTo && selectedRange?.to && 
-                  currentTo.getFullYear() === selectedRange.to.getFullYear() && 
-                  currentTo.getMonth() === selectedRange.to.getMonth() && 
+
+                const isResetTo = currentTo && selectedRange?.to &&
+                  currentTo.getFullYear() === selectedRange.to.getFullYear() &&
+                  currentTo.getMonth() === selectedRange.to.getMonth() &&
                   currentTo.getDate() === selectedRange.to.getDate() &&
                   currentFrom && selectedRange.from &&
-                  currentFrom.getFullYear() === selectedRange.from.getFullYear() && 
-                  currentFrom.getMonth() === selectedRange.from.getMonth() && 
+                  currentFrom.getFullYear() === selectedRange.from.getFullYear() &&
+                  currentFrom.getMonth() === selectedRange.from.getMonth() &&
                   currentFrom.getDate() === selectedRange.from.getDate();
-                
+
                 // If it's the same date being selected twice, reset the value
                 if (isResetFrom || isResetTo) {
                   handleFilterChange(column.key as string, ["", ""]);
                   return;
                 }
-                
+
                 // Otherwise, proceed with the normal date selection                // Format dates in ISO format for consistent storage
                 handleFilterChange(column.key as string, [
                   selectedRange?.from ? format(selectedRange.from, "yyyy-MM-dd") : "",
@@ -610,37 +612,37 @@ const DataTable: React.FC<DataTableProps> = ({
         );
       case "string":
       default:
-        return (          <Command>
-            <CommandInput placeholder={`Search...`} />
-            <CommandList>
-              <CommandEmpty>No options found.</CommandEmpty>
-              <CommandGroup>
-                {[...new Set(data.map((row) => row[column.key as string]))]
-                  .filter((value) => value != null)
-                  .map((value) => (
-                    <CommandItem
-                      key={value}
-                      onSelect={() =>
-                        handleFilterChange(column.key as string, value)
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filterValues.includes(value)}
-                        readOnly
-                        className="mr-2"
-                      />
-                      {value}
-                    </CommandItem>
-                  ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
+        return (<Command>
+          <CommandInput placeholder={`Search...`} />
+          <CommandList>
+            <CommandEmpty>No options found.</CommandEmpty>
+            <CommandGroup>
+              {[...new Set(data.map((row) => row[column.key as string]))]
+                .filter((value) => value != null)
+                .map((value) => (
+                  <CommandItem
+                    key={value}
+                    onSelect={() =>
+                      handleFilterChange(column.key as string, value)
+                    }
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filterValues.includes(value)}
+                      readOnly
+                      className="mr-2"
+                    />
+                    {value}
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
         );
     }
-  };  const isFilterApplied =
-    (Object.keys(columnFilters).length > 0 && 
-     Object.values(columnFilters).some(values => values.some(v => v !== ""))) ||
+  }; const isFilterApplied =
+    (Object.keys(columnFilters).length > 0 &&
+      Object.values(columnFilters).some(values => values.some(v => v !== ""))) ||
     sortConfig.length > 0 ||
     searchQuery.trim() !== "";
   return (
@@ -653,100 +655,99 @@ const DataTable: React.FC<DataTableProps> = ({
           className="w-1/3"
         />
       </div>      <div className="flex justify-between items-center mb-4">        <div className="flex flex-wrap gap-4 items-center">
-          {columns.map((column) =>
-            column.filterable === true && typeof column.key === "string" ? (
-              <div key={column.key as string} className="flex items-center gap-1">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className={`flex items-center gap-2 ${
-                        columnFilters[column.key as string]?.length > 0 && 
-                        columnFilters[column.key as string].some(val => val !== "") 
-                          ? 'text-blue-500 border-blue-500' 
-                          : ''
+        {columns.map((column) =>
+          column.filterable === true && typeof column.key === "string" ? (
+            <div key={column.key as string} className="flex items-center gap-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`flex items-center gap-2 ${columnFilters[column.key as string]?.length > 0 &&
+                      columnFilters[column.key as string].some(val => val !== "")
+                      ? 'text-blue-500 border-blue-500'
+                      : ''
                       }`}
-                    >                      {column.filterType === "date" && 
-                       columnFilters[column.key as string]?.length > 0 && 
-                       (columnFilters[column.key as string][0] !== "" || columnFilters[column.key as string][1] !== "") ? (
-                        <div className="flex items-center gap-1">
-                          <CalendarIcon className="h-4 w-4" />
-                          <span>
-                            {columnFilters[column.key as string][0] && 
-                             columnFilters[column.key as string][1] ? (
-                              <>
-                                {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")} - 
-                                {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}
-                              </>
-                            ) : columnFilters[column.key as string][0] ? (
-                              <>From: {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")}</>
-                            ) : (
-                              <>To: {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}</>
-                            )}
-                          </span>
-                          
-                          {/* X button inside date filter */}
-                          <span 
-                            className="ml-1 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFilterChange(column.key as string, ["", ""]);
-                            }}
-                          >
-                            <X className="h-3.5 w-3.5" />
-                          </span>
-                        </div>
-                      ) : (
-                        <>
-                          {column?.header}
-                          {columnFilters[column.key as string]?.length > 0 && 
-                           columnFilters[column.key as string].some(val => val !== "") && (
-                             <>
-                              <div className="w-2 h-2 rounded-full bg-blue-500 ml-1"></div>
-                              {column.filterType === "number" && (
-                                <span className="ml-1 text-xs">
-                                  {columnFilters[column.key as string][0] && columnFilters[column.key as string][1] 
-                                    ? `${columnFilters[column.key as string][0]}-${columnFilters[column.key as string][1]}`
-                                    : columnFilters[column.key as string][0] 
-                                      ? `≥ ${columnFilters[column.key as string][0]}` 
-                                      : `≤ ${columnFilters[column.key as string][1]}`}
-                                </span>
-                              )}
-                              {column.filterType === "string" && columnFilters[column.key as string].length > 0 && (
-                                <span className="ml-1 text-xs">
-                                  {columnFilters[column.key as string].length > 5
-                                    ? `(${columnFilters[column.key as string].length} selected)`
-                                    : `(${columnFilters[column.key as string].join(", ")})`}
-                                </span>
-                              )}
-                              
-                              {/* X button for string and number filters */}
-                              <span 
-                                className="ml-1 cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (column.filterType === "string") {
-                                    handleFilterChange(column.key as string, []);
-                                  } else {
-                                    handleFilterChange(column.key as string, ["", ""]);
-                                  }
-                                }}
-                              >
-                                <X className="h-3.5 w-3.5" />
+                  >                      {column.filterType === "date" &&
+                    columnFilters[column.key as string]?.length > 0 &&
+                    (columnFilters[column.key as string][0] !== "" || columnFilters[column.key as string][1] !== "") ? (
+                    <div className="flex items-center gap-1">
+                      <CalendarIcon className="h-4 w-4" />
+                      <span>
+                        {columnFilters[column.key as string][0] &&
+                          columnFilters[column.key as string][1] ? (
+                          <>
+                            {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")} -
+                            {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}
+                          </>
+                        ) : columnFilters[column.key as string][0] ? (
+                          <>From: {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")}</>
+                        ) : (
+                          <>To: {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}</>
+                        )}
+                      </span>
+
+                      {/* X button inside date filter */}
+                      <span
+                        className="ml-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange(column.key as string, ["", ""]);
+                        }}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      {column?.header}
+                      {columnFilters[column.key as string]?.length > 0 &&
+                        columnFilters[column.key as string].some(val => val !== "") && (
+                          <>
+                            <div className="w-2 h-2 rounded-full bg-blue-500 ml-1"></div>
+                            {column.filterType === "number" && (
+                              <span className="ml-1 text-xs">
+                                {columnFilters[column.key as string][0] && columnFilters[column.key as string][1]
+                                  ? `${columnFilters[column.key as string][0]}-${columnFilters[column.key as string][1]}`
+                                  : columnFilters[column.key as string][0]
+                                    ? `≥ ${columnFilters[column.key as string][0]}`
+                                    : `≤ ${columnFilters[column.key as string][1]}`}
                               </span>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className={`p-0 ${column.filterType === 'date' ? 'w-auto' : 'w-[220px]'}`}>
-                    {renderFilterUI(column)}
-                  </PopoverContent>                </Popover>
-              </div>
-            ) : null
-          )}
-        </div>
+                            )}
+                            {column.filterType === "string" && columnFilters[column.key as string].length > 0 && (
+                              <span className="ml-1 text-xs">
+                                {columnFilters[column.key as string].length > 5
+                                  ? `(${columnFilters[column.key as string].length} selected)`
+                                  : `(${columnFilters[column.key as string].join(", ")})`}
+                              </span>
+                            )}
+
+                            {/* X button for string and number filters */}
+                            <span
+                              className="ml-1 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (column.filterType === "string") {
+                                  handleFilterChange(column.key as string, []);
+                                } else {
+                                  handleFilterChange(column.key as string, ["", ""]);
+                                }
+                              }}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </span>
+                          </>
+                        )}
+                    </>
+                  )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className={`p-0 ${column.filterType === 'date' ? 'w-auto' : 'w-[220px]'}`}>
+                  {renderFilterUI(column)}
+                </PopoverContent>                </Popover>
+            </div>
+          ) : null
+        )}
+      </div>
         <div className="flex gap-2">
           {isFilterApplied && (
             <Button
@@ -768,7 +769,9 @@ const DataTable: React.FC<DataTableProps> = ({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50 border-b border-gray-100">                {visibleColumns.map((column, colIndex) => (                  <TableHead
+              <TableRow className="bg-gray-50 border-b border-gray-100">
+                {visibleColumns.map((column, colIndex) => (
+                  <TableHead
                     key={colIndex}
                     style={{ width: column.width }}
                     className={`py-3 px-6 text-sm font-semibold text-gray-900 select-none text-center ${typeof column.key === "string" ? "cursor-pointer" : "cursor-default"}`}
@@ -778,7 +781,8 @@ const DataTable: React.FC<DataTableProps> = ({
                         handleSort(column.key, e);
                       }
                     }}
-                  ><div className="flex items-center justify-center">
+                  >
+                    <div className="flex items-center justify-center">
                       {column.header}
                       {typeof column.key === "string" ? renderSortIcon(column.key) : null}
                     </div>
@@ -812,23 +816,22 @@ const DataTable: React.FC<DataTableProps> = ({
                 currentData.map((row, rowIndex) => (
                   <TableRow
                     key={rowIndex}
-                    className={`border-t border-gray-100 ${
-                      rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
-                  >
-                    {visibleColumns.map((column, colIndex) => (                      <TableCell
-                        key={`${rowIndex}-${colIndex}`}
-                        className={`py-4 px-6 text-sm text-gray-900 ${column.align ? `text-${column.align}` : ''}`}
-                      >
-                        {column.render
-                          ? column.render(
-                              getCellValue(column, row, rowIndex),
-                              row,
-                              rowIndex
-                            )
-                          : getCellValue(column, row, rowIndex)}
-                      </TableCell>
-                    ))}
+                    className={`border-t border-gray-100 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
+                  >{visibleColumns.map((column, colIndex) => (
+                    <TableCell
+                      key={`${rowIndex}-${colIndex}`}
+                      className={`py-4 px-6 text-sm text-gray-900 ${column.align ? `text-${column.align}` : ''}`}
+                    >
+                      {column.render
+                        ? column.render(
+                          getCellValue(column, row, rowIndex),
+                          row,
+                          rowIndex
+                        )
+                        : getCellValue(column, row, rowIndex)}
+                    </TableCell>
+                  ))}
                   </TableRow>
                 ))
               )}
@@ -859,9 +862,8 @@ const DataTable: React.FC<DataTableProps> = ({
                 key={page}
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
-                className={`h-9 w-9 p-0 ${
-                  currentPage === page ? "bg-blue-600" : "border-gray-200"
-                }`}
+                className={`h-9 w-9 p-0 ${currentPage === page ? "bg-blue-600" : "border-gray-200"
+                  }`}
                 onClick={() => handlePageChange(page)}
               >
                 {page}
