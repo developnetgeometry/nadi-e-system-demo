@@ -32,7 +32,9 @@ const BookingManagementPage = lazy(() => import("@/pages/dashboard/site/BookingM
 const InventoryDashboardPage = lazy(() => import("@/pages/dashboard/inventory/InventoryDashboard"));
 const InventorySettingsPage = lazy(() => import("@/pages/dashboard/inventory/InventorySettings"));
 const PhaseOverviewPage = lazy(() => import("@/pages/dashboard/site/Phase"));
-const PhaseFormPage = lazy(() => import("@/components/site/PhaseForm"));
+const PhaseFormPage = lazy(() => import("@/components/site/component/PhaseForm"));
+
+const TestTablePage = lazy(() => import("@/pages/dashboard/test-table"));
 
 export const siteRoutes = [
   {
@@ -171,6 +173,16 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <PhaseFormPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/test-table",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <TestTablePage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
