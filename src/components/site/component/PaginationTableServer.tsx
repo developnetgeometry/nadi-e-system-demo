@@ -93,7 +93,7 @@ export const PaginationTableServer = ({
                     </TableBody>
                 ) : (
                     <TableBody>
-                        {contentResult.map((rowItem) => (
+                        {contentResult.length > 0 && contentResult.map((rowItem) => (
                             <TableRow key={rowItem.id}>
                                 {headTable.map((col) => (
                                     <TableCell key={col.key}>
@@ -105,7 +105,7 @@ export const PaginationTableServer = ({
                     </TableBody>
                 )}
             </Table>
-            {contentResult.length === 0 && (
+            {(contentResult.length === 0 && !isLoading) && (
                 <NoBookingFound
                     icon={(<FolderX />)}
                     title="Data Not Found"
