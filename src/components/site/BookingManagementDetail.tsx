@@ -24,6 +24,7 @@ import { PaginationCard } from "./component/PaginationCard";
 import { PaginationTable } from "./component/PaginationTable";
 import SiteDashboard from "@/pages/dashboard/site/SiteDashboard";
 import { Button } from "../ui/button";
+import { space } from "postcss/lib/list";
 
 type FilterParams = {
     availability: string,
@@ -198,6 +199,8 @@ export const BookingManagementDetail = () => {
         );
     }
 
+    console.log("selcted pcs data", selectedPcsData);
+
     return (
         <div className="relative">
 
@@ -266,9 +269,12 @@ const BookingContent = ({
     facilitiesBooking,
     facilitiesData
 }: BookingContentProps) => {
+    const now = new Date().getTime();
 
     const totalPcs = pcsData.length;
-    const pcInUse = pcsData.filter(pc => pc.is_using === true).length;
+    const pcInUse = pcsData.filter((pc) => pc.nd_booking.find(
+                        (b) => new Date(b.booking_start).getTime() <= now && new Date(b.booking_end).getTime() >= now && b.is_active
+                    )).length;
     const pcAvailable = totalPcs - pcInUse;
 
     return (
@@ -741,23 +747,28 @@ const AssetStatus = ({
 
             const processedFacilities = await Promise.all(
                 currentFilteredFacilitiesData.map((facility) => {
-                    const booking = facility.nd_booking.find((booking) => booking.site_space_id === facility.id && booking.is_active);
+                    const booking = facility.nd_booking.filter((booking) => booking.site_space_id === facility.id && booking.is_active);
+                    const now = new Date().getTime();
+                    const currentActiveBooking = booking.find(
+                        (booking) => new Date(booking.booking_start).getTime() <= now && new Date(booking.booking_end).getTime() >= now
+                    ) || null;
+                    const isActiveBooking = !!currentActiveBooking;
                     return {
                         id: facility.id,
-                        status: booking?.is_active ? "in-use" : "Available",
+                        status: currentActiveBooking ? "in-use" : "Available",
                         type: facility.nd_space?.eng,
                         name: facility.nd_space?.eng,
                         spec: facility?.nd_site_profile?.sitename,
-                        staffName: booking ? booking.profiles?.full_name : "-",
-                        startDate: booking ? new Date(booking.booking_start).toLocaleTimeString() : "-",
-                        duration: booking ? getDuration(booking.booking_start, booking.booking_end) : "-",
+                        staffName: isActiveBooking ? currentActiveBooking.profiles?.full_name : "-",
+                        startDate: isActiveBooking ? new Date(currentActiveBooking.booking_start).toLocaleTimeString() : "-",
+                        duration: isActiveBooking ? getDuration(currentActiveBooking.booking_start, currentActiveBooking.booking_end) : "-",
                         icon: <Server />,
-                        bgCustomClass: !booking
-                            ? "bg-green-100 hover:bg-muted border-gray-300"
-                            : "bg-blue-100 hover:bg-muted border-gray-300",
-                        customClass: !booking
-                            ? "bg-green-200 text-green-600 hover:bg-green-300 font-semibold"
-                            : "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold",
+                        bgCustomClass: isActiveBooking
+                            ? "bg-blue-100 hover:bg-muted border-gray-300"
+                            : "bg-green-100 hover:bg-muted border-gray-300",
+                        customClass: isActiveBooking
+                            ? "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold"
+                            : "bg-green-200 text-green-600 hover:bg-green-300 font-semibold",
                     };
                 })
             )
@@ -786,24 +797,21 @@ const AssetStatus = ({
 
             const processedPcs = await Promise.all(
                 currentFilteredPcsData.map(async (pc) => {
-                    const now = new Date();
+                    const now = new Date().getTime();
                     const currentBooking = pc.nd_booking?.find(
-                        (b) => new Date(b.booking_start) <= now && new Date(b.booking_end) >= now
+                        (b) => new Date(b.booking_start).getTime() <= now && new Date(b.booking_end).getTime() >= now && b.is_active
                     );
-                    const fallbackBooking = pc.nd_booking?.at(-1);
-                    const booking = currentBooking || fallbackBooking || null;
-
+                    const booking = currentBooking || null;
+                    let isBooking = !!booking;
                     let full_name = "-";
                     if (booking?.created_by) {
                         const user = await fetchUserById(booking.created_by);
                         full_name = user.full_name;
                     }
-
-                    const isBooking = !!booking;
-
+                    
                     return {
                         id: pc.id,
-                        status: pc?.is_using === true ? "in-use" : "Available",
+                        status: isBooking ? "in-use" : "Available",
                         type: pc.nd_brand?.nd_brand_type?.name,
                         name: pc.name,
                         spaceName: pc?.nd_space?.eng,
@@ -812,10 +820,10 @@ const AssetStatus = ({
                         startDate: isBooking ? new Date(booking.booking_start).toLocaleTimeString() : "-",
                         duration: isBooking ? getDuration(booking.booking_start, booking.booking_end) : "-",
                         icon: <Server />,
-                        bgCustomClass: pc?.is_using
+                        bgCustomClass: isBooking
                             ? "bg-blue-100 hover:bg-muted border-gray-300"
                             : "bg-green-100 hover:bg-muted border-gray-300",
-                        customClass: pc?.is_using
+                        customClass: isBooking
                             ? "bg-blue-200 text-blue-600 hover:bg-blue-300 font-semibold"
                             : "bg-green-200 text-green-600 hover:bg-green-300 font-semibold",
                     };
