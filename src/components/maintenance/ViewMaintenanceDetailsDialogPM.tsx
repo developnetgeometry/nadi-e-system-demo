@@ -79,7 +79,8 @@ export const ViewMaintenanceDetailsDialogPM = ({
 
   const isTPCloseRequest =
     userMetadata?.user_group_name == "TP" &&
-    maintenanceRequest?.status == MaintenanceStatus.InProgress;
+    maintenanceRequest?.status == MaintenanceStatus.InProgress &&
+    maintenanceRequest?.updates?.length > 0;
 
   const isCompleted =
     userMetadata?.user_group_name == "TP" &&
