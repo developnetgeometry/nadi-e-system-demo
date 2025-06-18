@@ -1,68 +1,38 @@
+// Cleaned up: removed unnecessary comments, improved formatting, grouped related logic, and ensured consistent style.
 import React, { useState, ReactElement, ReactNode } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Pencil,
-  Download,
-  Trash2,
-  FileText,
-  View, ArrowUp,
-  ArrowUpDown,
-  X,
-  CheckCircle,
-  XCircle,
-  Info as InfoIcon,
+  ChevronLeft, ChevronRight, Pencil, Download, Trash2, FileText, View, ArrowUp, ArrowUpDown, X, CheckCircle, XCircle, Info as InfoIcon,
 } from "lucide-react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
+  Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem,
 } from "@/components/ui/command";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO } from "date-fns";
 
 export interface Column {
-  key: string | ((row: any, index: number) => any); // Dynamic key or accessor function
-  header: string | React.ReactNode | any;  // Header text or custom React component
-  width?: string; // Optional column width
-  render?: (value: any, row: any, index: number) => React.ReactNode; // Custom cell renderer
-  filterable?: boolean; // Indicates if the column is filterable
-  visible?: boolean; // Indicates if the column is visible (default: true)
-  filterType?: "string" | "number" | "date" | "boolean"; // Type of filter (default: string)
-  align?: "left" | "center" | "right"; // Text alignment for the column (default: left)
+  key: string | ((row: any, index: number) => any);
+  header: string | React.ReactNode | any;
+  width?: string;
+  render?: (value: any, row: any, index: number) => React.ReactNode;
+  filterable?: boolean;
+  visible?: boolean;
+  filterType?: "string" | "number" | "date" | "boolean";
+  align?: "left" | "center" | "right";
 }
 
 interface DataTableProps {
@@ -80,21 +50,15 @@ interface DataTableProps {
 // Helper function to extract text from React elements
 const getTextFromReactElement = (element: React.ReactNode): string => {
   // If it's a string, return it directly
-  if (typeof element === 'string') {
-    return element;
-  }
+  if (typeof element === 'string') return element;
 
   // If null or undefined, return empty string
-  if (element === null || element === undefined) {
-    return '';
-  }
+  if (element == null) return '';
 
   // If it's a React element with props
   if (React.isValidElement(element)) {
     // Check for direct text children
-    if (typeof element.props.children === 'string') {
-      return element.props.children;
-    }
+    if (typeof element.props.children === 'string') return element.props.children;
 
     // For nested elements, recursively extract text
     if (element.props.children) {
@@ -111,12 +75,10 @@ const getTextFromReactElement = (element: React.ReactNode): string => {
         // Handle array of children
         React.Children.forEach(children, (child) => {
           // Skip null/undefined
-          if (child === null || child === undefined) return;
+          if (child == null) return;
 
           // Direct text nodes
-          if (typeof child === 'string') {
-            textParts.push(child);
-          }
+          if (typeof child === 'string') textParts.push(child);
           // React elements - recursively extract text
           else if (React.isValidElement(child)) {
             const text = getTextFromReactElement(child);
@@ -126,11 +88,8 @@ const getTextFromReactElement = (element: React.ReactNode): string => {
 
         return textParts;
       };
-
       const textParts = extractTextFromChildren(element.props.children);
-      if (textParts.length > 0) {
-        return textParts.join(' ').trim();
-      }
+      if (textParts.length > 0) return textParts.join(' ').trim();
     }
   }
 
@@ -148,15 +107,13 @@ const DataTable: React.FC<DataTableProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [rowToDelete, setRowToDelete] = useState<any>(null);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");  // Use an array to store sort configurations for multi-column sorting
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: "asc" | "desc";
-    priority: number; // Lower number = higher priority
+    priority: number;
   }[]>([]);
-  const [columnFilters, setColumnFilters] = useState<{ [key: string]: any[] }>(
-    {}
-  );
+  const [columnFilters, setColumnFilters] = useState<{ [key: string]: any[] }>({});
 
   const visibleColumns = columns.filter((column) => column.visible !== false);
   const filteredData = data
