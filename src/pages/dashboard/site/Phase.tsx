@@ -18,6 +18,9 @@ import {
     AlertCircle
 } from 'lucide-react';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { useNavigate } from 'react-router-dom';
+import PhaseDialog from '@/components/site/component/PhaseDialog';
+import { format } from 'date-fns';
 
 const Phase = () => {
     // Get user organization context
@@ -25,7 +28,13 @@ const Phase = () => {
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
     const organizationId = parsedMetadata?.organization_id;
 
+    const isDusp = parsedMetadata?.user_type.startsWith('dusp') || "";
+    const isAdmin = parsedMetadata?.user_type.startsWith('super_admin') || "";
+    const isMCMC = parsedMetadata?.user_type.startsWith('mcmc') || "";
+
+
     const { toast } = useToast();
+    const navigate = useNavigate();
 
     // Fetch phase data
     const {
@@ -33,7 +42,7 @@ const Phase = () => {
         isLoading,
         error
     } = useGetPhases(organizationId);
-
+    console.log("Phases data:", phases); // Debug log
     const deletePhaseMutation = useDeletePhase();
 
     const [confirmDialog, setConfirmDialog] = React.useState<{
@@ -41,21 +50,18 @@ const Phase = () => {
         phaseId: number | null;
     }>({ open: false, phaseId: null });
 
+    const [viewDialog, setViewDialog] = React.useState<{ open: boolean; phase: any | null }>({ open: false, phase: null });
+
     // Action handlers
     const handleViewPhase = (phaseId: number) => {
-        toast({
-            title: `Viewing Phase ${phaseId} details`,
-        });
-        // TODO: Add navigation logic
+        const phase = phases.find((p) => p.id === phaseId);
+        setViewDialog({ open: true, phase });
     };
 
     const handleEditPhase = (phaseId: number) => {
-        toast({
-            title: `Editing Phase ${phaseId}`,
-        });
-        // TODO: Add edit logic
+        navigate(`/site-management/phase/form/${phaseId}`);
     };
-    
+
     const handleDeletePhase = (phaseId: number) => {
         setConfirmDialog({ open: true, phaseId });
     };
@@ -80,12 +86,9 @@ const Phase = () => {
     };
 
     const handleCreatePhase = () => {
-        toast({
-            title: "Create new phase",
-        });
-        // TODO: Add create phase modal/form logic
+        navigate('/site-management/phase/form');
     };
-    
+
     // Data table configuration
     const columns: Column[] = [
         {
@@ -94,7 +97,8 @@ const Phase = () => {
             width: "5%",
             visible: true,
             align: "center"
-        },        {
+        },
+        {
             key: "name",
             header: (
                 <div className="flex items-center gap-2">
@@ -105,69 +109,54 @@ const Phase = () => {
             render: (value) => value || "-",
             filterable: true,
             visible: true,
-            filterType: "string"
-        },{
-            key: "contract_start",
-            header: (
-                <div className="flex items-center gap-2">
-                    <Calendar size={16} />
-                    <span>Start Date</span>
-                </div>
-            ),
-            render: (value) => {
-                if (!value) return '-';
-                
-                try {
-                    const date = new Date(value);
-                    if (isNaN(date.getTime())) return value;
-                    // Format date without time component to avoid inconsistencies with filtering
-                    return date.toLocaleDateString();
-                } catch (e) {
-                    return value;
-                }
-            },
-            filterable: true,
-            visible: true,
-            filterType: "date",
-            width: "12%"
+            filterType: "string",
+            align: "center",
         },        {
-            key: "contract_end",
-            header: (
-                <div className="flex items-center gap-2">
-                    <Clock size={16} />
-                    <span>End Date</span>
-                </div>
-            ),
-            render: (value) => {
-                if (!value) return '-';
-                
-                try {
-                    const date = new Date(value);
-                    if (isNaN(date.getTime())) return value;
-                    // Format date without time component to avoid inconsistencies with filtering
-                    return date.toLocaleDateString();
-                } catch (e) {
-                    return value;
-                }
-            },
-            filterable: true,
-            visible: true,
-            filterType: "date",
-            width: "12%"
-        },        {
-            key: "remark",
-            header: "Remarks",
-            visible: true,
-            width: "15%",
+            key: "organization_id.name",
+            header: "DUSP",
+            visible: isAdmin || isMCMC ? true : false, // Explicitly return false if not admin or MCMC
+            filterable: isAdmin || isMCMC ? true : false, // Explicitly return false if not admin or MCMC
+            filterType: "string",
+            align: "center",
             render: (value) => value || "-",
-            filterable: true,
-            filterType: "string"
-        },        {            key: "is_active", //this is boolean value
+        },
+        // {
+        //     key: "nd_phases_contract[0].start_date",
+        //     header: (
+        //         <div className="flex items-center gap-2">
+        //             <Calendar size={16} />
+        //             <span>Start Date</span>
+        //         </div>
+        //     ),
+        //     render: (value) => value || "-",
+        //     filterable: true,
+        //     visible: true,
+        //     filterType: "date",
+        //     width: "12%"
+        // },
+        // {
+        //     key: "nd_phases_contract[0].end_date",
+        //     header: (
+        //         <div className="flex items-center gap-2">
+        //             <Clock size={16} />
+        //             <span>End Date</span>
+        //         </div>
+        //     ),
+        //     render: (value) => value || "-",
+        //     filterable: true,
+        //     visible: true,
+        //     filterType: "date",
+        //     width: "12%"
+        // },
+        {
+            key: "is_active",
             header: "Status",
             filterable: true,
             visible: true,
-            filterType: "boolean", // Keep as string but we'll ensure it works with boolean values
-            width: "10%",render: (value) => {
+            filterType: "boolean",
+            width: "10%",
+            align: "center",
+            render: (value) => {
                 if (value === null || value === undefined) {
                     return (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -185,35 +174,32 @@ const Phase = () => {
                     </span>
                 );
             }
-        },        {
-            key: "created_at",
+        },
+        {
+            key: "updated_at",
             header: (
                 <div className="flex items-center gap-2">
                     <Clock size={16} />
-                    <span>Created At</span>
+                    <span>Updated At</span>
                 </div>
             ),
             render: (value) => {
-                // Make sure to handle potentially invalid dates
                 if (!value) return '-';
-                
                 try {
                     const date = new Date(value);
-                    // Check if date is valid before formatting
                     if (isNaN(date.getTime())) return value;
-                    
-                    // Format date with time for display in a consistent format
                     return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
                 } catch (e) {
-                    return value; // Return original value if parsing fails
+                    return value;
                 }
             },
             visible: true,
-            width: "15%",
             align: "center",
-            filterable: true,
-            filterType: "date"
+            width: "15%",
+            // filterable: true,
+            // filterType: "date"
         },
+
         {
             key: (row) => (
                 <div className="flex items-center justify-center space-x-2">
@@ -254,20 +240,21 @@ const Phase = () => {
             width: "10%",
             visible: true,
         }
-    ]; 
-    
+    ];
+
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center">
+        <div className="space-y-4">            <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Phase Management</h1>
-                <Button
-                    onClick={handleCreatePhase}
-                    className="flex items-center gap-2"
-                    disabled={isLoading}
-                >
-                    <Plus size={16} />
-                    <span>Create Phase</span>
-                </Button>
+                {(isAdmin || isMCMC || isDusp) && (
+                    <Button
+                        onClick={handleCreatePhase}
+                        className="flex items-center gap-2"
+                        disabled={isLoading}
+                    >
+                        <Plus size={16} />
+                        <span>Create Phase</span>
+                    </Button>
+                )}
             </div>
 
             {error && (
@@ -285,11 +272,11 @@ const Phase = () => {
                     isLoading={isLoading}
                 />
 
-                {phases.length === 0 && !isLoading && !error && (
+                {/* {phases.length === 0 && !isLoading && !error && (
                     <div className="py-8 text-center text-gray-500">
                         No phases found. Create a new phase to get started.
                     </div>
-                )}
+                )} */}
             </div>
 
             <ConfirmationDialog
@@ -301,6 +288,12 @@ const Phase = () => {
                 confirmVariant="destructive"
                 onConfirm={handleConfirmDelete}
                 onCancel={() => setConfirmDialog({ open: false, phaseId: null })}
+            />
+
+            <PhaseDialog
+                open={viewDialog.open}
+                onOpenChange={(open) => setViewDialog((prev) => ({ ...prev, open }))}
+                phase={viewDialog.phase}
             />
         </div>
     );

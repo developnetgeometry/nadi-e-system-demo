@@ -14,11 +14,31 @@ export interface Phase {
     contract_end: string | null;
     is_active: boolean;
     remark: string | null;
-    organization_id: string;
+    organization_id: {
+        id: string;
+        name: string;
+        type: string;
+        description: string | null;
+    } | null; // Updated to handle object or null
     created_at: string;
     created_by: string;
     updated_at: string | null;
     updated_by: string | null;
+    nd_phases_contract: {
+        id: number;
+        start_date: string | null;
+        end_date: string | null;
+        is_active: boolean;
+        file_path: string[] | null;
+    } | null; // Updated to handle object or null
+}
+
+// Organization interface for dropdown selection
+export interface Organization {
+    id: string;
+    name: string;
+    type: string;
+    description: string | null;
 }
 
 export type CreatePhaseData = Omit<Phase, 'id' | 'created_at' | 'created_by' | 'updated_at' | 'updated_by'>;
@@ -26,12 +46,35 @@ export type CreatePhaseData = Omit<Phase, 'id' | 'created_at' | 'created_by' | '
 // Query keys
 const PHASES_KEY = 'phases';
 const PHASE_DETAILS_KEY = 'phase-details';
+const ORGANIZATIONS_KEY = 'organizations';
 
 // Database functions
 export async function fetchPhases(organizationId: string | null): Promise<Phase[]> {
     try {
         // Build the query once with all conditions
-        let query = supabase.from('nd_phases').select('*');
+        let query = supabase.from('nd_phases').select(`
+            id,
+            name,
+            remark,
+            is_active,
+            organization_id(
+                id,
+                name,
+                type,
+                description
+            ),
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            nd_phases_contract(
+                id,
+                start_date,
+                end_date,
+                is_active,
+                file_path
+            )            
+        `).eq('nd_phases_contract.is_active', true);
 
         // Apply filters directly without reassignment
         if (organizationId) {
@@ -57,7 +100,31 @@ export async function fetchPhases(organizationId: string | null): Promise<Phase[
 export async function fetchPhaseById(id: number): Promise<Phase> {
     const { data, error } = await supabase
         .from('nd_phases')
-        .select('*')
+        .select(`
+            id,
+            name,
+            remark,
+            is_active,
+            contract_start,
+            contract_end,
+            organization_id(
+                id,
+                name,
+                type,
+                description
+            ),
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            nd_phases_contract(
+                id,
+                start_date,
+                end_date,
+                is_active,
+                file_path
+            )
+        `)
         .eq('id', id)
         .single();
 
@@ -119,7 +186,28 @@ export async function deletePhase(id: number): Promise<void> {
     }
 }
 
-// React Query hooks
+// New function to fetch organizations with type='dusp'
+export async function fetchDuspOrganizations(): Promise<Organization[]> {
+    try {
+        const { data, error } = await supabase
+            .from('organizations')
+            .select('id, name, type, description')
+            .eq('type', 'dusp')
+            .order('name');
+
+        if (error) {
+            console.error('Error fetching DUSP organizations:', error);
+            throw new Error(error.message);
+        }
+
+        return data || [];
+    } catch (error: any) {
+        console.error('Error in fetchDuspOrganizations:', error);
+        throw new Error(error.message);
+    }
+}
+
+// # React Query hooks
 export function useGetPhases(organizationId: string | null) {
     return useQuery({
         queryKey: [PHASES_KEY, organizationId],
@@ -169,6 +257,14 @@ export function useDeletePhase() {
         onSuccess: (_, deletedPhaseId) => {
             queryClient.invalidateQueries({ queryKey: [PHASES_KEY] });
         }
+    });
+}
+
+// New hook for fetching DUSP organizations
+export function useGetDuspOrganizations() {
+    return useQuery({
+        queryKey: [ORGANIZATIONS_KEY, 'dusp'],
+        queryFn: fetchDuspOrganizations
     });
 }
 
