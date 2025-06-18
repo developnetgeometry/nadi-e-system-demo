@@ -21,6 +21,7 @@ export interface Booking {
         id?: number,
         sitename?: string
     },
+    pcsBookingData?: Booking[],
     nd_site_space?: SiteSpace
     updated_at?: string
 };
