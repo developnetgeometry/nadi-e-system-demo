@@ -5,7 +5,7 @@ import { Brand } from "@/types/brand";
 import { MaintenanceRequest } from "@/types/maintenance";
 
 export const bookingClient = {
-    postNewBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<Booking> => {
+    postNewPcBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<Booking> => {
         if (!isBookingAllowed) {
             throw Error("Error dannied: you don't have permission to create a book!")
         }
@@ -17,7 +17,7 @@ export const bookingClient = {
                 nd_asset (*),
                 profiles (*),
                 nd_site_profile (*),
-                nd_site_space (*)`)
+                nd_site_space (*, nd_space (*))`)
             .maybeSingle()
 
         if (error) {
@@ -30,6 +30,140 @@ export const bookingClient = {
         }
 
         return data;
+    },
+
+    deleteBooking: async (bookingId: string) => {
+        const { data: bookingData, error: bookingDataError } = await supabase
+            .from("nd_booking")
+            .select(`*, nd_site_space(*)`)
+            .eq("id", bookingId)
+            .single();
+
+        if (bookingDataError) throw bookingDataError;
+
+        const { data: assetsData, error: assetsDataError } = await supabase
+            .from("nd_asset")
+            .select("*")
+            .eq("site_id", bookingData.nd_site_space.site_id)
+            .eq("location_id", bookingData.nd_site_space.space_id)
+
+        if (assetsDataError) throw assetsDataError;
+
+        if (assetsData && assetsData.length > 0) {
+            for (const asset of assetsData) {
+                const {error: assetError} = await supabase
+                    .from("nd_booking")
+                    .delete()
+                    .eq("asset_id", asset.id);
+
+                if (assetError) {
+                    console.error("Failed delete booking", assetError);
+                    throw assetError;
+                }
+            }
+        }
+
+        const { error } = await supabase
+            .from("nd_booking")
+            .delete()
+            .eq("id", bookingId);
+
+        if (error) {
+            console.error("Failed delete booking", error);
+            throw error;
+        }
+    },
+
+    postNewSpaceBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<Booking> => {
+        if (!isBookingAllowed) {
+            throw Error("Error dannied: you don't have permission to create a book!")
+        }
+
+        const siteSpaceId = bookingData.site_space_id;
+        const { data: siteSpace, error: siteSpaceError } = await supabase
+            .from("nd_site_space")
+            .select("*")
+            .eq("id", siteSpaceId)
+            .single();
+
+        if (siteSpaceError) throw siteSpaceError;
+
+        const { data: assetType, error: assetTypeError } = await supabase
+            .from("nd_asset_type")
+            .select("*")
+            .eq("name", "PC")
+            .single();
+
+        if (assetTypeError) throw assetTypeError;
+
+        const { data: assetData, error: assetError } = await supabase
+            .from("nd_asset")
+            .select("*")
+            .eq("site_id", siteSpace.site_id)
+            .eq("location_id", siteSpace.space_id)
+            .eq("type_id", assetType.id)
+
+        if (assetError) throw assetError;
+
+        let pcsBookingData = [];
+
+        for (const asset of assetData) {
+            // create new booking for each pc
+            const bookingId = crypto.randomUUID();
+            const submittedNewBookingPcData: Booking = {
+                site_space_id: siteSpaceId,
+                asset_id: asset.id,
+                booking_start: bookingData.booking_start,
+                booking_end: bookingData.booking_end,
+                created_by: bookingData.created_by,
+                requester_id: bookingData.requester_id,
+                id: bookingId,
+                created_at: new Date().toISOString(),
+                is_active: true,
+                purpose: bookingData.purpose,
+                site_id: bookingData.site_id
+            }
+            const { error, data } = await supabase
+                .from("nd_booking")
+                .insert(submittedNewBookingPcData)
+                .select(`*,
+                    nd_asset (*),
+                    profiles (*),
+                    nd_site_profile (*),
+                    nd_site_space (*, nd_space (*))`)
+                .maybeSingle()
+
+            if (error) {
+                console.error("Failed add new booking", error);
+                throw error;
+            }
+
+            pcsBookingData.push(data);
+        }
+
+        const { error, data } = await supabase
+            .from("nd_booking")
+            .insert(bookingData)
+            .select(`*,
+                nd_asset (*),
+                profiles (*),
+                nd_site_profile (*),
+                nd_site_space (*, nd_space (*))`)
+            .maybeSingle()
+
+        if (error) {
+            console.error("Failed add new booking", error);
+            throw error;
+        }
+
+        if (!data) {
+            throw new Error("No booking data returned from Supabase.");
+        }
+
+        return {
+            ...data,
+            pcsBookingData
+        };
     },
 
     getAllBookings: async (isSuperAdmin: boolean) => {
@@ -323,7 +457,7 @@ export const bookingClient = {
     },
 
     getSpace: async () => {
-        const {data, error } = await supabase
+        const { data, error } = await supabase
             .from("nd_space")
             .select("id, eng");
         if (error) {
@@ -382,7 +516,8 @@ export const bookingClient = {
                     nd_space (*)
                 )
             `)
-            .not("site_space_id", "is", null);
+            .not("site_space_id", "is", null)
+            .is("asset_id", null)
 
         if (error) throw error;
 
@@ -410,6 +545,7 @@ export const bookingClient = {
                     nd_space (*)
                 )
             `)
+            .is("asset_id", null)
 
         if (error) throw error;
 
@@ -426,7 +562,8 @@ export const bookingClient = {
                 nd_site_space (
                     *
                 )
-            `);
+            `)
+            .is("asset_id", null)
 
         if (error) throw error;
 
@@ -535,6 +672,34 @@ export const bookingClient = {
             .from("nd_maintenance_request")
             .select("*")
             .eq("space_id", spaceId);
+
+        if (error) throw error;
+
+        return data;
+    },
+
+    getSpaceBookingBySiteProfileIdAndSpaceName: async (siteProfileId: number, spaceName: string) => {
+        const { data: space, error: spaceError } = await supabase
+            .from("nd_space")
+            .select("*")
+            .eq("eng", spaceName)
+            .single()
+
+        if (spaceError) throw spaceError;
+        const { data: siteSpace, error: siteSpaceError } = await supabase
+            .from("nd_site_space")
+            .select("id")
+            .eq("site_id", siteProfileId)
+            .eq("space_id", space.id)
+            .single()
+
+        if (siteSpaceError) throw siteSpaceError;
+
+        const { data, error } = await supabase
+            .from("nd_booking")
+            .select(`*, nd_site_space(*)`)
+            .eq("site_space_id", siteSpace.id)
+            .eq("is_active", true)
 
         if (error) throw error;
 
