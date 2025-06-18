@@ -16,9 +16,8 @@ export const bookingClient = {
             .select(`*,
                 nd_asset (*),
                 profiles (*),
-                nd_site_space (
-                    *,
-                    nd_space (*))`)
+                nd_site_profile (*),
+                nd_site_space (*)`)
             .maybeSingle()
 
         if (error) {
