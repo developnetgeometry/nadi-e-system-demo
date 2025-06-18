@@ -173,7 +173,8 @@ export const assetClient = {
               name
             )
           ),
-        nd_booking (*),
+        nd_site_profile (*),
+        nd_booking (*, nd_site_space (*, nd_space (*))),
         nd_space (*),
         nd_asset_type!inner (
             category_id
@@ -190,7 +191,7 @@ export const assetClient = {
   fetchAssetByName: async (assetName: string, siteId: number) => {
     const { data, error } = await supabase
       .from("nd_asset")
-      .select(`*, nd_site_profile(*, id)`)
+      .select(`*, nd_site_profile(*, nd_site_space(*, nd_space(*)))`)
       .eq("name", assetName);
 
     if (error) {
@@ -198,12 +199,30 @@ export const assetClient = {
       throw error;
     }
 
-    const filtered = data.find(
-      (item) => item.nd_site_profile.id === siteId
+    if (!data || data.length === 0) {
+      return { id: null, site_space_id: null };
+    }
+
+    const matched = data.find((item) => {
+      const siteProfile = item?.nd_site_profile;
+      if (!siteProfile || siteProfile.id !== siteId) return false;
+
+      return siteProfile.nd_site_space?.some(
+        (space) => space.nd_space?.id === item.location_id
+      );
+    });
+
+    if (!matched) {
+      return { id: null, site_space_id: null };
+    }
+
+    const matchedSiteSpace = matched.nd_site_profile?.nd_site_space?.find(
+      (space) => space.nd_space?.id === matched.location_id
     );
 
     return {
-      id: filtered?.id,
+      id: matched.id ?? null,
+      site_space_id: matchedSiteSpace?.id ?? null,
     };
   },
 
@@ -270,9 +289,11 @@ export const assetClient = {
               name
             )
           ),
+          nd_site_profile (*),
           nd_space (*),
           nd_booking (
-            *
+            *,
+            nd_site_space (*, nd_space (*))
           )
         `
         )
@@ -316,9 +337,6 @@ export const assetClient = {
       .select(
         `
         *, 
-        nd_site_profile (
-          id
-        ), 
         nd_brand (
           id,
           name,
@@ -327,9 +345,11 @@ export const assetClient = {
             name
           )
         ),
+        nd_site_profile (*),
         nd_space (*),
         nd_booking (
-          *
+          *,
+          nd_site_space (*, nd_space (*))
         )
       `
       )
@@ -350,7 +370,8 @@ export const assetClient = {
         `
           nd_asset (
               *,
-              nd_booking (*)
+              nd_booking(*, nd_site_space (*, nd_space (*))),
+              nd_site_profile (*)
             )
       `
       )
