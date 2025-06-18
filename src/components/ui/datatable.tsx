@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ChevronLeft,
   ChevronRight,
@@ -18,6 +19,8 @@ import {
   View, ArrowUp,
   ArrowUpDown,
   X,
+  CheckCircle,
+  XCircle,
   Info as InfoIcon,
 } from "lucide-react";
 import {
@@ -49,7 +52,7 @@ import {
 } from "@/components/ui/command";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 
 export interface Column {
   key: string | ((row: any, index: number) => any); // Dynamic key or accessor function
@@ -58,7 +61,7 @@ export interface Column {
   render?: (value: any, row: any, index: number) => React.ReactNode; // Custom cell renderer
   filterable?: boolean; // Indicates if the column is filterable
   visible?: boolean; // Indicates if the column is visible (default: true)
-  filterType?: "string" | "number" | "date"; // Type of filter (default: string)
+  filterType?: "string" | "number" | "date" | "boolean"; // Type of filter (default: string)
   align?: "left" | "center" | "right"; // Text alignment for the column (default: left)
 }
 
@@ -162,13 +165,50 @@ const DataTable: React.FC<DataTableProps> = ({
         // Skip filtering if column is not filterable or if key is a function
         if (column.filterable !== true || typeof column.key === "function") {
           return true;
-        }
+        }        const cellValue = row[column.key]; 
+        const filterValues = columnFilters[column.key] || []; 
+        
+        if (filterValues.length > 0) {          // Special handling for null or empty string values
+          if (cellValue === null || cellValue === '') {
+            // For date columns, always exclude null/empty values when filter is applied
+            if (column.filterType === "date") {
+              // Include null values only if date filter is completely cleared
+              return filterValues[0] === "" && filterValues[1] === "";
+            }
+            
+            // For boolean columns, check if "Not Set" is selected
+            if (column.filterType === "boolean") {
+              return filterValues.some(v => {
+                if (typeof v !== 'string') return false;
+                const lowerVal = v.toLowerCase();
+                return lowerVal === "not set" || lowerVal === "unknown" || lowerVal === "null";
+              });
+            }
+            
+            // For string columns, check if "Not Set" is selected
+            if (column.filterType === "string") {
+              return filterValues.some(v => {
+                if (typeof v !== 'string') return false;
+                const lowerVal = v.toLowerCase();
+                return lowerVal === "unknown" || lowerVal === "not set" || lowerVal === "null";
+              });
+            }
 
-        const cellValue = row[column.key];
-
-        const filterValues = columnFilters[column.key] || [];
-        if (filterValues.length > 0 && cellValue != null) {
-          switch (column.filterType) {
+            // Otherwise, null values don't match any filter
+            return false;
+          }switch (column.filterType) {            case "boolean":
+              // Handle boolean values
+              return filterValues.some((filterValue) => {
+                // Make sure we're dealing with strings before using toLowerCase
+                if (typeof filterValue !== 'string') return false;
+                
+                // Map filter values to boolean for comparison
+                const lowerFilterValue = filterValue.toLowerCase();
+                if (lowerFilterValue === "active" && cellValue === true) return true;
+                if (lowerFilterValue === "inactive" && cellValue === false) return true;
+                if (lowerFilterValue === "not set" && (cellValue === null || cellValue === undefined || cellValue === '')) return true;
+                return false;
+              });
             case "number":              // Handle case when only min or max is provided
               const minValue = filterValues[0];
               const maxValue = filterValues[1];
@@ -194,60 +234,124 @@ const DataTable: React.FC<DataTableProps> = ({
                 return numericValue <= numericMax;
               }
               // If no filter is applied
-              return true;
-            case "date":
+              return true; case "date":
+              // Null values are already handled in the top-level condition
+              // This code will only run for non-null date values
               return filterValues.every((filterValue, index) => {
                 if (index === 0 && filterValue !== "") {
-                  return new Date(cellValue) >= new Date(filterValue);
+                  // For start date comparison, set time to 00:00:00
+                  const startDate = new Date(filterValue);
+                  startDate.setHours(0, 0, 0, 0);
+
+                  // Convert cell value to date and compare dates only, ignoring time component
+                  const cellDate = new Date(cellValue);
+                  return cellDate >= startDate;
                 }
                 if (index === 1 && filterValue !== "") {
-                  return new Date(cellValue) <= new Date(filterValue);
+                  // For end date comparison, set time to 23:59:59
+                  const endDate = new Date(filterValue);
+                  endDate.setHours(23, 59, 59, 999);
+
+                  // Convert cell value to date and compare
+                  const cellDate = new Date(cellValue);
+                  return cellDate <= endDate;
                 }
-                return true;
+                return true;              }); case "string":
+            default:              // For regular string values
+              return filterValues.some((filterValue) => {
+                // Make sure filterValue is a string
+                if (typeof filterValue !== 'string') return false;
+
+                // Special case for "Not Set" filter value with null/empty cell values
+                if (filterValue === "Not Set" && (cellValue === null || cellValue === '')) return true;
+
+                // Skip this filterValue if it's "Not Set" but the cell has a non-empty value
+                if (filterValue === "Not Set" && cellValue !== null && cellValue !== '') return false;
+
+                // Regular string comparison - safely convert cell value to string first
+                try {
+                  const cellString = String(cellValue).toLowerCase();
+                  const filterString = filterValue.toLowerCase();
+                  return cellString.includes(filterString);
+                } catch (e) {
+                  // If conversion fails for any reason, don't match
+                  return false;
+                }
               });
-            case "string":
-            default:
-              return filterValues.some((filterValue) =>
-                cellValue
-                  .toString()
-                  .toLowerCase()
-                  .includes(filterValue.toLowerCase())
-              );
           }
         }
         return true;
       })
-    )
-    .filter((row) =>
+    ).filter((row) =>
       visibleColumns.some((column) => {
         const cellValue =
           typeof column.key === "function"
             ? column.key(row, 0)
             : row[column.key];
-        return cellValue
-          ?.toString()
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
+
+        // Handle different value types for search
+        if (cellValue === null || cellValue === undefined) {
+          return false;
+        }
+        // Handle boolean values specially for search
+        if (typeof cellValue === "boolean") {
+          const booleanAsString = cellValue ? "active" : "inactive";
+          return booleanAsString.includes(searchQuery.toLowerCase());
+        }
+
+        // Handle null values for search
+        if (cellValue === null) {
+          const nullSearchTerms = ["null", "not set", "unknown", "missing"];
+          return nullSearchTerms.some(term => term.includes(searchQuery.toLowerCase()));
+        }
+        // Default string comparison - safely convert to string
+        try {
+          return String(cellValue)
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        } catch (e) {
+          // If string conversion fails, don't match
+          return false;
+        }
       })
     );
   const sortedData = React.useMemo(() => {
     if (!sortConfig.length) return filteredData;
 
     // Sort the sortConfig array by priority (lower number = higher priority)
-    const sortConfigByPriority = [...sortConfig].sort((a, b) => a.priority - b.priority);
-
-    const sorted = [...filteredData].sort((a, b) => {
+    const sortConfigByPriority = [...sortConfig].sort((a, b) => a.priority - b.priority); const sorted = [...filteredData].sort((a, b) => {
       // Iterate through each sort config in order of priority
       for (const config of sortConfigByPriority) {
-        if (typeof config.key !== "string") continue;
-
-        const aValue = a[config.key];
+        if (typeof config.key !== "string") continue; const aValue = a[config.key];
         const bValue = b[config.key];
 
-        // Skip this sort if the values are equal or null
-        if (aValue == null || bValue == null || aValue === bValue) continue;
+        // Skip only if values are equal
+        if (aValue === bValue) continue;
 
-        // Compare values based on the sort direction
+        // Handle cases where either value is null
+        if (aValue === null && bValue !== null) {
+          // In ascending order, null values come first
+          // In descending order, null values come last
+          return config.direction === "asc" ? -1 : 1;
+        }
+
+        if (aValue !== null && bValue === null) {
+          // In ascending order, null values come first
+          // In descending order, null values come last
+          return config.direction === "asc" ? 1 : -1;
+        }
+
+        // Special handling for boolean values (true sorts first in asc, false sorts first in desc)
+        if (typeof aValue === "boolean" && typeof bValue === "boolean") {
+          // For booleans, true is greater than false
+          if (config.direction === "asc") {
+            return aValue ? 1 : -1; // false first in ascending order
+          } else {
+            return aValue ? -1 : 1; // true first in descending order
+          }
+        }
+
+        // Compare values based on the sort direction for other data types
         if (aValue < bValue) return config.direction === "asc" ? -1 : 1;
         if (aValue > bValue) return config.direction === "asc" ? 1 : -1;
       }
@@ -420,6 +524,9 @@ const DataTable: React.FC<DataTableProps> = ({
 
       return newSortConfig;
     });
+
+    // Reset to first page when sorting is applied
+    setCurrentPage(1);
   }; const renderSortIcon = (columnKey: string | ((row: any, index: number) => React.ReactNode)) => {
     if (typeof columnKey !== "string") return null;
 
@@ -449,12 +556,23 @@ const DataTable: React.FC<DataTableProps> = ({
       } else {
         const currentValues = [...(prev[key] || [])];
 
-        if (currentValues.includes(value)) {
-          // Remove the value if it already exists
-          newFilters[key] = currentValues.filter((v: string) => v !== value);
+        // Special handling for "Not Set" filter which includes both null and empty values
+        if (value === "Not Set") {
+          if (currentValues.includes("Not Set")) {
+            // Remove the Not Set value if it already exists
+            newFilters[key] = currentValues.filter((v: string) => v !== "Not Set");
+          } else {
+            // Add Not Set but remove any empty string values that might be in the filter
+            newFilters[key] = [...currentValues.filter((v: string) => v !== ""), "Not Set"];
+          }
         } else {
-          // Add the value if it doesn't exist
-          newFilters[key] = [...currentValues, value];
+          if (currentValues.includes(value)) {
+            // Remove the value if it already exists
+            newFilters[key] = currentValues.filter((v: string) => v !== value);
+          } else {
+            // Add the value if it doesn't exist
+            newFilters[key] = [...currentValues, value];
+          }
         }
       }
 
@@ -474,9 +592,66 @@ const DataTable: React.FC<DataTableProps> = ({
       <span className="ml-2 text-xs text-blue-500">(Filtered)</span>
     ) : null;
   }; const renderFilterUI = (column: Column) => {
-    const filterValues = columnFilters[column.key as string] || [];
+    const filterValues = columnFilters[column.key as string] || [];    switch (column.filterType) {      case "boolean":
+        // Boolean filter UI with value counts
+        return (
+          <div className="p-2">
+            <Command>
+              <CommandInput placeholder={`Search...`} />
+              <CommandList>
+                <CommandEmpty>No options found.</CommandEmpty>
+                <CommandGroup>
+                  {["Active", "Inactive", "Not Set"].map((label) => {
+                    // Calculate the count of items matching this filter value
+                    let count = 0;
+                    if (label === "Active") {
+                      count = data.filter(row => row[column.key as string] === true).length;
+                    } else if (label === "Inactive") {
+                      count = data.filter(row => row[column.key as string] === false).length;
+                    } else { // "Not Set"
+                      count = data.filter(row => 
+                        row[column.key as string] === null || 
+                        row[column.key as string] === undefined || 
+                        row[column.key as string] === '').length;
+                    }
 
-    switch (column.filterType) {
+                    return (
+                      <CommandItem
+                        key={label}
+                        onSelect={() =>
+                          handleFilterChange(column.key as string, label)
+                        }
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filterValues.includes(label)}
+                          readOnly
+                          className="mr-2"
+                        />
+                        <span className="flex-1">{label}</span>
+                        <span className="text-xs text-gray-500">({count})</span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+            {filterValues.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => setColumnFilters(prev => {
+                  const newFilters = { ...prev };
+                  delete newFilters[column.key as string];
+                  return newFilters;
+                })}
+              >
+                Clear Filter
+              </Button>
+            )}
+          </div>
+        );
       case "number":
         // Using local state to manage inputs independently before sending to the main state
         return (
@@ -559,85 +734,153 @@ const DataTable: React.FC<DataTableProps> = ({
             )}
           </div>
         ); case "date":
-        return (
-          <div className="flex flex-col items-center p-2">
-            <Calendar
-              mode="range"
-              selected={{
-                from: filterValues[0] ? new Date(filterValues[0]) : undefined,
-                to: filterValues[1] ? new Date(filterValues[1]) : undefined,
-              }} onSelect={(selectedRange) => {
-                // If no range is selected, clear the filter
-                if (!selectedRange || (!selectedRange.from && !selectedRange.to)) {
-                  handleFilterChange(column.key as string, ["", ""]);
-                  return;
-                }
-
-                // Get the current selection
-                const currentFrom = filterValues[0] ? new Date(filterValues[0]) : undefined;
-                const currentTo = filterValues[1] ? new Date(filterValues[1]) : undefined;
-
-                // Check if the user clicked the same date to reset
-                const isResetFrom = currentFrom && selectedRange?.from &&
-                  currentFrom.getFullYear() === selectedRange.from.getFullYear() &&
-                  currentFrom.getMonth() === selectedRange.from.getMonth() &&
-                  currentFrom.getDate() === selectedRange.from.getDate() &&
-                  !selectedRange.to;
-
-                const isResetTo = currentTo && selectedRange?.to &&
-                  currentTo.getFullYear() === selectedRange.to.getFullYear() &&
-                  currentTo.getMonth() === selectedRange.to.getMonth() &&
-                  currentTo.getDate() === selectedRange.to.getDate() &&
-                  currentFrom && selectedRange.from &&
-                  currentFrom.getFullYear() === selectedRange.from.getFullYear() &&
-                  currentFrom.getMonth() === selectedRange.from.getMonth() &&
-                  currentFrom.getDate() === selectedRange.from.getDate();
-
-                // If it's the same date being selected twice, reset the value
-                if (isResetFrom || isResetTo) {
-                  handleFilterChange(column.key as string, ["", ""]);
-                  return;
-                }
-
-                // Otherwise, proceed with the normal date selection                // Format dates in ISO format for consistent storage
-                handleFilterChange(column.key as string, [
-                  selectedRange?.from ? format(selectedRange.from, "yyyy-MM-dd") : "",
-                  selectedRange?.to ? format(selectedRange.to, "yyyy-MM-dd") : "",
-                ]);
-              }}
-              initialFocus
-              className="p-3 pointer-events-auto w-full"
-            />
+        return (<div className="flex flex-col items-center p-2">
+          {/* <div className="mb-2 text-xs text-gray-500 flex items-center">
+            <InfoIcon className="w-3 h-3 mr-1" />
+            When filtering dates, start date is set to 00:00:00 and end date to 23:59:59
           </div>
-        );
-      case "string":
-      default:
-        return (<Command>
-          <CommandInput placeholder={`Search...`} />
-          <CommandList>
-            <CommandEmpty>No options found.</CommandEmpty>
-            <CommandGroup>
-              {[...new Set(data.map((row) => row[column.key as string]))]
-                .filter((value) => value != null)
-                .map((value) => (
-                  <CommandItem
-                    key={value}
-                    onSelect={() =>
-                      handleFilterChange(column.key as string, value)
-                    }
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filterValues.includes(value)}
-                      readOnly
-                      className="mr-2"
-                    />
-                    {value}
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
+          {(filterValues[0] || filterValues[1]) && filterValues[2] !== "include-null" && (
+            <div className="mb-2 text-xs text-gray-500">
+              Note: Empty date values are filtered out. Use the checkbox below to include them.
+            </div>
+          )} */}
+          <Calendar
+            mode="range"
+            selected={{
+              from: filterValues[0] ? new Date(filterValues[0]) : undefined,
+              to: filterValues[1] ? new Date(filterValues[1]) : undefined,
+            }}            onSelect={(selectedRange) => {
+              // If no range is selected, clear the filter
+              if (!selectedRange || (!selectedRange.from && !selectedRange.to)) {
+                handleFilterChange(column.key as string, ["", ""]);
+                return;
+              }
+
+              // Get the current selection
+              const currentFrom = filterValues[0] ? new Date(filterValues[0]) : undefined;
+              const currentTo = filterValues[1] ? new Date(filterValues[1]) : undefined;
+
+              // Check if the user clicked the same date to reset
+              const isResetFrom = currentFrom && selectedRange?.from &&
+                currentFrom.getFullYear() === selectedRange.from.getFullYear() &&
+                currentFrom.getMonth() === selectedRange.from.getMonth() &&
+                currentFrom.getDate() === selectedRange.from.getDate() &&
+                !selectedRange.to;
+
+              const isResetTo = currentTo && selectedRange?.to &&
+                currentTo.getFullYear() === selectedRange.to.getFullYear() &&
+                currentTo.getMonth() === selectedRange.to.getMonth() &&
+                currentTo.getDate() === selectedRange.to.getDate() &&
+                currentFrom && selectedRange.from &&
+                currentFrom.getFullYear() === selectedRange.from.getFullYear() &&
+                currentFrom.getMonth() === selectedRange.from.getMonth() &&
+                currentFrom.getDate() === selectedRange.from.getDate();
+                
+              // If it's the same date being selected twice, reset the value
+              if (isResetFrom || isResetTo) {
+                handleFilterChange(column.key as string, ["", ""]);
+                return;
+              }
+                
+              // Otherwise, proceed with the normal date selection
+              // Format dates in ISO format for consistent storage
+              let fromDate = selectedRange?.from ? new Date(selectedRange.from) : null;
+              let toDate = selectedRange?.to ? new Date(selectedRange.to) : null;
+
+              handleFilterChange(column.key as string, [
+                fromDate ? format(fromDate, "yyyy-MM-dd") : "",
+                toDate ? format(toDate, "yyyy-MM-dd") : ""
+              ]);
+            }}            initialFocus
+            className="p-3 pointer-events-auto w-full"
+          />          {(filterValues[0] || filterValues[1]) && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => handleFilterChange(column.key as string, ["", ""])}
+            >
+              Clear Filter
+            </Button>
+          )}
+        </div>        ); case "string":
+      default:        // Standard string filter UI
+        return (
+          <div className="p-2">
+            <Command>
+              <CommandInput placeholder={`Search...`} />
+              <CommandList>
+                <CommandEmpty>No options found.</CommandEmpty>
+                <CommandGroup>
+                  {/* Add a special option for NULL or empty string values */}
+                  {data.some(row => row[column.key as string] === null || row[column.key as string] === '') && (
+                    <CommandItem
+                      key="__null__"
+                      onSelect={() =>
+                        handleFilterChange(column.key as string, "Not Set")
+                      }
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filterValues.includes("Not Set")}
+                        readOnly
+                        className="mr-2"
+                      />
+                      <span className="flex-1">Not Set</span>
+                      <span className="text-xs text-gray-500">
+                        ({data.filter(row => row[column.key as string] === null || row[column.key as string] === '').length})
+                      </span>
+                    </CommandItem>
+                  )}
+                  
+                  {/* List all non-null and non-empty values */}
+                  {(() => {
+                    // Count occurrences of each unique value
+                    const valueCounts = new Map();
+                    data.forEach(row => {
+                      const val = row[column.key as string];
+                      if (val !== null && val !== '') {
+                        valueCounts.set(val, (valueCounts.get(val) || 0) + 1);
+                      }
+                    });
+                    
+                    // Convert to array and render
+                    return Array.from(valueCounts.entries())
+                      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+                      .map(([value, count]) => (
+                        <CommandItem
+                          key={String(value)}
+                          onSelect={() => handleFilterChange(column.key as string, value)}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filterValues.includes(value)}
+                            readOnly
+                            className="mr-2"
+                          />
+                          <span className="flex-1">{value}</span>
+                          <span className="text-xs text-gray-500">({count})</span>
+                        </CommandItem>
+                      ));
+                  })()}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+            
+            {filterValues.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => setColumnFilters(prev => {
+                  const newFilters = { ...prev };
+                  delete newFilters[column.key as string];
+                  return newFilters;
+                })}
+              >
+                Clear Filter
+              </Button>            )}
+          </div>
         );
     }
   }; const isFilterApplied =
@@ -672,18 +915,17 @@ const DataTable: React.FC<DataTableProps> = ({
                     (columnFilters[column.key as string][0] !== "" || columnFilters[column.key as string][1] !== "") ? (
                     <div className="flex items-center gap-1">
                       <CalendarIcon className="h-4 w-4" />
-                      <span>
-                        {columnFilters[column.key as string][0] &&
-                          columnFilters[column.key as string][1] ? (
-                          <>
-                            {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")} -
-                            {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}
-                          </>
-                        ) : columnFilters[column.key as string][0] ? (
-                          <>From: {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")}</>
-                        ) : (
-                          <>To: {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}</>
-                        )}
+                      <span>                        {columnFilters[column.key as string][0] &&
+                        columnFilters[column.key as string][1] ? (
+                        <>
+                          {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")} -
+                          {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}
+                        </>
+                      ) : columnFilters[column.key as string][0] ? (
+                        <>From: {format(new Date(columnFilters[column.key as string][0]), "MMM dd, yyyy")}</>
+                      ) : (
+                        <>To: {format(new Date(columnFilters[column.key as string][1]), "MMM dd, yyyy")}</>
+                      )}
                       </span>
 
                       {/* X button inside date filter */}
@@ -712,8 +954,8 @@ const DataTable: React.FC<DataTableProps> = ({
                                     ? `≥ ${columnFilters[column.key as string][0]}`
                                     : `≤ ${columnFilters[column.key as string][1]}`}
                               </span>
-                            )}
-                            {column.filterType === "string" && columnFilters[column.key as string].length > 0 && (
+                            )}                            {/* Show selected values for string and boolean filters */}
+                            {(column.filterType === "string" || column.filterType === "boolean") && columnFilters[column.key as string].length > 0 && (
                               <span className="ml-1 text-xs">
                                 {columnFilters[column.key as string].length > 5
                                   ? `(${columnFilters[column.key as string].length} selected)`
@@ -725,8 +967,7 @@ const DataTable: React.FC<DataTableProps> = ({
                             <span
                               className="ml-1 cursor-pointer"
                               onClick={(e) => {
-                                e.stopPropagation();
-                                if (column.filterType === "string") {
+                                e.stopPropagation();                                if (column.filterType === "string" || column.filterType === "boolean") {
                                   handleFilterChange(column.key as string, []);
                                 } else {
                                   handleFilterChange(column.key as string, ["", ""]);
@@ -822,14 +1063,13 @@ const DataTable: React.FC<DataTableProps> = ({
                     <TableCell
                       key={`${rowIndex}-${colIndex}`}
                       className={`py-4 px-6 text-sm text-gray-900 ${column.align ? `text-${column.align}` : ''}`}
-                    >
-                      {column.render
-                        ? column.render(
-                          getCellValue(column, row, rowIndex),
-                          row,
-                          rowIndex
-                        )
-                        : getCellValue(column, row, rowIndex)}
+                    >                      {column.render
+                      ? column.render(
+                        getCellValue(column, row, rowIndex),
+                        row,
+                        rowIndex
+                      )
+                      : getCellValue(column, row, rowIndex)}
                     </TableCell>
                   ))}
                   </TableRow>
