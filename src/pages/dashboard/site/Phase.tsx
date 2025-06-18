@@ -1,3 +1,4 @@
+import React from 'react';
 import { useUserMetadata } from '@/hooks/use-user-metadata';
 import { useGetPhases, useDeletePhase } from '@/hooks/phase/use-phase';
 import DataTable, { Column } from '@/components/ui/datatable';
@@ -16,6 +17,7 @@ import {
     X,
     AlertCircle
 } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 const Phase = () => {
     // Get user organization context
@@ -34,6 +36,11 @@ const Phase = () => {
 
     const deletePhaseMutation = useDeletePhase();
 
+    const [confirmDialog, setConfirmDialog] = React.useState<{
+        open: boolean;
+        phaseId: number | null;
+    }>({ open: false, phaseId: null });
+
     // Action handlers
     const handleViewPhase = (phaseId: number) => {
         toast({
@@ -49,24 +56,26 @@ const Phase = () => {
         // TODO: Add edit logic
     };
     
-    const handleDeletePhase = async (phaseId: number) => {
-        const confirmed = window.confirm('Are you sure you want to delete this phase?');
-        
-        if (confirmed) {
-            try {
-                await deletePhaseMutation.mutateAsync(phaseId);
-                
-                toast({
-                    title: `Deleted Phase ${phaseId}`,
-                    variant: "success",
-                });
-            } catch (error: any) {
-                toast({
-                    title: `Failed to delete Phase ${phaseId}`,
-                    description: error.message,
-                    variant: "destructive",
-                });
-            }
+    const handleDeletePhase = (phaseId: number) => {
+        setConfirmDialog({ open: true, phaseId });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (confirmDialog.phaseId == null) return;
+        try {
+            await deletePhaseMutation.mutateAsync(confirmDialog.phaseId);
+            toast({
+                title: `Deleted Phase ${confirmDialog.phaseId}`,
+                variant: "success",
+            });
+        } catch (error: any) {
+            toast({
+                title: `Failed to delete Phase ${confirmDialog.phaseId}`,
+                description: error.message,
+                variant: "destructive",
+            });
+        } finally {
+            setConfirmDialog({ open: false, phaseId: null });
         }
     };
 
@@ -282,6 +291,17 @@ const Phase = () => {
                     </div>
                 )}
             </div>
+
+            <ConfirmationDialog
+                open={confirmDialog.open}
+                onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+                title="Delete Phase?"
+                description="Are you sure you want to delete this phase? This action cannot be undone."
+                confirmText="Delete"
+                confirmVariant="destructive"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setConfirmDialog({ open: false, phaseId: null })}
+            />
         </div>
     );
 }
