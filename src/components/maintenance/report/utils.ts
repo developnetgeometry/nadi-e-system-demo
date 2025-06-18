@@ -1,5 +1,4 @@
-import { MaintenanceDocketType } from "@/types/maintenance";
-import { format } from "date-fns";
+import { format, formatDate } from "date-fns";
 import { jsPDF } from "jspdf";
 
 export function footerNadiDocs(doc: jsPDF, date: Date) {
@@ -82,37 +81,26 @@ export async function headerNadiDocs(doc: jsPDF, duspLogoUrl: string) {
 }
 
 export const generateDocketNumber = (
-  type: MaintenanceDocketType,
+  duspCode: string,
   now: Date,
-  formData?: FormData,
-  maintenanceTypeId?: number
+  id: number
 ) => {
   /**
    * Docket number generation
-   * Format: XYYYYMMDDHHMMSSTT
+   * Format: DUSPYYMMDDXXXX
    *
-   * X: 1 -> cm, 2 -> pm
-   * YYYY: year
+   * DUSP: dusp code
+   * YY: year
    * MM: month
    * DD: day
-   * HH: hour
-   * MM: minute
-   * SS: second
-   * TT: type_id
+   * XXXX: from 'id' column in maintenance table (4 digits)
    */
 
-  const maintenanceType =
-    maintenanceTypeId ?? Number(formData?.get("maintenanceType"));
+  const idStr = id.toString();
+  const last4Digits =
+    idStr.length > 4
+      ? idStr.slice(-4) // truncate and keep last 4 digits
+      : idStr.padStart(4, "0"); // fill with leading zeros
 
-  const docketNumber =
-    (type === MaintenanceDocketType.Corrective ? "1" : "2") +
-    now.getFullYear() +
-    ("0" + (now.getMonth() + 1)).slice(-2) +
-    ("0" + now.getDate()).slice(-2) +
-    ("0" + now.getHours()).slice(-2) +
-    ("0" + now.getMinutes()).slice(-2) +
-    ("0" + now.getSeconds()).slice(-2) +
-    ("0" + Number(maintenanceType ?? "")).slice(-2);
-
-  return docketNumber;
+  return duspCode + formatDate(now, "yyMMdd") + last4Digits;
 };

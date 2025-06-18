@@ -29,15 +29,7 @@ export const maintenanceClient = {
       .order("updated_at", { ascending: false });
 
     if (type) {
-      const prefix =
-        type.toLowerCase() === "cm"
-          ? "1%"
-          : type.toLowerCase() === "pm"
-          ? "2%"
-          : null;
-      if (prefix) {
-        query = query.like("no_docket", prefix);
-      }
+      query = query.like("docket_type", type);
     }
 
     if (statuses && statuses.length > 0) {
@@ -62,12 +54,6 @@ export const maintenanceClient = {
       data
         .filter((item) => item.asset && item.asset.site_id)
         .map(async (item) => {
-          if (item.no_docket && item.no_docket.startsWith("1")) {
-            item.docket_type = "cm";
-          } else if (item.no_docket && item.no_docket.startsWith("2")) {
-            item.docket_type = "pm";
-          }
-
           return {
             ...item,
             type: item.nd_type_maintenance,
