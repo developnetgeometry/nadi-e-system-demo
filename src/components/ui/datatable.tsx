@@ -99,20 +99,29 @@ const getTextFromReactElement = (element: React.ReactNode): string => {
 
 // Enhanced helper to get nested value from object using dot notation and array indices
 function getNestedValue(obj: any, path: string): any {
+  // Special handling for null/undefined objects
+  if (obj === null || obj === undefined) {
+    return null;
+  }
+  
   return path.split('.').reduce((acc, part) => {
-    if (!acc) return undefined;
+    // Return null for undefined or null values to ensure consistent handling
+    if (acc === null || acc === undefined) return null;
+    
     // Handle array index, e.g. nd_phases_contract[0]
     const match = part.match(/^([a-zA-Z0-9_]+)\[(\d+)\]$/);
     if (match) {
       const prop = match[1];
       const idx = parseInt(match[2], 10);
-      return acc[prop] && Array.isArray(acc[prop]) ? acc[prop][idx] : undefined;
+      return acc[prop] && Array.isArray(acc[prop]) ? acc[prop][idx] : null;
     }
     // Handle numeric part (e.g. .0.)
     if (!isNaN(Number(part))) {
-      return Array.isArray(acc) ? acc[Number(part)] : undefined;
+      return Array.isArray(acc) ? acc[Number(part)] : null;
     }
-    return acc[part];
+    
+    // Check if property exists before accessing
+    return acc.hasOwnProperty(part) ? acc[part] : null;
   }, obj);
 }
 
@@ -169,10 +178,17 @@ const DataTable: React.FC<DataTableProps> = ({
                 const lowerVal = v.toLowerCase();
                 return lowerVal === "not set" || lowerVal === "unknown" || lowerVal === "null";
               });
+            }              // For string columns, check if "Not Set" is selected
+            if (column.filterType === "string") {
+              return filterValues.some(v => {
+                if (typeof v !== 'string') return false;
+                const lowerVal = v.toLowerCase();
+                return lowerVal === "unknown" || lowerVal === "not set" || lowerVal === "null";
+              });
             }
             
-            // For string columns, check if "Not Set" is selected
-            if (column.filterType === "string") {
+            // Special handling for nested keys that might be null at parent level
+            if (column.key.includes('.')) {
               return filterValues.some(v => {
                 if (typeof v !== 'string') return false;
                 const lowerVal = v.toLowerCase();
