@@ -171,7 +171,7 @@ export const MaintenanceRequestFormDialog = ({
       if (insertError) throw insertError;
 
       const docketNumber = generateDocketNumber(
-        selectedAsset?.site?.dusp_tp?.parent?.name,
+        selectedAsset?.site?.dusp_tp?.parent?.code,
         now,
         insertedData[0].id
       );
@@ -250,7 +250,7 @@ export const MaintenanceRequestFormDialog = ({
       if (insertError) throw insertError;
 
       const docketNumber = generateDocketNumber(
-        selectedAsset?.site?.dusp_tp?.parent?.name,
+        selectedAsset?.site?.dusp_tp?.parent?.code,
         now,
         insertedData[0].id
       );
@@ -417,9 +417,6 @@ export const MaintenanceRequestFormDialog = ({
                           <p className="font-semibold text-sm">
                             {selectedAsset.name}
                           </p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedAsset.id}
-                          </p>
                         </div>
                       </div>
                     )}
@@ -528,9 +525,6 @@ export const MaintenanceRequestFormDialog = ({
                         <div className="mt-2 bg-gray-50">
                           <p className="font-semibold text-sm">
                             {selectedAsset.name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedAsset.id}
                           </p>
                         </div>
                       </div>

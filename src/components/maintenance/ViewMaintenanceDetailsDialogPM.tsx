@@ -427,7 +427,7 @@ export const ViewMaintenanceDetailsDialogPM = ({
           }
 
           const docketNumber = generateDocketNumber(
-            maintenanceRequest?.asset?.site?.dusp_tp?.parent?.name,
+            maintenanceRequest?.asset?.site?.dusp_tp?.parent?.code,
             now,
             insertedData[0].id
           );

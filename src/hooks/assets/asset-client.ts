@@ -15,7 +15,7 @@ export const assetClient = {
         nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site_profile (
           *,
-          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name,logo_url))
+          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
         )`
       )
       .is("deleted_at", null);
@@ -70,8 +70,8 @@ export const assetClient = {
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site_profile (
-          *
-          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name,logo_url))
+          *,
+          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
         )`
       )
       .is("deleted_at", null);
@@ -93,7 +93,7 @@ export const assetClient = {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching assets:", error);
+      console.error("Error fetching assets by name:", error);
       throw error;
     }
 
@@ -128,8 +128,8 @@ export const assetClient = {
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name, brand_type ),
         site:nd_site_profile (
-          *
-          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(id,name,logo_url))
+          *,
+          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
         )`
       )
       .eq("id", id)

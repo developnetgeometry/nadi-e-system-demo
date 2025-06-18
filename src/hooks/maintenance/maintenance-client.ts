@@ -22,7 +22,10 @@ export const maintenanceClient = {
         sla:nd_sla_categories ( id, name, min_day, max_day ),
         asset:nd_asset (
           *,
-          site:nd_site_profile (*)
+          site:nd_site_profile (
+            *,
+            dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
+          )
         ),
         vendor:nd_vendor_profile ( id, business_name, registration_number, business_type, phone_number )`
       )
@@ -76,7 +79,10 @@ export const maintenanceClient = {
         sla:nd_sla_categories ( id, name ),
         asset:nd_asset (
           *,
-          site:nd_site_profile (*)
+          site:nd_site_profile (
+            *,
+            dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
+          )
         ),
         vendor:nd_vendor_profile ( id, business_name, registration_number, business_type, phone_number )`
       )
