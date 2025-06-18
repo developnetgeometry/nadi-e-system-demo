@@ -1,28 +1,19 @@
-import {
-  fetchSiteBySiteId,
-  fetchSites,
-} from "@/components/site/hook/site-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
-import { Site } from "@/types/site";
 
 export const assetClient = {
   fetchAssets: async (
     organizationId: string | null,
     siteId: string | null
   ): Promise<Asset[]> => {
-    const allSites = await fetchSites(organizationId);
-
     let query = supabase
       .from("nd_asset")
       .select(
         `*,
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name ),
-        site:nd_site (
-          id,
-          standard_code,
-          site_profile_id
+        site:nd_site_profile (
+          *
         )`
       )
       .is("deleted_at", null);
@@ -31,7 +22,7 @@ export const assetClient = {
       query = query.eq("site_id", Number(siteId));
     }
 
-    query = query.order("id");
+    query = query.order("created_at", { ascending: true });
 
     const { data, error } = await query;
 
@@ -40,7 +31,7 @@ export const assetClient = {
       throw error;
     }
 
-    const formatProfile = (profile: Site) => ({
+    const formatProfile = (profile) => ({
       ...profile,
       dusp_tp_id_display: profile?.dusp_tp?.parent
         ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
@@ -49,14 +40,7 @@ export const assetClient = {
 
     const filteredData = await Promise.all(
       data.map(async (item) => {
-        let profile = null;
-
-        if (siteId) {
-          profile = await fetchSiteBySiteId(siteId);
-        } else {
-          profile = allSites.find((s) => s.id === item.site?.site_profile_id);
-          profile = formatProfile(profile);
-        }
+        const profile = formatProfile(item.site);
 
         return {
           ...item,
@@ -77,26 +61,20 @@ export const assetClient = {
   ): Promise<Asset[]> => {
     if (!name) return [];
 
-    const allSites = await fetchSites(organizationId);
-
-    console.log(siteId);
-
     let query = supabase
       .from("nd_asset")
       .select(
         `*,
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name ),
-        site:nd_site (
-          id,
-          standard_code,
-          site_profile_id
+        site:nd_site_profile (
+          *
         )`
       )
       .is("deleted_at", null);
 
     if (siteId) {
-      query = query.eq("site_id", Number(siteId));
+      query = query.eq("nd_site_profile.id", Number(siteId));
     }
 
     if (name) {
@@ -116,7 +94,7 @@ export const assetClient = {
       throw error;
     }
 
-    const formatProfile = (profile: Site) => ({
+    const formatProfile = (profile) => ({
       ...profile,
       dusp_tp_id_display: profile?.dusp_tp?.parent
         ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
@@ -125,14 +103,7 @@ export const assetClient = {
 
     const filteredData = await Promise.all(
       data.map(async (item) => {
-        let profile = null;
-
-        if (siteId) {
-          profile = await fetchSiteBySiteId(siteId);
-        } else {
-          profile = allSites.find((s) => s.id === item.site?.site_profile_id);
-          profile = formatProfile(profile);
-        }
+        const profile = formatProfile(item.site);
 
         return {
           ...item,
@@ -153,9 +124,8 @@ export const assetClient = {
         `*,
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name, brand_type ),
-        site:nd_site (
-          id,
-          standard_code
+        site:nd_site_profile (
+          *
         )`
       )
       .eq("id", id)
@@ -166,13 +136,11 @@ export const assetClient = {
       throw error;
     }
 
-    const profile = await fetchSiteBySiteId(data.site_id);
-
     return {
       ...data,
       type: data.nd_asset_type,
       brand: data.nd_brand,
-      site: profile,
+      site: data.site,
     };
   },
 
@@ -183,7 +151,19 @@ export const assetClient = {
       );
     }
 
-    const { data, error } = await supabase.from("nd_asset").select(`
+    const assetTypePcsName = "PC";
+    const { data: assetTypeData, error: errorAssetType } = await supabase
+      .from("nd_asset_type")
+      .select("id")
+      .eq("name", assetTypePcsName)
+      .single();
+    if (errorAssetType) throw errorAssetType;
+    const assetTypePcsId = assetTypeData.id;
+
+    const { data, error } = await supabase
+      .from("nd_asset")
+      .select(
+        `
         *,
         nd_brand (
             id,
@@ -193,36 +173,38 @@ export const assetClient = {
               name
             )
           ),
-        nd_booking (
-            id,
-            booking_start,
-            booking_end,
-            is_using,
-            created_by
-          ),
+        nd_booking (*),
+        nd_space (*),
         nd_asset_type!inner (
             category_id
           )  
-      `);
+      `
+      )
+      .eq("type_id", assetTypePcsId);
 
     if (error) throw error;
 
     return data;
   },
 
-  fetchAssetByName: async (assetName: string) => {
+  fetchAssetByName: async (assetName: string, siteId: number) => {
     const { data, error } = await supabase
       .from("nd_asset")
-      .select("id")
-      .eq("name", assetName)
-      .single();
+      .select(`*, nd_site_profile(*, id)`)
+      .eq("name", assetName);
 
     if (error) {
       console.error("Error fetching asset by name", error);
       throw error;
     }
 
-    return data;
+    const filtered = data.find(
+      (item) => item.nd_site_profile.id === siteId
+    );
+
+    return {
+      id: filtered?.id,
+    };
   },
 
   fetchAssetCategories: async (): Promise<AssetCategory[]> => {
@@ -266,15 +248,14 @@ export const assetClient = {
 
   fetchAssetsByType: async (siteProfileId: number) => {
     if (siteProfileId) {
-      const { data: siteId, error: errorSiteId } = await supabase
-        .from("nd_site")
+      const assetTypePcsName = "PC";
+      const { data: assetTypeData, error: errorAssetType } = await supabase
+        .from("nd_asset_type")
         .select("id")
-        .eq("site_profile_id", siteProfileId)
+        .eq("name", assetTypePcsName)
         .single();
-
-      if (errorSiteId) {
-        throw errorSiteId;
-      }
+      if (errorAssetType) throw errorAssetType;
+      const assetTypePcsId = assetTypeData.id;
 
       const { data, error } = await supabase
         .from("nd_asset")
@@ -289,15 +270,14 @@ export const assetClient = {
               name
             )
           ),
+          nd_space (*),
           nd_booking (
-            id,
-            booking_start,
-            booking_end,
-            is_using,
-            created_by
+            *
           )
-        `)
-        .eq("site_id", siteId?.id);
+        `
+        )
+        .eq("site_id", siteProfileId)
+        .eq("type_id", assetTypePcsId);
 
       if (error) throw error;
 
@@ -305,19 +285,30 @@ export const assetClient = {
     }
   },
 
-  fetchAssetsBySiteId: async (siteProfileId: number | null, siteId?: number) => {
-    let site_id = siteId;
+  fetchAssetsBySiteId: async (
+    siteProfileId: number | null,
+    siteId?: number
+  ) => {
+    let site_id = siteProfileId;
+    const assetTypePcsName = "PC";
+    const { data: assetTypeData, error: errorAssetType } = await supabase
+      .from("nd_asset_type")
+      .select("id")
+      .eq("name", assetTypePcsName)
+      .single();
+    if (errorAssetType) throw errorAssetType;
+    const assetTypePcsId = assetTypeData.id;
 
-    if (siteProfileId) {
+    if (!site_id) {
       const { data: siteProfile, error: errorSiteProfile } = await supabase
         .from("nd_site")
-        .select("id")
-        .eq("site_profile_id", siteProfileId)
-        .single()
+        .select("site_profile_id")
+        .eq("id", siteId)
+        .single();
 
       if (errorSiteProfile) throw errorSiteProfile;
 
-      site_id = siteProfile?.id;
+      site_id = siteProfile?.site_profile_id;
     }
 
     const { data, error } = await supabase
@@ -325,7 +316,7 @@ export const assetClient = {
       .select(
         `
         *, 
-        nd_site (
+        nd_site_profile (
           id
         ), 
         nd_brand (
@@ -336,18 +327,17 @@ export const assetClient = {
             name
           )
         ),
+        nd_space (*),
         nd_booking (
-          id,
-          booking_start,
-          booking_end,
-          is_using,
-          created_by
+          *
         )
-      `)
+      `
+      )
       .eq("site_id", site_id)
+      .eq("type_id", assetTypePcsId);
 
     if (error) throw error;
-
+    console.log("data assets", data);
     return data;
   },
 
@@ -356,19 +346,19 @@ export const assetClient = {
 
     const { data, error } = await supabase
       .from("nd_site_profile")
-      .select(`
-          nd_site (
-            nd_asset (
+      .select(
+        `
+          nd_asset (
               *,
               nd_booking (*)
             )
-          )
-      `)
-      .eq("dusp_tp_id", tpOrgId)
+      `
+      )
+      .eq("dusp_tp_id", tpOrgId);
 
     if (error) throw error;
 
-    const assetsOnly = data.flatMap((siteItem) => siteItem.nd_site.flatMap((site) => site.nd_asset));
+    const assetsOnly = data.flatMap((siteItem) => siteItem.nd_asset);
 
     return assetsOnly;
   },
@@ -389,5 +379,5 @@ export const assetClient = {
       console.error("Error toggling site active status:", error);
       throw error;
     }
-  }
+  },
 };
