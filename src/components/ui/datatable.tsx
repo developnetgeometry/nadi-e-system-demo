@@ -97,6 +97,35 @@ const getTextFromReactElement = (element: React.ReactNode): string => {
   return '';
 };
 
+// Enhanced helper to get nested value from object using dot notation and array indices
+function getNestedValue(obj: any, path: string): any {
+  return path.split('.').reduce((acc, part) => {
+    if (!acc) return undefined;
+    // Handle array index, e.g. nd_phases_contract[0]
+    const match = part.match(/^([a-zA-Z0-9_]+)\[(\d+)\]$/);
+    if (match) {
+      const prop = match[1];
+      const idx = parseInt(match[2], 10);
+      return acc[prop] && Array.isArray(acc[prop]) ? acc[prop][idx] : undefined;
+    }
+    // Handle numeric part (e.g. .0.)
+    if (!isNaN(Number(part))) {
+      return Array.isArray(acc) ? acc[Number(part)] : undefined;
+    }
+    return acc[part];
+  }, obj);
+}
+
+const getCellValue = (column: Column, row: any, index: number) => {
+  if (typeof column.key === "function") {
+    return column.key(row, index);
+  }
+  if (typeof column.key === "string" && column.key.includes('.')) {
+    return getNestedValue(row, column.key);
+  }
+  return row[column.key];
+};
+
 const DataTable: React.FC<DataTableProps> = ({
   data = [],
   columns = [],
@@ -122,7 +151,7 @@ const DataTable: React.FC<DataTableProps> = ({
         // Skip filtering if column is not filterable or if key is a function
         if (column.filterable !== true || typeof column.key === "function") {
           return true;
-        }        const cellValue = row[column.key]; 
+        }        const cellValue = getCellValue(column, row, 0); 
         const filterValues = columnFilters[column.key] || []; 
         
         if (filterValues.length > 0) {          // Special handling for null or empty string values
@@ -244,7 +273,7 @@ const DataTable: React.FC<DataTableProps> = ({
         const cellValue =
           typeof column.key === "function"
             ? column.key(row, 0)
-            : row[column.key];
+            : getCellValue(column, row, 0);
 
         // Handle different value types for search
         if (cellValue === null || cellValue === undefined) {
@@ -276,41 +305,44 @@ const DataTable: React.FC<DataTableProps> = ({
     if (!sortConfig.length) return filteredData;
 
     // Sort the sortConfig array by priority (lower number = higher priority)
-    const sortConfigByPriority = [...sortConfig].sort((a, b) => a.priority - b.priority); const sorted = [...filteredData].sort((a, b) => {
+    const sortConfigByPriority = [...sortConfig].sort((a, b) => a.priority - b.priority);
+    const sorted = [...filteredData].sort((a, b) => {
       // Iterate through each sort config in order of priority
       for (const config of sortConfigByPriority) {
-        if (typeof config.key !== "string") continue; const aValue = a[config.key];
-        const bValue = b[config.key];
+        if (typeof config.key !== "string") continue;
+        // Find the corresponding column for this key
+        const column = columns.find(col => col.key === config.key);
+        if (!column) continue;
+        const aValue = getCellValue(column, a, 0);
+        const bValue = getCellValue(column, b, 0);
+
+        // Normalize undefined/null to empty string for comparison
+        const aComp = aValue === null || aValue === undefined ? '' : aValue;
+        const bComp = bValue === null || bValue === undefined ? '' : bValue;
 
         // Skip only if values are equal
-        if (aValue === bValue) continue;
+        if (aComp === bComp) continue;
 
-        // Handle cases where either value is null
-        if (aValue === null && bValue !== null) {
-          // In ascending order, null values come first
-          // In descending order, null values come last
+        // Handle cases where either value is empty string
+        if (aComp === '' && bComp !== '') {
           return config.direction === "asc" ? -1 : 1;
         }
-
-        if (aValue !== null && bValue === null) {
-          // In ascending order, null values come first
-          // In descending order, null values come last
+        if (aComp !== '' && bComp === '') {
           return config.direction === "asc" ? 1 : -1;
         }
 
         // Special handling for boolean values (true sorts first in asc, false sorts first in desc)
-        if (typeof aValue === "boolean" && typeof bValue === "boolean") {
-          // For booleans, true is greater than false
+        if (typeof aComp === "boolean" && typeof bComp === "boolean") {
           if (config.direction === "asc") {
-            return aValue ? 1 : -1; // false first in ascending order
+            return aComp ? 1 : -1;
           } else {
-            return aValue ? -1 : 1; // true first in descending order
+            return aComp ? -1 : 1;
           }
         }
 
-        // Compare values based on the sort direction for other data types
-        if (aValue < bValue) return config.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return config.direction === "asc" ? 1 : -1;
+        // Compare as strings for consistency
+        if (String(aComp) < String(bComp)) return config.direction === "asc" ? -1 : 1;
+        if (String(aComp) > String(bComp)) return config.direction === "asc" ? 1 : -1;
       }
 
       // If we've compared all sort configs and values are equal, return 0
@@ -409,7 +441,7 @@ const DataTable: React.FC<DataTableProps> = ({
               cellValue = col.key(row, rowIndex);
             } else {
               // For string keys, get the value directly
-              cellValue = row[col.key];
+              cellValue = getCellValue(col, row, rowIndex);
             }
 
             // For custom rendered cells, we should export the raw data value, not the rendered JSX
@@ -433,12 +465,7 @@ const DataTable: React.FC<DataTableProps> = ({
     document.body.removeChild(link);
   };
 
-  const getCellValue = (column: Column, row: any, index: number) => {
-    if (typeof column.key === "function") {
-      return column.key(row, index);
-    }
-    return row[column.key];
-  }; const handleSort = (key: string, event?: React.MouseEvent) => {
+  const handleSort = (key: string, event?: React.MouseEvent) => {
     // Only allow sorting on string column keys (not function keys)
     if (typeof key !== "string" || key === "") return;
 
@@ -562,14 +589,14 @@ const DataTable: React.FC<DataTableProps> = ({
                     // Calculate the count of items matching this filter value
                     let count = 0;
                     if (label === "Active") {
-                      count = data.filter(row => row[column.key as string] === true).length;
+                      count = data.filter(row => getCellValue(column, row, 0) === true).length;
                     } else if (label === "Inactive") {
-                      count = data.filter(row => row[column.key as string] === false).length;
+                      count = data.filter(row => getCellValue(column, row, 0) === false).length;
                     } else { // "Not Set"
                       count = data.filter(row => 
-                        row[column.key as string] === null || 
-                        row[column.key as string] === undefined || 
-                        row[column.key as string] === '').length;
+                        getCellValue(column, row, 0) === null || 
+                        getCellValue(column, row, 0) === undefined || 
+                        getCellValue(column, row, 0) === '').length;
                     }
 
                     return (
@@ -770,7 +797,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 <CommandEmpty>No options found.</CommandEmpty>
                 <CommandGroup>
                   {/* Add a special option for NULL or empty string values */}
-                  {data.some(row => row[column.key as string] === null || row[column.key as string] === '') && (
+                  {data.some(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '') && (
                     <CommandItem
                       key="__null__"
                       onSelect={() =>
@@ -785,7 +812,7 @@ const DataTable: React.FC<DataTableProps> = ({
                       />
                       <span className="flex-1">Not Set</span>
                       <span className="text-xs text-gray-500">
-                        ({data.filter(row => row[column.key as string] === null || row[column.key as string] === '').length})
+                        ({data.filter(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '').length})
                       </span>
                     </CommandItem>
                   )}
@@ -795,7 +822,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     // Count occurrences of each unique value
                     const valueCounts = new Map();
                     data.forEach(row => {
-                      const val = row[column.key as string];
+                      const val = getCellValue(column, row, 0);
                       if (val !== null && val !== '') {
                         valueCounts.set(val, (valueCounts.get(val) || 0) + 1);
                       }
