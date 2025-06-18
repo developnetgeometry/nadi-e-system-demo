@@ -48,6 +48,7 @@ import { bookingClient } from "@/hooks/booking/booking-client";
 import { stringToDateWithTime } from "../utils/stringToDateWithTime";
 import { Booking } from "@/types/booking";
 import { SiteSpace } from "@/types/site";
+import { formatToISO } from "../utils/formatToIso";
 
 interface BookingAssetCardProps {
     id: string;
@@ -104,39 +105,45 @@ export const BookingAssetCard = ({
                 ? Number(tpManagerSiteId)
                 : undefined;
 
-    const { useBookingPcMutation } = useBookingMutation();
-    const bookingPcMutation = useBookingPcMutation(!!siteId);
+    const { useBookingFacilityMutation } = useBookingMutation();
+    const bookingFacilityMutation = useBookingFacilityMutation(!!siteId);
 
     if (memberSiteIdLoading || tpManagerSiteIdLoading) {
         return <LoadingSpinner />
     }
 
-
     const onSubmitFacilityBooking = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
 
         try {
-
+            const dateNow = new Date();
+            const hourNow = dateNow.getHours();
+            const minutesNow = dateNow.getMinutes();
+            const now = `${hourNow}:${minutesNow}`;
+            const aHourDateFromNow = new Date(dateNow.getTime() + 60 * 60 * 1000);
+            const hourFromNow = aHourDateFromNow.getHours();
+            const minutesFromNow = aHourDateFromNow.getMinutes();
+            const fromNow = `${hourFromNow}:${minutesFromNow}`;
             const { id: spaceId } = await bookingClient.getSpaceByName(assetName, siteId);
             const { data: { user: { id: userId } } } = await supabase.auth.getUser();
-            const startTime = new Date();
-            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+            const startTime = stringToDateWithTime(now, dateNow);
+            const endTime = stringToDateWithTime(fromNow, aHourDateFromNow);
             const bookingId = crypto.randomUUID();
 
             const submitedFormData: Booking = {
                 site_space_id: spaceId,
-                booking_start: startTime.toISOString(),
-                booking_end: endTime.toISOString(),
+                booking_start: formatToISO(startTime),
+                booking_end: formatToISO(endTime),
                 created_by: userId,
                 requester_id: userId,
                 id: bookingId,
-                created_at: new Date().toISOString(),
+                created_at: dateNow.toISOString(),
                 is_active: true,
                 site_id: siteId
             }
 
-            const newBookingData = await bookingPcMutation.mutateAsync(submitedFormData);
-
+            const newBookingData = await bookingFacilityMutation.mutateAsync(submitedFormData);
+            
             setBookingsData((prevBook) => [
                 ...prevBook,
                 newBookingData
