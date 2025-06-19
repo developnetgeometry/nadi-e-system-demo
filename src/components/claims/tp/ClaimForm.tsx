@@ -10,6 +10,7 @@ import { insertClaimData } from "./hooks/insert-claim";
 import { useNavigate } from "react-router-dom";
 import { useDuspTpData } from "../hook/use-claim-data";
 import { ClaimAttachmentForm } from "../form/ClaimAttachmentForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 type CategoryData = {
@@ -69,6 +70,7 @@ const INITIAL_DATA: FormData = {
 };
 
 const ClaimFormPage = () => {
+  const queryClient = useQueryClient();
 
   const { duspTpData, isLoading, error } = useDuspTpData();
   const [data, setData] = useState({
@@ -145,12 +147,12 @@ const ClaimFormPage = () => {
           return;
         }
       }
-      if (data.claim_type === "MONTHLY") {
-        if (!data.month) {
-          showValidationError("Month is required for monthly claims");
-          return;
-        }
-      }
+      // if (data.claim_type === "MONTHLY") {
+      //   if (!data.month) {
+      //     showValidationError("Month is required for monthly claims");
+      //     return;
+      //   }
+      // }
       if (!data.tp_dusp_id) {
         showValidationError("TP DUSP ID is required");
         return;
@@ -198,6 +200,7 @@ const ClaimFormPage = () => {
             tp_dusp_id: duspTpData.id,
           }));
         }
+        queryClient.invalidateQueries({ queryKey: ["nd-running-claim"] });
         navigate("/claim/register");
       } catch (error: any) {
         console.error("Error saving data:", error);

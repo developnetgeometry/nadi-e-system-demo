@@ -44,13 +44,12 @@ export const useFetchClaimDUSP = () => {
             ref_no,
             date_paid,
             payment_status,
+            updated_at,
             tp_dusp_id (id, name, parent_id (id, name))
           `)
           .in("tp_dusp_id", tpDuspIds) // Filter by TpDuspIds
           .in("claim_status", [2, 3, 4]) // Filter by claim status
-          .order("month", { ascending: false, nullsFirst: false  })
-          .order("quarter", { ascending: false, nullsFirst: false   })
-          .order("year", { ascending: false });
+          .order("updated_at", { ascending: false });
 
         if (claimAppError) {
           console.error("Error fetching nd_claim_application:", claimAppError);
