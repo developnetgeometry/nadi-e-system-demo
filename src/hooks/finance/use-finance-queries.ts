@@ -41,7 +41,9 @@ export const useFinanceQueries = () => {
         phase: string, 
         region: string,
         page: number,
-        perPage: number
+        perPage: number,
+        tpAdminSiteIds?: number[],
+        duspTpSiteId?: number
     ) => 
         useQuery({
             queryKey: [
@@ -53,7 +55,9 @@ export const useFinanceQueries = () => {
                 phase,
                 region,
                 page,
-                perPage
+                perPage,
+                ...tpAdminSiteIds,
+                duspTpSiteId
             ],
             queryFn: () => financeClient.getFinanceReportWithFilterAndPagination(
                 year, 
@@ -63,15 +67,35 @@ export const useFinanceQueries = () => {
                 phase, 
                 region,
                 page,
-                perPage
+                perPage,
+                tpAdminSiteIds,
+                duspTpSiteId
             )
     });
     
-    const useAllFinanceReports = (dusp_tp_id?: string) =>
+    const useAllFinanceReports = (tpAdminSiteIds?: number[], duspTpSiteId?: number) =>
         useQuery({
-            queryKey: ["allSites", dusp_tp_id],
-            queryFn: () => financeClient.getAllFinanceReports(dusp_tp_id)
+            queryKey: ["allSites", ...tpAdminSiteIds, duspTpSiteId],
+            queryFn: () => financeClient.getAllFinanceReports(tpAdminSiteIds, duspTpSiteId)
         });
+
+    const useFinanceReportItemByReportId = (
+        reportId: string,
+        page: number, 
+        perPage: number
+    ) =>
+        useQuery({
+            queryKey: ["financeReportItemByReportId", reportId, page, perPage],
+            queryFn: () => financeClient.getFinanceReportItemByReportId(reportId, page, perPage),
+            enabled: !!reportId
+    });
+
+    const useSiteNameByReportId = (reportId: string) =>
+        useQuery({
+            queryKey: ["siteNameByReportId", reportId],
+            queryFn: () => financeClient.getSiteNameByReportId(reportId),
+            enabled: !!reportId
+    });
 
     return {
         useSiteReportStatusQuery,
@@ -80,6 +104,8 @@ export const useFinanceQueries = () => {
         useAllRegion,
         useAllPhases,
         useFinanceReportWithFilterAndPagination,
-        useAllFinanceReports
+        useAllFinanceReports,
+        useFinanceReportItemByReportId,
+        useSiteNameByReportId
     };
 };
