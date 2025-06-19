@@ -171,7 +171,7 @@ export const MaintenanceRequestFormDialog = ({
       if (insertError) throw insertError;
 
       const docketNumber = generateDocketNumber(
-        selectedAsset?.site?.dusp_tp?.parent?.code,
+        selectedAsset?.site?.dusp_tp?.parent?.name,
         now,
         insertedData[0].id
       );
@@ -250,7 +250,7 @@ export const MaintenanceRequestFormDialog = ({
       if (insertError) throw insertError;
 
       const docketNumber = generateDocketNumber(
-        selectedAsset?.site?.dusp_tp?.parent?.code,
+        selectedAsset?.site?.dusp_tp?.parent?.name,
         now,
         insertedData[0].id
       );
