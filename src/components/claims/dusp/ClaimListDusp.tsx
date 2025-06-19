@@ -238,8 +238,11 @@ export function ClaimListDusp() {
                 <TableCell>
                   <Badge variant={claim.payment_status ? "success" : "warning"}>{claim.payment_status ? "Paid" : "Unpaid"}</Badge>
                 </TableCell>
-                <TableCell>{new Date(claim.updated_at).toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" })}</TableCell>
                 <TableCell>
+                  {claim?.updated_at
+                    ? new Date(new Date(claim.updated_at).getTime() + 8 * 60 * 60 * 1000).toLocaleString("en-GB")
+                    : "N/A"}
+                </TableCell>                <TableCell>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button size="sm" variant="outline" onClick={() => handleView(claim.id)}>
