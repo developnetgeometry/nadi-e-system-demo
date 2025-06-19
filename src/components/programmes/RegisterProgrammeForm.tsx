@@ -444,11 +444,12 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         subcategory_id: data.pillar,
         program_id: data.programme,
         module_id: data.module,
-        program_mode: data.mode === "Online" ? 1 : 2, // Assuming 1=Online, 2=Physical
+        program_mode: data.mode === "Online" ? 1 : 2, // 1=Online, 2=Physical
         total_participant: data.max_participants
           ? parseInt(data.max_participants)
           : null,
-        status_id: data.is_active ? 1 : 2, // Assuming 1=Active, 2=Inactive
+        status_id: new Date(startDateTime) >= new Date() ? 2 : 1, // 2=Published if not backdated, 1=Draft if backdated
+        is_active: data.is_active ? 1 : 2, //  1=Active, 2=Inactive
         is_group_event: data.is_group_event,
         target_participants: data.target_participants,
         updated_by: user?.id,

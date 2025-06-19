@@ -83,15 +83,26 @@ const SmartServicesNadi2U = () => {
               creatorName = userData?.full_name || "Unknown";
             }
 
-            return {
+            const formattedProgram = {
               id: program.id,
               title: program.program_name || "Untitled Program",
               location: program.location_event || "No Location",
               date: program.start_datetime || new Date().toISOString(),
               createdBy: creatorName,
               status: program.nd_event_status?.name?.toLowerCase() || "draft",
-              statusId: program.nd_event_status?.id,
+              statusId: program.nd_event_status?.id || 1, // Default to 1 (Draft) if no status
+              nd_event_status: program.nd_event_status, // Keep the original structure for consistency
             };
+
+            // Debug log to check the status data
+            console.log("Program status data:", {
+              id: program.id,
+              statusId: formattedProgram.statusId,
+              statusName: program.nd_event_status?.name,
+              originalStatus: program.nd_event_status,
+            });
+
+            return formattedProgram;
           })
         );
 
@@ -107,35 +118,59 @@ const SmartServicesNadi2U = () => {
   }, []);
 
   // Function to get badge variant based on status
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (statusId: string | number | undefined) => {
+    // Convert to string for consistent comparison
+    const status = String(statusId);
+
+    // Debug log to check what status is being processed
+    console.log("Getting status badge for:", { statusId, status });
+
     switch (status) {
-      case "registered":
+      case "1":
         return (
-          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">
-            Registered
+          <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200">
+            Draft
           </Badge>
         );
-      case "active":
+      case "2":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-            Active
+            Published
           </Badge>
         );
-      case "completed":
+      case "3":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">
+            Open For Registration
+          </Badge>
+        );
+      case "4":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+            Closed For Registration
+          </Badge>
+        );
+      case "5":
+        return (
+          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">
+            Ongoing
+          </Badge>
+        );
+      case "6":
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
             Completed
           </Badge>
         );
-      case "cancelled":
+      case "7":
         return (
-          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+          <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200">
             Cancelled
           </Badge>
         );
-      case "postponed":
+      case "8":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">
             Postponed
           </Badge>
         );
@@ -269,7 +304,7 @@ const SmartServicesNadi2U = () => {
                           <TableCell
                             onClick={() => handleViewDetails(programme.id)}
                           >
-                            {getStatusBadge(programme.status)}
+                            {getStatusBadge(programme.statusId)}
                           </TableCell>
                           <TableCell>
                             <Button
