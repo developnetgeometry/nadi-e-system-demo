@@ -54,7 +54,7 @@ export const insertMemberData = async (formData: {
 
   password: string; // Password for the user
 }) => {
-  let userId, memberId;
+  let userId, memberId, membershipId;
 
   try {
     // Create the user account using the createUser function
@@ -115,6 +115,19 @@ export const insertMemberData = async (formData: {
     }
 
     memberId = memberProfileData.id;
+
+    // Fetch membership_id from nd_member_profile
+    const { data: membershipData, error: membershipError } = await supabase
+      .from("nd_member_profile")
+      .select("membership_id")
+      .eq("id", memberId)
+      .single();
+
+    if (membershipError || !membershipData) {
+      throw new Error(membershipError?.message || "Failed to fetch membership_id.");
+    }
+
+    membershipId = membershipData.membership_id;
 
     // Upsert into nd_member_address (unique: member_id)
     const { error: memberAddressError } = await supabase
@@ -177,7 +190,7 @@ export const insertMemberData = async (formData: {
       }
     }
 
-    return { success: true };
+    return { success: true, membershipId };
   } catch (error) {
     console.error("Error inserting member data:", error);
     throw error; // Re-throw the error to be handled by the caller

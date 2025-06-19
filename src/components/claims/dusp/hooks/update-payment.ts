@@ -25,6 +25,7 @@ export const updatePayment = async (data: UpdatePaymentData) => {
                 claim_status: data.claim_status,
                 payment_status: data.payment_status,
                 date_paid: data.date_paid,
+                updated_at: new Date(),
                 updated_by: createdBy
             })
             .eq("id", data.claim_id);

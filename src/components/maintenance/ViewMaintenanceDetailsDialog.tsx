@@ -49,6 +49,7 @@ import {
   getSLACategoryClass,
 } from "./MaintenanceStatusBadge";
 
+import { Input } from "@/components/ui/input";
 import "@/fonts/Verdana-normal.js";
 import "@/fonts/VerdanaBd-bold.js";
 import GenerateMaintenanceReportCM from "./report/GenerateMaintenanceReportCM";
@@ -116,7 +117,8 @@ export const ViewMaintenanceDetailsDialog = ({
 
   const isTPCloseRequest =
     userMetadata?.user_group_name == "TP" &&
-    maintenanceRequest?.status == MaintenanceStatus.InProgress;
+    maintenanceRequest?.status == MaintenanceStatus.InProgress &&
+    maintenanceRequest?.updates?.length > 0;
 
   const isCompleted =
     userMetadata?.user_group_name == "TP" &&
@@ -243,7 +245,33 @@ export const ViewMaintenanceDetailsDialog = ({
     const handleSLAUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
+      const formData = new FormData(e.currentTarget);
+
       setIsSubmitting(true);
+
+      const remarks = formData.get("remarks") as string;
+
+      if (!remarks) {
+        toast({
+          title: "Remarks is required",
+          description: "Please provide remarks for the update.",
+          variant: "destructive",
+        });
+
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!estimatedCompletionDate) {
+        toast({
+          title: "Estimated Completion Date is required",
+          description: "Please select an estimated completion date.",
+          variant: "destructive",
+        });
+
+        setIsSubmitting(false);
+        return;
+      }
 
       const logs = maintenanceRequest?.logs || [];
       logs.push({
@@ -260,6 +288,7 @@ export const ViewMaintenanceDetailsDialog = ({
             sla_id: sla,
             maintenance_date: estimatedCompletionDate,
             logs: logs,
+            remarks: remarks,
             updated_at: new Date().toISOString(),
           })
           .eq("id", maintenanceRequest.id);
@@ -322,6 +351,15 @@ export const ViewMaintenanceDetailsDialog = ({
               />
             </PopoverContent>
           </Popover>
+        </div>
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-500">Remarks</Label>
+          <Input
+            type="text"
+            name="remarks"
+            placeholder="Input remarks here..."
+            className="w-full"
+          />
         </div>
         <Button type="submit" disabled={isSubmitting} className="pt-2 w-full">
           {isSubmitting ? "Updating..." : buttonText}
@@ -778,7 +816,7 @@ export const ViewMaintenanceDetailsDialog = ({
             <span>Docket No: {maintenanceRequest?.no_docket}</span>
           </DialogTitle>
           <DialogDescription>
-            View and update maintenance docket details
+            {maintenanceRequest?.description}
           </DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
@@ -876,15 +914,15 @@ export const ViewMaintenanceDetailsDialog = ({
                   )}
                 </div>
               </div>
-            </div>
 
-            <div>
-              <Label className="text-sm font-medium text-gray-500">
-                Description
-              </Label>
-              <p className="mt-1 text-sm text-gray-700">
-                {maintenanceRequest?.description}
-              </p>
+              <div>
+                <Label className="text-sm font-medium text-gray-500">
+                  Remarks
+                </Label>
+                <p className="mt-1 text-sm text-gray-700">
+                  {maintenanceRequest?.remarks || "N/A"}
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col">

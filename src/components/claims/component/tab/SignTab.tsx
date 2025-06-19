@@ -88,6 +88,7 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
             }
 
             // Fetch the latest signed documents
+            queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
             await fetchLatestSignedDocuments();
         } catch (error) {
             console.error("Error uploading files:", error);

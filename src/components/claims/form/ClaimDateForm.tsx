@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect } from "react";
 import { getStartAndEndDate } from "../hook/getStartAndEndDate";
-import { useRef } from "react";
+// import { useRef } from "react";
+import { useClaimRunningNum } from "../hook/getRunningClaim";
 
 type ClaimData = {
     claim_type: string;
@@ -16,6 +17,7 @@ type ClaimData = {
     tp_name: string; //additional
     dusp_name: string; //additional
     phase_id?: number;
+    tp_dusp_id: string;
 
 };
 
@@ -34,10 +36,19 @@ export function ClaimDateForm({
     tp_name,
     dusp_name,
     phase_id,
+    tp_dusp_id,
     updateFields,
 }: ClaimDateFormProps) {
-    const runningNoRef = useRef(Date.now().toString()); // Static on mount
-    const runningNo = runningNoRef.current;
+    // const runningNoRef = useRef(Date.now().toString()); // Static on mount
+    // const runningNo = runningNoRef.current;
+    const runningNoQuery = useClaimRunningNum(year, tp_dusp_id);
+    const runningNo = runningNoQuery.data?.toString().padStart(5, "0");
+    const quarterMonths = {
+        1: ["January", "February", "March"],
+        2: ["April", "May", "June"],
+        3: ["July", "August", "September"],
+        4: ["October", "November", "December"],
+    };
 
     useEffect(() => {
         // Ensure claim_type is set before running the logic
@@ -133,7 +144,7 @@ export function ClaimDateForm({
                         <SelectContent>
                             <SelectItem value="YEARLY">Yearly</SelectItem>
                             <SelectItem value="QUARTERLY">Quarterly</SelectItem>
-                            <SelectItem value="MONTHLY">Monthly</SelectItem>
+                            {/* <SelectItem value="MONTHLY">Monthly</SelectItem> */}
                         </SelectContent>
                     </Select>
                 </div>
@@ -178,17 +189,24 @@ export function ClaimDateForm({
                                         <SelectValue placeholder="Select quarter" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="1">Q1</SelectItem>
-                                        <SelectItem value="2">Q2</SelectItem>
-                                        <SelectItem value="3">Q3</SelectItem>
-                                        <SelectItem value="4">Q4</SelectItem>
+                                        <SelectItem value="1">Quarter 1</SelectItem>
+                                        <SelectItem value="2">Quarter 2</SelectItem>
+                                        <SelectItem value="3">Quarter 3</SelectItem>
+                                        <SelectItem value="4">Quarter 4</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         )}
 
+                        {claim_type === "QUARTERLY" && quarter && (
+                            <div className="mt-2 text-sm text-gray-600">
+                                <span>Months in Quarter {quarter} : </span>
+                                <span className="font-bold">{quarterMonths[quarter].join(", ")}</span>
+                            </div>
+                        )}
+
                         {/* Month */}
-                        {claim_type === "MONTHLY" && (
+                        {/* {claim_type === "MONTHLY" && (
                             <div className="space-y-2">
                                 <Label className="flex items-center">Month</Label>
                                 <Select
@@ -221,7 +239,7 @@ export function ClaimDateForm({
                                     </SelectContent>
                                 </Select>
                             </div>
-                        )}
+                        )} */}
                     </div>
                 </>
             )}

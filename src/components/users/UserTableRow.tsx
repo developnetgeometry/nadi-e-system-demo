@@ -86,14 +86,14 @@ export const UserTableRow = ({
           <span>{user.full_name}</span>
         </div>
       </TableCell>
-      <TableCell >{user.email}</TableCell>
-      <TableCell >{user.phone_number}</TableCell>
-      <TableCell>{getStatusBadge(mockData.status)}</TableCell>
-      <TableCell >{mockData.site}</TableCell>
+      <TableCell>{user.email}</TableCell>
+      <TableCell>{user.phone_number}</TableCell>
+      {/* <TableCell>{getStatusBadge(mockData.status)}</TableCell> */}
+      {/* <TableCell >{mockData.site}</TableCell>
       <TableCell >{mockData.phase}</TableCell>
-      <TableCell >{mockData.state}</TableCell>
-      <TableCell >{user.user_type}</TableCell>
-      <TableCell >
+      <TableCell >{mockData.state}</TableCell> */}
+      <TableCell>{user.user_type}</TableCell>
+      <TableCell>
         {new Date(user.created_at).toLocaleDateString("en-US", {
           year: "numeric",
           month: "2-digit",
