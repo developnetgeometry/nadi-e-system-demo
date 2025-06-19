@@ -3,6 +3,8 @@ import { Route, Routes } from "react-router-dom";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { FinanceReportDetail } from "@/pages/dashboard/finance/pages/FinanceReportDetail";
+import path from "path";
 
 // Convert to lazy loaded components
 const FinanceDashboard = lazy(() => import("@/pages/dashboard/finance/FinanceDashboard"));
@@ -18,6 +20,28 @@ export const financeRoutes = [
                 {/* </ProtectedRoute> */}
             </Suspense>
         ),
+    },
+    {
+        path: "/finance/reports",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <FinanceDashboard 
+                    isDashBoardPage={false}
+                />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
+        path: "/finance/reports/:reportId",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <FinanceReportDetail />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        )
     },
     {
         path: "/finance/settings",
