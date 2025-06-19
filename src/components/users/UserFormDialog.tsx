@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -27,6 +28,11 @@ export function UserFormDialog({
           <DialogTitle className="text-xl font-semibold">
             {user ? "Edit User" : "Create New User"}
           </DialogTitle>
+          <DialogDescription>
+            {user
+              ? "Update the user's information and permissions"
+              : "Fill in the details to create a new user account"}
+          </DialogDescription>
         </DialogHeader>
         <UserForm
           user={user}

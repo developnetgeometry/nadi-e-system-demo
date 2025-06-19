@@ -6,6 +6,7 @@ import { UserType, Profile } from "@/types/auth";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
 import { UserEmailField } from "./form-fields/UserEmailField";
 import { UserNameField } from "./form-fields/UserNameField";
 import { UserPhoneField } from "./form-fields/UserPhoneField";
@@ -33,6 +34,27 @@ import {
   isVendorGroup,
 } from "./hooks/use-user-groups";
 import { RequiredFieldNotice } from "./form-fields/RequiredFieldNotice";
+
+// Function to check if email already exists
+const checkEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking email:", error);
+      return false; // Allow submission if check fails
+    }
+
+    return !!data; // Returns true if email exists
+  } catch (error) {
+    console.error("Error checking email:", error);
+    return false; // Allow submission if check fails
+  }
+};
 
 const userFormSchema = z
   .object({
@@ -75,6 +97,7 @@ const userFormSchema = z
     race_id: z.string().optional(),
     religion_id: z.string().optional(),
     nationality_id: z.string().optional(),
+    tech_partner_id: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -117,6 +140,8 @@ interface UserFormProps {
 export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
   const [selectedUserGroup, setSelectedUserGroup] = useState<
     string | undefined
   >(user?.user_group?.toString());
@@ -147,8 +172,47 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
       race_id: "",
       religion_id: "",
       nationality_id: "",
+      tech_partner_id: "",
     },
   });
+
+  // Watch email field for real-time validation
+  const watchedEmail = form.watch("email");
+  const debouncedEmail = useDebounce(watchedEmail, 500);
+
+  // Check email exists when debounced email changes (only for new users)
+  useEffect(() => {
+    const checkEmail = async () => {
+      if (!user && debouncedEmail && debouncedEmail !== user?.email) {
+        // Only check if it's a valid email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(debouncedEmail)) {
+          setEmailExists(false);
+          return;
+        }
+
+        setEmailCheckLoading(true);
+        try {
+          const exists = await checkEmailExists(debouncedEmail);
+          setEmailExists(exists);
+          if (exists) {
+            form.setError("email", {
+              type: "manual",
+              message: "This email address is already registered.",
+            });
+          } else {
+            form.clearErrors("email");
+          }
+        } catch (error) {
+          console.error("Error checking email:", error);
+        } finally {
+          setEmailCheckLoading(false);
+        }
+      }
+    };
+
+    checkEmail();
+  }, [debouncedEmail, user, form]);
 
   // Fetch user profile data if editing
   const { data: profileData } = useQuery({
@@ -360,6 +424,31 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
     setIsLoading(true);
     setError(null);
     try {
+      // Check for existing email only when creating a new user
+      if (!user) {
+        // If real-time validation already detected the email exists, don't proceed
+        if (emailExists) {
+          setError(
+            "Email address already exists. Please use a different email."
+          );
+          return;
+        }
+
+        // Do a final check before submission
+        const emailExistsCheck = await checkEmailExists(data.email);
+        if (emailExistsCheck) {
+          form.setError("email", {
+            type: "manual",
+            message:
+              "This email address is already registered. Please use a different email.",
+          });
+          setError(
+            "Email address already exists. Please use a different email."
+          );
+          return;
+        }
+      }
+
       const cleanedData = {
         ...data,
         ic_number: data.ic_number.replace(/-/g, ""), // Remove dashes
@@ -456,6 +545,8 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
                 isLoading={isLoading}
                 isEditMode={!!user}
                 required
+                emailCheckLoading={emailCheckLoading}
+                emailExists={emailExists}
               />
               <UserNameField form={form} isLoading={isLoading} required />
               <UserICNumberField form={form} isLoading={isLoading} required />
@@ -528,7 +619,10 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading || (!user && emailExists)}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
