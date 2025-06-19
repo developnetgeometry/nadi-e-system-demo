@@ -194,7 +194,7 @@ export const assetClient = {
   fetchAssetByName: async (assetName: string, siteId: number) => {
     const { data, error } = await supabase
       .from("nd_asset")
-      .select(`*, nd_site(nd_site_profile (*))`)
+      .select(`*, nd_site_profile(*, id)`)
       .eq("name", assetName);
 
     if (error) {
@@ -203,7 +203,7 @@ export const assetClient = {
     }
 
     const filtered = data.find(
-      (item) => item.nd_site.nd_site_profile.id === siteId
+      (item) => item.nd_site_profile.id === siteId
     );
 
     return {

@@ -100,18 +100,14 @@ const SiteClosureDetailDialog: React.FC<SiteClosureDetailDialogProps> = ({
     
     // Super admin can approve anything submitted
     if (isSuperAdmin) return true;
-    
-    if (isTPUser) {
-      // TP can't approve relocation requests
-      if (isRelocationCategory) return false;
-      
-      // TP can only approve non-relocations up to 2 days
-      return duration <= 2;
+      if (isTPUser) {
+      // TP can approve all non-relocation requests, regardless of duration
+      return !isRelocationCategory;
     }
     
     if (isDUSPUser) {
-      // DUSP handles relocations and requests > 2 days
-      return isRelocationCategory || duration > 2;
+      // DUSP only handles relocation requests now
+      return isRelocationCategory;
     }
     
     return false;

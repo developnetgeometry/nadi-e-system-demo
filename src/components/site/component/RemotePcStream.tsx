@@ -138,7 +138,7 @@ export default function RemotePcStream() {
 
         const log = (...args: any[]) => console.log("[VIEWER]", ...args);
 
-        const ws = new WebSocket("ws://localhost:8090");
+        const ws = new WebSocket("https://wss-signalling.onrender.com");
         wsRef.current = ws;
 
         let pc: RTCPeerConnection;
