@@ -79,7 +79,7 @@ export const fetchMaintenanceData = async ({
             docket_duration: "3 hours",
             docket_open: "2023-10-05",
             docket_close: "2023-10-06",
-            docket_status: "Pending"
+            docket_status: "In Progress"
         },
         {
             site_id: "4",
@@ -93,7 +93,7 @@ export const fetchMaintenanceData = async ({
             docket_duration: "30 minutes",
             docket_open: "2023-10-07",
             docket_close: "2023-10-08",
-            docket_status: "Existing"
+            docket_status: "In Progress"
         },
         {
             site_id: "5",
@@ -135,7 +135,7 @@ export const fetchMaintenanceData = async ({
             docket_duration: "5 hours",
             docket_open: "2023-10-13",
             docket_close: "2023-10-14",
-            docket_status: "Pending"
+            docket_status: "In Progress"
         },
         {
             site_id: "8",
@@ -149,7 +149,7 @@ export const fetchMaintenanceData = async ({
             docket_duration: "1 hour 30 minutes",
             docket_open: "2023-10-15",
             docket_close: "2023-10-16",
-            docket_status: "Existing"
+            docket_status: "In Progress"
         },
         {
             site_id: "9",

@@ -146,24 +146,19 @@ const Maintenance = async ({
                                 <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.length}</Text>
                             </View>
                             <View style={{ ...styles.totalBox }}>
-                                {/* total NADI sites with maintenance */}
-                                <Text>Docket{"\n"}Existing</Text>
-                                <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "existing").length}</Text>
-                            </View>
-                            <View style={{ ...styles.totalBox }}>
-                                {/* total NADI sites with maintenance */}
+                                {/*total new maintenance  */}
                                 <Text>Docket{"\n"}New</Text>
                                 <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "new").length}</Text>
                             </View>
                             <View style={{ ...styles.totalBox }}>
-                                {/* total NADI sites with maintenance */}
-                                <Text>Docket{"\n"}Close</Text>
-                                <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "closed").length}</Text>
+                                {/* total In Progress maintenance */}
+                                <Text>Docket{"\n"}In Progress</Text>
+                                <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "in progress").length}</Text>
                             </View>
                             <View style={{ ...styles.totalBox }}>
-                                {/* total NADI sites with maintenance */}
-                                <Text>Docket{"\n"}Pending</Text>
-                                <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "pending").length}</Text>
+                                {/* total close maintenance */}
+                                <Text>Docket{"\n"}Close</Text>
+                                <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "closed").length}</Text>
                             </View>
                         </View>
                     </View>
@@ -206,23 +201,18 @@ const Maintenance = async ({
                         </View>
                         <View style={{ ...styles.totalBox }}>
                             {/* total NADI sites with maintenance */}
-                            <Text>Docket{"\n"}Existing</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "existing").length}</Text>
-                        </View>
-                        <View style={{ ...styles.totalBox }}>
-                            {/* total NADI sites with maintenance */}
                             <Text>Docket{"\n"}New</Text>
                             <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "new").length}</Text>
+                        </View>
+                        <View style={{ ...styles.totalBox }}>
+                            {/* total In Progress maintenance */}
+                            <Text>Docket{"\n"}In Progress</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "in progress").length}</Text>
                         </View>
                         <View style={{ ...styles.totalBox }}>
                             {/* total NADI sites with maintenance */}
                             <Text>Docket{"\n"}Close</Text>
                             <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "closed").length}</Text>
-                        </View>
-                        <View style={{ ...styles.totalBox }}>
-                            {/* total NADI sites with maintenance */}
-                            <Text>Docket{"\n"}Pending</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{maintenance.filter(v => v.docket_status?.toLowerCase() === "pending").length}</Text>
                         </View>
                     </View>
                     {/* {!header && ( */}
