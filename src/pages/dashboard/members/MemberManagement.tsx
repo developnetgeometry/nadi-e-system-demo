@@ -56,11 +56,13 @@ const MemberManagement = () => {
           email,
           status_membership (id, name),
           status_entrepreneur,
+          membership_id,
           user_id
         `,
           { count: "exact" }
         )
-        .not("user_id", "is", null); // Ensure user_id is not null
+        .not("user_id", "is", null) // Ensure user_id is not null
+        .order("membership_id", { ascending: false });
 
       if (searchTerm) {
         query = query.or(
@@ -269,9 +271,7 @@ const MemberManagement = () => {
                         <Checkbox />
                       </TableCell>
                       <TableCell className="font-medium">
-                        {`M${String(
-                          (currentPage - 1) * pageSize + index + 1
-                        ).padStart(3, "0")}`}
+                        {member.membership_id}
                       </TableCell>
                       <TableCell>{member.fullname || "N/A"}</TableCell>
                       <TableCell>{member.email || "N/A"}</TableCell>

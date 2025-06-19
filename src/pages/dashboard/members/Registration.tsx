@@ -15,6 +15,7 @@ import { insertMemberData } from "@/components/member/hook/use-registration-form
 import { ICForm } from "@/components/member/form/ICForm";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form } from "react-router-dom";
+import { MemberIdDialog } from "@/components/member/form/MemberIdDialog";
 
 type FormData = {
   identity_no_type: string;
@@ -137,6 +138,8 @@ const RegistrationPage = () => {
   const { siteProfiles } = useSiteGeneralData();
   const { states, districts, fetchDistrictsByState } = useGeoData();
   const { toast } = useToast();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMembershipId, setDialogMembershipId] = useState<string | null>(null);
 
   function updateFields(fields) {
     setData((prev) => ({ ...prev, ...fields }));
@@ -231,7 +234,8 @@ const RegistrationPage = () => {
     } else {
       try {
         setLoading(true); // Start loading
-        await insertMemberData(data);
+        const { success, membershipId } = await insertMemberData(data);
+
         toast({
           title: "Success",
           description: "The new member has been successfully registered.",
@@ -239,6 +243,8 @@ const RegistrationPage = () => {
         });
         setData(INITIAL_DATA);
         reset();
+        setDialogOpen(true); // Assuming you have a state to control the dialog visibility
+        setDialogMembershipId(membershipId); // Pass the membershipId to the dialog
       } catch (error) {
         console.error("Error saving data:", error);
         toast({
@@ -253,56 +259,65 @@ const RegistrationPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-bold">Member Registration</h1>
-      <Card className="relative">
-        {loading && (
-          <div className="absolute inset-0 bg-white/70 z-50 flex items-center justify-center">
-            <Loader2 className="animate-spin w-10 h-10 text-primary" />
-            <span className="ml-3 text-lg font-semibold">Registering...</span>
-          </div>
-        )}
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Add New Member</CardTitle>
-          <p className="text-muted-foreground">Fill in the details for the new member</p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex bg-muted rounded-lg overflow-hidden mt-4">
-            {steps.map((step, index) => {
-              const isActive = currentStepIndex === index;
-              const isCompleted = isStepComplete(index);
-
-              return (
-                <div
-                  key={index}
-                  className={`flex-1 px-4 py-2 flex items-center justify-center space-x-2 text-sm transition-all border rounded-md
-              ${isActive ? "bg-white font-semibold text-foreground shadow-sm dark:text-black" : "text-muted-foreground hover:bg-muted/50"}`}
-                >
-                  {isCompleted && <CheckCircle className="text-green-500" size={16} />}
-                  <span>{step.label}</span>
-                </div>
-              );
-            })}
-          </div>
-          <form onSubmit={(e: FormEvent) => e.preventDefault()} className="mt-4">
-            <div>{step}</div>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-between w-full mt-4">
-          {!isFirstStep ? (
-            <Button type="button" onClick={back} variant="outline" disabled={loading}>
-              Back
-            </Button>
-          ) : (
-            <div /> // Placeholder to maintain spacing
+    <>
+      <div className="space-y-6">
+        <h1 className="text-xl font-bold">Member Registration</h1>
+        <Card className="relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white/70 z-50 flex items-center justify-center">
+              <Loader2 className="animate-spin w-10 h-10 text-primary" />
+              <span className="ml-3 text-lg font-semibold">Registering...</span>
+            </div>
           )}
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Add New Member</CardTitle>
+            <p className="text-muted-foreground">Fill in the details for the new member</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex bg-muted rounded-lg overflow-hidden mt-4">
+              {steps.map((step, index) => {
+                const isActive = currentStepIndex === index;
+                const isCompleted = isStepComplete(index);
 
-          <Button type="button" onClick={handleNext}>
-            {isLastStep ? "Register Member" : "Next"}
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+                return (
+                  <div
+                    key={index}
+                    className={`flex-1 px-4 py-2 flex items-center justify-center space-x-2 text-sm transition-all border rounded-md
+              ${isActive ? "bg-white font-semibold text-foreground shadow-sm dark:text-black" : "text-muted-foreground hover:bg-muted/50"}`}
+                  >
+                    {isCompleted && <CheckCircle className="text-green-500" size={16} />}
+                    <span>{step.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <form onSubmit={(e: FormEvent) => e.preventDefault()} className="mt-4">
+              <div>{step}</div>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-between w-full mt-4">
+            {!isFirstStep ? (
+              <Button type="button" onClick={back} variant="outline" disabled={loading}>
+                Back
+              </Button>
+            ) : (
+              <div /> // Placeholder to maintain spacing
+            )}
+
+            <Button type="button" onClick={handleNext}>
+              {isLastStep ? "Register Member" : "Next"}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Dialog for membershipId */}
+      <MemberIdDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        membershipId={dialogMembershipId}
+      />
+    </>
   );
 };
 
