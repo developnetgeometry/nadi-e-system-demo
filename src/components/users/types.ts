@@ -21,6 +21,7 @@ export interface UserFormData {
   race_id?: string;
   religion_id?: string;
   nationality_id?: string;
+  tech_partner_id?: string; // Added tech_partner_id field
   // Additional fields for staff management
   mobile_no_2?: string;
   telephone_no?: string;

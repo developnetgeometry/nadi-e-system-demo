@@ -247,9 +247,9 @@ export const useSiteClosureForm = (
     if (!formState.remark) {
       errors.remark = "Reason is required";
     }
-    
-    console.log("Validating affected areas:", formState.affectArea);
-    if (!formState.affectArea.length) {
+      console.log("Validating affected areas:", formState.affectArea);
+    // Only validate affected areas if we're in Natural Disaster category (same as subcategory)
+    if (needsSubcategory && !formState.affectArea.length) {
       errors.affectArea = "At least one affected area must be selected";
     }
     

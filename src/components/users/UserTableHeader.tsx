@@ -1,4 +1,3 @@
-
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
@@ -14,19 +13,21 @@ interface UserTableHeaderProps {
   sortDirection: SortDirection;
 }
 
-export const UserTableHeader = ({ 
-  onSelectAll, 
+export const UserTableHeader = ({
+  onSelectAll,
   allSelected,
   showRowNumbers = true,
   onSort,
   sortField,
-  sortDirection
+  sortDirection,
 }: UserTableHeaderProps) => {
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    return sortDirection === "asc" ? 
-      <ArrowUp className="ml-2 h-4 w-4" /> : 
-      <ArrowDown className="ml-2 h-4 w-4" />;
+    return sortDirection === "asc" ? (
+      <ArrowUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4" />
+    );
   };
 
   return (
@@ -37,8 +38,8 @@ export const UserTableHeader = ({
         </TableHead>
         <TableHead className="w-[60px]">ID</TableHead>
         <TableHead>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => onSort("name")}
             className="p-0 hover:bg-transparent font-medium flex items-center"
           >
@@ -46,8 +47,8 @@ export const UserTableHeader = ({
           </Button>
         </TableHead>
         <TableHead>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => onSort("email")}
             className="p-0 hover:bg-transparent font-medium flex items-center"
           >
@@ -55,15 +56,15 @@ export const UserTableHeader = ({
           </Button>
         </TableHead>
         <TableHead>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => onSort("phone")}
             className="p-0 hover:bg-transparent font-medium flex items-center"
           >
             Phone{renderSortIcon("phone")}
           </Button>
         </TableHead>
-        <TableHead>
+        {/* <TableHead>
           <Button 
             variant="ghost" 
             onClick={() => onSort("status")}
@@ -98,10 +99,10 @@ export const UserTableHeader = ({
           >
             State{renderSortIcon("state")}
           </Button>
-        </TableHead>
+        </TableHead> */}
         <TableHead>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => onSort("role")}
             className="p-0 hover:bg-transparent font-medium flex items-center"
           >
@@ -109,8 +110,8 @@ export const UserTableHeader = ({
           </Button>
         </TableHead>
         <TableHead className="text-right">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => onSort("created_at")}
             className="p-0 hover:bg-transparent font-medium flex items-center justify-end w-full"
           >
