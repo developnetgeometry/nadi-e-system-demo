@@ -38,7 +38,7 @@ export const useSiteId = (isStaffUser?: boolean) => {
   return isStaffUser ? siteId : null;
 };
 
-export const useTpManagerSiteId = (isTpManager?: boolean) => {
+export const useTpManagerSiteId = (isTpManager?: boolean, tpManagerOrgId?: string) => {
   const getTpManagerSiteId = async () => {
     const {
       data: { user },
@@ -64,11 +64,9 @@ export const useTpManagerSiteId = (isTpManager?: boolean) => {
   const enabled = !!isTpManager;
 
   const { data: siteId, isLoading, isError, error } = useQuery({
-    queryKey: ["tpManagerSiteId"],
+    queryKey: ["tpManagerSiteId", tpManagerOrgId],
     queryFn: getTpManagerSiteId,
-    enabled,
-    staleTime: 1000 * 60 * 5, 
-    retry: 1,
+    enabled
   });
 
   return {

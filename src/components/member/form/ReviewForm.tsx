@@ -561,7 +561,7 @@ export function ReviewForm({
                   updateFields({ agree_declare: true });
                   setIsAgreeDialogOpen(false); // Close the dialog
                 }}
-                disabled={!agreeScrolled} // Disable until scrolled to the bottom
+                // disabled={!agreeScrolled} // Disable until scrolled to the bottom
               >
                 Accept
               </Button>
@@ -643,7 +643,7 @@ export function ReviewForm({
                   updateFields({ pdpa_declare: true });
                   setIsPdpaDialogOpen(false); // Close the dialog
                 }}
-                disabled={!pdpaScrolled} // Disable until scrolled to the bottom
+                // disabled={!pdpaScrolled} // Disable until scrolled to the bottom
               >
                 Accept
               </Button>

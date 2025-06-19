@@ -28,7 +28,7 @@ const TpSubmitDialog: React.FC<TpSubmitDialogProps> = ({ isOpen, onClose, claim 
       // Invalidate the query to refresh the ClaimList
       queryClient.invalidateQueries({ queryKey: ["claimStats"] });
       queryClient.invalidateQueries({ queryKey: ["fetchClaimTP"] });
-      queryClient.invalidateQueries({ queryKey: ["fetchClaimById", claim.id] });
+      queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
 
       onClose();
     } catch (error) {

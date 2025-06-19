@@ -20,10 +20,11 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Eye, FolderX } from "lucide-react";
 import { NoBookingFound } from "./NoBookingFound";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { Link } from "react-router-dom";
 
 interface PaginationTableServer {
     setPage: React.Dispatch<React.SetStateAction<number>>,
-    handleSelectedSite: (id: number) => void,
+    handleSelectedSite?: (id: number) => void,
     contentResult: any[],
     headTable: any[]
     page: number
@@ -59,11 +60,25 @@ export const PaginationTableServer = ({
         if (key === "maintenance") {
             return <Badge className="bg-amber-100 text-black border border-amber-500 ...">{value}</Badge>;
         }
+        if (key === "status") {
+            switch (value) {
+                case "editing":
+                    return <Badge className="bg-blue-100 text-blue-700 py-1 border border-blue-500 hover:bg-blue-200">{value}</Badge>;
+                case "submitted":
+                    return <Badge className="bg-yellow-100 text-yellow-700 border border-yellow-500 hover:bg-yellow-200">{value}</Badge>;
+                case "verified":
+                    return <Badge className="bg-green-100 text-green-700 border border-green-500 hover:bg-green-200">{value}</Badge>;
+                default:
+                    return <Badge className="bg-gray-100 text-black border border-gray-500 hover:bg-gray-200">{value}</Badge>;
+            }
+        }
         if (key === "action") {
             return (
-                <Button onClick={() => handleSelectedSite(rowItem.id)} className="flex items-center gap-1">
-                    <Eye />
-                </Button>
+                <Link to={`/finance/${value}`}>
+                    <Button onClick={() => handleSelectedSite(rowItem.id)} className="flex items-center gap-1">
+                        <Eye />
+                    </Button>
+                </Link>
             );
         }
 
@@ -130,7 +145,7 @@ export const PaginationTableServer = ({
                         const startPage = pageGroup * maxVisiblePages + 1;
                         const endPage = Math.min(startPage + maxVisiblePages - 1, totalPages);
 
-                        return Array.from({ length: endPage - startPage + 1 }).map((_, i) => {
+                        return Array.from({ length: (endPage - startPage) + 1 }).map((_, i) => {
                             const pageNumber = startPage + i;
                             return (
                                 <>
