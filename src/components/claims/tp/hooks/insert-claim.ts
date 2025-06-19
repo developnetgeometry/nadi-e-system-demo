@@ -56,6 +56,7 @@ export const insertClaimData = async (data: FormData) => {
                 created_by: createdBy,
                 tp_dusp_id: data.tp_dusp_id,
                 claim_type: data.claim_type,
+                updated_at: new Date(),
             })
             .select("id")
             .single();
