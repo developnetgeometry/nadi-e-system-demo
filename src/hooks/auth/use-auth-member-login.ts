@@ -22,10 +22,35 @@ export const useMemberLogin = () => {
       console.log("Attempting member login for IC number:", icNumber);
 
       // First find the user profile using the IC number in profiles table
+      const { data: userData, error: userError } = await supabase
+        .from("nd_member_profile")
+        .select("user_id")
+        .or(`identity_no.eq.${icNumber},membership_id.eq.${icNumber}`)
+        .single();
+
+      if (userError) {
+        console.error("User lookup error:", userError);
+        throw new Error("Invalid identification number Or membership ID");
+      }
+
+      if (!userData || !userData.user_id) {
+        throw new Error(
+          "No user found with this identification number or membership ID"
+        );
+      }
+
+      // Now fetch the profile using the user_id from nd_member_profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id, email, full_name")
-        .eq("ic_number", icNumber)
+        .select(
+          `
+        id,
+        email,
+        full_name,
+        user_type
+      `
+        )
+        .eq("id", userData.user_id)
         .eq("user_type", "member")
         .single();
 

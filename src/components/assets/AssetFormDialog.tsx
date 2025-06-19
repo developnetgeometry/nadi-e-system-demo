@@ -231,7 +231,7 @@ export const AssetFormDialog = ({
       }
     };
 
-    if (siteId) {
+    if (siteId || defaultSiteId) {
       if (!isStaffUser && !isTpSiteUser) {
         setLocations([]);
       }

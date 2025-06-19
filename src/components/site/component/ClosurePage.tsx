@@ -581,11 +581,10 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       // TP can NEVER approve relocation requests (category id: 1)
       if (isRelocationCategory) return false;
 
-      // Only allow TP approval for status id 2 (Submitted)
-      if (item.nd_closure_status?.id !== 2) return false;
+      // Only allow TP approval for status id 2 (Submitted)      if (item.nd_closure_status?.id !== 2) return false;
 
-      // TP can only approve non-relocations that are <= 2 days
-      return item.duration <= 2;
+      // TP can now approve all non-relocations, regardless of duration
+      return !isRelocationCategory;
     }
 
     // Check if DUSP user
@@ -593,10 +592,8 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       // Only allow DUSP approval for status id 2 (Submitted)
       if (item.nd_closure_status?.id !== 2) return false;
 
-      // DUSP handles:
-      // 1. Relocations (regardless of duration)
-      // 2. Requests > 2 days
-      return isRelocationCategory || item.duration > 2;
+      // DUSP only handles relocations now
+      return isRelocationCategory;
     }
 
     // No user type matched
@@ -621,21 +618,13 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         throw new Error("TP users cannot approve relocation requests.");
       }
 
-      let newStatusId = 0;
-
-      // Determine appropriate status based on user role
+      let newStatusId = 0;      // Determine appropriate status based on user role
       if (isTPUser) {
-        // Check if closure needs DUSP authorization due to duration > 2 days
-        // if (closureItem.duration > 2) {
-        //   // Set to "Recommended" status
-        //   newStatusId = 5;
-        // } else {
-        // Set to "Approved" status - only for short non-relocations
+        // TP users can now directly approve all non-relocation requests
         newStatusId = 3;
         console.log(
           "TP accepted closure request, setting status to Approved (3)"
         );
-        // }
       } else if (isDUSPUser) {
         // DUSP approval sets to "Authorized" status
         newStatusId = 6;

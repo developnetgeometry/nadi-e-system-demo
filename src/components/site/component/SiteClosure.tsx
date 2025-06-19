@@ -264,13 +264,19 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
       setField("end_time", updatedState.end_time);
     }
   }, [formState.session, timeRange, setField]);
-
-  // Update subcategory visibility based on category selection
+  // Update subcategory and affected area visibility based on Natural Disaster category selection
   useEffect(() => {
     const isSpecialCategory = formState.category_id === "6";
     setShowSubcategory(isSpecialCategory);
-    if (!isSpecialCategory && formState.subcategory_id) {
-      setField("subcategory_id", "");
+    if (!isSpecialCategory) {
+      // Clear subcategory if not Natural Disaster
+      if (formState.subcategory_id) {
+        setField("subcategory_id", "");
+      }
+      // Clear affected areas if not Natural Disaster
+      if (formState.affectArea && formState.affectArea.length > 0) {
+        setField("affectArea", []);
+      }
     }
   }, [formState.category_id, setField]);
 
@@ -639,29 +645,30 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
                   </p>
                 )}
               </div>
+            )}            {/* Affected Areas - only shown for Natural Disaster category */}
+            {showSubcategory && (
+              <div className="space-y-2">
+                <Label htmlFor="affectArea">
+                  Closure Affect Area <span className="text-red-500">*</span>
+                </Label>
+                <SelectMany
+                  options={closureAffectAreas.map((area) => ({
+                    id: String(area.id),
+                    label: area.eng,
+                  }))}
+                  value={formState.affectArea}
+                  onChange={(value) => setField("affectArea", value)}
+                  placeholder="Select affected areas"
+                  disabled={isLoadingAffectAreas}
+                  className={validationErrors.affectArea ? "border-red-500" : ""}
+                />
+                {validationErrors.affectArea && (
+                  <p className="text-sm text-red-500">
+                    {validationErrors.affectArea}
+                  </p>
+                )}
+              </div>
             )}
-            {/* Affected Areas - keeping SelectMany since this needs multiple selection */}
-            <div className="space-y-2">
-              <Label htmlFor="affectArea">
-                Closure Affect Area <span className="text-red-500">*</span>
-              </Label>
-              <SelectMany
-                options={closureAffectAreas.map((area) => ({
-                  id: String(area.id),
-                  label: area.eng,
-                }))}
-                value={formState.affectArea}
-                onChange={(value) => setField("affectArea", value)}
-                placeholder="Select affected areas"
-                disabled={isLoadingAffectAreas}
-                className={validationErrors.affectArea ? "border-red-500" : ""}
-              />
-              {validationErrors.affectArea && (
-                <p className="text-sm text-red-500">
-                  {validationErrors.affectArea}
-                </p>
-              )}
-            </div>
             {/* Reason */}
             <div className="space-y-2">
               <Label htmlFor="reason">
@@ -682,7 +689,7 @@ const SiteClosureForm: React.FC<SiteClosureFormProps> = ({
             {/* File Upload */}
             <div className="space-y-2">
               <Label htmlFor="attachment">
-                Attachment <span className="text-red-500">*</span>
+                Attachment <span className="text-gray-500">(photo)</span> <span className="text-red-500">*</span>
               </Label>
               <FileUpload
                 ref={fileUploadRef}

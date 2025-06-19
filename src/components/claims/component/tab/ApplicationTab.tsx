@@ -101,10 +101,9 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
       const frontPagePages = await pdfDoc.copyPages(frontPagePdf, frontPagePdf.getPageIndices());
       frontPagePages.forEach((page) => pdfDoc.addPage(page));
 
-      // Iterate over all requests and their items
+      // Add all items first
       for (const request of claimData.requests) {
         for (const item of request.items) {
-          // Add the summary report file
           if (item.item.summary_report_file) {
             const summaryResponse = await fetch(item.item.summary_report_file.file_path);
             const summaryBytes = await summaryResponse.arrayBuffer();
@@ -112,8 +111,12 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
             const summaryPages = await pdfDoc.copyPages(summaryPdf, summaryPdf.getPageIndices());
             summaryPages.forEach((page) => pdfDoc.addPage(page));
           }
+        }
+      }
 
-          // Add the supporting document files using Appendix.tsx
+      // Add all attachments after items
+      for (const request of claimData.requests) {
+        for (const item of request.items) {
           if (item.item.suppport_doc_file?.length > 0) {
             const appendixFile = await Appendix({
               appendixNumber: "APPENDIX",

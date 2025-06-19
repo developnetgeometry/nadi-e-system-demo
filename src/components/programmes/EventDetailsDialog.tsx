@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -56,6 +57,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +66,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
       try {
         setLoading(true);
+        setError(null);
 
         // Fetch event details with joins to get category, subcategory, program, and module names
         const { data: event, error } = await supabase
@@ -102,7 +105,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           location_event: event.location_event || "No location specified",
           start_datetime: event.start_datetime,
           end_datetime: event.end_datetime,
-          duration: event.duration,
+          duration: event.duration || 0, // Provide default value for duration
           trainer_name: event.trainer_name || "Not specified",
           is_group_event: event.is_group_event,
           category_name: event.nd_event_category?.name || "Unknown",
@@ -138,7 +141,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
         // Transform participant data
         const formattedParticipants = participantsData.map((participant) => ({
-          id: participant.id,
+          id: participant.id.toString(), // Convert to string to match interface
           fullname: participant.nd_member_profile?.fullname || "Unknown",
           email: participant.nd_member_profile?.email || "No email",
           attendance: participant.attendance || false,
@@ -147,6 +150,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         setParticipants(formattedParticipants);
       } catch (error) {
         console.error("Error fetching event details:", error);
+        setError("Failed to load event details. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -154,6 +158,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
     if (open && eventId) {
       fetchEventDetails();
+    } else if (!open) {
+      // Reset states when dialog is closed
+      setEventDetails(null);
+      setParticipants([]);
+      setError(null);
+      setLoading(true);
     }
   }, [eventId, open]);
 
@@ -227,6 +237,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Loading Event Details</DialogTitle>
+            <DialogDescription>
+              Please wait while we load the event information
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex justify-center items-center py-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -241,8 +257,11 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Event not found</DialogTitle>
+            <DialogDescription>
+              Unable to load event details
+            </DialogDescription>
           </DialogHeader>
-          <p>Sorry, we couldn't find details for this event.</p>
+          <p>{error || "Sorry, we couldn't find details for this event."}</p>
         </DialogContent>
       </Dialog>
     );
@@ -256,6 +275,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             <DialogTitle className="text-xl">
               {eventDetails.program_name}
             </DialogTitle>
+            <DialogDescription>
+              View detailed information about this programme event
+            </DialogDescription>
             <div className="mt-2">
               {getStatusBadge(eventDetails.status_name)}
             </div>
@@ -351,7 +373,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   <div>
                     <div className="text-sm">
                       <span className="font-medium">Duration: </span>
-                      <span>{eventDetails.duration.toFixed(1)} hours</span>
+                      <span>
+                        {eventDetails.duration != null ? 
+                          `${eventDetails.duration.toFixed(1)} hours` : 
+                          "Duration not specified"
+                        }
+                      </span>
                     </div>
                     <div className="text-sm mt-2">
                       <span className="font-medium">Max Participants: </span>
@@ -379,9 +406,10 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm whitespace-pre-line">
-                  {eventDetails.description}
-                </p>
+                <div
+                  className="text-sm prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: eventDetails.description }}
+                />
               </CardContent>
             </Card>
             <Card>

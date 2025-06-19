@@ -16,7 +16,7 @@ export const LoginFormMember = () => {
             htmlFor="icNumber"
             className="text-sm font-medium text-gray-700"
           >
-            Identification No
+            Identification No / Membership ID
           </Label>
           <Input
             id="icNumber"
@@ -27,7 +27,7 @@ export const LoginFormMember = () => {
               const cleanedValue = e.target.value.replace(/[\s-]/g, "");
               setIcNumber(cleanedValue);
             }}
-            placeholder="Enter your identification number without dashes"
+            placeholder="Enter your Identification No or membership ID"
             className="w-full px-4 py-2 bg-white/50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             required
           />
