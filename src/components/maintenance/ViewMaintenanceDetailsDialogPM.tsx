@@ -25,7 +25,6 @@ import {
   getMaintenanceStatus,
   humanizeMaintenanceFrequency,
   humanizeMaintenanceStatus,
-  MaintenanceDocketType,
   MaintenanceRequest,
   MaintenanceStatus,
   MaintenanceUpdate,
@@ -80,7 +79,8 @@ export const ViewMaintenanceDetailsDialogPM = ({
 
   const isTPCloseRequest =
     userMetadata?.user_group_name == "TP" &&
-    maintenanceRequest?.status == MaintenanceStatus.InProgress;
+    maintenanceRequest?.status == MaintenanceStatus.InProgress &&
+    maintenanceRequest?.updates?.length > 0;
 
   const isCompleted =
     userMetadata?.user_group_name == "TP" &&
@@ -395,12 +395,6 @@ export const ViewMaintenanceDetailsDialogPM = ({
           maintenanceRequest?.frequency
         ) {
           const now = new Date();
-          const docketNumber = generateDocketNumber(
-            MaintenanceDocketType.Preventive,
-            now,
-            undefined,
-            maintenanceRequest.type_id
-          );
 
           const newMaintenanceDate = calculateNewDateByFrequency(
             maintenanceRequest.maintenance_date,
@@ -408,7 +402,6 @@ export const ViewMaintenanceDetailsDialogPM = ({
           );
 
           const newPMRequest: Partial<MaintenanceRequest> = {
-            no_docket: docketNumber,
             description: maintenanceRequest.description,
             type_id: maintenanceRequest.type_id,
             asset_id: maintenanceRequest.asset_id,
@@ -417,18 +410,39 @@ export const ViewMaintenanceDetailsDialogPM = ({
             vendor_id: maintenanceRequest.vendor_id,
             maintenance_date: newMaintenanceDate,
             status: MaintenanceStatus.Issued,
+            docket_type: "pm",
           };
 
-          const { error: createPMRequestError } = await supabase
-            .from("nd_maintenance_request")
-            .insert({
-              ...newPMRequest,
-              created_at: now.toISOString(),
-              updated_at: now.toISOString(),
-            });
+          const { data: insertedData, error: createPMRequestError } =
+            await supabase
+              .from("nd_maintenance_request")
+              .insert({
+                ...newPMRequest,
+                created_at: now.toISOString(),
+                updated_at: now.toISOString(),
+              })
+              .select();
 
           if (createPMRequestError) {
             throw createPMRequestError;
+          }
+
+          const docketNumber = generateDocketNumber(
+            maintenanceRequest?.asset?.site?.dusp_tp?.parent?.code,
+            now,
+            insertedData[0].id
+          );
+
+          // update no_docket
+          const { error: updateNoDocketError } = await supabase
+            .from("nd_maintenance_request")
+            .update({
+              no_docket: docketNumber,
+            })
+            .eq("id", insertedData[0].id);
+
+          if (updateNoDocketError) {
+            throw updateNoDocketError;
           }
         }
 
