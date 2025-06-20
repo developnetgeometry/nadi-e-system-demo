@@ -10,7 +10,7 @@ export const useFetchClaimTP = () => {
   const organizationId = parsedMetadata?.organization_id;
 
   return useQuery({
-    queryKey: ["fetchClaimTP", organizationId],
+    queryKey: ["fetchClaimTP"],
     queryFn: async () => {
       if (!organizationId) return [];
 

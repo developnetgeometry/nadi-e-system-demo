@@ -227,8 +227,11 @@ export function ClaimListTp() {
                   <Badge className="min-w-[6rem] text-center" variant={getStatusBadgeVariant(claim.claim_status.name)}>{claim.claim_status.name}</Badge>
                   <Button size="sm" variant="outline" className="rounded-full p-0 w-6 h-6 flex items-center justify-center" onClick={() => handleOpenDescriptionDialog(claim.claim_status.name)}>i</Button>
                 </TableCell>
-                <TableCell>{new Date(claim.updated_at).toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" })}</TableCell>
                 <TableCell>
+                  {claim?.updated_at
+                    ? new Date(new Date(claim.updated_at).getTime() + 8 * 60 * 60 * 1000).toLocaleString("en-GB")
+                    : "N/A"}
+                </TableCell>                <TableCell>
                   <div className="flex gap-2">
                     <Tooltip>
                       <TooltipTrigger asChild>

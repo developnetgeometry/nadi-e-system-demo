@@ -24,6 +24,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { FileUpload } from "@/components/ui/file-upload";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,10 +36,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FileDown, Filter, Search, Check, Edit, ChevronsUpDown, RotateCcw, X, Package, Box, FileText, Upload, Image as ImageIcon } from "lucide-react";
+import { FileDown, Filter, Search, Check, Edit, ChevronsUpDown, RotateCcw, X, Package, Box, FileText, Upload, Loader2, Plus, Image as ImageIcon } from "lucide-react";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,6 +51,7 @@ const Products = () => {
   const [inventories, setInventories] = useState([]);
   const [filteredInventories, setFilteredInventories] = useState([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogService, setIsAddDialogService] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [editPrices, setEditPrices] = useState<{[key: string]: string}>({});
   const [isEditImageDialogOpen, setIsEditImageDialogOpen] = useState(false);
@@ -79,10 +82,21 @@ const Products = () => {
   const [appliedStockFilters, setAppliedStockFilters] = useState<string[]>([]);
   const [appliedBarcodeFilters, setAppliedBarcodeFilters] = useState<string[]>([]);
 
+  // Add services state
+  const [serviceNameBM, setServiceNameBM] = useState<string>("");
+  const [serviceNameEN, setServiceNameEN] = useState<string>("");
+  const [serviceDescription, setserviceDescription] = useState<string>("");
+  const [servicePrice, setServicePrice] = useState<string>("");
+  const [serviceImageFile, setServiceImageFile] = useState<File | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>("");
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const isTPSite = parsedMetadata?.user_type === "tp_site";
+  const isTPAdmin = parsedMetadata?.user_type === "tp_admin";
   const isTPUser =
     parsedMetadata?.user_group_name === "TP" &&
     !!parsedMetadata?.organization_id;
@@ -241,14 +255,55 @@ const Products = () => {
         image_url: item.nd_inventory_attachment?.[0]?.file_path || null
       })) || [];
 
-      const { data: servicesResult, error: servicesError } = await supabase
-        .from('nd_category_service')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let servicesResult;
+      if (isTPSite && parsedMetadata?.group_profile?.site_profile_id) {        
+        // For tp_site: only show services based on available assets
+        const { data: availableServices, error: servicesError } = await supabase
+          .from('nd_asset')
+          .select(`
+            type_id,
+            nd_asset_type!inner(
+              id,
+              nd_asset_type_services!inner(
+                service_id,
+                nd_category_service!inner(*)
+              )
+            )
+          `)
+          .eq('site_id', parsedMetadata.group_profile.site_profile_id)
+          .eq('is_active', true)
+          .is('deleted_at', null);
+          
+        if (servicesError) {
+          console.error('Error fetching services for tp_site:', servicesError);
+          throw servicesError;
+        }
 
-      if (servicesError) {
-        console.error('Error fetching services:', servicesError);
-        throw servicesError;
+        // Extract unique services
+        const uniqueServices = new Map();
+        availableServices?.forEach(asset => {
+          if (asset.nd_asset_type && asset.nd_asset_type.nd_asset_type_services) {
+            asset.nd_asset_type.nd_asset_type_services.forEach(serviceLink => {
+              const service = serviceLink.nd_category_service;
+              uniqueServices.set(service.id, service);
+            });
+          }
+        });
+
+        servicesResult = Array.from(uniqueServices.values());
+      } else {
+        // For super admin and tp admin: show all services
+        const { data: allServices, error: servicesError } = await supabase
+          .from('nd_category_service')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (servicesError) {
+          console.error('Error fetching services:', servicesError);
+          throw servicesError;
+        }
+
+        servicesResult = allServices;
       }
 
       const { data: serviceCharges, error: chargesError } = await supabase
@@ -636,6 +691,130 @@ const Products = () => {
     }
   };
 
+  const resetForm = () => {
+    setServiceNameBM("");
+    setServiceNameEN("");
+    setserviceDescription("");
+    setServicePrice("");
+    setServiceImageFile(null);
+    setPreviewImageUrl("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    setIsSubmitting(true);
+
+    try {
+      let userId = null;
+
+      try {
+        const storedUserMetadata = localStorage.getItem('user_metadata');
+        if(storedUserMetadata) {
+          const userData = JSON.parse(storedUserMetadata);
+          userId = userData.group_profile?.user_id || null;
+        }
+      } catch (error) {
+        console.error("Error retrieving user data from localStorage:", error);
+      }
+
+      let imageUrl = null;
+
+      // upload image if provided
+      if (serviceImageFile) {
+        const fileExt = serviceImageFile.name.split('.').pop();
+        const fileName = `service_${Date.now()}.${fileExt}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('service-images')
+          .upload(fileName, serviceImageFile);
+
+        if (uploadError) throw uploadError;
+
+        // get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('service-images')
+          .getPublicUrl(fileName);
+
+        imageUrl = publicUrl;
+      }
+
+      const serviceData = {
+        bm: formData.get("name-bm"),
+        eng: formData.get("name-en"),
+        image_url: imageUrl,
+        created_by: userId,
+        created_at: new Date().toISOString()
+      };
+
+      const { data: insertServiceData, error: insertServiceDataError } = await supabase
+        .from('nd_category_service')
+        .insert([serviceData])
+        .select()
+        .single();
+
+      if (insertServiceDataError) throw insertServiceDataError;
+
+      const serviceDetailData = {
+        category_id: insertServiceData.id,
+        fee: parseFloat(String(formData.get("price"))),
+        description: formData.get('description'),
+        created_by: userId,
+        created_at: new Date().toISOString()
+      };
+
+      const { error: insertServiceDetailDataError } = await supabase
+        .from('nd_service_charge')
+        .insert([serviceDetailData]);
+
+      if (insertServiceDetailDataError) throw insertServiceDetailDataError;
+
+      // Reset form
+      setServiceNameBM("");
+      setServiceNameEN("");
+      setserviceDescription("");
+      setServicePrice("");
+      setServiceImageFile(null);
+      setPreviewImageUrl("");
+
+      // Refresh data
+      queryClient.invalidateQueries({ queryKey: ['inventories'] });
+
+      toast({
+        title: "Success",
+        description: "Service added successfully",
+        variant: "default",
+      });
+
+      setIsAddDialogService(false);
+    } catch (error) {
+      console.error("Error adding service:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add services. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  const handleImageChange = (files: File[]) => {
+    if(files.length > 0) {
+      const file = files[0];
+
+      if(!file.type.startsWith("image/")) {
+        console.warn(`File does not have an image MIME type: ${file.type}`);
+        return;
+      }
+
+      setServiceImageFile(file);
+
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewImageUrl(objectUrl);
+    }
+  }
+
   useEffect(() => {
     if (inventoryData) {
       setInventories(inventoryData);
@@ -678,7 +857,7 @@ const Products = () => {
         : true;
       
       const categoryMatch = appliedCategoryFilters.length > 0
-        ? appliedCategoryFilters.includes(item.category?.name || "")
+        ? appliedCategoryFilters.includes(item.category?.name === 'Services' ? 'Services' : 'Inventory')
         : true;
       
       const priceMatch = appliedPriceFilters.length > 0
@@ -714,8 +893,8 @@ const Products = () => {
             valueB = b.name || "";
             break;
           case "category":
-            valueA = a.category?.name || "";
-            valueB = b.category?.name || "";
+            valueA = a.category?.name === 'Services' ? 'Services' : 'Inventory';
+            valueB = b.category?.name === 'Services' ? 'Services' : 'Inventory';
             break;
           case "price":
             valueA = a.price || 0;
@@ -756,6 +935,14 @@ const Products = () => {
           <h1 className="text-2xl font-bold tracking-tight">Products</h1>
           <p className="text-muted-foreground">Manage your inventory</p>
         </div>
+        {(isSuperAdmin || isTPSite || isTPAdmin) && (
+          <div>
+            <Button onClick={() => setIsAddDialogService(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Services
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Search and Filter Section */}
@@ -891,7 +1078,7 @@ const Products = () => {
                   <CommandEmpty>No categories found.</CommandEmpty>
                   <CommandGroup className="max-h-[300px] overflow-y-auto">
                     {inventories && Array.from(
-                      new Set(inventories.map(item => item.category?.name).filter(Boolean))
+                      new Set(inventories.map(item => item.category?.name === 'Services' ? 'Services' : 'Inventory').filter(Boolean))
                     ).sort().map((category) => (
                       <CommandItem
                         key={category}
@@ -1134,7 +1321,7 @@ const Products = () => {
                     <TableRow key={item.id}>
                       <TableCell className="font-mono">{filteredInventories.indexOf(item) + 1}</TableCell>
                       <TableCell>{item.name || 'N/A'}</TableCell>
-                      <TableCell>{item.category?.name || 'N/A'}</TableCell>
+                      <TableCell>{item.category?.name === 'Services' ? 'Services' : 'Inventory'}</TableCell>
                       <TableCell>{item.price ? `RM ${item.price.toFixed(2)}` : 'N/A'}</TableCell>
                       <TableCell>{item.quantity || 0}</TableCell>
                       <TableCell>{item.barcode || 'N/A'}</TableCell>
@@ -1407,6 +1594,111 @@ const Products = () => {
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add services dialog */}
+      <Dialog open={isAddDialogService} onOpenChange={(open) => {
+        setIsAddDialogService(open);
+        if (!open) {
+          resetForm();
+        }
+      }}>
+        <DialogContent className="sm:max-w-2/3 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="mb-2">
+            <DialogTitle>
+              Add New Services
+            </DialogTitle>
+            <DialogDescription>
+              Fill in the details to create a new services
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Service Name (BM)</Label>
+              <Input
+                id="name-bm"
+                name="name-bm"
+                required
+                placeholder="Enter service name (bm)"
+                value={serviceNameBM}
+                onChange={(e) => setServiceNameBM(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Service Name (EN)</Label>
+              <Input
+                id="name-en"
+                name="name-en"
+                required
+                placeholder="Enter service name (en)"
+                value={serviceNameEN}
+                onChange={(e) => setServiceNameEN(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                placeholder="Enter service description"
+                value={serviceDescription}
+                onChange={(e) => setserviceDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="type">Price per page</Label>
+              <Input
+                id="price"
+                name="price"
+                type="text"
+                required
+                placeholder="Enter price per page"
+                value={servicePrice}
+                onChange={(e) => setServicePrice(e.target.value)}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Service Image</Label>
+              {previewImageUrl ? (
+                <div className="relative w-40 h-40 border rounded-md overflow-hidden bg-muted/30 flex items-center justify-center group">
+                  <img
+                    src={previewImageUrl || ''}
+                    alt="Service preview"
+                    className="object-contain w-full h-full p-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewImageUrl(null);
+                    }}
+                    className="absolute top-2 right-2 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <FileUpload
+                  acceptedFileTypes="image/png,image/jpeg,image/webp,image/svg+xml"
+                  maxFiles={1}
+                  maxSizeInMB={2}
+                  onFilesSelected={handleImageChange}
+                  buttonText={"Upload Image"}
+                >
+                  Upload Service Image
+                </FileUpload>
+              )}
+            </div>
+
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              Add Services
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </>

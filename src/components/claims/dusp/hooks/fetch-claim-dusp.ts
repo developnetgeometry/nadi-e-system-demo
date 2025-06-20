@@ -8,7 +8,7 @@ export const useFetchClaimDUSP = () => {
   const organizationId = parsedMetadata?.organization_id;
 
   return useQuery({
-    queryKey: ["fetchClaimDUSP", organizationId],
+    queryKey: ["fetchClaimDUSP"],
     queryFn: async () => {
       if (!organizationId) return [];
 
