@@ -47,8 +47,10 @@ export function ComboBoxFilterFinance({
                     aria-expanded={open}
                     className={cn("w-[200px] justify-between", className)}
                 >
-                    {label
-                        ? label
+                    {value
+                        ? value
+                        : label
+                        ? label 
                         : "Select framework..."}
                     <ChevronsUpDown className="opacity-50" />
                 </Button>
