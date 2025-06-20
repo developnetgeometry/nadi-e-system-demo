@@ -2,12 +2,25 @@ import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { useFinanceQueries } from "@/hooks/finance/use-finance-queries";
 import { Button } from "@/components/ui/button";
 import { useParams } from "react-router-dom"
-import { Calendar, Check, CheckCheck, FileDown, Send, StickyNote } from "lucide-react";
+import { Calendar, Check, CheckCheck, Delete, Edit, FileDown, ReceiptText, Send, StickyNote, Trash } from "lucide-react";
 import { useUserOrgId } from "../utils/useUserOrgId";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FinanceReportDetailContent } from "../reusables/FinanceReportDetailContent";
 import { FinanceReportItem } from "@/types/finance";
+import { FinanceDailyReportAction } from "../reusables/FinanceDailyReportAction";
+
+export interface CalculationSummary {
+    totalIncome: number;
+    totalExpense: number;
+    profit: number;
+    broughtForward: number;
+    debit: number;
+    credit: number;
+    bankIn: number;
+    pattyCashOnHand: number;
+    totalBalance: number
+}
 
 export const FinanceReportDetail = () => {
     const {
@@ -24,14 +37,18 @@ export const FinanceReportDetail = () => {
     const { reportId } = useParams();
     const [page, setPage] = useState(1);
     const perPage = 10;
-    const { data: financeReport, isLoading: isLoadingFinanceReport } = useSiteNameByReportId(reportId);
-    const { data: financeItem, isLoading: isLoadingFinanceItem } = useFinanceReportItemByReportId(reportId, page, perPage);
+    const { data: financeReport, isLoading: isLoadingFinanceReport, refetch: refetchFinanceReport } = useSiteNameByReportId(reportId);
+    const { data: financeItem, isLoading: isLoadingFinanceItem, refetch: refetchFinanceItem } = useFinanceReportItemByReportId(reportId, page, perPage);
     const [bodyTableData, setBodyTableData] = useState<any[]>([]);
 
     useEffect(() => {
         const formattedToTableBodyData = financeItem?.map((report: FinanceReportItem, i) => {
             const date = new Date(report.created_at);
-            const description = report.description;
+            const description = report.description
+                ? report.description
+                : report.debit_type
+                ? report.nd_finance_income_type.name
+                : report.nd_finance_expense_type.name;
             return {
                 no: i + 1,
                 date: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`,
@@ -39,12 +56,24 @@ export const FinanceReportDetail = () => {
                 debit: report.debit,
                 credit: report.credit,
                 balance: report.balance,
-                receipt: <Button>See Receipt</Button>,
-                action: `reports/${report.id}`,
+                receipt: <Button className="bg-white text-blue-700 border border-blue-700 hover:bg-blue-200"><ReceiptText /></Button>,
+                action: isTpSite && <FinanceDailyReportAction 
+                    financeReportItemId={report.id}
+                    refetchFinanceItem={refetchFinanceItem}
+                    refetchFinanceReport={refetchFinanceReport}
+                    formDefaultValues={
+                        {
+                            type: report.debit > 0 ? "income" : "expense",
+                            date: new Date(report.created_at),
+                            amount: report.debit ? report.debit : report.credit,
+                            description: report.description
+                        }
+                    }
+                />
             };
         });
         setBodyTableData(formattedToTableBodyData || []);
-    }, [financeItem]);
+    }, [financeItem, isTpSite]);
 
     const headTable = [
         { key: "no", label: "No" },
@@ -56,6 +85,33 @@ export const FinanceReportDetail = () => {
         { key: "receipt", label: "Receipt" },
         { key: "action", label: "Action" }
     ];
+    console.log("finance report", financeReport);
+    const calculationSummary = useCallback((): CalculationSummary => {
+        if (!financeReport || !financeItem) return {} as CalculationSummary;
+        const totalIncome = financeReport.nd_finance_report_item.reduce((acc, item) => acc + item.debit, 0);
+        const totalExpense = financeReport.nd_finance_report_item.reduce((acc, item) => acc + item.credit, 0);
+        const profit = totalIncome - totalExpense;
+        const broughtForward = 0;
+        const debit = financeItem.reduce((acc, item) => acc + item.debit, 0);
+        const credit = financeItem.reduce((acc, item) => acc + item.credit, 0);
+        const bankIn = financeReport.nd_finance_report_item.reduce(
+            (acc, item) => acc + (item.nd_finance_expense_type?.name === "Bank In" ? item.credit : 0),
+            0
+        );
+        const pattyCashOnHand = 0;
+        const totalBalance = financeReport.nd_finance_report_item.reduce((acc, item) => acc + item.balance, 0);
+        return {
+            totalIncome,
+            totalExpense,
+            profit,
+            broughtForward,
+            debit,
+            credit,
+            bankIn,
+            pattyCashOnHand,
+            totalBalance
+        };
+    }, [financeReport, financeItem])
 
     if (
         isLoadingFinanceReport
@@ -73,9 +129,13 @@ export const FinanceReportDetail = () => {
                 financeReportStatus={financeReport.nd_finance_report_status.status}
             />
             <FinanceReportDetailContent
+                calculationSummary={() => calculationSummary()}
+                refetchFinanceItem={refetchFinanceItem}
+                refetchFinanceReport={refetchFinanceReport}
                 contentResult={bodyTableData}
                 headTable={headTable}
                 page={page}
+                financeReportId={reportId}
                 setPage={setPage}
                 isLoading={isLoadingFinanceItem}
             />

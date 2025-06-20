@@ -210,6 +210,7 @@ export interface SiteProfile {
   operate_date?: string;
   nd_site?: Site[];
   nd_state?: State;
+  nd_phases?: Phase;
   nd_region?: Region;
 }
 

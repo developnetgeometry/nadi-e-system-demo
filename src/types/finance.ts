@@ -9,8 +9,12 @@ export interface FinanceReport {
     created_at: string,
     year: string,
     month: string,
+    balance_forward?: number,
+    cash_on_hand?: number,
+    total_balance?: number,
     nd_site_profile?: SiteProfile
     nd_finance_report_status?: FinanceReportStatus
+    nd_finance_report_item?: FinanceReportItem[]
 }
 
 export interface FinanceReportItem {

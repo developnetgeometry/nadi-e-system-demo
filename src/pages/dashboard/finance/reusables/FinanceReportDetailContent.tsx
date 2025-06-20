@@ -4,30 +4,41 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { FinanceReportItem } from "@/types/finance"
 import { Plus } from "lucide-react"
 import React from "react"
+import { FinanceReportItemDialogForm } from "./FinanceReportItemDialogForm"
+import { CalculationSummary } from "../pages/FinanceReportDetail"
 
 interface FinanceReportDetailContentProps {
     page: number
     setPage: React.Dispatch<React.SetStateAction<number>>
     contentResult: FinanceReportItem[]
     isLoading: boolean
+    financeReportId: string
+    refetchFinanceItem: () => void
+    refetchFinanceReport: () => void
     headTable: any[]
+    calculationSummary: () => CalculationSummary
 }
 export const FinanceReportDetailContent = ({
     page,
     setPage,
     contentResult,
+    financeReportId,
     isLoading,
-    headTable
+    headTable,
+    refetchFinanceItem,
+    calculationSummary,
+    refetchFinanceReport
 }: FinanceReportDetailContentProps) => {
     return (
         <section className="flex gap-4">
-            <Card className="p-4 flex-grow h-fit">
+            <Card className="p-4 flex-grow w-[70%] h-fit">
                 <div className="flex justify-between items-center bg-purple-500 p-4 rounded-md">
                     <h1 className="text-3xl font-bold text-white">General Ledger</h1>
-                    <Button className="bg-green-500 text-white hover:bg-green-600">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Transaction
-                    </Button>
+                    <FinanceReportItemDialogForm 
+                        financeReportId={financeReportId}
+                        refetchFinanceItem={refetchFinanceItem}
+                        refetchFinanceReport={refetchFinanceReport}
+                    />
                 </div>
                 <PaginationTableServer
                     page={page}
@@ -42,20 +53,20 @@ export const FinanceReportDetailContent = ({
                 <h1 className="text-3xl font-bold text-white bg-purple-500 p-4 rounded-md">Financial Summary</h1>
                 <Card className="p-4 bg-green-100 space-y-2">
                     <h1 className="text-lg font-bold">Income and Expenses</h1>
-                    <div>
+                    <div className="space-y-2">
                         <div>
                             <div className="flex items-center justify-between">
                                 <h1>Total Income</h1>
-                                <p>RM 0</p>
+                                <p>RM {calculationSummary().totalIncome}</p>
                             </div>
                             <div className="flex items-center justify-between">
                                 <h1>Total Expenses</h1>
-                                <p>RM 0</p>
+                                <p>RM {calculationSummary().totalExpense}</p>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <h1>Profit</h1>
-                            <p>RM 0</p>
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-300">
+                            <h1 className="font-semibold">Profit</h1>
+                            <p>RM {calculationSummary().profit}</p>
                         </div>
                     </div>
                 </Card>
@@ -65,39 +76,35 @@ export const FinanceReportDetailContent = ({
                         <div>
                             <div className="flex items-center justify-between">
                                 <h1>Brought Forward</h1>
-                                <p>RM 0</p>
+                                <p>RM {calculationSummary().broughtForward}</p>
                             </div>
                             <div className="flex items-center justify-between">
                                 <h1>Debit</h1>
-                                <p>RM 0</p>
+                                <p>RM {calculationSummary().debit}</p>
                             </div>
                             <div className="flex items-center justify-between">
                                 <h1>Credit</h1>
-                                <p>RM 0</p>
+                                <p>RM {calculationSummary().credit}</p>
                             </div>
                             <div className="flex items-center justify-between">
                                 <h1>Bank In</h1>
-                                <p>RM 0</p>
+                                <p>RM {calculationSummary().bankIn}</p>
                             </div>
                         </div>
                     </div>
                 </Card>
                 <Card className="p-4 bg-green-100 space-y-2">
                     <h1 className="text-lg font-bold">Final Balance</h1>
-                    <div>
+                    <div className="space-y-2">
                         <div>
                             <div className="flex items-center justify-between">
-                                <h1>Total Income</h1>
-                                <p>RM 0</p>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <h1>Total Expenses</h1>
-                                <p>RM 0</p>
+                                <h1>Patty Cash On Hand</h1>
+                                <p>RM {calculationSummary().pattyCashOnHand}</p>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <h1>Profit</h1>
-                            <p>RM 0</p>
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-300">
+                            <h1 className="font-semibold">Balance</h1>
+                            <p>RM {calculationSummary().totalBalance}</p>
                         </div>
                     </div>
                 </Card>
