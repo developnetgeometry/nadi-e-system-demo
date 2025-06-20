@@ -228,6 +228,7 @@ export const BookingAssetCard = ({
                     name={assetName}
                     status={status}
                     duration={duration}
+                    siteId={siteId}
                 />
             ) : (
                 <BookingFacilityCardDetails
@@ -251,6 +252,7 @@ interface BookingPcCardDetailsProps {
     id: string,
     status: string,
     duration: string
+    siteId: number
 }
 
 const BookingPcCardDetails = ({
@@ -258,6 +260,7 @@ const BookingPcCardDetails = ({
     status,
     id,
     duration,
+    siteId
 }: BookingPcCardDetailsProps) => {
     const [channel, setChannel] = useState<RealtimeChannel | null>(null);
     const [message, setMessage] = useState<string>("");
@@ -413,6 +416,8 @@ const BookingPcCardDetails = ({
                 />
                 <RemotePc
                     value="remote-pc"
+                    pcId={id}
+                    siteId={siteId}
                 />
             </Tabs>
         </DialogContent>
@@ -461,10 +466,13 @@ const DetailsPc = ({
     )
 }
 
-const RemotePc = ({ value }) => {
+const RemotePc = ({ value, pcId, siteId }) => {
     return (
         <TabsContent className="w-full" value={value}>
-            <RemotePcStream />
+            <RemotePcStream 
+                pcId={pcId}
+                siteId={siteId}
+            />
         </TabsContent>
     )
 }
