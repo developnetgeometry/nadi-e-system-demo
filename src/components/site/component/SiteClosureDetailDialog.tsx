@@ -383,11 +383,14 @@ const SiteClosureDetailDialog: React.FC<SiteClosureDetailDialogProps> = ({
                       <TableCell className="font-medium">Duration</TableCell>
                       <TableCell>{formatDuration(closure.duration)}</TableCell>
                     </TableRow>
+                  )}                  
+                  {/* Only show Affected Areas for Natural Disaster (category ID 6) */}
+                  {closure.nd_closure_categories?.id === 6 && (
+                    <TableRow>
+                      <TableCell className="font-medium">Affected Areas</TableCell>
+                      <TableCell>{renderAffectedAreas()}</TableCell>
+                    </TableRow>
                   )}
-                  <TableRow>
-                    <TableCell className="font-medium">Affected Areas</TableCell>
-                    <TableCell>{renderAffectedAreas()}</TableCell>
-                  </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Reason</TableCell>
                     <TableCell>{closure.remark || 'N/A'}</TableCell>
