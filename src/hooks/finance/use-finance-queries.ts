@@ -97,6 +97,18 @@ export const useFinanceQueries = () => {
             enabled: !!reportId
     });
 
+    const useAllFinanceIncomeTypes = () =>
+        useQuery({
+            queryKey: ["allFinanceIncomeTypes"],
+            queryFn: () => financeClient.getAllFinanceIncomeTypes()
+    });
+
+    const useAllFinanceExpenseTypes = () =>
+        useQuery({
+            queryKey: ["allFinanceExpenseTypes"],
+            queryFn: () => financeClient.getAllFinanceExpenseTypes()
+    });
+
     return {
         useSiteReportStatusQuery,
         useTwelveMonthNamesQuery,
@@ -106,6 +118,8 @@ export const useFinanceQueries = () => {
         useFinanceReportWithFilterAndPagination,
         useAllFinanceReports,
         useFinanceReportItemByReportId,
-        useSiteNameByReportId
+        useSiteNameByReportId,
+        useAllFinanceIncomeTypes,
+        useAllFinanceExpenseTypes
     };
 };

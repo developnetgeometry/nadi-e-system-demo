@@ -72,14 +72,8 @@ export const PaginationTableServer = ({
                     return <Badge className="bg-gray-100 text-black border border-gray-500 hover:bg-gray-200">{value}</Badge>;
             }
         }
-        if (key === "action") {
-            return (
-                <Link to={`/finance/${value}`}>
-                    <Button onClick={() => handleSelectedSite(rowItem.id)} className="flex items-center gap-1">
-                        <Eye />
-                    </Button>
-                </Link>
-            );
+        if (key === "action" && value) {
+            return (value);
         }
 
         return <span className={key === "siteName" ? "font-semibold" : ""}>{value ?? "-"}</span>;
