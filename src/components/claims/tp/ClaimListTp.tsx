@@ -20,7 +20,6 @@ import ClaimStatusDescriptionDialog from "../component/ClaimStatusLegend";
 import { useFetchClaimTP } from "./hooks/fetch-claim-tp";
 import { useNavigate } from "react-router-dom";
 
-
 export function ClaimListTp() {
   const { data: claimTPData, isLoading: isClaimTPLoading } = useFetchClaimTP();
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
@@ -29,17 +28,14 @@ export function ClaimListTp() {
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
   const navigate = useNavigate();
 
-  // Sorting states
   const [sortField, setSortField] = useState<string>("year");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // Filter states
   const [search, setSearch] = useState<string>("");
   const [filterYear, setFilterYear] = useState<string | null>(null);
-  const [filterMonth, setFilterMonth] = useState<string | null>(null);
+  const [filterQuarter, setFilterQuarter] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -63,9 +59,7 @@ export function ClaimListTp() {
     const exportData = filteredClaims.map((claim) => ({
       ReferenceNumber: claim.ref_no,
       Year: claim.year,
-      Month: claim.month
-        ? new Date(0, claim.month - 1).toLocaleString("default", { month: "long" })
-        : "N/A",
+      Quarter: claim.quarter ? `Q${claim.quarter}` : "N/A",
       Status: claim.claim_status.name,
     }));
 
@@ -84,27 +78,23 @@ export function ClaimListTp() {
   const filteredClaims = useMemo(() => {
     let claims = claimTPData?.filter((claim) => {
       return (
-        (!search ||
-          claim.ref_no?.toLowerCase().includes(search.toLowerCase())) &&
+        (!search || claim.ref_no?.toLowerCase().includes(search.toLowerCase())) &&
         (!filterYear || claim.year?.toString() === filterYear) &&
-        (!filterMonth ||
-          (claim.month &&
-            new Date(0, claim.month - 1)
-              .toLocaleString("default", { month: "long" })
-              .includes(filterMonth))) &&
+        (!filterQuarter || claim.quarter?.toString() === filterQuarter) &&
         (!filterStatus || claim.claim_status.name === filterStatus)
       );
     }) ?? [];
 
-    // Sorting
     if (sortField) {
       claims = [...claims].sort((a, b) => {
         let aValue = a[sortField];
         let bValue = b[sortField];
-        // Special case for status
         if (sortField === "status") {
           aValue = a.claim_status.name;
           bValue = b.claim_status.name;
+        } else if (sortField === "updated_at") {
+          aValue = new Date(a.updated_at);
+          bValue = new Date(b.updated_at);
         }
         if (aValue === undefined || bValue === undefined) return 0;
         if (typeof aValue === "string" && typeof bValue === "string") {
@@ -119,7 +109,7 @@ export function ClaimListTp() {
     }
 
     return claims;
-  }, [claimTPData, search, filterYear, filterMonth, filterStatus, sortField, sortOrder]);
+  }, [claimTPData, search, filterYear, filterQuarter, filterStatus, sortField, sortOrder]);
 
   const paginatedClaims = useMemo(() => {
     return filteredClaims?.slice(
@@ -153,16 +143,10 @@ export function ClaimListTp() {
     }
   };
 
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: i + 1,
-    label: new Date(0, i).toLocaleString("default", { month: "long" }),
-  }));
-
   return (
     <div className="rounded-md border p-4 space-y-4">
       <h2 className="text-xl font-bold">Claim List (TP)</h2>
 
-      {/* Search and Export */}
       <div className="flex items-center justify-between">
         <Input
           placeholder="Search by Reference Number"
@@ -175,9 +159,7 @@ export function ClaimListTp() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-4">
-        {/* Year Filter */}
         <Select onValueChange={(value) => setFilterYear(value === "all" ? null : value)} value={filterYear || "all"}>
           <SelectTrigger className="w-[200px]">
             <span>Filter by Year</span>
@@ -192,22 +174,20 @@ export function ClaimListTp() {
           </SelectContent>
         </Select>
 
-        {/* Month Filter */}
-        <Select onValueChange={(value) => setFilterMonth(value === "all" ? null : value)} value={filterMonth || "all"}>
+        <Select onValueChange={(value) => setFilterQuarter(value === "all" ? null : value)} value={filterQuarter || "all"}>
           <SelectTrigger className="w-[200px]">
-            <span>Filter by Month</span>
+            <span>Filter by Quarter</span>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Months</SelectItem>
-            {months.map((month) => (
-              <SelectItem key={month.value} value={month.label}>
-                {month.label}
+            <SelectItem value="all">All Quarters</SelectItem>
+            {[1, 2, 3, 4].map((q) => (
+              <SelectItem key={q} value={q.toString()}>
+                Q{q}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Status Filter */}
         <Select onValueChange={(value) => setFilterStatus(value === "all" ? null : value)} value={filterStatus || "all"}>
           <SelectTrigger className="w-[200px]">
             <span>Filter by Status</span>
@@ -223,27 +203,15 @@ export function ClaimListTp() {
         </Select>
       </div>
 
-      {/* Table */}
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[60px] text-center">No.</TableHead>
-            <TableHead
-              sortable
-              sorted={sortField === "ref_no" ? sortOrder : null}
-              onSort={() => handleSort("ref_no")}>Reference Number</TableHead>
-            <TableHead
-              sortable
-              sorted={sortField === "year" ? sortOrder : null}
-              onSort={() => handleSort("year")}>Year</TableHead>
-            <TableHead
-              sortable
-              sorted={sortField === "month" ? sortOrder : null}
-              onSort={() => handleSort("month")}>Month</TableHead>
-            <TableHead
-              sortable
-              sorted={sortField === "status" ? sortOrder : null}
-              onSort={() => handleSort("status")}>Status</TableHead>
+            <TableHead sortable sorted={sortField === "ref_no" ? sortOrder : null} onSort={() => handleSort("ref_no")}>Reference Number</TableHead>
+            <TableHead sortable sorted={sortField === "year" ? sortOrder : null} onSort={() => handleSort("year")}>Year</TableHead>
+            <TableHead sortable sorted={sortField === "quarter" ? sortOrder : null} onSort={() => handleSort("quarter")}>Quarter</TableHead>
+            <TableHead sortable sorted={sortField === "status" ? sortOrder : null} onSort={() => handleSort("status")}>Status</TableHead>
+            <TableHead sortable sorted={sortField === "updated_at" ? sortOrder : null} onSort={() => handleSort("updated_at")}>Updated At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -251,30 +219,19 @@ export function ClaimListTp() {
           {paginatedClaims?.length > 0 ? (
             paginatedClaims.map((claim, index) => (
               <TableRow key={claim.id}>
-                <TableCell className="text-center">
-                  {(currentPage - 1) * itemsPerPage + index + 1}
-                </TableCell>
+                <TableCell className="text-center">{(currentPage - 1) * itemsPerPage + index + 1}</TableCell>
                 <TableCell>{claim.ref_no}</TableCell>
                 <TableCell>{claim.year}</TableCell>
-                <TableCell>
-                  {claim.month
-                    ? new Date(0, claim.month - 1).toLocaleString("default", { month: "long" })
-                    : "N/A"}
-                </TableCell>
+                <TableCell>{claim.quarter ? `Q${claim.quarter}` : "N/A"}</TableCell>
                 <TableCell className="flex items-center gap-2">
-                  <Badge className="min-w-[6rem] text-center" variant={getStatusBadgeVariant(claim.claim_status.name)}>
-                    {claim.claim_status.name}
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="rounded-full p-0 w-6 h-6 flex items-center justify-center"
-                    onClick={() => handleOpenDescriptionDialog(claim.claim_status.name)}
-                  >
-                    i
-                  </Button>
+                  <Badge className="min-w-[6rem] text-center" variant={getStatusBadgeVariant(claim.claim_status.name)}>{claim.claim_status.name}</Badge>
+                  <Button size="sm" variant="outline" className="rounded-full p-0 w-6 h-6 flex items-center justify-center" onClick={() => handleOpenDescriptionDialog(claim.claim_status.name)}>i</Button>
                 </TableCell>
                 <TableCell>
+                  {claim?.updated_at
+                    ? new Date(new Date(claim.updated_at).getTime() + 8 * 60 * 60 * 1000).toLocaleString("en-GB")
+                    : "N/A"}
+                </TableCell>                <TableCell>
                   <div className="flex gap-2">
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -284,16 +241,10 @@ export function ClaimListTp() {
                       </TooltipTrigger>
                       <TooltipContent>View</TooltipContent>
                     </Tooltip>
-
                     {claim.claim_status.name === "DRAFTED" && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-destructive"
-                            onClick={() => handleDelete(claim)}
-                          >
+                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleDelete(claim)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -306,15 +257,12 @@ export function ClaimListTp() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
-                No data available
-              </TableCell>
+              <TableCell colSpan={7} className="text-center">No data available</TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <PaginationComponent
           currentPage={currentPage}
@@ -324,14 +272,12 @@ export function ClaimListTp() {
         />
       )}
 
-      {/* Claim Status Description Dialog */}
       <ClaimStatusDescriptionDialog
         isOpen={isDescriptionDialogOpen}
         onClose={() => setIsDescriptionDialogOpen(false)}
         status={selectedStatus}
       />
 
-      {/* TP Delete Dialog */}
       {selectedClaim && (
         <TPDeleteDialog
           isOpen={isDeleteDialogOpen}

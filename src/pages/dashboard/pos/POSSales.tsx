@@ -52,6 +52,7 @@ const POSSales = () => {
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPSite = parsedMetadata?.user_type === "tp_site";
   const isTPUser =
     parsedMetadata?.user_group_name === "TP" &&
     !!parsedMetadata?.organization_id;
@@ -88,22 +89,75 @@ const POSSales = () => {
     queryFn: async () => {
       // If searching for services, fetch from nd_category_service table
       if (selectedSearchFilter === 'services') {
-        let serviceQuery = supabase
-          .from('nd_category_service')
-          .select('*, image_url');
+        let serviceData;
+        
+        if (isTPSite && parsedMetadata?.group_profile?.site_profile_id) {          
+          // For tp_site: only show services based on available assets
+          const { data: availableServices, error: serviceError } = await supabase
+            .from('nd_asset')
+            .select(`
+              type_id,
+              nd_asset_type!inner(
+                id,
+                nd_asset_type_services!inner(
+                  service_id,
+                  nd_category_service!inner(*)
+                )
+              )
+            `)
+            .eq('site_id', parsedMetadata.group_profile.site_profile_id)
+            .eq('is_active', true)
+            .is('deleted_at', null);
 
-        if (searchItem && searchItem.length > 0) {
-          serviceQuery = serviceQuery.or(`bm.ilike.%${searchItem}%,eng.ilike.%${searchItem}%`);
+          if (serviceError) {
+            console.error('Error fetching services for tp_site in POS:', serviceError);
+            throw serviceError;
+          }
+
+          // Extract unique services
+          const uniqueServices = new Map();
+          availableServices?.forEach(asset => {
+            console.log('Processing asset in POS:', asset);
+            if (asset.nd_asset_type && asset.nd_asset_type.nd_asset_type_services) {
+              asset.nd_asset_type.nd_asset_type_services.forEach(serviceLink => {
+                const service = serviceLink.nd_category_service;
+                console.log('Found service in POS:', service);
+                uniqueServices.set(service.id, service);
+              });
+            }
+          });
+
+          serviceData = Array.from(uniqueServices.values());
+
+          // Apply search filter if needed
+          if (searchItem && searchItem.length > 0) {
+            const searchLower = searchItem.toLowerCase();
+            serviceData = serviceData.filter(service => 
+              service.bm?.toLowerCase().includes(searchLower) || 
+              service.eng?.toLowerCase().includes(searchLower)
+            );
+          }
         } else {
-          serviceQuery = serviceQuery.limit(10);
-        }
+          // For super admin: show all services
+          let serviceQuery = supabase
+            .from('nd_category_service')
+            .select('*, image_url');
 
-        serviceQuery = serviceQuery.order('created_at', { ascending: false });
-        const { data: serviceData, error: serviceError } = await serviceQuery;
+          if (searchItem && searchItem.length > 0) {
+            serviceQuery = serviceQuery.or(`bm.ilike.%${searchItem}%,eng.ilike.%${searchItem}%`);
+          } else {
+            serviceQuery = serviceQuery.limit(10);
+          }
 
-        if (serviceError) {
-          console.error("Error fetching services:", serviceError);
-          throw serviceError;
+          serviceQuery = serviceQuery.order('created_at', { ascending: false });
+          const { data: allServices, error: serviceError } = await serviceQuery;
+          
+          if (serviceError) {
+            console.error('Error fetching services:', serviceError);
+            throw serviceError;
+          }
+          
+          serviceData = allServices;
         }
 
         // Transform service data to match inventory structure

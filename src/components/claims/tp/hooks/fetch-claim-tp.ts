@@ -10,7 +10,7 @@ export const useFetchClaimTP = () => {
   const organizationId = parsedMetadata?.organization_id;
 
   return useQuery({
-    queryKey: ["fetchClaimTP", organizationId],
+    queryKey: ["fetchClaimTP"],
     queryFn: async () => {
       if (!organizationId) return [];
 
@@ -29,12 +29,11 @@ export const useFetchClaimTP = () => {
             ref_no,
             date_paid,
             payment_status,
+            updated_at,
             tp_dusp_id (id, name, parent_id (id, name))
           `)
           .eq("tp_dusp_id", organizationId)
-          .order("month", { ascending: false, nullsFirst: false  })
-          .order("quarter", { ascending: false, nullsFirst: false   })
-          .order("year", { ascending: false });
+          .order("updated_at", { ascending: false });
 
         if (claimAppError) {
           console.error("Error fetching nd_claim_application:", claimAppError);

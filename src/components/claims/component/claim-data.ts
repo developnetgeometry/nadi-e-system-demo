@@ -3,7 +3,7 @@ import { BUCKET_NAME_SITE_CLAIM, supabase, SUPABASE_BUCKET_URL } from "@/integra
 
 export const useFetchClaimById = (id: number) => {
   return useQuery({
-    queryKey: ["fetchClaimById", id],
+    queryKey: ["fetchClaimById"],
     queryFn: async () => {
       if (!id) return null;
 

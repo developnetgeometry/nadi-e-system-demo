@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Asset, AssetCategory, AssetType } from "@/types/asset";
+import { Site } from "@/types/site";
 
 export const assetClient = {
   fetchAssets: async (
@@ -13,7 +14,8 @@ export const assetClient = {
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site_profile (
-          *
+          *,
+          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
         )`
       )
       .is("deleted_at", null);
@@ -31,10 +33,10 @@ export const assetClient = {
       throw error;
     }
 
-    const formatProfile = (profile) => ({
+    const formatProfile = (profile: Site) => ({
       ...profile,
       dusp_tp_id_display: profile?.dusp_tp?.parent
-        ? `${profile.dusp_tp.name} (${profile.dusp_tp.parent.name})`
+        ? `${profile?.dusp_tp?.name} (${profile.dusp_tp?.parent.name})`
         : profile?.dusp_tp?.name ?? "N/A",
     });
 
@@ -68,13 +70,14 @@ export const assetClient = {
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name ),
         site:nd_site_profile (
-          *
+          *,
+          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
         )`
       )
       .is("deleted_at", null);
 
     if (siteId) {
-      query = query.eq("nd_site_profile.id", Number(siteId));
+      query = query.eq("site_id", Number(siteId));
     }
 
     if (name) {
@@ -90,7 +93,7 @@ export const assetClient = {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching assets:", error);
+      console.error("Error fetching assets by name:", error);
       throw error;
     }
 
@@ -125,7 +128,8 @@ export const assetClient = {
         nd_asset_type ( id, name ),
         nd_brand!nd_asset_nd_brand_fk  ( id, name, brand_type ),
         site:nd_site_profile (
-          *
+          *,
+          dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*))
         )`
       )
       .eq("id", id)

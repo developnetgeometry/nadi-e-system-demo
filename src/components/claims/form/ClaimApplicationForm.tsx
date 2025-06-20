@@ -163,146 +163,265 @@ export function ClaimApplicationForm({
 
       {/* Table */}
       {phase_id && (
-        <div>
-          <Table className="border border-gray-300 w-full text-sm">
-            <TableHeader className="bg-gray-50">
-              <TableRow>
-                <TableHead className="px-4 py-2 border">Category</TableHead>
-                <TableHead className="px-4 py-2 border">Items</TableHead>
-                <TableHead className="px-4 py-2 border text-center">Select Items</TableHead>
-                <TableHead className="px-4 py-2 border text-center">Select Site</TableHead>
-              </TableRow>
-            </TableHeader>
+        <>
+          <div className="mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                className="scale-110 cursor-pointer"
+                checked={categories.every((category) =>
+                  category_ids.some((cat) => cat.id === category.id)
+                )}
+                onChange={(e) => {
+                  const checked = e.target.checked;
 
-            <TableBody>
-              {categories.map((category) => (
-                <React.Fragment key={category.id}>
-                  {category.children.map((item, index) => (
-                    <TableRow key={item.id}>
-                      {index === 0 && (
-                        <TableCell
-                          className="px-4 py-2 border align-top"
-                          rowSpan={category.children.length}
-                        >
-                          {category.id}, {category.name}
-                        </TableCell>
-                      )}
-                      <TableCell className="px-4 py-2 border">
-                        {item.id}, {item.name}
-                      </TableCell>
-                      <TableCell className="px-4 py-2 text-center border">
-                        <input
-                          type="checkbox"
-                          className="scale-110 cursor-pointer"
-                          checked={category_ids.some(
-                            (cat) =>
-                              cat.id === category.id &&
-                              cat.item_ids.some((i) => i.id === item.id)
-                          )}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
+                  const newCategoryIds = checked
+                    ? categories.map((category) => ({
+                      id: category.id,
+                      name: category.name,
+                      item_ids: category.children.map((item) => ({
+                        id: item.id,
+                        name: item.name,
+                        need_support_doc: item.need_support_doc,
+                        need_summary_report: item.need_summary_report,
+                        summary_report_file: null, // Reset file on selection
+                        site_ids: sites.map((site) => site.id), // Auto-select all sites
+                      })),
+                    }))
+                    : [];
 
-                            const newCategoryIds = checked
-                              ? (() => {
-                                const existingCategory = category_ids.find((cat) => cat.id === category.id);
-                                if (existingCategory) {
-                                  // If the category already exists, add the new item to its item_ids
-                                  return category_ids.map((cat) =>
-                                    cat.id === category.id
-                                      ? {
-                                        ...cat,
-                                        item_ids: [
-                                          ...cat.item_ids,
-                                          {
-                                            id: item.id,
-                                            name: item.name,
-                                            need_support_doc: item.need_support_doc,
-                                            need_summary_report: item.need_summary_report,
-                                            summary_report_file: null, // Reset file on selection
-                                            site_ids: sites.map((site) => site.id), // Auto-select all sites
-                                          },
-                                        ],
-                                      }
-                                      : cat
-                                  );
-                                } else {
-                                  // If the category doesn't exist, add it as a new category
-                                  return [
-                                    ...category_ids,
-                                    {
-                                      id: category.id,
-                                      name: category.name,
-                                      item_ids: [
-                                        {
+                  updateFields({
+                    category_ids: newCategoryIds,
+                  });
+                }}
+              />
+              <span>Select All Categories</span>
+            </label>
+          </div>
+          <div>
+            <Table className="border border-gray-300 w-full text-sm">
+              <TableHeader className="bg-gray-50">
+                <TableRow>
+                  <TableHead className="px-4 py-2 border">Category</TableHead>
+                  <TableHead className="px-4 py-2 border">Items</TableHead>
+                  <TableHead className="px-4 py-2 border text-center">Select Items</TableHead>
+                  <TableHead className="px-4 py-2 border text-center">Select Site</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {categories.map((category) => (
+                  <React.Fragment key={category.id}>
+                    {/* Add "Select All Items" checkbox for the category */}
+                    <TableRow>
+                      <TableCell colSpan={4} className="px-4 py-2 border">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            className="scale-110 cursor-pointer"
+                            checked={category.children.every((item) =>
+                              category_ids.some(
+                                (cat) =>
+                                  cat.id === category.id &&
+                                  cat.item_ids.some((i) => i.id === item.id)
+                              )
+                            )}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+
+                              const newCategoryIds = checked
+                                ? (() => {
+                                  const existingCategory = category_ids.find((cat) => cat.id === category.id);
+                                  if (existingCategory) {
+                                    // Add all items in the category to item_ids
+                                    return category_ids.map((cat) =>
+                                      cat.id === category.id
+                                        ? {
+                                          ...cat,
+                                          item_ids: [
+                                            ...cat.item_ids,
+                                            ...category.children.map((item) => ({
+                                              id: item.id,
+                                              name: item.name,
+                                              need_support_doc: item.need_support_doc,
+                                              need_summary_report: item.need_summary_report,
+                                              summary_report_file: null, // Reset file on selection
+                                              site_ids: sites.map((site) => site.id), // Auto-select all sites
+                                            })),
+                                          ],
+                                        }
+                                        : cat
+                                    );
+                                  } else {
+                                    // Add the category with all items
+                                    return [
+                                      ...category_ids,
+                                      {
+                                        id: category.id,
+                                        name: category.name,
+                                        item_ids: category.children.map((item) => ({
                                           id: item.id,
                                           name: item.name,
                                           need_support_doc: item.need_support_doc,
                                           need_summary_report: item.need_summary_report,
                                           summary_report_file: null, // Reset file on selection
                                           site_ids: sites.map((site) => site.id), // Auto-select all sites
-                                        },
-                                      ],
-                                    },
-                                  ];
-                                }
-                              })()
-                              : category_ids
-                                .map((cat) =>
-                                  cat.id === category.id
-                                    ? {
-                                      ...cat,
-                                      item_ids: cat.item_ids.filter((i) => i.id !== item.id),
-                                    }
-                                    : cat
-                                )
-                                .filter((cat) => cat.item_ids.length > 0);
+                                        })),
+                                      },
+                                    ];
+                                  }
+                                })()
+                                : category_ids
+                                  .map((cat) =>
+                                    cat.id === category.id
+                                      ? {
+                                        ...cat,
+                                        item_ids: [],
+                                      }
+                                      : cat
+                                  )
+                                  .filter((cat) => cat.item_ids.length > 0);
 
-                            updateFields({
-                              category_ids: newCategoryIds
-                                .sort((a, b) => a.id - b.id)
-                                .map(cat => ({
-                                  ...cat,
-                                  item_ids: [...cat.item_ids].sort((a, b) => a.id - b.id),
-                                })),
-                            });
-                          }}
-                        />
-                      </TableCell>
-
-                      <TableCell className="px-4 py-2 text-center border">
-                        {category_ids.some(
-                          (cat) =>
-                            cat.id === category.id &&
-                            cat.item_ids.some((i) => i.id === item.id)
-                        ) && (
-                            <>
-                              <button
-                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-                                onClick={() =>
-                                  setSelectedItem({ categoryId: category.id, itemId: item.id })
-                                }
-                              >
-                                Select Site
-                              </button>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {(() => {
-                                  const matchItem = category_ids
-                                    .flatMap((cat) => cat.item_ids)
-                                    .find((i) => i.id === item.id);
-                                  const count = matchItem?.site_ids?.length || 0;
-                                  return `${count} site${count !== 1 ? "s" : ""} selected`;
-                                })()}
-                              </div>
-                            </>
-                          )}
+                              updateFields({
+                                category_ids: newCategoryIds
+                                  .sort((a, b) => a.id - b.id)
+                                  .map((cat) => ({
+                                    ...cat,
+                                    item_ids: [...cat.item_ids].sort((a, b) => a.id - b.id),
+                                  })),
+                              });
+                            }}
+                          />
+                          <span>Select All Items in {category.name}</span>
+                        </label>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </React.Fragment>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+
+                    {category.children.map((item, index) => (
+                      <TableRow key={item.id}>
+                        {index === 0 && (
+                          <TableCell
+                            className="px-4 py-2 border align-top"
+                            rowSpan={category.children.length}
+                          >
+                            {category.id}, {category.name}
+                          </TableCell>
+                        )}
+                        <TableCell className="px-4 py-2 border">
+                          {item.id}, {item.name}
+                        </TableCell>
+                        <TableCell className="px-4 py-2 text-center border">
+                          <input
+                            type="checkbox"
+                            className="scale-110 cursor-pointer"
+                            checked={category_ids.some(
+                              (cat) =>
+                                cat.id === category.id &&
+                                cat.item_ids.some((i) => i.id === item.id)
+                            )}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+
+                              const newCategoryIds = checked
+                                ? (() => {
+                                  const existingCategory = category_ids.find((cat) => cat.id === category.id);
+                                  if (existingCategory) {
+                                    return category_ids.map((cat) =>
+                                      cat.id === category.id
+                                        ? {
+                                          ...cat,
+                                          item_ids: [
+                                            ...cat.item_ids,
+                                            {
+                                              id: item.id,
+                                              name: item.name,
+                                              need_support_doc: item.need_support_doc,
+                                              need_summary_report: item.need_summary_report,
+                                              summary_report_file: null,
+                                              site_ids: sites.map((site) => site.id),
+                                            },
+                                          ],
+                                        }
+                                        : cat
+                                    );
+                                  } else {
+                                    return [
+                                      ...category_ids,
+                                      {
+                                        id: category.id,
+                                        name: category.name,
+                                        item_ids: [
+                                          {
+                                            id: item.id,
+                                            name: item.name,
+                                            need_support_doc: item.need_support_doc,
+                                            need_summary_report: item.need_summary_report,
+                                            summary_report_file: null,
+                                            site_ids: sites.map((site) => site.id),
+                                          },
+                                        ],
+                                      },
+                                    ];
+                                  }
+                                })()
+                                : category_ids
+                                  .map((cat) =>
+                                    cat.id === category.id
+                                      ? {
+                                        ...cat,
+                                        item_ids: cat.item_ids.filter((i) => i.id !== item.id),
+                                      }
+                                      : cat
+                                  )
+                                  .filter((cat) => cat.item_ids.length > 0);
+
+                              updateFields({
+                                category_ids: newCategoryIds
+                                  .sort((a, b) => a.id - b.id)
+                                  .map((cat) => ({
+                                    ...cat,
+                                    item_ids: [...cat.item_ids].sort((a, b) => a.id - b.id),
+                                  })),
+                              });
+                            }}
+                          />
+                        </TableCell>
+
+                        <TableCell className="px-4 py-2 text-center border">
+                          {category_ids.some(
+                            (cat) =>
+                              cat.id === category.id &&
+                              cat.item_ids.some((i) => i.id === item.id)
+                          ) && (
+                              <>
+                                <button
+                                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+                                  onClick={() =>
+                                    setSelectedItem({ categoryId: category.id, itemId: item.id })
+                                  }
+                                >
+                                  Select Site
+                                </button>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {(() => {
+                                    const matchItem = category_ids
+                                      .flatMap((cat) => cat.item_ids)
+                                      .find((i) => i.id === item.id);
+                                    const count = matchItem?.site_ids?.length || 0;
+                                    return `${count} site${count !== 1 ? "s" : ""} selected`;
+                                  })()}
+                                </div>
+                              </>
+                            )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
       )}
 
       {/* Dialog for Site Selection */}

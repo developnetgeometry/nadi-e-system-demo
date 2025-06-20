@@ -23,6 +23,7 @@ export interface MaintenanceRequest {
   vendor_id?: number;
   vendor?: Vendor;
   frequency?: MaintenanceFrequency;
+  remarks?: string;
   created_at?: string;
   updated_at?: string;
   created_by?: string;
