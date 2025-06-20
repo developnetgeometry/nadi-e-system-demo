@@ -4,7 +4,7 @@ import { financeClient } from "./finance-client";
 export const useFinanceMuation = () => {
     const useNewReportItemMutation = () =>
         useMutation({
-            mutationFn: (reportId: string) => financeClient.postNewFinanceTransactionItem(reportId),
+            mutationFn: (reportItemData: any) => financeClient.postNewFinanceTransactionItem(reportItemData),
             onSuccess: () => {
                 console.log("Report item created successfully");
             }
@@ -18,8 +18,26 @@ export const useFinanceMuation = () => {
             }
         });
 
+    const useEditFinanceReportItemMutation = (reportItemId: string) =>
+        useMutation({
+            mutationFn: (reportItemData: any) => financeClient.editFinanceReportItem(reportItemData, reportItemId),
+            onSuccess: () => {
+                console.log("Report item updated successfully");
+            }
+        });
+
+    const useDeleteFinanceItemReport = (reportItemId: string) =>
+        useMutation({
+            mutationFn: () => financeClient.deleteFinanceItemReport(reportItemId),
+            onSuccess: () => {
+                console.log("Report item deleted successfully");
+            }
+        });
+
     return {
         useNewReportItemMutation,
-        useUpdateFinanceReportStatusMutation
+        useUpdateFinanceReportStatusMutation,
+        useEditFinanceReportItemMutation,
+        useDeleteFinanceItemReport
     };
 }

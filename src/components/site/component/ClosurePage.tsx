@@ -1096,10 +1096,12 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         id: "action",
         header: "Action",
         cell: (item) => {
-          const isDraft = item.nd_closure_status?.name === "Draft";
-          const isSubmitted = item.nd_closure_status?.id === 2; // Submitted
+          const isDraft = item.nd_closure_status?.name === "Draft";          const isSubmitted = item.nd_closure_status?.id === 2; // Submitted
           const isPending = isSubmitted && item.created_by === user?.id; // Check if pending and owner
-          const needsApproval = canApprove(item); // Check if this user can approve this request
+          
+          // Check if the item needs approval, but make sure we have the latest status data
+          // Only items with status = 2 (Submitted) can be approved
+          const needsApproval = item.nd_closure_status?.id === 2 && canApprove(item);
 
           return (
             <div className="flex space-x-2">
@@ -1161,10 +1163,12 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
       refetch();
     }
   };
-
   const handleViewClosure = (closureId: number) => {
-    setSelectedClosureId(closureId);
-    setIsDetailDialogOpen(true);
+    // Refresh data before opening the dialog to ensure we have current status
+    refetch().then(() => {
+      setSelectedClosureId(closureId);
+      setIsDetailDialogOpen(true);
+    });
   };
 
   const handleEditDraft = async (closureId: number) => {
@@ -1804,11 +1808,17 @@ const ClosurePage: React.FC<ClosurePageProps> = ({ siteId }) => {
         onSuccess={() => refetch()}
         editData={editDraftData}
         clearEditData={() => setEditDraftData(null)}
-      />
-
+      />      
+      
       <SiteClosureDetailDialog
         open={isDetailDialogOpen}
-        onOpenChange={setIsDetailDialogOpen}
+        onOpenChange={(open) => {
+          setIsDetailDialogOpen(open);
+          // Refresh data when the dialog closes to update the status indicators
+          if (!open) {
+            refetch();
+          }
+        }}
         closureId={selectedClosureId}
         onApprove={() => {
           setSelectedForAction(selectedClosureId);

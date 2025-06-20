@@ -1,6 +1,7 @@
 import {
   BookOpenText,
   CircleDot,
+  Eye,
   SquareChartGantt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { useUserOrgId } from "./utils/useUserOrgId";
 import { useTpManagerSiteId } from "@/hooks/use-site-id";
 import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
 import { getMonthNameByNumber } from "./utils/getMonthNameByNumber";
+import { FinanceReport } from "@/types/finance";
 
 interface FinanceDashboardProps {
   isDashBoardPage?: boolean
@@ -92,7 +94,7 @@ const FinanceDashboard = ({
   );
 
   useEffect(() => {
-    const formattedToTableBodyData = financeReportWithFilterAndPagination?.map((report: any, i) => {
+    const formattedToTableBodyData = financeReportWithFilterAndPagination?.map((report: FinanceReport, i) => {
       return {
         no: i + 1,
         siteName: report.nd_site_profile.sitename,
@@ -101,9 +103,13 @@ const FinanceDashboard = ({
         phase: report.nd_site_profile.nd_phases.name,
         region: report.nd_site_profile.nd_region.eng,
         status: report.nd_finance_report_status.status,
-        income: report.income,
-        expense: report.expense,
-        action: `reports/${report.id}`,
+        income: report.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0),
+        expense: report.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0),
+        action: (<Link to={`/finance/reports/${report.id}`}>
+                    <Button className="flex items-center gap-1">
+                        <Eye />
+                    </Button>
+                </Link>),
       };
     });
     setBodyTableData(formattedToTableBodyData || []);

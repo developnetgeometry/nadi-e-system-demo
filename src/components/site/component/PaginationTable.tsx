@@ -54,13 +54,13 @@ export const PaginationTable = ({
         if (key === "maintenance") {
             return <Badge className="bg-amber-100 text-black border border-amber-500 ...">{value}</Badge>;
         }
-        if (key === "action") {
-            return (
-                <Button onClick={() => handleSelectedSite(rowItem.id)} className="flex items-center gap-1">
-                    <Eye />
-                </Button>
-            );
-        }
+        // if (key === "action") {
+        //     return (
+        //         <Button onClick={() => handleSelectedSite(rowItem.id)} className="flex items-center gap-1">
+        //             <Eye />
+        //         </Button>
+        //     );
+        // }
 
         return <span className={key === "siteName" ? "font-semibold" : ""}>{value ?? "-"}</span>;
     };

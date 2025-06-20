@@ -21,12 +21,24 @@ export const useBookingMutation = () => {
             mutationKey: ["assets", siteId, organizationId],
             mutationFn: (
               newBooking: Booking
-            ) => bookingClient.postNewBooking(newBooking, isBookingAllowed),
+            ) => bookingClient.postNewPcBooking(newBooking, isBookingAllowed),
             onSuccess: (data) => {
                 // Optionally handle success, e.g., show a notification
                 console.log("Booking created successfully:", data);
             }
         });
+    const useBookingFacilityMutation = (isBookingAllowed: boolean) => 
+        useMutation({
+            mutationKey: ["assets", siteId, organizationId],
+            mutationFn: (
+              newBooking: Booking
+            ) => bookingClient.postNewSpaceBooking(newBooking, isBookingAllowed),
+            onSuccess: (data) => {
+                // Optionally handle success, e.g., show a notification
+                console.log("Booking created successfully:", data);
+            }
+        });
+    
 
     const useMaintenanceSpaceMutation = () =>
         useMutation({
@@ -42,6 +54,7 @@ export const useBookingMutation = () => {
 
     return {
       useBookingPcMutation,
+      useBookingFacilityMutation,
       useMaintenanceSpaceMutation
     }
 }

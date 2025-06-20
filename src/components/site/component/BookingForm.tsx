@@ -81,8 +81,9 @@ const BookingForm = ({
     const { setValue } = form;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const { useBookingPcMutation } = useBookingMutation();
+    const { useBookingPcMutation, useBookingFacilityMutation } = useBookingMutation();
     const bookingPcMutation = useBookingPcMutation(!!siteId);
+    const bookingFacilityMutation = useBookingFacilityMutation(!!siteId);
 
     const { fetchUserByName } = useUserId();
 
@@ -90,13 +91,14 @@ const BookingForm = ({
         setIsSubmitting(true);
 
         try {
-            const { id: assetId } = await assetClient.fetchAssetByName(formData.pc, siteId);
+            const { id: assetId, site_space_id } = await assetClient.fetchAssetByName(formData.pc, siteId);
             const { id: userId } = await fetchUserByName(formData.userName);
             const startTime = stringToDateWithTime(formData.startTime, formData.date);
             const endTime = stringToDateWithTime(formData.endTime, formData.date);
             const bookingId = crypto.randomUUID();
-
+            console.log("site space id", site_space_id);
             const submittedFormData: Booking = {
+                site_space_id,
                 asset_id: assetId,
                 booking_start: formatToISO(startTime),
                 booking_end: formatToISO(endTime),
@@ -177,7 +179,7 @@ const BookingForm = ({
                 site_id: siteId
             }
 
-            const newBookingData = await bookingPcMutation.mutateAsync(submitedFormData);
+            const newBookingData = await bookingFacilityMutation.mutateAsync(submitedFormData);
 
             setBookingCalendarData((prevBook) => [
                 ...prevBook,

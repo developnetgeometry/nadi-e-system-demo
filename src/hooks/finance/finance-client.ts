@@ -106,7 +106,10 @@ export const financeClient = {
 
         let query = supabase
             .from("nd_finance_report")
-            .select(`*, nd_site_profile(*, nd_region (*), nd_phases (*)), nd_finance_report_status(*), nd_finance_report_item(*)`)
+            .select(`*, nd_site_profile(*, nd_region (*), nd_phases (*)), 
+                nd_finance_report_status(*), 
+                nd_finance_report_item(*)
+                `)
             .range(from, to);
 
         if (month != "") query = query.eq("month", month);
@@ -227,7 +230,11 @@ export const financeClient = {
     getSiteNameByReportId: async (reportId: string) => {
         const { data, error } = await supabase
             .from("nd_finance_report")
-            .select(`*, nd_site_profile(*), nd_finance_report_status(*)`)
+            .select(`*, 
+                nd_site_profile(*), 
+                nd_finance_report_status(*), 
+                nd_finance_report_item(*, nd_finance_income_type(*), nd_finance_expense_type(*))
+                `)
             .eq("id", reportId)
             .maybeSingle();
         if (error) {
@@ -237,4 +244,73 @@ export const financeClient = {
 
         return data as FinanceReport;
     },
+
+    getAllFinanceIncomeTypes: async () => {
+        const { data, error } = await supabase
+            .from("nd_finance_income_type")
+            .select("*");
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+
+        return data;
+    },
+
+    getAllFinanceExpenseTypes: async () => {
+        const { data, error } = await supabase
+            .from("nd_finance_expense_type")
+            .select("*");
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+
+        return data;
+    },
+
+    uploadImage: async (file: File) =>  {
+        const bucket = "finance-report";
+        const filePath = `${Date.now()}-${file.name}-${crypto.randomUUID()}`;
+
+        const { error } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, file);
+
+        if (error) {
+            throw new Error("Upload failed: " + error.message);
+        }
+
+        const { publicUrl } = supabase
+            .storage
+            .from(bucket)
+            .getPublicUrl(filePath).data;
+
+        return publicUrl;
+    },
+
+    editFinanceReportItem: async (data: any, reportItemId: string) => {
+        const { error } = await supabase
+            .from("nd_finance_report_item")
+            .update(data)
+            .eq("id", reportItemId);
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        return data;
+    },
+
+    deleteFinanceItemReport: async (reportItemId: string) => {
+        const { error } = await supabase
+            .from("nd_finance_report_item")
+            .delete()
+            .eq("id", reportItemId);
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        return reportItemId;
+    }
+
 };
