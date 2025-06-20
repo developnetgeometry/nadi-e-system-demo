@@ -1,6 +1,7 @@
 import { Brand } from "./brand";
 import { Site, Space } from "./site";
 import { Booking } from "./booking";
+import { SiteProfile } from "@/components/member/hook/useSiteProfile";
 
 export interface Asset {
   id: number;
@@ -16,7 +17,7 @@ export interface Asset {
   asset_group?: string;
   type_id?: number;
   type?: AssetType;
-  nd_site?: Site[];
+  nd_site_profile?: SiteProfile[];
   nd_space?: Space;
   retail_type?: number;
   subtype_id?: number;
