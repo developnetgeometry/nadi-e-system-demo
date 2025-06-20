@@ -6,7 +6,7 @@ export type SiteProfile = {
   id: number;
   sitename: string | null;
   fullname: string | null;
-  standard_code: string | null;
+  standard_code?: string | null;
 };
 
 export function useSiteProfiles() {
