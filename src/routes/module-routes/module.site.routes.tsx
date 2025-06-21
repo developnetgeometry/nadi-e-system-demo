@@ -15,9 +15,9 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 // import NMS from "@/pages/dashboard/site/NMS";
 // import InventoryDashboard from "@/pages/dashboard/inventory/InventoryDashboard";
 // import BookingManagement from "@/pages/dashboard/site/BookingManagement";
-import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
-import InventoryManagement from "@/pages/dashboard/site/InventoryManagement";
-import VendorManagement from "@/pages/dashboard/vendor/VendorManagement";
+// import InventorySettings from "@/pages/dashboard/inventory/InventorySettings";
+// import InventoryManagement from "@/pages/dashboard/site/InventoryManagement";
+// import VendorManagement from "@/pages/dashboard/vendor/VendorManagement";
 
 const SiteManagementPage = lazy(() => import("@/pages/dashboard/site/SiteManagement"));
 const SiteDetailsPage = lazy(() => import("@/pages/dashboard/site/SiteDetail"));
@@ -31,6 +31,10 @@ const NMSPage = lazy(() => import("@/pages/dashboard/site/NMS"));
 const BookingManagementPage = lazy(() => import("@/pages/dashboard/site/BookingManagement"));
 const InventoryDashboardPage = lazy(() => import("@/pages/dashboard/inventory/InventoryDashboard"));
 const InventorySettingsPage = lazy(() => import("@/pages/dashboard/inventory/InventorySettings"));
+const PhaseOverviewPage = lazy(() => import("@/pages/dashboard/site/Phase"));
+const PhaseFormPage = lazy(() => import("@/components/site/component/PhaseForm"));
+
+const TestTablePage = lazy(() => import("@/pages/dashboard/test-table"));
 
 export const siteRoutes = [
   {
@@ -149,6 +153,36 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <InventorySettingsPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/phase",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <PhaseOverviewPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/phase/form/:id?",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <PhaseFormPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/test-table",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <TestTablePage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
