@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, useCallback } from "react";
 
-export default function RemotePcStream() {
+export default function RemotePcStream({ pcId, siteId }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null); // Hidden video for stream processing
     const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -18,8 +18,8 @@ export default function RemotePcStream() {
     const [isControlEnabled, setIsControlEnabled] = useState(false);
     const [canvasSize, setCanvasSize] = useState({ width: 1280, height: 720 });
 
-    const userId = "viewer";
-    const channelName = "test";
+    const userId = pcId;
+    const channelName = siteId;
 
     // Canvas rendering function
     const drawVideoFrame = useCallback(() => {

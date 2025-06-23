@@ -29,6 +29,8 @@ import { toTwentyFourFormat } from "../utils/dateTimeConverter";
 import { Input } from "@/components/ui/input";
 import { exportToCSV } from "@/utils/export-utils";
 import { SiteSpace } from "@/types/site";
+import { bookingClient } from "@/hooks/booking/booking-client";
+import { toast } from "@/hooks/use-toast";
 
 interface BookingCalendarProp {
     bookingType: string,
@@ -83,13 +85,39 @@ export const BookingCalendar = ({
         { key: "duration", label: "Duration" }
     ];
 
+    const tpSiteHeadTable = [
+        ...pcHeadTable,
+        { key: "action", label: "Action" }
+    ]
+
     const facilityHeadTable = [
-        { key: "userName", label: "Member ID" },
+        { key: "userName", label: "User" },
         { key: "bookingAssetTypeName", label: "Name" },
         { key: "startTime", label: "Time" },
         { key: "endTime", label: "Date" },
         { key: "duration", label: "Facility" }
     ];
+
+    const tpSiteFacilityHeadTable = [
+        ...facilityHeadTable,
+        { key: "action", label: "Action" }
+    ]
+
+    const selectedHeadTable = isFacility ? (isTpSite ? tpSiteFacilityHeadTable : facilityHeadTable) : (isTpSite ? tpSiteHeadTable : pcHeadTable);
+
+    const handleCancleBooking = async (bookingId: string) => {
+        try {
+            await bookingClient.deleteBooking(bookingId);
+
+            toast({
+                title: "Success",
+                description: "Booking has been deleted successfully",
+                variant: "success"
+            })
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     useEffect(() => {
         let isActive = true;
@@ -104,13 +132,14 @@ export const BookingCalendar = ({
                 currentFilteredBookingData.map(async (booking) => {
                     const user = await fetchUserById(booking.created_by);
                     const full_name = user?.full_name ?? "-";
-
+                    const now = new Date().getTime();
                     return {
                         userName: full_name,
                         bookingAssetTypeName: !isFacility ? booking.nd_asset?.name : booking.nd_site_space.nd_space.eng,
                         startTime: toTwentyFourFormat(new Date(booking.booking_start)),
                         endTime: toTwentyFourFormat(new Date(booking.booking_end)),
-                        duration: getDuration(booking.booking_start, booking.booking_end)
+                        duration: getDuration(booking.booking_start, booking.booking_end),
+                        action: (isTpSite && (booking.is_active && (new Date(booking.booking_start).getTime() <= now && new Date(booking.booking_end).getTime() >= now))) ? (<Button onClick={() => handleCancleBooking(booking.id)} className="bg-red-500 hover:bg-red-400">Cancel</Button>) : null
                     };
                 })
             );
@@ -134,7 +163,7 @@ export const BookingCalendar = ({
     useEffect(() => {
         handleFilter(assetTypeName, searchInput);
     }, [assetTypeName, searchInput]);
-    
+
     return (
         <section className="w-full flex flex-col gap-4 mt-4">
             {header && (
@@ -201,7 +230,7 @@ export const BookingCalendar = ({
             </div>
             <BookingListsTable
                 isFacility={isFacility}
-                headTable={isFacility ? facilityHeadTable : pcHeadTable}
+                headTable={selectedHeadTable}
                 bodyTableData={formattedBookingData}
                 withTableTitle={false}
                 className="mt-0 border border-gray-100"
