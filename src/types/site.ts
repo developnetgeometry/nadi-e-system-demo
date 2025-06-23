@@ -1,5 +1,6 @@
 import { Asset } from "./asset";
 import { Booking } from "./booking";
+import { FinanceReport } from "./finance";
 
 export interface Site {
   id: number;
@@ -211,6 +212,7 @@ export interface SiteProfile {
   nd_state?: State;
   nd_phases?: Phase;
   nd_region?: Region;
+  nd_finance_report?: FinanceReport[];
 }
 
 export interface SiteOption {

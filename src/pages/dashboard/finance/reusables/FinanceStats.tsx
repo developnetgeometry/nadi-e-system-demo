@@ -1,4 +1,5 @@
 import { StatsCard } from "@/components/dashboard/StatsCard"
+import { cn } from "@/lib/utils"
 import { ElementType } from "react"
 
 interface StatsData {
@@ -7,15 +8,16 @@ interface StatsData {
     icon: ElementType<any>,
     description: string,
     iconBgColor: string,
-    iconTextColor: string,
+    iconTextColor: string
 }
 
 interface FinaceStatsProps {
     statsData: StatsData[]
+    className?: string
 }
-export const FinaceStats = ({ statsData }: FinaceStatsProps) => {
+export const FinaceStats = ({ statsData, className }: FinaceStatsProps) => {
     return (
-        <section className="grid grid-cols-4 gap-3">
+        <section className={cn("grid grid-cols-4 gap-3", className)}>
             { statsData.map((stat) => (
                 <StatsCard
                     key={stat.title}

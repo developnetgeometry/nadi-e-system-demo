@@ -41,6 +41,7 @@ import { useFinanceMuation } from "@/hooks/finance/use-finance-mutation";
 import { supabase } from "@/lib/supabase";
 import { financeClient } from "@/hooks/finance/finance-client";
 import { useUserOrgId } from "../utils/useUserOrgId";
+import { toast } from "@/hooks/use-toast";
 
 // ----------------------
 // Manual Type
@@ -87,7 +88,7 @@ export const FinanceReportItemDialogForm = ({
         defaultValues: {
             type: "income",
             date: undefined,
-            amount: undefined,
+            amount: 0,
             incomeType: "",
             expenseType: "",
             description: "",
@@ -96,34 +97,44 @@ export const FinanceReportItemDialogForm = ({
     });
 
     const onSubmit = async (values: FinanceFormValues) => {
-        const description = values.description ? values.description : "";
-        const selectedAmountToDebit = values.type === "income" ? values.amount : 0;
-        const selectedAmountToCredit = values.type === "expense" ? values.amount : 0;
-        const balance = selectedAmountToDebit - selectedAmountToCredit;
-        const imagePubLicUrl = await financeClient.uploadImage(values.file);
-        const debitOrCreditTypeId = values.type === "income" ? values.incomeType : values.expenseType;
-        const createdAt = new Date().toISOString();
-
-        const submittedData = {
-            description,
-            debit: selectedAmountToDebit,
-            credit: selectedAmountToCredit,
-            balance,
-            finance_report_id: financeReportId,
-            image_path: imagePubLicUrl,
-            created_at: createdAt,
-            debit_type: isIncome ? debitOrCreditTypeId : null,
-            credit_type: isExpense ? debitOrCreditTypeId : null,
-        };
-
         try {
+            const description = values.description ? values.description : "";
+            const selectedAmountToDebit = values.type === "income" ? values.amount : 0;
+            const selectedAmountToCredit = values.type === "expense" ? values.amount : 0;
+            const balance = selectedAmountToDebit - selectedAmountToCredit;
+            const imagePubLicUrl = await financeClient.uploadImage(values.file);
+            const debitOrCreditTypeId = values.type === "income" ? values.incomeType : values.expenseType;
+            const createdAt = new Date().toISOString();
+
+            const submittedData = {
+                description,
+                debit: selectedAmountToDebit,
+                credit: selectedAmountToCredit,
+                balance,
+                finance_report_id: financeReportId,
+                image_path: imagePubLicUrl,
+                created_at: createdAt,
+                debit_type: isIncome ? debitOrCreditTypeId : null,
+                credit_type: isExpense ? debitOrCreditTypeId : null,
+            };
+
             await financeReportItemMutation.mutateAsync(submittedData);
             form.reset();
             setOpen(false);
             refetchFinanceItem();
             refetchFinanceReport();
+            toast({
+                title: "Report Item Created",
+                description: "Report item has been created successfully.",
+                variant: "success",
+            })
         } catch (error) {
             console.error("Error creating report item:", error);
+            toast({
+                title: "Error",
+                description: "An error occurred while creating the report item.",
+                variant: "destructive",
+            })
         }
     };
 
@@ -154,7 +165,7 @@ export const FinanceReportItemDialogForm = ({
             {isTpSite && (
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="outline" className="hover:bg-green-200 hover:text-green-600 bg-green-100 text-green-600 border border-green-500">
+                        <Button variant="outline" className="hover:bg-green-600 hover:text-white border-none bg-green-500 text-white">
                             <Plus className="mr-2 h-4 w-4" />
                             Add Transaction
                         </Button>

@@ -1,7 +1,9 @@
 import {
   BookOpenText,
   CircleDot,
+  Download,
   Eye,
+  File,
   SquareChartGantt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,13 +19,25 @@ import { useUserOrgId } from "./utils/useUserOrgId";
 import { useTpManagerSiteId } from "@/hooks/use-site-id";
 import { useBookingQueries } from "@/hooks/booking/use-booking-queries";
 import { getMonthNameByNumber } from "./utils/getMonthNameByNumber";
-import { FinanceReport } from "@/types/finance";
+import { FinanceReport, FinanceReportItem } from "@/types/finance";
+import { exportToPdf } from "./utils/exportToPdf";
+import { toast } from "@/hooks/use-toast";
+import { exportToCSV } from "@/utils/export-utils";
+import { DollarSign } from "lucide-react";
 
 interface FinanceDashboardProps {
   isDashBoardPage?: boolean
+  isExportEnabled?: boolean
+  title?: string
+  description?: string
+  isRevExp?: boolean
 }
 const FinanceDashboard = ({
-  isDashBoardPage = true
+  isDashBoardPage = true,
+  title = "Finance Dashboard",
+  description = "View and export financial statements by month.",
+  isExportEnabled = false,
+  isRevExp = false
 }: FinanceDashboardProps) => {
   const {
     tpFinanceOrganizationId,
@@ -52,8 +66,6 @@ const FinanceDashboard = ({
   const { data: tpsSites, isLoading: isTpsSitesLoading } = useTpsSites(selectedTpOrgId);
   const tpSiteIds = tpsSites?.map(tp => tp.id) ?? [];
 
-  console.log("tpSiteIds", tpSiteIds);
-  console.log("tp manager site id", tpManagerSiteId);
   const {
     useFinanceReportWithFilterAndPagination,
     useAllFinanceReports
@@ -105,11 +117,12 @@ const FinanceDashboard = ({
         status: report.nd_finance_report_status.status,
         income: report.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0),
         expense: report.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0),
+        profit: report.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit - curr.credit, 0),
         action: (<Link to={`/finance/reports/${report.id}`}>
-                    <Button className="flex items-center gap-1">
-                        <Eye />
-                    </Button>
-                </Link>),
+          <Button className="flex items-center gap-1">
+            <Eye />
+          </Button>
+        </Link>),
       };
     });
     setBodyTableData(formattedToTableBodyData || []);
@@ -125,6 +138,7 @@ const FinanceDashboard = ({
     { key: "status", label: "Status" },
     { key: "income", label: "Income" },
     { key: "expense", label: "Expense" },
+    { key: "profit", label: "Profit" },
     { key: "action", label: "Action" }
   ];
 
@@ -168,6 +182,76 @@ const FinanceDashboard = ({
       iconBgColor: "bg-gray-100",
       iconTextColor: "text-gray-500",
     },
+  ];
+
+  const monthlyFinancialSummary = [
+    {
+      title: "Total BF",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.balance_forward, 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-blue-200",
+      iconTextColor: "text-blue-500",
+    },
+    {
+      title: "Total Debit",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-yellow-100",
+      iconTextColor: "text-yellow-500",
+    },
+    {
+      title: "Total Credit",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-green-100",
+      iconTextColor: "text-green-500",
+    },
+    {
+      title: "Total Bank In",
+      value: String(financeReportWithFilterAndPagination?.filter((report: FinanceReport) => report.nd_finance_report_item.some((item: FinanceReportItem) => item.nd_finance_expense_type?.name === "Bank In")).reduce((prev, curr) => prev + curr.nd_finance_item.reduce((prev, curr) => prev + curr.debit, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-purple-100",
+      iconTextColor: "text-purple-500",
+    },
+    {
+      title: "Total Balance",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.balance, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-gray-100",
+      iconTextColor: "text-gray-500",
+    },
+  ];
+
+  const revenueExpensesSummary = [
+    {
+      title: "Total Revenue",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-blue-200",
+      iconTextColor: "text-blue-500",
+    },
+    {
+      title: "Total Expenses",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-yellow-100",
+      iconTextColor: "text-yellow-500",
+    },
+    {
+      title: "Net Profit",
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.balance, 0), 0)),
+      icon: DollarSign,
+      description: "",
+      iconBgColor: "bg-gray-100",
+      iconTextColor: "text-gray-500",
+    },
   ]
 
   if (
@@ -182,13 +266,15 @@ const FinanceDashboard = ({
     <section className="space-y-6">
       {isDashBoardPage ?
         <HeaderDashBoard
-          title="Finance Dashboard"
-          description="Overview of financial reports and their current status."
+          title={title}
+          description={description}
         /> :
         <HeaderDashBoard
-        isDashBoardPage={false}
-          title="Finance Report Site List"
-          description="View and manage all site reports."
+          isDashBoardPage={false}
+          isExportEnabled={isExportEnabled}
+          bodyTableData={bodyTableData}
+          title={title}
+          description={description}
         />
       }
       <FilterFinance
@@ -196,9 +282,22 @@ const FinanceDashboard = ({
         setSelectedFilter={setSelectedFilter}
         setSearch={setSearch}
       />
-      <FinaceStats
-        statsData={statsData}
-      />
+      {isDashBoardPage ? (
+        <FinaceStats
+          statsData={statsData}
+        />
+      ) : isExportEnabled ? (
+        <FinaceStats
+          statsData={monthlyFinancialSummary}
+          className="grid-cols-5"
+        />
+      ) : isRevExp ? (
+        <FinaceStats
+          statsData={revenueExpensesSummary}
+          className="grid-cols-3"
+        />
+      ) : null
+      }
       <PaginationTableServer
         page={page}
         setPage={setPage}
@@ -212,11 +311,47 @@ const FinanceDashboard = ({
   )
 };
 
-const HeaderDashBoard = ({
+export const HeaderDashBoard = ({
   isDashBoardPage = true,
   title,
-  description
+  description,
+  isExportEnabled = false,
+  bodyTableData = []
 }) => {
+  const handleExportToPdf = () => {
+    try {
+      exportToPdf({ data: bodyTableData, title: `Finance Report ${description.replace(/\s+/g, "_")}` });
+      toast({
+        title: "Success",
+        description: "Successfully exported to PDF",
+        variant: "default"
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to export to PDF. Please try again.",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleExportToCsv = () => {
+    try {
+      exportToCSV(bodyTableData, `Finance Report ${description.replace(/\s+/g, "_")}`);
+      toast({
+        title: "Success",
+        description: "Successfully exported to CSV",
+        variant: "default"
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to export to CSV. Please try again.",
+        variant: "destructive"
+      })
+    }
+  }
+
   return (
     <section className="flex justify-between items-center">
       <div className="">
@@ -225,7 +360,7 @@ const HeaderDashBoard = ({
       </div>
       {isDashBoardPage && (
         <div className="flex items-center gap-2">
-          <Link to="/finance/by-year-reports">
+          <Link to="/finance/yearly-report">
             <Button className="bg-white text-black border border-gray-200 hover:bg-gray-200">
               <SquareChartGantt />
               By Year Report
@@ -237,6 +372,24 @@ const HeaderDashBoard = ({
               Montly Statements
             </Button>
           </Link>
+        </div>
+      )}
+      {isExportEnabled && (
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleExportToPdf}
+            className="bg-blue-100 text-blue-500 border border-blue-500 hover:bg-blue-200"
+          >
+            <File />
+            Export PDF
+          </Button>
+          <Button
+            onClick={handleExportToCsv}
+            className="bg-green-100 text-green-500 border border-green-500 hover:bg-green-200"
+          >
+            <Download />
+            Export CSV
+          </Button>
         </div>
       )}
     </section>

@@ -1,7 +1,7 @@
 import { PaginationTableServer } from "@/components/site/component/PaginationTableServer"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
-import { FinanceReportItem } from "@/types/finance"
+import { FinanceReport, FinanceReportItem } from "@/types/finance"
 import { Plus } from "lucide-react"
 import React from "react"
 import { FinanceReportItemDialogForm } from "./FinanceReportItemDialogForm"
@@ -17,6 +17,8 @@ interface FinanceReportDetailContentProps {
     refetchFinanceReport: () => void
     headTable: any[]
     calculationSummary: () => CalculationSummary
+    financeReport?: FinanceReport
+    isTpSite?: boolean
 }
 export const FinanceReportDetailContent = ({
     page,
@@ -27,18 +29,22 @@ export const FinanceReportDetailContent = ({
     headTable,
     refetchFinanceItem,
     calculationSummary,
-    refetchFinanceReport
+    refetchFinanceReport,
+    financeReport,
+    isTpSite
 }: FinanceReportDetailContentProps) => {
     return (
         <section className="flex gap-4">
             <Card className="p-4 flex-grow w-[70%] h-fit">
-                <div className="flex justify-between items-center bg-purple-500 p-4 rounded-md">
-                    <h1 className="text-3xl font-bold text-white">General Ledger</h1>
-                    <FinanceReportItemDialogForm 
-                        financeReportId={financeReportId}
-                        refetchFinanceItem={refetchFinanceItem}
-                        refetchFinanceReport={refetchFinanceReport}
-                    />
+                <div className="flex justify-between items-center bg-gray-100 border border-gray-300 p-4 rounded-md">
+                    <h1 className="text-3xl font-bold">General Ledger</h1>
+                    { (isTpSite && financeReport?.nd_finance_report_status.status === "editing") && (
+                        <FinanceReportItemDialogForm
+                            financeReportId={financeReportId}
+                            refetchFinanceItem={refetchFinanceItem}
+                            refetchFinanceReport={refetchFinanceReport}
+                        />
+                    ) }
                 </div>
                 <PaginationTableServer
                     page={page}
@@ -50,7 +56,7 @@ export const FinanceReportDetailContent = ({
                 />
             </Card>
             <Card className="space-y-5 p-4 flex-grow">
-                <h1 className="text-3xl font-bold text-white bg-purple-500 p-4 rounded-md">Financial Summary</h1>
+                <h1 className="text-3xl font-bold bg-gray-100 border border-gray-300 p-4 rounded-md">Financial Summary</h1>
                 <Card className="p-4 bg-green-100 space-y-2">
                     <h1 className="text-lg font-bold">Income and Expenses</h1>
                     <div className="space-y-2">

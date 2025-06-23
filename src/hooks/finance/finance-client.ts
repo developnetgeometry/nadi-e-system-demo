@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { getMonthNameByNumber } from "@/pages/dashboard/finance/utils/getMonthNameByNumber";
 import { FinanceReport, FinanceReportItem } from "@/types/finance";
 
 export const financeClient = {
@@ -108,7 +109,7 @@ export const financeClient = {
             .from("nd_finance_report")
             .select(`*, nd_site_profile(*, nd_region (*), nd_phases (*)), 
                 nd_finance_report_status(*), 
-                nd_finance_report_item(*)
+                nd_finance_report_item(*, nd_finance_income_type(*), nd_finance_expense_type(*))
                 `)
             .range(from, to);
 
@@ -203,7 +204,7 @@ export const financeClient = {
         return data;
     },
 
-    updateFinanceReportStatus: async (status: string) => {
+    updateFinanceReportStatus: async (reportId: string, status: string, balanceForward?: number) => {
         const { data: statusData, error: statusError } = await supabase
             .from("nd_finance_report_status")
             .select("*")
@@ -217,12 +218,47 @@ export const financeClient = {
 
         const { data, error } = await supabase
             .from("nd_finance_report")
-            .update({ status_id: statusData?.id });
+            .update({ status_id: statusData?.id })
+            .eq("id", reportId)
+            .select("*")
+            .maybeSingle();
 
         if (error) {
             console.error(error);
             throw error;
         };
+
+        if (status === "submitted" && balanceForward !== null) {
+            const month = getMonthNameByNumber(new Date().getMonth() + 2);
+            const year = new Date().getFullYear().toString();
+            const balance_forward = balanceForward;
+            const created_at = new Date().toISOString();
+            const { data: status_id, error: status_id_error } = await supabase
+            .from("nd_finance_report_status")
+            .select("id")
+            .eq("status", "editing")
+            .maybeSingle();
+
+            if (status_id_error) {
+                console.error(status_id_error);
+                throw status_id_error;
+            }
+            const { error: createNewReportError } = await supabase
+            .from("nd_finance_report")
+            .insert({
+                status_id: status_id?.id,
+                site_id: data.site_id,
+                month,
+                year,
+                balance_forward,
+                created_at
+            });
+
+            if (createNewReportError) {
+                console.error(createNewReportError);
+                throw createNewReportError;
+            }
+        }
 
         return data;
     },
@@ -311,6 +347,27 @@ export const financeClient = {
             throw error;
         };
         return reportItemId;
+    },
+
+    getAllSiteReports: async (siteId: number, siteIds?: number[]) => {
+        let query = supabase
+            .from("nd_site_profile")
+            .select(`*,
+                nd_region(*),
+                nd_phases(*),
+                nd_finance_report(*, nd_finance_report_status(*), nd_finance_report_item(*, nd_finance_income_type(*), nd_finance_expense_type(*)))
+            `);
+
+        if (siteIds && siteIds.length > 0) query = query.in("id", siteIds);
+        if (siteId) query = query.eq("id", siteId);
+
+        const { data, error } = await query;
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+
+        return data;
     }
 
 };

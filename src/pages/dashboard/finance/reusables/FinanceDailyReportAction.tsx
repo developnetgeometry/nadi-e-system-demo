@@ -37,6 +37,7 @@ import { format, set } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useFinanceMuation } from "@/hooks/finance/use-finance-mutation";
 import { financeClient } from "@/hooks/finance/finance-client";
+import { toast } from "@/hooks/use-toast";
 
 // ----------------------
 // Manual Type
@@ -95,32 +96,43 @@ export const FinanceDailyReportAction = ({
     });
 
     const onSubmit = async (values: FinanceFormValues) => {
-        const description = values.description ? values.description : "";
-        const selectedAmountToDebit = values.type === "income" ? values.amount : 0;
-        const selectedAmountToCredit = values.type === "expense" ? values.amount : 0;
-        const balance = selectedAmountToDebit - selectedAmountToCredit;
-        const imagePubLicUrl = await financeClient.uploadImage(values.file);
-        const debitOrCreditTypeId = values.type === "income" ? values.incomeType : values.expenseType;
-        const createdAt = new Date().toISOString();
-
-        const submittedData = {
-            description,
-            debit: selectedAmountToDebit,
-            credit: selectedAmountToCredit,
-            balance,
-            image_path: imagePubLicUrl,
-            created_at: createdAt,
-            debit_type: isIncome ? debitOrCreditTypeId : null,
-            credit_type: isExpense ? debitOrCreditTypeId : null,
-        };
-
         try {
+            const description = values.description ? values.description : "";
+            const selectedAmountToDebit = values.type === "income" ? values.amount : 0;
+            const selectedAmountToCredit = values.type === "expense" ? values.amount : 0;
+            const balance = selectedAmountToDebit - selectedAmountToCredit;
+            const imagePubLicUrl = await financeClient.uploadImage(values.file);
+            const debitOrCreditTypeId = values.type === "income" ? values.incomeType : values.expenseType;
+            const createdAt = new Date().toISOString();
+
+            const submittedData = {
+                description,
+                debit: selectedAmountToDebit,
+                credit: selectedAmountToCredit,
+                balance,
+                image_path: imagePubLicUrl,
+                created_at: createdAt,
+                debit_type: isIncome ? debitOrCreditTypeId : null,
+                credit_type: isExpense ? debitOrCreditTypeId : null,
+            };
+
             await editFinanceReportItemMutation.mutateAsync(submittedData);
             form.reset();
             setOpen(false);
             refetchFinanceItem();
+            refetchFinanceReport();
+            toast({
+                title: "Report Item Updated",
+                description: "Report item has been updated successfully.",
+                variant: "success",
+            })
         } catch (error) {
             console.error("Error updating report item:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update report item. Please try again.",
+                variant: "destructive",
+            })
         }
     };
 
@@ -171,7 +183,7 @@ export const FinanceDailyReportAction = ({
             <Button onClick={handleDeleteFinanceReportItem} className="bg-white text-red-700 border border-red-700 hover:bg-red-200 mx-2"><Trash /></Button>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add New Daily Transaction</DialogTitle>
+                    <DialogTitle>Edit Daily Transaction</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
