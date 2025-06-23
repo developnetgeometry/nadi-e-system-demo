@@ -5,6 +5,8 @@ import { lazy } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { FinanceReportDetail } from "@/pages/dashboard/finance/pages/FinanceReportDetail";
 import path from "path";
+import { FinanceYearlyReport } from "@/pages/dashboard/finance/pages/FinanceYearlyReport";
+import { FinanceMonthlyStatement } from "@/pages/dashboard/finance/pages/FinanceMonthlyStatement";
 
 // Convert to lazy loaded components
 const FinanceDashboard = lazy(() => import("@/pages/dashboard/finance/FinanceDashboard"));
@@ -22,12 +24,34 @@ export const financeRoutes = [
         ),
     },
     {
+        path: "/finance/yearly-report",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <FinanceYearlyReport />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
+        path: "/finance/monthly-statements",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <FinanceMonthlyStatement />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
+    {
         path: "/finance/reports",
         element: (
             <Suspense fallback={<LoadingSpinner />}>
                 {/* <ProtectedRoute requiredPermission=""> */}
                 <FinanceDashboard 
                     isDashBoardPage={false}
+                    title="Finance Site Reports"
+                    description="View and manage all site reports."
                 />
                 {/* </ProtectedRoute> */}
             </Suspense>
@@ -53,16 +77,21 @@ export const financeRoutes = [
             </Suspense>
         ),
     },
-    // {
-    //     path: "/finance/revenue-expenses",
-    //     element: (
-    //         <Suspense fallback={<LoadingSpinner />}>
-    //             {/* <ProtectedRoute requiredPermission=""> */}
-    //             <FinanceRevExp />
-    //             {/* </ProtectedRoute> */}
-    //         </Suspense>
-    //     ),
-    // },
+    {
+        path: "/finance/revenue-expenses",
+        element: (
+            <Suspense fallback={<LoadingSpinner />}>
+                {/* <ProtectedRoute requiredPermission=""> */}
+                <FinanceDashboard 
+                    isDashBoardPage={false}
+                    isRevExp={true}
+                    title="Revenue & Expenses"
+                    description="Detailed view of revenue and expenses across all sites."
+                />
+                {/* </ProtectedRoute> */}
+            </Suspense>
+        ),
+    },
     // {
     //     path: "/finance/einvoices",
     //     element: (
