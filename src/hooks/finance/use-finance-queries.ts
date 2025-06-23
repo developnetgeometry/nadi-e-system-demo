@@ -109,6 +109,12 @@ export const useFinanceQueries = () => {
             queryFn: () => financeClient.getAllFinanceExpenseTypes()
     });
 
+    const useAllSiteReport = (siteId: number, siteIds?: number[]) =>
+        useQuery({
+            queryKey: ["allSiteReportStatus", siteId, ...siteIds],
+            queryFn: () => financeClient.getAllSiteReports(siteId, siteIds)
+    });
+
     return {
         useSiteReportStatusQuery,
         useTwelveMonthNamesQuery,
@@ -120,6 +126,7 @@ export const useFinanceQueries = () => {
         useFinanceReportItemByReportId,
         useSiteNameByReportId,
         useAllFinanceIncomeTypes,
-        useAllFinanceExpenseTypes
+        useAllFinanceExpenseTypes,
+        useAllSiteReport
     };
 };

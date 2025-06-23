@@ -9,10 +9,13 @@ export const useFinanceMuation = () => {
                 console.log("Report item created successfully");
             }
         });
-    
+
     const useUpdateFinanceReportStatusMutation = () =>
         useMutation({
-            mutationFn: (status: string) => financeClient.updateFinanceReportStatus(status),
+            mutationFn: async (variables: { reportId: string; status: string; balanceForward?: number }) => {
+                const { reportId, status, balanceForward } = variables;
+                return financeClient.updateFinanceReportStatus(reportId, status, balanceForward);
+            },
             onSuccess: () => {
                 console.log("Report status updated successfully");
             }
