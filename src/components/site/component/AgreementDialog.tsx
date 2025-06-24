@@ -51,9 +51,36 @@ const AgreementDialog: React.FC<AgreementDialogProps> = ({ open, onOpenChange, a
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             Site agreement information and attachments
           </DialogDescription>
-        </DialogHeader>
+        </DialogHeader>        <div className="py-4 space-y-6">
+          {/* Owner Information */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Owner Information</h3>
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="font-medium">{agreement.owner_name || "Not specified"}</div>
+            </div>
+          </div>
 
-        <div className="py-4 space-y-6">
+          {/* Agreement Period */}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">Agreement Period</h3>
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-gray-500">Start Date</div>
+                  <div className="font-medium">
+                    {agreement.start_date ? format(parseISO(agreement.start_date), "PPP") : "Not specified"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500">End Date</div>
+                  <div className="font-medium">
+                    {agreement.end_date ? format(parseISO(agreement.end_date), "PPP") : "Not specified"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Site Profile Info */}
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-2">Site Information</h3>

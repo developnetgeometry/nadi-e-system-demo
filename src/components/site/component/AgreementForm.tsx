@@ -5,7 +5,8 @@ import { useSiteProfiles } from "@/components/member/hook/useSiteProfile";
 import {
   useGetSiteAgreementById,
   useCreateSiteAgreement,
-  useUpdateSiteAgreement
+  useUpdateSiteAgreement,
+  useSitesWithAgreements
 } from "@/hooks/site-agreement/use-agreement";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -19,10 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SiteSelect } from "@/components/shared/SiteSelect";
 import { Upload, X, FileIcon } from "lucide-react";
 
 interface FormData {
   site_profile_id: number | undefined;
+  owner_name: string;
+  start_date: string;
+  end_date: string;
   remark: string;
 }
 
@@ -31,6 +36,7 @@ const AgreementForm = () => {
   const isEdit = !!id;
   const navigate = useNavigate();
   const { toast } = useToast();
+  
   // File upload state
   const [files, setFiles] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -38,31 +44,34 @@ const AgreementForm = () => {
 
   // Fetch site profiles for dropdown
   const { profiles = [], loading: isLoadingProfiles } = useSiteProfiles();
-
-  // Agreement hooks
+  // Get sites that already have agreements
+  const { data: sitesWithAgreements = [] } = useSitesWithAgreements();  // Agreement hooks
   const { data: agreementData, isLoading: isLoadingAgreement } = useGetSiteAgreementById(
     isEdit ? parseInt(id!) : 0
   );
   const createMutation = useCreateSiteAgreement();
   const updateMutation = useUpdateSiteAgreement();
-  
   const form = useForm<FormData>({
     defaultValues: {
       site_profile_id: undefined as any,
+      owner_name: "",
+      start_date: "",
+      end_date: "",
       remark: "",
     },
-  });
-
-
-  // Reset form with agreement data when available and profiles are loaded
+  });  // Reset form with agreement data when available and profiles are loaded
   useEffect(() => {
     if (isEdit && agreementData && !isLoadingProfiles && profiles.length > 0) {
       const siteProfileId = agreementData.site_profile_id?.id;
 
       // Verify the profile exists in the loaded profiles
       const profileExists = siteProfileId ? profiles.find(p => p.id === siteProfileId) : null;
+      
       form.reset({
         site_profile_id: profileExists ? siteProfileId : undefined as any,
+        owner_name: agreementData.owner_name || "",
+        start_date: agreementData.start_date || "",
+        end_date: agreementData.end_date || "",
         remark: agreementData.remark || "",
       });
 
@@ -100,10 +109,12 @@ const AgreementForm = () => {
         return;
       }
 
-      if (isEdit) {
-        // Update existing agreement
+      if (isEdit) {        // Update existing agreement
         await updateMutation.mutateAsync({
           id: parseInt(id!),
+          ownerName: values.owner_name,
+          startDate: values.start_date,
+          endDate: values.end_date,
           remark: values.remark,
           files: files.length > 0 ? files : undefined,
           keepExistingFiles: uploadedFiles // Pass the current uploaded files list
@@ -114,10 +125,12 @@ const AgreementForm = () => {
           description: "Agreement updated successfully",
           variant: "default"
         });
-      } else {
-        // Create new agreement
+      } else {        // Create new agreement
         await createMutation.mutateAsync({
           siteProfileId: values.site_profile_id,
+          ownerName: values.owner_name,
+          startDate: values.start_date,
+          endDate: values.end_date,
           remark: values.remark,
           files: files
         });
@@ -163,17 +176,20 @@ const AgreementForm = () => {
         {/* Form content */}
         {(!isEdit || !isLoadingAgreement) && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <FormField
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column - Form Fields */}
+                <div className="space-y-6">                  <FormField
                     name="site_profile_id"
                     control={form.control}
                     rules={{
-                      required: "Site profile is required",
+                      required: "Site is required",
                       validate: (value) => {
                         if (!value || value === 0) {
-                          return "Site profile is required";
+                          return "Site is required";
+                        }
+                        // Check if site already has agreement (only in create mode)
+                        if (!isEdit && sitesWithAgreements.includes(value)) {
+                          return "This site already has an existing agreement";
                         }
                         return true;
                       }
@@ -182,52 +198,127 @@ const AgreementForm = () => {
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-gray-700">
                           Site {isEdit ? "(Read-only)" : "*"}
+                        </FormLabel>                        <FormControl>
+                          <SiteSelect
+                            data={profiles}
+                            disabledItems={sitesWithAgreements}
+                            value={field.value}
+                            onChange={field.onChange}
+                            disabled={isEdit}
+                            isLoading={isLoadingProfiles}
+                            placeholder={isEdit ? "Site (read-only)" : "Select a site"}
+                            allowDisabledSelection={isEdit}
+                            showClearButton={!isEdit}
+                            disabledLabel="Has Agreement"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                        {!isEdit && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Each site can only have one agreement. Sites with existing agreements are shown but disabled.
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Owner Name Field */}
+                  <FormField
+                    name="owner_name"
+                    control={form.control}
+                    rules={{ required: "Owner name is required" }}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Owner Name *
                         </FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <Select
-                              value={field.value ? field.value.toString() : ""}
-                              onValueChange={(value) => {
-                                const numValue = parseInt(value);
-                                field.onChange(numValue);
-                              }}
-                              disabled={isEdit || isLoadingProfiles || (isEdit && isLoadingAgreement)}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder={
-                                  isEdit ? "Site (read-only)" :
-                                    isLoadingProfiles ? "Loading site profiles..." :
-                                      (isEdit && isLoadingAgreement) ? "Loading agreement..." :
-                                        "Select a site profile"
-                                } />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {profiles.map((profile) => (
-                                  <SelectItem key={profile.id} value={profile.id.toString()}>
-                                    {profile.sitename} {profile.fullname && `(${profile.fullname})`}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {field.value && !isEdit && (
-                              <button
-                                type="button"
-                                className="absolute right-8 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 focus:outline-none"
-                                onClick={() => field.onChange(undefined)}
-                              >
-                                <X className="h-4 w-4 text-gray-500" />
-                              </button>
-                            )}
-                          </div>
+                          <Input
+                            {...field}
+                            placeholder="Enter owner name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
-                  />                  {/* File Upload Section */}
+                  />                  {/* Date Fields - Side by Side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Start Date Field */}
+                    <FormField
+                      name="start_date"
+                      control={form.control}
+                      rules={{ required: "Start date is required" }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700">
+                            Start Date *
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="date"
+                              placeholder="Select start date"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* End Date Field */}
+                    <FormField
+                      name="end_date"
+                      control={form.control}
+                      rules={{ required: "End date is required" }}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium text-gray-700">
+                            End Date *
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="date"
+                              placeholder="Select end date"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Right Column - Remarks and File Attachments */}
+                <div className="space-y-6">
+                  {/* Remarks Field */}
+                  <FormField
+                    name="remark"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          Remarks
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Enter remarks (optional)"
+                            className="min-h-[130px]"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* File Upload Section */}
                   <div className="space-y-4">
                     <FormLabel className="text-sm font-medium text-gray-700">
                       Attachments {!isEdit && "*"}
-                    </FormLabel>                    {/* File Upload Input */}
+                    </FormLabel>
+
+                    {/* File Upload Input */}
                     <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors ${
                       fileError ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}>
@@ -243,7 +334,8 @@ const AgreementForm = () => {
                         htmlFor="file-upload"
                         className="cursor-pointer flex flex-col items-center gap-2"
                       >
-                        <Upload className="h-8 w-8 text-gray-400" />                        <span className="text-sm text-gray-600">
+                        <Upload className="h-8 w-8 text-gray-400" />
+                        <span className="text-sm text-gray-600">
                           Click to upload files or drag and drop
                         </span>
                         <span className="text-xs text-gray-500">
@@ -298,7 +390,8 @@ const AgreementForm = () => {
                               <X className="h-3 w-3" />
                             </Button>
                           </div>
-                        ))}                      </div>
+                        ))}
+                      </div>
                     )}
 
                     {/* File Error Message */}
@@ -306,28 +399,6 @@ const AgreementForm = () => {
                       <p className="text-sm text-red-600 mt-2">{fileError}</p>
                     )}
                   </div>
-                </div>
-
-                <div className="space-y-6">
-                  <FormField
-                    name="remark"
-                    control={form.control}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700">
-                          Remarks
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter remarks (optional)"
-                            className="min-h-[300px]"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </div>
 

@@ -9,6 +9,9 @@ import {
 
 export interface Agreement {
     id: number;
+    owner_name: string;
+    start_date: string | null;
+    end_date: string | null
     site_profile_id: {
         id: number;
         sitename: string;
@@ -36,10 +39,13 @@ const ORGANIZATIONS_KEY = 'organizations';
 export async function fetchSiteAgreement(siteProfileIds?: number[]): Promise<Agreement[]> {
     try {
         // Build the query once with all conditions
-        let query = supabase
+        let query = (supabase as any)
             .from('nd_site_agreement')
             .select(`
                 id,
+                owner_name,
+                start_date,
+                end_date,
                 site_profile_id(
                     id,
                     sitename,
@@ -90,9 +96,12 @@ export async function fetchSiteAgreement(siteProfileIds?: number[]): Promise<Agr
 }
 
 export async function fetchSiteAgreementById(id: number): Promise<Agreement> {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
         .from('nd_site_agreement').select(`
             id,
+            owner_name,
+            start_date,
+            end_date,
             site_profile_id(
                 id,
                 sitename,
@@ -111,10 +120,10 @@ export async function fetchSiteAgreementById(id: number): Promise<Agreement> {
             updated_by  
         `)
         .eq('id', id)
-        .single();    if (error) {
-        console.error(`Error fetching site agreement ${id}:`, error);
-        throw new Error(error.message);
-    }
+        .single(); if (error) {
+            console.error(`Error fetching site agreement ${id}:`, error);
+            throw new Error(error.message);
+        }
     if (!data) {
         throw new Error(`Site agreement with ID ${id} not found`);
     }
@@ -136,50 +145,66 @@ export async function fetchSiteAgreementById(id: number): Promise<Agreement> {
 export async function deleteSiteAgreement(id: number): Promise<void> {
     try {
         // First, fetch the agreement to get file paths and site profile ID
-        const { data: agreement, error: fetchError } = await supabase
+        const { data: agreement, error: fetchError } = await (supabase as any)
             .from('nd_site_agreement')
             .select(`
                 file_path,
                 site_profile_id(id)
             `)
             .eq('id', id)
-            .single();
-
-        if (fetchError) {
+            .single();        if (fetchError) {
             console.error('Error fetching site agreement for deletion:', fetchError);
             throw new Error(fetchError.message);
-        }        // Delete files from Supabase bucket if they exist
+        }
+
+        console.log('Agreement data for deletion:', agreement);
+        console.log('File paths from database:', agreement?.file_path);        // Delete files from Supabase bucket if they exist
         if (agreement?.file_path && Array.isArray(agreement.file_path) && agreement.file_path.length > 0) {
-            const siteId = agreement.site_profile_id?.id;
-            
-            if (siteId) {
-                // Extract filenames from file paths and construct bucket file paths
-                const filesToDelete = agreement.file_path.map((filePath: string) => {
-                    // Extract the relative file path from the full URL
-                    let relativeFilePath = filePath.split(
-                        `${BUCKET_NAME_SITE_AGREEMENT}/`
-                    )[1];
+            // Process file paths to get correct bucket paths
+            const filesToDelete = agreement.file_path.map((filePath: string) => {
+                console.log('Processing file path:', filePath);
+                
+                // Check if it's already a bucket path or a full URL
+                if (filePath.startsWith('http')) {
+                    // Extract bucket path from full URL
+                    console.log('Detected full URL, extracting bucket path...');
+                    const bucketPathMatch = filePath.split(`${BUCKET_NAME_SITE_AGREEMENT}/`)[1];
+                    const decodedPath = bucketPathMatch ? decodeURIComponent(bucketPathMatch) : null;
+                    console.log('Extracted bucket path:', decodedPath);
+                    return decodedPath;
+                } else if (filePath.includes('/')) {
+                    // It's likely already a bucket path (e.g., "site-agreement/123/filename.pdf")
+                    console.log('Detected bucket path format');
+                    const decodedPath = decodeURIComponent(filePath);
+                    console.log('Decoded bucket path:', decodedPath);
+                    return decodedPath;
+                } else {
+                    // It might be just a filename, need to construct full path
+                    console.log('Detected filename only, might need full path construction');
+                    return decodeURIComponent(filePath);
+                }
+            }).filter(Boolean); // Remove null values
 
-                    // Decode URL-encoded characters (like %20 -> space)
-                    if (relativeFilePath) {
-                        relativeFilePath = decodeURIComponent(relativeFilePath);
+            console.log('Final files to delete from bucket:', filesToDelete);
+
+            if (filesToDelete.length > 0) {
+                // Try to delete files one by one to see which ones fail
+                for (const fileToDelete of filesToDelete) {
+                    console.log(`Attempting to delete: ${fileToDelete}`);
+                    
+                    const { error: singleFileError } = await supabase.storage
+                        .from(BUCKET_NAME_SITE_AGREEMENT)
+                        .remove([fileToDelete]);
+
+                    if (singleFileError) {
+                        console.error(`Error deleting file ${fileToDelete}:`, singleFileError);
+                    } else {
+                        console.log(`Successfully deleted file: ${fileToDelete}`);
                     }
-
-                    return relativeFilePath;
-                });
-
-                // Delete files from bucket
-                const { error: storageError } = await supabase.storage
-                    .from(BUCKET_NAME_SITE_AGREEMENT)
-                    .remove(filesToDelete);
-
-                if (storageError) {
-                    console.error('Error deleting files from bucket:', storageError);
-                    // Continue with database deletion even if file deletion fails
                 }
             }
-        }        // Delete the database record
-        const { error } = await supabase
+        }// Delete the database record
+        const { error } = await (supabase as any)
             .from('nd_site_agreement')
             .delete()
             .eq('id', id);
@@ -198,16 +223,26 @@ export async function deleteSiteAgreement(id: number): Promise<void> {
 // Create function for site agreement
 export async function createSiteAgreement(
     siteProfileId: number,
+    ownerName: string,
+    startDate: string,
+    endDate: string,
     remark: string,
     files: File[]
 ): Promise<Agreement> {
     try {
-        // Step 1: Insert into database first
+        // Step 1: Check if site already has an agreement
+        const hasExistingAgreement = await checkSiteHasAgreement(siteProfileId);
+        if (hasExistingAgreement) {
+            throw new Error('This site already has an existing agreement. Each site can only have one agreement.');
+        }        // Step 2: Insert into database        
         const { data: agreement, error: insertError } = await supabase
             .from('nd_site_agreement')
             .insert([
                 {
                     site_profile_id: siteProfileId,
+                    owner_name: ownerName,
+                    start_date: startDate || null,
+                    end_date: endDate || null,
                     remark: remark,
                     file_path: null, // Will be updated after file upload
                     created_at: new Date().toISOString(),
@@ -222,7 +257,7 @@ export async function createSiteAgreement(
             throw new Error(insertError.message);
         }
 
-        // Step 2: Upload files to bucket if provided
+        // Step 3: Upload files to bucket if provided
         let filePaths: string[] = [];
         if (files && files.length > 0) {
             for (const file of files) {
@@ -236,12 +271,10 @@ export async function createSiteAgreement(
                 if (uploadError) {
                     console.error('Error uploading file:', uploadError);
                     throw new Error(`Failed to upload file: ${file.name}`);
-                }
-
-                filePaths.push(bucketPath);
+                }                filePaths.push(bucketPath);
             }
 
-            // Step 3: Update the agreement with file paths
+            // Step 4: Update the agreement with file paths
             const { error: updateError } = await supabase
                 .from('nd_site_agreement')
                 .update({ file_path: filePaths })
@@ -265,6 +298,9 @@ export async function createSiteAgreement(
 // Update function for site agreement
 export async function updateSiteAgreement(
     id: number,
+    ownerName: string,
+    startDate: string,
+    endDate: string,
     remark: string,
     files?: File[],
     keepExistingFiles?: string[]
@@ -283,10 +319,11 @@ export async function updateSiteAgreement(
         }
 
         const siteProfileId = currentAgreement.site_profile_id;
-        let existingFilePaths = currentAgreement.file_path || [];        // Step 1: Handle file removal - delete files that are not in keepExistingFiles
+        let existingFilePaths = currentAgreement.file_path || [];
+        // Step 1: Handle file removal - delete files that are not in keepExistingFiles
         if (Array.isArray(existingFilePaths)) {
             const keepFiles = keepExistingFiles || [];
-            
+
             // Convert keepFiles from full URLs back to bucket paths for consistent storage
             const keepFilesBucketPaths = keepFiles.map((filePath: string) => {
                 if (filePath.startsWith('http')) {
@@ -296,9 +333,9 @@ export async function updateSiteAgreement(
                 }
                 return filePath; // Already a bucket path
             });
-            
+
             const filesToDelete = existingFilePaths.filter(filePath => !keepFilesBucketPaths.includes(filePath));
-            
+
             if (filesToDelete.length > 0) {
                 // Delete files from storage bucket
                 // The file paths are already stored as the bucket path (e.g., "site-agreement/123/filename.pdf")
@@ -319,7 +356,7 @@ export async function updateSiteAgreement(
                     }
                 }
             }
-            
+
             // Update existing file paths to only include kept files (as bucket paths)
             existingFilePaths = keepFilesBucketPaths;
         }
@@ -328,7 +365,7 @@ export async function updateSiteAgreement(
         let finalFilePaths = [...existingFilePaths];
         if (files && files.length > 0) {
             const newFilePaths: string[] = [];
-            
+
             for (const file of files) {
                 const fileName = `${id}_${Date.now()}_${file.name}`;
                 const bucketPath = `site-agreement/${siteProfileId}/${fileName}`;
@@ -347,10 +384,14 @@ export async function updateSiteAgreement(
 
             // Combine kept existing files and new files
             finalFilePaths = [...existingFilePaths, ...newFilePaths];
-        }        // Step 3: Update the agreement
+        }
+        // Step 3: Update the agreement        
         const { data: updatedAgreement, error: updateError } = await supabase
             .from('nd_site_agreement')
             .update({
+                owner_name: ownerName,
+                start_date: startDate || null,
+                end_date: endDate || null,
                 remark: remark,
                 file_path: finalFilePaths.length > 0 ? finalFilePaths : null,
                 updated_at: new Date().toISOString()
@@ -368,6 +409,46 @@ export async function updateSiteAgreement(
 
     } catch (error: any) {
         console.error('Error in updateSiteAgreement:', error);
+        throw new Error(error.message);
+    }
+}
+
+// Check if site has existing agreement
+export async function checkSiteHasAgreement(siteProfileId: number): Promise<boolean> {
+    try {
+        const { data, error } = await supabase
+            .from('nd_site_agreement')
+            .select('id')
+            .eq('site_profile_id', siteProfileId)
+            .limit(1);
+
+        if (error) {
+            console.error('Error checking site agreement:', error);
+            throw new Error(error.message);
+        }
+
+        return data && data.length > 0;
+    } catch (error: any) {
+        console.error('Error in checkSiteHasAgreement:', error);
+        throw new Error(error.message);
+    }
+}
+
+// Get all sites that have agreements
+export async function getSitesWithAgreements(): Promise<number[]> {
+    try {
+        const { data, error } = await supabase
+            .from('nd_site_agreement')
+            .select('site_profile_id');
+
+        if (error) {
+            console.error('Error fetching sites with agreements:', error);
+            throw new Error(error.message);
+        }
+
+        return data ? data.map(item => item.site_profile_id) : [];
+    } catch (error: any) {
+        console.error('Error in getSitesWithAgreements:', error);
         throw new Error(error.message);
     }
 }
@@ -397,42 +478,101 @@ export function useDeleteSiteAgreement() {
         mutationFn: deleteSiteAgreement,
         onSuccess: (_, deletedAgreementId) => {
             queryClient.invalidateQueries({ queryKey: [AGREEMENT_KEY] });
+            queryClient.invalidateQueries({ queryKey: ['sites-with-agreements'] });
         }
     });
 }
 
 // Create hook for site agreement
 export function useCreateSiteAgreement() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ siteProfileId, remark, files }: {
+    const queryClient = useQueryClient(); return useMutation({
+        mutationFn: ({ siteProfileId, ownerName, startDate, endDate, remark, files }: {
             siteProfileId: number;
+            ownerName: string;
+            startDate: string;
+            endDate: string;
             remark: string;
-            files: File[];
-        }) => createSiteAgreement(siteProfileId, remark, files),
+            files: File[];        }) => createSiteAgreement(siteProfileId, ownerName, startDate, endDate, remark, files),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [AGREEMENT_KEY] });
+            queryClient.invalidateQueries({ queryKey: ['sites-with-agreements'] });
         }
     });
 }
 
 // Update hook for site agreement
 export function useUpdateSiteAgreement() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ id, remark, files, keepExistingFiles }: {
+    const queryClient = useQueryClient(); return useMutation({
+        mutationFn: ({ id, ownerName, startDate, endDate, remark, files, keepExistingFiles }: {
             id: number;
+            ownerName: string;
+            startDate: string;
+            endDate: string;
             remark: string;
             files?: File[];
             keepExistingFiles?: string[];
-        }) => updateSiteAgreement(id, remark, files, keepExistingFiles),
+        }) => updateSiteAgreement(id, ownerName, startDate, endDate, remark, files, keepExistingFiles),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: [AGREEMENT_KEY] });
             queryClient.invalidateQueries({ queryKey: [AGREEMENT_DETAILS_KEY, variables.id] });
         }
     });
+}
+
+// Hook to check if site has existing agreement
+export function useCheckSiteHasAgreement(siteProfileId: number | undefined) {
+    return useQuery({
+        queryKey: ['site-has-agreement', siteProfileId],
+        queryFn: () => siteProfileId ? checkSiteHasAgreement(siteProfileId) : Promise.resolve(false),
+        enabled: !!siteProfileId,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+}
+
+// Hook to get all sites with agreements
+export function useSitesWithAgreements() {
+    return useQuery({
+        queryKey: ['sites-with-agreements'],
+        queryFn: getSitesWithAgreements,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+}
+
+// Debug function to test file deletion (can be removed after testing)
+export async function debugDeleteFiles() {
+    try {
+        // List all files in the bucket to see the structure
+        const { data: files, error: listError } = await supabase.storage
+            .from(BUCKET_NAME_SITE_AGREEMENT)
+            .list('', {
+                limit: 100,
+                offset: 0,
+            });
+
+        if (listError) {
+            console.error('Error listing files:', listError);
+            return;
+        }
+
+        console.log('Files in bucket:', files);
+
+        // Test listing files in site-agreement folder
+        const { data: siteFiles, error: siteListError } = await supabase.storage
+            .from(BUCKET_NAME_SITE_AGREEMENT)
+            .list('site-agreement', {
+                limit: 100,
+                offset: 0,
+            });
+
+        if (siteListError) {
+            console.error('Error listing site-agreement files:', siteListError);
+        } else {
+            console.log('Files in site-agreement folder:', siteFiles);
+        }
+
+    } catch (error) {
+        console.error('Debug error:', error);
+    }
 }
 
 
