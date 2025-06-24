@@ -7,6 +7,8 @@ export type SiteProfile = {
   sitename: string | null;
   fullname: string | null;
   standard_code?: string | null;
+  refid_mcmc?: string | null;
+  refid_tp?: string | null;
 };
 
 export function useSiteProfiles() {
@@ -32,7 +34,7 @@ export function useSiteProfiles() {
         if (userType === "super_admin" || userGroup === 2) {
           const { data, error } = await supabase
             .from("nd_site_profile_name")
-            .select("id, sitename, fullname, standard_code, dusp_tp_id");
+            .select("id, sitename, fullname, standard_code, dusp_tp_id, refid_mcmc, refid_tp");
           if (error) throw error;
           if (isMounted) setProfiles(Array.isArray(data) ? data : []);
           return;
@@ -55,7 +57,7 @@ export function useSiteProfiles() {
           // Get site profiles where dusp_tp_id in duspTpIds
           const { data, error } = await supabase
             .from("nd_site_profile_name")
-            .select("id, sitename, fullname, standard_code, dusp_tp_id")
+            .select("id, sitename, fullname, standard_code, dusp_tp_id, refid_mcmc, refid_tp")
             .in("dusp_tp_id", duspTpIds);
           if (error) throw error;
           if (isMounted) setProfiles(Array.isArray(data) ? data : []);
@@ -66,7 +68,7 @@ export function useSiteProfiles() {
         if (userGroup === 3) {
           const { data, error } = await supabase
             .from("nd_site_profile_name")
-            .select("id, sitename, fullname, standard_code, dusp_tp_id")
+            .select("id, sitename, fullname, standard_code, dusp_tp_id, refid_mcmc, refid_tp")
             .eq("dusp_tp_id", organizationId);
           if (error) throw error;
           if (isMounted) setProfiles(Array.isArray(data) ? data : []);
@@ -77,7 +79,7 @@ export function useSiteProfiles() {
         if (userGroup === 9) {
           const { data, error } = await supabase
             .from("nd_site_profile_name")
-            .select("id, sitename, fullname, standard_code, dusp_tp_id")
+            .select("id, sitename, fullname, standard_code, dusp_tp_id, refid_mcmc, refid_tp")
             .eq("id", siteId);
           if (error) throw error;
           if (isMounted) setProfiles(Array.isArray(data) ? data : []);
