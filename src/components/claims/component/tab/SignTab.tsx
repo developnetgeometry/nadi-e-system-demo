@@ -194,7 +194,7 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
             <Table className="border border-gray-300 w-full text-sm mt-6">
                 <TableBody>
                     <TableRow>
-                        <TableCell className="px-4 py-2 text-center border">NOA</TableCell>
+                        <TableCell className="px-4 py-2 text-center border">Number of Agreements (NOA)</TableCell>
                         <TableCell className="px-4 py-2 text-center border">
                             {isEditing ? (
                                 <Input
