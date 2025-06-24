@@ -154,7 +154,7 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold">Claim Data</h2>
+        <h2 className="text-lg font-bold">Claim Lists</h2>
         {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
 
         <Button

@@ -13,6 +13,9 @@ import { Trash2 } from "lucide-react";
 import { uploadSignDoc, deleteAttachment } from "@/components/claims/hook/upload-attachment";
 import { supabase, SUPABASE_BUCKET_URL, BUCKET_NAME_SITE_CLAIM } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { updateNoa } from "../../dusp/update-noa";
 
 interface ClaimData {
     id: number;
@@ -20,6 +23,7 @@ interface ClaimData {
     year: number;
     quarter: number | null;
     month: number | null;
+    noa: string | null;
     ref_no: string;
     claim_status: { id: number; name: string };
     tp_dusp_id: {
@@ -40,6 +44,8 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
     const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [signedDocuments, setSignedDocuments] = useState(claimData.signed_documents);
+    const [isEditing, setIsEditing] = useState(false);
+    const [noaValue, setNoaValue] = useState(claimData.noa || "");
 
     const fetchLatestSignedDocuments = async () => {
         try {
@@ -110,11 +116,24 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
             }
 
             // Fetch the latest signed documents
+            queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
             await fetchLatestSignedDocuments();
         } catch (error) {
             console.error("Error deleting file:", error);
         }
     };
+
+    const handleSave = async () => {
+        try {
+            await updateNoa({ claim_id: claimData.id, noa: noaValue });
+            queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
+            console.log("NOA updated successfully");
+            setIsEditing(false); // Disable editing after saving
+        } catch (error) {
+            console.error("Error updating NOA:", error);
+        }
+    };
+
     return (
         <div>
             <div className="flex items-center justify-between mb-4">
@@ -169,6 +188,37 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
                             </TableCell>
                         </TableRow>
                     )}
+                </TableBody>
+            </Table>
+
+            <Table className="border border-gray-300 w-full text-sm mt-6">
+                <TableBody>
+                    <TableRow>
+                        <TableCell className="px-4 py-2 text-center border">NOA</TableCell>
+                        <TableCell className="px-4 py-2 text-center border">
+                            {isEditing ? (
+                                <Input
+                                    type="number"
+                                    placeholder="Enter Number of Agreement"
+                                    value={noaValue}
+                                    onChange={(e) => setNoaValue(e.target.value)}
+                                />
+                            ) : (
+                                <span>{noaValue || "N/A"}</span>
+                            )}
+                        </TableCell>
+                        <TableCell className="px-4 py-2 text-center border  w-[120px]">
+                            {isEditing ? (
+                                <Button variant="default" onClick={handleSave}>
+                                    Save
+                                </Button>
+                            ) : (
+                                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                                    Edit
+                                </Button>
+                            )}
+                        </TableCell>
+                    </TableRow>
                 </TableBody>
             </Table>
 
