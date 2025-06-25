@@ -20,6 +20,7 @@ export const useFetchClaimById = (id: number) => {
             quarter,
             month,
             ref_no,
+            noa,
             date_paid,
             payment_status,
             tp_dusp_id (id, name, parent_id (id, name, logo_url, description))
