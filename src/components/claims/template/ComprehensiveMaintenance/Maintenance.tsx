@@ -2,10 +2,10 @@ import {
   Document,
   Image,
   Page,
+  pdf,
   StyleSheet,
   Text,
   View,
-  pdf,
 } from "@react-pdf/renderer";
 import {
   PDFFooter,
@@ -19,7 +19,10 @@ import {
 import { fetchPhaseData } from "@/hooks/use-phase";
 import fetchMaintenanceData from "./hook/use-maintenance-data";
 // Import PDF utilities
-import { MaintenanceStatus } from "@/types/maintenance";
+import {
+  humanizeMaintenanceStatus,
+  MaintenanceStatus,
+} from "@/types/maintenance";
 import { generatePdfFilename } from "../component/pdf-utils";
 import { generateMaintenanceChartImage } from "./chart/generateMaintenanceChartImage";
 
@@ -356,6 +359,13 @@ const Maintenance = async ({
               { key: "docket_issue", header: "ISSUE" },
               { key: "docket_SLA", header: "SLA" },
               { key: "docket_duration", header: "DURATION", width: "15%" },
+              {
+                key: "docket_status",
+                header: "STATUS",
+                render(value) {
+                  return humanizeMaintenanceStatus(value);
+                },
+              },
               { key: "docket_open", header: "DOCKET\nOPEN" },
               { key: "docket_close", header: "DOCKET\nCLOSE" },
             ]}

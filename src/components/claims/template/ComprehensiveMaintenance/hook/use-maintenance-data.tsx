@@ -1,3 +1,4 @@
+import { getSiteManager } from "@/components/site/hook/use-site-staff";
 import { supabase } from "@/integrations/supabase/client";
 import { MaintenanceRequest, MaintenanceStatus } from "@/types/maintenance";
 import { format, formatDuration, intervalToDuration } from "date-fns";
@@ -16,7 +17,17 @@ export interface MaintenanceData {
   docket_open: string;
   docket_close: string;
   docket_status: MaintenanceStatus;
+  endorsed_by: string;
   // attachments_path: string[];
+}
+
+interface MaintenanceFilterOptions {
+  startDate?: string | null;
+  endDate?: string | null;
+  duspFilter?: string | null;
+  phaseFilter?: number | null;
+  nadiFilter?: number[];
+  tpFilter?: string | null;
 }
 
 /**
@@ -30,7 +41,7 @@ export const fetchMaintenanceData = async ({
   phaseFilter = null,
   nadiFilter = [],
   tpFilter = null,
-}) => {
+}: MaintenanceFilterOptions) => {
   console.log("Fetching  Maintenance data with filters:", {
     startDate,
     endDate,
@@ -40,56 +51,64 @@ export const fetchMaintenanceData = async ({
     tpFilter,
   });
 
-  let query = supabase.from("nd_maintenance_request").select(
-    `*,
-    type:nd_type_maintenance ( id, name ),
-    sla:nd_sla_categories ( id, name, min_day, max_day ),
-    asset:nd_asset (
-        *,
-        site:nd_site_profile (
-            *,
-            state:nd_state ( id, name ),
-            dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*)),
-            nd_site:nd_site ( id, standard_code, refid_tp )
-        )
-    )`
-  );
-
-  query = query.not("asset_id", "is", null);
-  query = query.not("asset.site_id", "is", null);
-  query = query.not("sla_id", "is", null);
+  let query = supabase
+    .from("nd_maintenance_request")
+    .select(
+      `*,
+      type:nd_type_maintenance ( id, name ),
+      sla:nd_sla_categories ( id, name, min_day, max_day ),
+      asset:nd_asset (
+          *,
+          site:nd_site_profile (
+              *,
+              state:nd_state ( id, name ),
+              dusp_tp:organizations!dusp_tp_id(id, name, parent:parent_id(*)),
+              nd_site:nd_site ( id, standard_code, refid_tp )
+          )
+      )`
+    )
+    .not("asset_id", "is", null);
 
   if (startDate && endDate) {
     query = query.gte("created_at", startDate).lte("created_at", endDate);
   }
 
-  if (tpFilter) {
-    query = query.eq("asset.site.dusp_tp_id", tpFilter);
-  }
-
-  // if (phaseFilter) {
-  //   query = query.eq("asset.site.phase_id", phaseFilter);
-  // }
-
-  // if (duspFilter) {
-  //   query = query.eq("asset.site.dusp_tp.parent_id", duspFilter);
-  // }
-
-  // if (nadiFilter && nadiFilter.length > 0) {
-  //   query = query.in("asset.site_id", nadiFilter);
-  // }
-
   const { data, error } = await query;
   const typedData = data as MaintenanceRequest[];
-
-  console.log("typedData", data);
 
   if (error) {
     console.error("Error fetching maintenance requests for claim data:", error);
     throw error;
   }
+
+  let validData = typedData.filter((item) => item.asset && item.asset.site);
+
+  if (tpFilter) {
+    validData = validData.filter(
+      (item) => item.asset.site.dusp_tp_id === tpFilter
+    );
+  }
+
+  if (duspFilter) {
+    validData = validData.filter(
+      (item) => item.asset.site.dusp_tp.parent.id === duspFilter
+    );
+  }
+
+  if (phaseFilter) {
+    validData = validData.filter(
+      (item) => Number(item.asset.site.phase_id) === phaseFilter
+    );
+  }
+
+  if (nadiFilter && nadiFilter.length > 0) {
+    validData = validData.filter((item) =>
+      nadiFilter.includes(item.asset.site_id)
+    );
+  }
+
   const maintenanceDatas: MaintenanceData[] = await Promise.all(
-    typedData.map(async (item): Promise<MaintenanceData> => {
+    validData.map(async (item): Promise<MaintenanceData> => {
       function formatTimeDifference(start: string, end: string): string {
         const duration = intervalToDuration({
           start: new Date(start),
@@ -101,7 +120,15 @@ export const fetchMaintenanceData = async ({
         });
       }
 
-      const duration = formatTimeDifference(item.created_at, item.updated_at);
+      let duration = "N/A";
+      let docket_close = "N/A";
+
+      if (item.status === MaintenanceStatus.Completed) {
+        duration = formatTimeDifference(item.created_at, item.updated_at);
+        docket_close = format(item.updated_at, "yyyy-MM-dd");
+      }
+
+      const siteManager = await getSiteManager(item.asset?.site_id);
 
       return {
         status: item.status,
@@ -112,11 +139,13 @@ export const fetchMaintenanceData = async ({
         state: item.asset?.site?.state.name,
         docket_type: item.type?.name,
         docket_issue: item.description ? item.description : "N/A",
-        docket_SLA: item.sla?.name,
+        docket_SLA: item.sla?.name ? item.sla?.name : "N/A",
         docket_duration: duration,
         docket_open: format(item.created_at, "yyyy-MM-dd"),
-        docket_close: format(item.updated_at, "yyyy-MM-dd"),
+        docket_close: docket_close,
         docket_status: item.status,
+        endorsed_by:
+          siteManager?.nd_staff_profile?.fullname?.toUpperCase() ?? "N/A",
       };
     })
   );
