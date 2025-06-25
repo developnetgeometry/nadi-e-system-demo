@@ -11,7 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventQRCodeGenerator } from "@/components/programmes/EventQRCodeGenerator";
-import { CalendarIcon, Clock, Edit, MapPin, User, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  CalendarIcon,
+  Clock,
+  Edit,
+  MapPin,
+  User,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -66,7 +74,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         setCurrentUserId(user.id);
       }
@@ -244,8 +254,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     ["draft", "postponed"].includes(eventDetails.status_name.toLowerCase());
 
   // Check if attendance can be verified (status is not draft)
-  const canVerifyAttendance =
-    eventDetails && eventDetails.status_id !== 1; // status_id 1 is DRAFT
+  const canVerifyAttendance = eventDetails && eventDetails.status_id !== 1; // status_id 1 is DRAFT
 
   const handleEdit = () => {
     if (eventDetails) {
@@ -254,7 +263,10 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     }
   };
 
-  const handleVerifyAttendance = async (participantId: string, isVerified: boolean) => {
+  const handleVerifyAttendance = async (
+    participantId: string,
+    isVerified: boolean
+  ) => {
     if (!currentUserId) {
       toast({
         title: "Error",
@@ -277,9 +289,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
       if (error) throw error;
 
       // Update the local state
-      setParticipants(prev => 
-        prev.map(participant => 
-          participant.id === participantId 
+      setParticipants((prev) =>
+        prev.map((participant) =>
+          participant.id === participantId
             ? { ...participant, verified_by: isVerified ? currentUserId : null }
             : participant
         )
@@ -287,7 +299,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
       toast({
         title: "Success",
-        description: `Attendance ${isVerified ? 'verified' : 'unverified'} successfully.`,
+        description: `Attendance ${
+          isVerified ? "verified" : "unverified"
+        } successfully.`,
       });
     } catch (error) {
       console.error("Error verifying attendance:", error);
@@ -323,9 +337,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Event not found</DialogTitle>
-            <DialogDescription>
-              Unable to load event details
-            </DialogDescription>
+            <DialogDescription>Unable to load event details</DialogDescription>
           </DialogHeader>
           <p>{error || "Sorry, we couldn't find details for this event."}</p>
         </DialogContent>
@@ -440,10 +452,9 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                     <div className="text-sm">
                       <span className="font-medium">Duration: </span>
                       <span>
-                        {eventDetails.duration != null ? 
-                          `${eventDetails.duration.toFixed(1)} hours` : 
-                          "Duration not specified"
-                        }
+                        {eventDetails.duration != null
+                          ? `${eventDetails.duration.toFixed(1)} hours`
+                          : "Duration not specified"}
                       </span>
                     </div>
                     <div className="text-sm mt-2">
@@ -571,7 +582,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                                   {!participant.verified_by ? (
                                     <Button
                                       size="sm"
-                                      onClick={() => handleVerifyAttendance(participant.id, true)}
+                                      onClick={() =>
+                                        handleVerifyAttendance(
+                                          participant.id,
+                                          true
+                                        )
+                                      }
                                       className="bg-green-600 hover:bg-green-700 text-white"
                                     >
                                       Verify
@@ -580,7 +596,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      onClick={() => handleVerifyAttendance(participant.id, false)}
+                                      onClick={() =>
+                                        handleVerifyAttendance(
+                                          participant.id,
+                                          false
+                                        )
+                                      }
                                       className="border-red-200 text-red-700 hover:bg-red-50"
                                     >
                                       Unverify
