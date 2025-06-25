@@ -228,13 +228,16 @@ export async function createSiteAgreement(
     endDate: string,
     remark: string,
     files: File[]
-): Promise<Agreement> {
+): Promise<void> {
     try {
+
         // Step 1: Check if site already has an agreement
         const hasExistingAgreement = await checkSiteHasAgreement(siteProfileId);
         if (hasExistingAgreement) {
             throw new Error('This site already has an existing agreement. Each site can only have one agreement.');
-        }        // Step 2: Insert into database        
+        }        
+        
+        // Step 2: Insert into database        
         const { data: agreement, error: insertError } = await supabase
             .from('nd_site_agreement')
             .insert([
@@ -283,11 +286,9 @@ export async function createSiteAgreement(
             if (updateError) {
                 console.error('Error updating file paths:', updateError);
                 throw new Error('Failed to update file paths');
-            }
-        }
+            }        }
 
-        // Return the created agreement with file paths
-        return { ...agreement, file_path: filePaths };
+        // File upload and database update completed successfully
 
     } catch (error: any) {
         console.error('Error in createSiteAgreement:', error);
@@ -304,7 +305,7 @@ export async function updateSiteAgreement(
     remark: string,
     files?: File[],
     keepExistingFiles?: string[]
-): Promise<Agreement> {
+): Promise<void> {
     try {
         // Get the current agreement to get site_profile_id and existing files
         const { data: currentAgreement, error: fetchError } = await supabase
@@ -401,11 +402,11 @@ export async function updateSiteAgreement(
             .single();
 
         if (updateError) {
-            console.error('Error updating site agreement:', updateError);
+            console.error('Error updating site agreement:', updateError);            
             throw new Error(updateError.message);
         }
 
-        return updatedAgreement;
+        // Agreement updated successfully
 
     } catch (error: any) {
         console.error('Error in updateSiteAgreement:', error);
@@ -492,7 +493,8 @@ export function useCreateSiteAgreement() {
             startDate: string;
             endDate: string;
             remark: string;
-            files: File[];        }) => createSiteAgreement(siteProfileId, ownerName, startDate, endDate, remark, files),
+            files: File[];        
+        }) => createSiteAgreement(siteProfileId, ownerName, startDate, endDate, remark, files),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [AGREEMENT_KEY] });
             queryClient.invalidateQueries({ queryKey: ['sites-with-agreements'] });
@@ -538,41 +540,5 @@ export function useSitesWithAgreements() {
     });
 }
 
-// Debug function to test file deletion (can be removed after testing)
-export async function debugDeleteFiles() {
-    try {
-        // List all files in the bucket to see the structure
-        const { data: files, error: listError } = await supabase.storage
-            .from(BUCKET_NAME_SITE_AGREEMENT)
-            .list('', {
-                limit: 100,
-                offset: 0,
-            });
-
-        if (listError) {
-            console.error('Error listing files:', listError);
-            return;
-        }
-
-        console.log('Files in bucket:', files);
-
-        // Test listing files in site-agreement folder
-        const { data: siteFiles, error: siteListError } = await supabase.storage
-            .from(BUCKET_NAME_SITE_AGREEMENT)
-            .list('site-agreement', {
-                limit: 100,
-                offset: 0,
-            });
-
-        if (siteListError) {
-            console.error('Error listing site-agreement files:', siteListError);
-        } else {
-            console.log('Files in site-agreement folder:', siteFiles);
-        }
-
-    } catch (error) {
-        console.error('Debug error:', error);
-    }
-}
 
 
