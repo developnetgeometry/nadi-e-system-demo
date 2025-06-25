@@ -207,17 +207,19 @@ const SignTab: React.FC<SignTabProps> = ({ claimData }) => {
                                 <span>{noaValue || "N/A"}</span>
                             )}
                         </TableCell>
-                        <TableCell className="px-4 py-2 text-center border  w-[120px]">
-                            {isEditing ? (
-                                <Button variant="default" onClick={handleSave}>
-                                    Save
-                                </Button>
-                            ) : (
-                                <Button variant="outline" onClick={() => setIsEditing(true)}>
-                                    Edit
-                                </Button>
-                            )}
-                        </TableCell>
+                        {claimData.claim_status?.name === "SUBMITTED" && (
+                            <TableCell className="px-4 py-2 text-center border  w-[120px]">
+                                {isEditing ? (
+                                    <Button variant="default" onClick={handleSave}>
+                                        Save
+                                    </Button>
+                                ) : (
+                                    <Button variant="outline" onClick={() => setIsEditing(true)}>
+                                        Edit
+                                    </Button>
+                                )}
+                            </TableCell>
+                        )}
                     </TableRow>
                 </TableBody>
             </Table>
