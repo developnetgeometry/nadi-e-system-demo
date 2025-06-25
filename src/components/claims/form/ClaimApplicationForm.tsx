@@ -136,7 +136,7 @@ export function ClaimApplicationForm({
   return (
     <div>
       <header className="mb-4">Phase, Items, & Sites</header>
-      {/* <pre>{JSON.stringify(category_ids, null, 2)}</pre> */}
+      <pre>{JSON.stringify(category_ids, null, 2)}</pre>
 
       {/* Phase Selection */}
       <div className="space-y-2 mb-4">
@@ -233,22 +233,24 @@ export function ClaimApplicationForm({
                                 ? (() => {
                                   const existingCategory = category_ids.find((cat) => cat.id === category.id);
                                   if (existingCategory) {
-                                    // Add all items in the category to item_ids
+                                    // Add only items that are not already present
+                                    const newItems = category.children.filter(
+                                      (item) =>
+                                        !existingCategory.item_ids.some((existingItem) => existingItem.id === item.id)
+                                    ).map((item) => ({
+                                      id: item.id,
+                                      name: item.name,
+                                      need_support_doc: item.need_support_doc,
+                                      need_summary_report: item.need_summary_report,
+                                      summary_report_file: null, // Reset file on selection
+                                      site_ids: sites.map((site) => site.id), // Auto-select all sites
+                                    }));
+
                                     return category_ids.map((cat) =>
                                       cat.id === category.id
                                         ? {
                                           ...cat,
-                                          item_ids: [
-                                            ...cat.item_ids,
-                                            ...category.children.map((item) => ({
-                                              id: item.id,
-                                              name: item.name,
-                                              need_support_doc: item.need_support_doc,
-                                              need_summary_report: item.need_summary_report,
-                                              summary_report_file: null, // Reset file on selection
-                                              site_ids: sites.map((site) => site.id), // Auto-select all sites
-                                            })),
-                                          ],
+                                          item_ids: [...cat.item_ids, ...newItems],
                                         }
                                         : cat
                                     );
