@@ -1,13 +1,13 @@
+import { SiteProfile } from "@/components/member/hook/useSiteProfile";
+import { Booking } from "./booking";
 import { Brand } from "./brand";
 import { Site, Space } from "./site";
-import { Booking } from "./booking";
-import { SiteProfile } from "@/components/member/hook/useSiteProfile";
 
 export interface Asset {
   id: number;
   name: string;
-  site_id?: number;
-  site?: Site;
+  site_id: number;
+  site: Site;
   brand_id?: number;
   nd_brand?: Brand;
   is_active?: boolean;
