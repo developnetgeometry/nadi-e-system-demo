@@ -102,11 +102,20 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
                   setActiveTab("sign");
                   return;
                 }
+                if (claimData.noa === null || claimData.noa === "") {
+                  toast({
+                    title: "NOA Required",
+                    description: "Please insert NOA before submitting to MCMC.",
+                    variant: "destructive",
+                  });
+                  setActiveTab("sign");
+                  return;
+                }
                 setIsDuspDialogOpen(true); // Open DuspSubmitDialog
               }}
               disabled={!claimData} // Disable if claimData is not loaded
             >
-              Submit for Payment
+              Save
             </Button>
           )}
 

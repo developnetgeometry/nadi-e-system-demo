@@ -1538,6 +1538,7 @@ export type Database = {
           date_paid: string | null
           id: number
           month: number | null
+          noa: string | null
           payment_status: boolean | null
           phase_id: number | null
           quarter: number | null
@@ -1555,6 +1556,7 @@ export type Database = {
           date_paid?: string | null
           id?: number
           month?: number | null
+          noa?: string | null
           payment_status?: boolean | null
           phase_id?: number | null
           quarter?: number | null
@@ -1572,6 +1574,7 @@ export type Database = {
           date_paid?: string | null
           id?: number
           month?: number | null
+          noa?: string | null
           payment_status?: boolean | null
           phase_id?: number | null
           quarter?: number | null
@@ -3236,11 +3239,10 @@ export type Database = {
       }
       nd_finance_report: {
         Row: {
+          balance_forward: number | null
           created_at: string | null
           created_by: string | null
-          expense: number | null
           id: string
-          income: number | null
           month: string | null
           site_id: number | null
           status_id: number | null
@@ -3249,11 +3251,10 @@ export type Database = {
           year: string | null
         }
         Insert: {
+          balance_forward?: number | null
           created_at?: string | null
           created_by?: string | null
-          expense?: number | null
           id?: string
-          income?: number | null
           month?: string | null
           site_id?: number | null
           status_id?: number | null
@@ -3262,11 +3263,10 @@ export type Database = {
           year?: string | null
         }
         Update: {
+          balance_forward?: number | null
           created_at?: string | null
           created_by?: string | null
-          expense?: number | null
           id?: string
-          income?: number | null
           month?: string | null
           site_id?: number | null
           status_id?: number | null
@@ -5628,6 +5628,30 @@ export type Database = {
           },
         ]
       }
+      nd_membership_id_running: {
+        Row: {
+          gender: string | null
+          id: number
+          running_letter: string | null
+          running_number: number | null
+          site_id: number | null
+        }
+        Insert: {
+          gender?: string | null
+          id?: number
+          running_letter?: string | null
+          running_number?: number | null
+          site_id?: number | null
+        }
+        Update: {
+          gender?: string | null
+          id?: number
+          running_letter?: string | null
+          running_number?: number | null
+          site_id?: number | null
+        }
+        Relationships: []
+      }
       nd_mukims: {
         Row: {
           code: string | null
@@ -7283,34 +7307,43 @@ export type Database = {
           },
         ]
       }
-      nd_site_agreement_attachment: {
+      nd_site_agreement: {
         Row: {
           created_at: string
           created_by: string | null
+          end_date: string | null
           file_path: string[] | null
           id: number
+          owner_name: string | null
           remark: string | null
           site_profile_id: number | null
+          start_date: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           file_path?: string[] | null
           id?: number
+          owner_name?: string | null
           remark?: string | null
           site_profile_id?: number | null
+          start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           file_path?: string[] | null
           id?: number
+          owner_name?: string | null
           remark?: string | null
           site_profile_id?: number | null
+          start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -7376,7 +7409,7 @@ export type Database = {
           },
         ]
       }
-      nd_site_audit_attachment: {
+      nd_site_audit: {
         Row: {
           created_at: string
           created_by: string | null
@@ -7875,6 +7908,7 @@ export type Database = {
           email: string | null
           end_operation_date: string | null
           fullname: string | null
+          google_map: string | null
           id: number
           is_active: boolean
           latitude: string | null
@@ -7916,6 +7950,7 @@ export type Database = {
           email?: string | null
           end_operation_date?: string | null
           fullname?: string | null
+          google_map?: string | null
           id?: number
           is_active?: boolean
           latitude?: string | null
@@ -7957,6 +7992,7 @@ export type Database = {
           email?: string | null
           end_operation_date?: string | null
           fullname?: string | null
+          google_map?: string | null
           id?: number
           is_active?: boolean
           latitude?: string | null
