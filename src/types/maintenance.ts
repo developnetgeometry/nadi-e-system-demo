@@ -106,6 +106,39 @@ export const getMaintenanceStatus = (status: string): MaintenanceStatus => {
   }
 };
 
+export enum ClaimMaintenanceReportStatus {
+  New = "new",
+  InProgress = "in_progress",
+  Closed = "closed",
+}
+
+export const getClaimMaintenanceReportStatus = (
+  status: MaintenanceStatus
+): ClaimMaintenanceReportStatus => {
+  switch (status) {
+    case MaintenanceStatus.Submitted:
+    case MaintenanceStatus.Issued:
+      return ClaimMaintenanceReportStatus.New;
+    case MaintenanceStatus.Completed:
+      return ClaimMaintenanceReportStatus.Closed;
+    default:
+      return ClaimMaintenanceReportStatus.InProgress;
+  }
+};
+
+export const humanizeClaimMaintenanceReportStatus = (status: string) => {
+  switch (status) {
+    case "new":
+      return "New";
+    case "in_progress":
+      return "In Progress";
+    case "closed":
+      return "Closed";
+    default:
+      return "Unknown status";
+  }
+};
+
 export interface TypeMaintenance {
   id: number;
   name: string;
