@@ -1,6 +1,11 @@
 import { getSiteManager } from "@/components/site/hook/use-site-staff";
 import { supabase } from "@/integrations/supabase/client";
-import { MaintenanceRequest, MaintenanceStatus } from "@/types/maintenance";
+import {
+  ClaimMaintenanceReportStatus,
+  getClaimMaintenanceReportStatus,
+  MaintenanceRequest,
+  MaintenanceStatus,
+} from "@/types/maintenance";
 import { format, formatDuration, intervalToDuration } from "date-fns";
 
 export interface MaintenanceData {
@@ -16,7 +21,7 @@ export interface MaintenanceData {
   docket_duration: string;
   docket_open: string;
   docket_close: string;
-  docket_status: MaintenanceStatus;
+  docket_status: ClaimMaintenanceReportStatus;
   endorsed_by: string;
   // attachments_path: string[];
 }
@@ -143,7 +148,7 @@ export const fetchMaintenanceData = async ({
         docket_duration: duration,
         docket_open: format(item.created_at, "yyyy-MM-dd"),
         docket_close: docket_close,
-        docket_status: item.status,
+        docket_status: getClaimMaintenanceReportStatus(item.status),
         endorsed_by:
           siteManager?.nd_staff_profile?.fullname?.toUpperCase() ?? "N/A",
       };

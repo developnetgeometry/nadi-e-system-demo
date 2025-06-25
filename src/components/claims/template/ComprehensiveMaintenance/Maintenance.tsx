@@ -20,8 +20,8 @@ import { fetchPhaseData } from "@/hooks/use-phase";
 import fetchMaintenanceData from "./hook/use-maintenance-data";
 // Import PDF utilities
 import {
-  humanizeMaintenanceStatus,
-  MaintenanceStatus,
+  ClaimMaintenanceReportStatus,
+  humanizeClaimMaintenanceReportStatus,
 } from "@/types/maintenance";
 import { generatePdfFilename } from "../component/pdf-utils";
 import { generateMaintenanceChartImage } from "./chart/generateMaintenanceChartImage";
@@ -181,10 +181,7 @@ const Maintenance = async ({
                   {
                     maintenance.filter(
                       (v) =>
-                        ![
-                          MaintenanceStatus.InProgress,
-                          MaintenanceStatus.Completed,
-                        ].includes(v.docket_status)
+                        v.docket_status === ClaimMaintenanceReportStatus.New
                     ).length
                   }
                 </Text>
@@ -201,7 +198,9 @@ const Maintenance = async ({
                 >
                   {
                     maintenance.filter(
-                      (v) => v.docket_status === MaintenanceStatus.InProgress
+                      (v) =>
+                        v.docket_status ===
+                        ClaimMaintenanceReportStatus.InProgress
                     ).length
                   }
                 </Text>
@@ -218,7 +217,8 @@ const Maintenance = async ({
                 >
                   {
                     maintenance.filter(
-                      (v) => v.docket_status === MaintenanceStatus.Completed
+                      (v) =>
+                        v.docket_status === ClaimMaintenanceReportStatus.Closed
                     ).length
                   }
                 </Text>
@@ -289,11 +289,7 @@ const Maintenance = async ({
               >
                 {
                   maintenance.filter(
-                    (v) =>
-                      ![
-                        MaintenanceStatus.InProgress,
-                        MaintenanceStatus.Completed,
-                      ].includes(v.docket_status)
+                    (v) => v.docket_status === ClaimMaintenanceReportStatus.New
                   ).length
                 }
               </Text>
@@ -310,7 +306,9 @@ const Maintenance = async ({
               >
                 {
                   maintenance.filter(
-                    (v) => v.docket_status === MaintenanceStatus.InProgress
+                    (v) =>
+                      v.docket_status ===
+                      ClaimMaintenanceReportStatus.InProgress
                   ).length
                 }
               </Text>
@@ -327,7 +325,8 @@ const Maintenance = async ({
               >
                 {
                   maintenance.filter(
-                    (v) => v.docket_status === MaintenanceStatus.Completed
+                    (v) =>
+                      v.docket_status === ClaimMaintenanceReportStatus.Closed
                   ).length
                 }
               </Text>
@@ -363,7 +362,7 @@ const Maintenance = async ({
                 key: "docket_status",
                 header: "STATUS",
                 render(value) {
-                  return humanizeMaintenanceStatus(value);
+                  return humanizeClaimMaintenanceReportStatus(value);
                 },
               },
               { key: "docket_open", header: "DOCKET\nOPEN" },
