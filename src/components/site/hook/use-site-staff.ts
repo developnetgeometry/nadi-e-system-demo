@@ -115,3 +115,24 @@ export const useSiteManager = (siteId: number) => {
 
   return data;
 };
+
+// using non-hook
+export const getSiteManager = async (siteId: number) => {
+  if (!siteId) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("nd_staff_contract")
+      .select("user_id, staff_id, site_id, nd_staff_profile:staff_id(*)")
+      .eq("site_profile_id", siteId)
+      .eq("nd_staff_profile.position_id", 1) // Manager position
+      .maybeSingle();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    console.error("Error fetching site manager (non-hook):", error);
+    return null;
+  }
+};

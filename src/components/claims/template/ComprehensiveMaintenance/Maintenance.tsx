@@ -2,10 +2,10 @@ import {
   Document,
   Image,
   Page,
+  pdf,
   StyleSheet,
   Text,
   View,
-  pdf,
 } from "@react-pdf/renderer";
 import {
   PDFFooter,
@@ -19,7 +19,10 @@ import {
 import { fetchPhaseData } from "@/hooks/use-phase";
 import fetchMaintenanceData from "./hook/use-maintenance-data";
 // Import PDF utilities
-import { MaintenanceStatus } from "@/types/maintenance";
+import {
+  ClaimMaintenanceReportStatus,
+  humanizeClaimMaintenanceReportStatus,
+} from "@/types/maintenance";
 import { generatePdfFilename } from "../component/pdf-utils";
 import { generateMaintenanceChartImage } from "./chart/generateMaintenanceChartImage";
 
@@ -178,10 +181,7 @@ const Maintenance = async ({
                   {
                     maintenance.filter(
                       (v) =>
-                        ![
-                          MaintenanceStatus.InProgress,
-                          MaintenanceStatus.Completed,
-                        ].includes(v.docket_status)
+                        v.docket_status === ClaimMaintenanceReportStatus.New
                     ).length
                   }
                 </Text>
@@ -198,7 +198,9 @@ const Maintenance = async ({
                 >
                   {
                     maintenance.filter(
-                      (v) => v.docket_status === MaintenanceStatus.InProgress
+                      (v) =>
+                        v.docket_status ===
+                        ClaimMaintenanceReportStatus.InProgress
                     ).length
                   }
                 </Text>
@@ -215,7 +217,8 @@ const Maintenance = async ({
                 >
                   {
                     maintenance.filter(
-                      (v) => v.docket_status === MaintenanceStatus.Completed
+                      (v) =>
+                        v.docket_status === ClaimMaintenanceReportStatus.Closed
                     ).length
                   }
                 </Text>
@@ -250,7 +253,7 @@ const Maintenance = async ({
         )}
         <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
       </Page>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         <PDFSectionTitle title="6.1 MAINTENANCE" />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View
@@ -286,11 +289,7 @@ const Maintenance = async ({
               >
                 {
                   maintenance.filter(
-                    (v) =>
-                      ![
-                        MaintenanceStatus.InProgress,
-                        MaintenanceStatus.Completed,
-                      ].includes(v.docket_status)
+                    (v) => v.docket_status === ClaimMaintenanceReportStatus.New
                   ).length
                 }
               </Text>
@@ -307,7 +306,9 @@ const Maintenance = async ({
               >
                 {
                   maintenance.filter(
-                    (v) => v.docket_status === MaintenanceStatus.InProgress
+                    (v) =>
+                      v.docket_status ===
+                      ClaimMaintenanceReportStatus.InProgress
                   ).length
                 }
               </Text>
@@ -324,7 +325,8 @@ const Maintenance = async ({
               >
                 {
                   maintenance.filter(
-                    (v) => v.docket_status === MaintenanceStatus.Completed
+                    (v) =>
+                      v.docket_status === ClaimMaintenanceReportStatus.Closed
                   ).length
                 }
               </Text>
@@ -356,8 +358,16 @@ const Maintenance = async ({
               { key: "docket_issue", header: "ISSUE" },
               { key: "docket_SLA", header: "SLA" },
               { key: "docket_duration", header: "DURATION", width: "15%" },
+              {
+                key: "docket_status",
+                header: "STATUS",
+                render(value) {
+                  return humanizeClaimMaintenanceReportStatus(value);
+                },
+              },
               { key: "docket_open", header: "DOCKET\nOPEN" },
               { key: "docket_close", header: "DOCKET\nCLOSE" },
+              { key: "endorsed_by", header: "ENDORSED\nBY" },
             ]}
           />
         ) : (
