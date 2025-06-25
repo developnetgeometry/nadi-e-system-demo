@@ -368,6 +368,7 @@ const Maintenance = async ({
               },
               { key: "docket_open", header: "DOCKET\nOPEN" },
               { key: "docket_close", header: "DOCKET\nCLOSE" },
+              { key: "endorsed_by", header: "ENDORSED\nBY" },
             ]}
           />
         ) : (
