@@ -39,7 +39,7 @@ const ORGANIZATIONS_KEY = 'organizations';
 export async function fetchSiteAgreement(siteProfileIds?: number[]): Promise<Agreement[]> {
     try {
         // Build the query once with all conditions
-        let query = (supabase as any)
+        let query = supabase
             .from('nd_site_agreement')
             .select(`
                 id,
@@ -96,7 +96,7 @@ export async function fetchSiteAgreement(siteProfileIds?: number[]): Promise<Agr
 }
 
 export async function fetchSiteAgreementById(id: number): Promise<Agreement> {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
         .from('nd_site_agreement').select(`
             id,
             owner_name,
@@ -145,7 +145,7 @@ export async function fetchSiteAgreementById(id: number): Promise<Agreement> {
 export async function deleteSiteAgreement(id: number): Promise<void> {
     try {
         // First, fetch the agreement to get file paths and site profile ID
-        const { data: agreement, error: fetchError } = await (supabase as any)
+        const { data: agreement, error: fetchError } = await supabase
             .from('nd_site_agreement')
             .select(`
                 file_path,
@@ -204,7 +204,7 @@ export async function deleteSiteAgreement(id: number): Promise<void> {
                 }
             }
         }// Delete the database record
-        const { error } = await (supabase as any)
+        const { error } = await supabase
             .from('nd_site_agreement')
             .delete()
             .eq('id', id);
@@ -230,7 +230,6 @@ export async function createSiteAgreement(
     files: File[]
 ): Promise<void> {
     try {
-
         // Step 1: Check if site already has an agreement
         const hasExistingAgreement = await checkSiteHasAgreement(siteProfileId);
         if (hasExistingAgreement) {
