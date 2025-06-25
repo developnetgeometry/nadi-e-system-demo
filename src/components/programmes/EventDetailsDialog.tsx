@@ -11,16 +11,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EventQRCodeGenerator } from "@/components/programmes/EventQRCodeGenerator";
-import { CalendarIcon, Clock, Edit, MapPin, User } from "lucide-react";
+import { CalendarIcon, Clock, Edit, MapPin, User, CheckCircle, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface Participant {
   id: string;
   fullname: string;
   email: string;
   attendance: boolean;
+  verified_by: string | null;
 }
 
 interface EventDetails {
@@ -58,7 +60,20 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -128,6 +143,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
               `
             id,
             attendance,
+            verified_by,
             nd_member_profile:member_id(
               id,
               fullname,
@@ -145,6 +161,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           fullname: participant.nd_member_profile?.fullname || "Unknown",
           email: participant.nd_member_profile?.email || "No email",
           attendance: participant.attendance || false,
+          verified_by: participant.verified_by,
         }));
 
         setParticipants(formattedParticipants);
@@ -226,10 +243,59 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     eventDetails &&
     ["draft", "postponed"].includes(eventDetails.status_name.toLowerCase());
 
+  // Check if attendance can be verified (status is not draft)
+  const canVerifyAttendance =
+    eventDetails && eventDetails.status_id !== 1; // status_id 1 is DRAFT
+
   const handleEdit = () => {
     if (eventDetails) {
       navigate(`/programmes/edit/${eventDetails.id}`);
       onClose();
+    }
+  };
+
+  const handleVerifyAttendance = async (participantId: string, isVerified: boolean) => {
+    if (!currentUserId) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to verify attendance.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("nd_event_participant")
+        .update({
+          verified_by: isVerified ? currentUserId : null,
+          updated_at: new Date().toISOString(),
+          updated_by: currentUserId,
+        })
+        .eq("id", parseInt(participantId));
+
+      if (error) throw error;
+
+      // Update the local state
+      setParticipants(prev => 
+        prev.map(participant => 
+          participant.id === participantId 
+            ? { ...participant, verified_by: isVerified ? currentUserId : null }
+            : participant
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: `Attendance ${isVerified ? 'verified' : 'unverified'} successfully.`,
+      });
+    } catch (error) {
+      console.error("Error verifying attendance:", error);
+      toast({
+        title: "Error",
+        description: "Failed to verify attendance. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -445,6 +511,12 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                           <th className="text-left p-2">Name</th>
                           <th className="text-left p-2">Email</th>
                           <th className="text-left p-2">Attendance</th>
+                          {canVerifyAttendance && (
+                            <th className="text-left p-2">Verification</th>
+                          )}
+                          {canVerifyAttendance && (
+                            <th className="text-left p-2">Actions</th>
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -472,6 +544,51 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                                 </Badge>
                               )}
                             </td>
+                            {canVerifyAttendance && (
+                              <td className="p-2">
+                                {participant.verified_by ? (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-blue-50 text-blue-700 border-blue-200 flex items-center gap-1 w-fit"
+                                  >
+                                    <CheckCircle className="h-3 w-3" />
+                                    Verified
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1 w-fit"
+                                  >
+                                    <AlertCircle className="h-3 w-3" />
+                                    Pending
+                                  </Badge>
+                                )}
+                              </td>
+                            )}
+                            {canVerifyAttendance && (
+                              <td className="p-2">
+                                <div className="flex gap-2">
+                                  {!participant.verified_by ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleVerifyAttendance(participant.id, true)}
+                                      className="bg-green-600 hover:bg-green-700 text-white"
+                                    >
+                                      Verify
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleVerifyAttendance(participant.id, false)}
+                                      className="border-red-200 text-red-700 hover:bg-red-50"
+                                    >
+                                      Unverify
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
