@@ -5628,6 +5628,30 @@ export type Database = {
           },
         ]
       }
+      nd_membership_id_running: {
+        Row: {
+          gender: string | null
+          id: number
+          running_letter: string | null
+          running_number: number | null
+          site_id: number | null
+        }
+        Insert: {
+          gender?: string | null
+          id?: number
+          running_letter?: string | null
+          running_number?: number | null
+          site_id?: number | null
+        }
+        Update: {
+          gender?: string | null
+          id?: number
+          running_letter?: string | null
+          running_number?: number | null
+          site_id?: number | null
+        }
+        Relationships: []
+      }
       nd_mukims: {
         Row: {
           code: string | null
@@ -7287,30 +7311,39 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          end_date: string | null
           file_path: string[] | null
           id: number
+          owner_name: string | null
           remark: string | null
           site_profile_id: number | null
+          start_date: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           file_path?: string[] | null
           id?: number
+          owner_name?: string | null
           remark?: string | null
           site_profile_id?: number | null
+          start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           file_path?: string[] | null
           id?: number
+          owner_name?: string | null
           remark?: string | null
           site_profile_id?: number | null
+          start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
