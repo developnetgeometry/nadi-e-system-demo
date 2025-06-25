@@ -253,7 +253,7 @@ const Maintenance = async ({
         )}
         <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
       </Page>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation="landscape" style={styles.page}>
         <PDFSectionTitle title="6.1 MAINTENANCE" />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View
