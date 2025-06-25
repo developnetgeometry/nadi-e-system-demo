@@ -61,6 +61,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
 
     return () => clearTimeout(timer);
   }, [searchValue]);
+
   // Add disabled status to profiles
   const profilesWithStatus = useMemo(() => {
     return data.map(profile => ({
@@ -84,6 +85,7 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
   const displayedProfiles = useMemo(() => {
     return filteredProfiles.slice(0, displayedCount);
   }, [filteredProfiles, displayedCount]);
+
   // Load more function
   const loadMore = useCallback(() => {
     if (displayedCount < filteredProfiles.length && !isLoadingMore) {
@@ -107,7 +109,9 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
     if (nearBottom && displayedCount < filteredProfiles.length && !isLoadingMore) {
       loadMore();
     }
-  }, [loadMore, displayedCount, filteredProfiles.length, isLoadingMore]);  // Reset displayed count when search changes
+  }, [loadMore, displayedCount, filteredProfiles.length, isLoadingMore]);  
+  
+  // Reset displayed count when search changes
   React.useEffect(() => {
     setDisplayedCount(itemsPerPage);
     setIsLoadingMore(false);
@@ -219,7 +223,8 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                             "h-4 w-4",
                             value === profile.id ? "opacity-100" : "opacity-0"
                           )}
-                        />                        <span className={cn(
+                        />                        
+                        <span className={cn(
                           "font-medium",
                           (!allowDisabledSelection && profile.isDisabled) && "text-gray-400"
                         )}>
@@ -252,7 +257,9 @@ export const SiteSelect: React.FC<SiteSelectProps> = ({
                     )}
                   </div>
                 </CommandItem>
-              ))}              {/* Loading More Indicator */}
+              ))}              
+              
+              {/* Loading More Indicator */}
               {isLoadingMore && (
                 <div className="border-t border-gray-200 p-2">
                   <div className="flex items-center justify-center text-sm text-gray-500">

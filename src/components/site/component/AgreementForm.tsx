@@ -13,13 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { SiteSelect } from "@/components/shared/SiteSelect";
 import { Upload, X, FileIcon } from "lucide-react";
 
@@ -36,7 +29,7 @@ const AgreementForm = () => {
   const isEdit = !!id;
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // File upload state
   const [files, setFiles] = useState<File[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -59,14 +52,16 @@ const AgreementForm = () => {
       end_date: "",
       remark: "",
     },
-  });  // Reset form with agreement data when available and profiles are loaded
+  });  
+  
+  // Reset form with agreement data when available and profiles are loaded
   useEffect(() => {
     if (isEdit && agreementData && !isLoadingProfiles && profiles.length > 0) {
       const siteProfileId = agreementData.site_profile_id?.id;
 
       // Verify the profile exists in the loaded profiles
       const profileExists = siteProfileId ? profiles.find(p => p.id === siteProfileId) : null;
-      
+
       form.reset({
         site_profile_id: profileExists ? siteProfileId : undefined as any,
         owner_name: agreementData.owner_name || "",
@@ -81,6 +76,7 @@ const AgreementForm = () => {
       }
     }
   }, [isEdit, agreementData, form, isLoadingProfiles, profiles]);
+  
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || []);
@@ -99,8 +95,8 @@ const AgreementForm = () => {
   // Remove uploaded file
   const removeUploadedFile = (index: number) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-  };  
-  
+  };
+
   const onSubmit = async (values: FormData) => {
     try {
       // Validate files for new agreements
@@ -109,7 +105,9 @@ const AgreementForm = () => {
         return;
       }
 
-      if (isEdit) {        // Update existing agreement
+      if (isEdit) {        
+        
+        // Update existing agreement
         await updateMutation.mutateAsync({
           id: parseInt(id!),
           ownerName: values.owner_name,
@@ -125,7 +123,10 @@ const AgreementForm = () => {
           description: "Agreement updated successfully",
           variant: "default"
         });
-      } else {        // Create new agreement
+
+      } else {        
+      
+        // Create new agreement
         await createMutation.mutateAsync({
           siteProfileId: values.site_profile_id,
           ownerName: values.owner_name,
@@ -143,6 +144,7 @@ const AgreementForm = () => {
       }
 
       navigate("/site-management/agreement");
+
     } catch (error: any) {
       toast({
         title: "Error",
@@ -176,9 +178,12 @@ const AgreementForm = () => {
         {/* Form content */}
         {(!isEdit || !isLoadingAgreement) && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column - Form Fields */}
-                <div className="space-y-6">                  <FormField
+                <div className="space-y-6">
+                  <FormField
                     name="site_profile_id"
                     control={form.control}
                     rules={{
@@ -198,7 +203,8 @@ const AgreementForm = () => {
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-gray-700">
                           Site {isEdit ? "(Read-only)" : "*"}
-                        </FormLabel>                        <FormControl>
+                        </FormLabel>
+                        <FormControl>
                           <SiteSelect
                             data={profiles}
                             disabledItems={sitesWithAgreements}
@@ -241,7 +247,9 @@ const AgreementForm = () => {
                         <FormMessage />
                       </FormItem>
                     )}
-                  />                  {/* Date Fields - Side by Side */}
+                  />
+
+                  {/* Date Fields - Side by Side */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Start Date Field */}
                     <FormField
@@ -319,9 +327,7 @@ const AgreementForm = () => {
                     </FormLabel>
 
                     {/* File Upload Input */}
-                    <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors ${
-                      fileError ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}>
+                    <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors ${fileError ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}>
                       <input
                         type="file"
                         multiple
