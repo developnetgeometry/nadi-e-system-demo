@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Asset } from "@/types/asset";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
 interface AssetDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -104,41 +103,6 @@ export const AssetDetailsDialog = ({
               <span>{asset.is_active ? "Final" : "Draft"}</span>
             </div>
           </div>
-        </div>
-        <div className="flex justify-end space-x-2">
-          {asset.is_active && (
-            <Button
-              type="button"
-              variant="default"
-              onClick={() => {
-                handleSubmitToDusp();
-              }}
-            >
-              Submit to DUSP
-            </Button>
-          )}
-          {!asset.is_active && (
-            <div className="flex space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  handleSubmitForApproval();
-                }}
-              >
-                Submit for Approval
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                onClick={() => {
-                  handleApprove();
-                }}
-              >
-                Approve
-              </Button>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
