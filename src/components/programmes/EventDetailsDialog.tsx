@@ -53,6 +53,7 @@ interface EventDetails {
   total_participant: number;
   status_id: number;
   status_name: string;
+  is_acknowledge: boolean;
 }
 
 interface EventDetailsDialogProps {
@@ -119,6 +120,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             program_mode,
             total_participant,
             status_id,
+            is_acknowledge,
             nd_event_status:status_id(id, name),
             nd_event_category:category_id(id, name),
             nd_event_subcategory:subcategory_id(id, name),
@@ -150,9 +152,13 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           total_participant: event.total_participant || 0,
           status_id: event.status_id,
           status_name: event.nd_event_status?.name || "Unknown",
+          is_acknowledge: event.is_acknowledge || false,
         };
 
         setEventDetails(formattedEvent);
+        
+        // Set the acknowledgment state from the database
+        setOverallVerificationAcknowledged(formattedEvent.is_acknowledge);
 
         // Fetch participants
         const { data: participantsData, error: participantsError } =
@@ -399,6 +405,19 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
         throw new Error("Some attendance updates failed");
       }
 
+      // Update the event's acknowledgment status
+      const { error: eventUpdateError } = await supabase
+        .from("nd_event")
+        .update({
+          is_acknowledge: overallVerificationAcknowledged,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", eventId);
+
+      if (eventUpdateError) {
+        throw new Error("Failed to update event acknowledgment status");
+      }
+
       // Update local state
       setParticipants((prev) =>
         prev.map((participant) => {
@@ -413,6 +432,11 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           }
           return participant;
         })
+      );
+
+      // Update the event details to reflect the acknowledgment
+      setEventDetails((prev) => 
+        prev ? { ...prev, is_acknowledge: overallVerificationAcknowledged } : prev
       );
 
       // Clear the updates

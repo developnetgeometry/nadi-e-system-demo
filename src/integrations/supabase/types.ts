@@ -2654,6 +2654,7 @@ export type Database = {
           duration: number | null
           end_datetime: string | null
           id: string
+          is_acknowledge: boolean
           is_active: boolean
           is_group_event: boolean | null
           location_event: string | null
@@ -2682,6 +2683,7 @@ export type Database = {
           duration?: number | null
           end_datetime?: string | null
           id?: string
+          is_acknowledge?: boolean
           is_active?: boolean
           is_group_event?: boolean | null
           location_event?: string | null
@@ -2710,6 +2712,7 @@ export type Database = {
           duration?: number | null
           end_datetime?: string | null
           id?: string
+          is_acknowledge?: boolean
           is_active?: boolean
           is_group_event?: boolean | null
           location_event?: string | null
