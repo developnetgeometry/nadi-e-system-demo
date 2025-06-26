@@ -135,6 +135,203 @@ const getCellValue = (column: Column, row: any, index: number) => {
   return row[column.key];
 };
 
+// Performant String Filter Component
+interface StringFilterUIProps {
+  column: Column;
+  filterValues: any[];
+  data: any[];
+  handleFilterChange: (key: string, value: string | string[]) => void;
+  setColumnFilters: React.Dispatch<React.SetStateAction<{ [key: string]: any[] }>>;
+}
+
+const StringFilterUI: React.FC<StringFilterUIProps> = ({
+  column,
+  filterValues,
+  data,
+  handleFilterChange,
+  setColumnFilters
+}) => {
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
+  const [displayedCount, setDisplayedCount] = useState(50); // Items per page
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  // Debounce search input for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchValue(searchValue);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // Get unique values with counts
+  const uniqueValues = React.useMemo(() => {
+    const valueCounts = new Map();
+    data.forEach(row => {
+      const val = getCellValue(column, row, 0);
+      if (val !== null && val !== '') {
+        valueCounts.set(val, (valueCounts.get(val) || 0) + 1);
+      }
+    });
+    
+    return Array.from(valueCounts.entries())
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .map(([value, count]) => ({ value, count }));
+  }, [data, column]);
+
+  // Filter values based on search
+  const filteredValues = React.useMemo(() => {
+    if (!debouncedSearchValue) return uniqueValues;
+    const searchLower = debouncedSearchValue.toLowerCase();
+    return uniqueValues.filter(({ value }) =>
+      String(value).toLowerCase().includes(searchLower)
+    );
+  }, [uniqueValues, debouncedSearchValue]);
+
+  // Get displayed values with pagination
+  const displayedValues = React.useMemo(() => {
+    return filteredValues.slice(0, displayedCount);
+  }, [filteredValues, displayedCount]);
+
+  // Load more function
+  const loadMore = React.useCallback(() => {
+    if (displayedCount < filteredValues.length && !isLoadingMore) {
+      setIsLoadingMore(true);
+      setTimeout(() => {
+        setDisplayedCount(prev => Math.min(prev + 50, filteredValues.length));
+        setIsLoadingMore(false);
+      }, 150);
+    }
+  }, [filteredValues.length, displayedCount, isLoadingMore]);
+
+  // Handle scroll events for infinite loading
+  const handleScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    
+    // Load more when user scrolls to within 50px of the bottom
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 50;
+    
+    if (nearBottom && displayedCount < filteredValues.length && !isLoadingMore) {
+      loadMore();
+    }
+  }, [loadMore, displayedCount, filteredValues.length, isLoadingMore]);
+
+  // Reset displayed count when search changes
+  useEffect(() => {
+    setDisplayedCount(50);
+    setIsLoadingMore(false);
+  }, [debouncedSearchValue]);
+
+  // Check if there are null/empty values
+  const hasNullValues = React.useMemo(() => {
+    return data.some(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '');
+  }, [data, column]);
+
+  const nullValueCount = React.useMemo(() => {
+    return data.filter(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '').length;
+  }, [data, column]);
+
+  return (
+    <div className="p-2">
+      <Command shouldFilter={false}>
+        <CommandInput 
+          placeholder="Search values..." 
+          value={searchValue}
+          onValueChange={setSearchValue}
+        />
+        
+        <CommandList className="max-h-64 overflow-auto" onScroll={handleScroll}>
+          <CommandEmpty>
+            {searchValue !== debouncedSearchValue ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Searching...
+              </div>
+            ) : (
+              "No values found."
+            )}
+          </CommandEmpty>
+          
+          <CommandGroup>
+            {/* Add a special option for NULL or empty string values */}
+            {hasNullValues && (debouncedSearchValue === "" || "not set".includes(debouncedSearchValue.toLowerCase())) && (
+              <CommandItem
+                key="__null__"
+                value="not-set-null-empty"
+                onSelect={() => handleFilterChange(column.key as string, "Not Set")}
+              >
+                <input
+                  type="checkbox"
+                  checked={filterValues.includes("Not Set")}
+                  readOnly
+                  className="mr-2"
+                />
+                <span className="flex-1">Not Set</span>
+                <span className="text-xs text-gray-500">({nullValueCount})</span>
+              </CommandItem>
+            )}
+            
+            {/* List filtered and paginated values */}
+            {displayedValues.map(({ value, count }) => (
+              <CommandItem
+                key={String(value)}
+                value={String(value)}
+                onSelect={() => handleFilterChange(column.key as string, value)}
+              >
+                <input
+                  type="checkbox"
+                  checked={filterValues.includes(value)}
+                  readOnly
+                  className="mr-2"
+                />
+                <span className="flex-1">{String(value)}</span>
+                <span className="text-xs text-gray-500">({count})</span>
+              </CommandItem>
+            ))}
+            
+            {/* Loading More Indicator */}
+            {isLoadingMore && (
+              <div className="border-t border-gray-200 p-2">
+                <div className="flex items-center justify-center text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Loading more values...
+                </div>
+              </div>
+            )}
+            
+            {/* Show remaining count if there are more items */}
+            {!isLoadingMore && displayedCount < filteredValues.length && (
+              <div className="border-t border-gray-200 p-2">
+                <div className="text-center text-sm text-gray-500">
+                  Showing {displayedCount} of {filteredValues.length} values
+                  <br />
+                  <span className="text-xs">Scroll down to load more</span>
+                </div>
+              </div>
+            )}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+      
+      {filterValues.length > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2 w-full"
+          onClick={() => setColumnFilters(prev => {
+            const newFilters = { ...prev };
+            delete newFilters[column.key as string];
+            return newFilters;
+          })}
+        >
+          Clear Filter
+        </Button>
+      )}
+    </div>
+  );
+};
+
 const DataTable: React.FC<DataTableProps> = ({
   data = [],
   columns = [],
@@ -816,85 +1013,10 @@ const DataTable: React.FC<DataTableProps> = ({
               Clear Filter
             </Button>
           )}
-        </div>        ); case "string":
-      default:        // Standard string filter UI
-        return (
-          <div className="p-2">
-            <Command>
-              <CommandInput placeholder={`Search...`} />
-              <CommandList>
-                <CommandEmpty>No options found.</CommandEmpty>
-                <CommandGroup>
-                  {/* Add a special option for NULL or empty string values */}
-                  {data.some(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '') && (
-                    <CommandItem
-                      key="__null__"
-                      onSelect={() =>
-                        handleFilterChange(column.key as string, "Not Set")
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filterValues.includes("Not Set")}
-                        readOnly
-                        className="mr-2"
-                      />
-                      <span className="flex-1">Not Set</span>
-                      <span className="text-xs text-gray-500">
-                        ({data.filter(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '').length})
-                      </span>
-                    </CommandItem>
-                  )}
-                  
-                  {/* List all non-null and non-empty values */}
-                  {(() => {
-                    // Count occurrences of each unique value
-                    const valueCounts = new Map();
-                    data.forEach(row => {
-                      const val = getCellValue(column, row, 0);
-                      if (val !== null && val !== '') {
-                        valueCounts.set(val, (valueCounts.get(val) || 0) + 1);
-                      }
-                    });
-                    
-                    // Convert to array and render
-                    return Array.from(valueCounts.entries())
-                      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
-                      .map(([value, count]) => (
-                        <CommandItem
-                          key={String(value)}
-                          onSelect={() => handleFilterChange(column.key as string, value)}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={filterValues.includes(value)}
-                            readOnly
-                            className="mr-2"
-                          />
-                          <span className="flex-1">{value}</span>
-                          <span className="text-xs text-gray-500">({count})</span>
-                        </CommandItem>
-                      ));
-                  })()}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-            
-            {filterValues.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full"
-                onClick={() => setColumnFilters(prev => {
-                  const newFilters = { ...prev };
-                  delete newFilters[column.key as string];
-                  return newFilters;
-                })}
-              >
-                Clear Filter
-              </Button>            )}
-          </div>
-        );
+        </div>        );      case "string":
+      default:
+        // Performant string filter UI with search, pagination, and debouncing
+        return <StringFilterUI column={column} filterValues={filterValues} data={data} handleFilterChange={handleFilterChange} setColumnFilters={setColumnFilters} />;
     }
   }; const isFilterApplied =
     (Object.keys(columnFilters).length > 0 &&
