@@ -83,6 +83,7 @@ export const MaintenanceList = ({
   const [filter, setFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [docketTypeFilter, setDocketTypeFilter] = useState<string>("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -113,6 +114,11 @@ export const MaintenanceList = ({
     )
     .filter((maintenanceRequest) =>
       statusFilter ? maintenanceRequest.status === statusFilter : true
+    )
+    .filter((maintenanceRequest) =>
+      docketTypeFilter
+        ? maintenanceRequest.docket_type === docketTypeFilter
+        : true
     );
 
   const paginatedMaintenanceRequests = filteredMaintenanceRequests.slice(
@@ -190,6 +196,21 @@ export const MaintenanceList = ({
           className="pl-10"
         />
         <Search className="absolute top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <div className="relative">
+          <select
+            value={docketTypeFilter}
+            onChange={(e) => setDocketTypeFilter(e.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <option value="">All Docket Types</option>
+            <option key="cm" value="cm">
+              Comprehensive
+            </option>
+            <option key="pm" value="pm">
+              Preventive
+            </option>
+          </select>
+        </div>
         <div className="relative">
           <select
             value={typeFilter}
