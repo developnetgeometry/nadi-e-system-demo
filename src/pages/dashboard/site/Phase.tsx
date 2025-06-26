@@ -23,25 +23,24 @@ import PhaseDialog from '@/components/site/component/PhaseDialog';
 import { format } from 'date-fns';
 
 const Phase = () => {
-    // Get user organization context
+    // Get user metadata for permissions
     const userMetadata = useUserMetadata();
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-    const organizationId = parsedMetadata?.organization_id;
 
     const isDusp = parsedMetadata?.user_type.startsWith('dusp') || "";
     const isAdmin = parsedMetadata?.user_type.startsWith('super_admin') || "";
     const isMCMC = parsedMetadata?.user_type.startsWith('mcmc') || "";
-
+    const isTP = parsedMetadata?.user_type.startsWith('tp') || "";
 
     const { toast } = useToast();
     const navigate = useNavigate();
 
-    // Fetch phase data
+    // Fetch all phases - no organization filtering
     const {
         data: phases = [],
         isLoading,
         error
-    } = useGetPhases(organizationId);
+    } = useGetPhases();
     console.log("Phases data:", phases); // Debug log
     const deletePhaseMutation = useDeletePhase();
 
@@ -111,43 +110,7 @@ const Phase = () => {
             visible: true,
             filterType: "string",
             align: "center",
-        },        {
-            key: "organization_id.name",
-            header: "DUSP",
-            visible: isAdmin || isMCMC ? true : false, // Explicitly return false if not admin or MCMC
-            filterable: isAdmin || isMCMC ? true : false, // Explicitly return false if not admin or MCMC
-            filterType: "string",
-            align: "center",
-            render: (value) => value || "-",
         },
-        // {
-        //     key: "nd_phases_contract[0].start_date",
-        //     header: (
-        //         <div className="flex items-center gap-2">
-        //             <Calendar size={16} />
-        //             <span>Start Date</span>
-        //         </div>
-        //     ),
-        //     render: (value) => value || "-",
-        //     filterable: true,
-        //     visible: true,
-        //     filterType: "date",
-        //     width: "12%"
-        // },
-        // {
-        //     key: "nd_phases_contract[0].end_date",
-        //     header: (
-        //         <div className="flex items-center gap-2">
-        //             <Clock size={16} />
-        //             <span>End Date</span>
-        //         </div>
-        //     ),
-        //     render: (value) => value || "-",
-        //     filterable: true,
-        //     visible: true,
-        //     filterType: "date",
-        //     width: "12%"
-        // },
         {
             key: "is_active",
             header: "Status",
@@ -213,26 +176,30 @@ const Phase = () => {
                         <Eye className="h-4 w-4" />
                         <span className="sr-only">View</span>
                     </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
-                        onClick={() => handleEditPhase(row.id)}
-                        title="Edit phase"
-                    >
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-100"
-                        onClick={() => handleDeletePhase(row.id)}
-                        title="Delete phase"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
-                    </Button>
+                    {(isAdmin || isMCMC || isDusp || isTP) && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+                            onClick={() => handleEditPhase(row.id)}
+                            title="Edit phase"
+                        >
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                        </Button>
+                    )}
+                    {(isAdmin || isMCMC || isDusp || isTP) && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-100"
+                            onClick={() => handleDeletePhase(row.id)}
+                            title="Delete phase"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete</span>
+                        </Button>
+                    )}
                 </div>
             ),
             header: "Actions",
@@ -245,7 +212,7 @@ const Phase = () => {
     return (
         <div className="space-y-4">            <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Phase Management</h1>
-                {(isAdmin || isMCMC || isDusp) && (
+                {(isAdmin || isMCMC || isDusp || isTP) && (
                     <Button
                         onClick={handleCreatePhase}
                         className="flex items-center gap-2"

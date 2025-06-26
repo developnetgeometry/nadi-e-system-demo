@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Phase } from "@/hooks/phase/use-phase";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, BuildingIcon, CheckCircle, XCircle } from "lucide-react";
+import { CalendarIcon, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 
@@ -65,29 +65,7 @@ const PhaseDialog: React.FC<PhaseDialogProps> = ({ open, onOpenChange, phase }) 
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-6">{/* Organization Info */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Organization</h3>
-            <div className="bg-gray-50 p-3 rounded-md">
-              {phase.organization_id ? (
-                <div className="flex items-start gap-3">
-                  <BuildingIcon className="h-5 w-5 text-gray-600 mt-0.5" />
-                  <div>
-                    <div className="font-medium">{phase.organization_id.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {phase.organization_id.type} · ID: {phase.organization_id.id}
-                    </div>
-                    {phase.organization_id.description && (
-                      <div className="text-sm mt-1">{phase.organization_id.description}</div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-500">No organization assigned</div>
-              )}
-            </div>
-          </div>
-
+        <div className="py-4 space-y-6">
           {/* Date Information */}
           <div>
             <h3 className="text-sm font-medium text-gray-500 mb-2">Contract Period</h3>
@@ -98,7 +76,7 @@ const PhaseDialog: React.FC<PhaseDialogProps> = ({ open, onOpenChange, phase }) 
                   <span className="text-xs font-medium">Start Date</span>
                 </div>
                 <div className="mt-1 font-medium">
-                  {formatDate(phase.nd_phases_contract?.start_date)}
+                  {formatDate(phase.nd_phases_contract?.[0]?.start_date)}
                 </div>
               </div>
 
@@ -108,7 +86,7 @@ const PhaseDialog: React.FC<PhaseDialogProps> = ({ open, onOpenChange, phase }) 
                   <span className="text-xs font-medium">End Date</span>
                 </div>
                 <div className="mt-1 font-medium">
-                  {formatDate(phase.nd_phases_contract?.end_date)}
+                  {formatDate(phase.nd_phases_contract?.[0]?.end_date)}
                 </div>
               </div>
             </div>
