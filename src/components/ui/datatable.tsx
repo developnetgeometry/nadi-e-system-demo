@@ -1,5 +1,5 @@
 // Cleaned up: removed unnecessary comments, improved formatting, grouped related logic, and ensured consistent style.
-import React, { useState, ReactElement, ReactNode } from "react";
+import React, { useState, useEffect, ReactElement, ReactNode } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -152,6 +152,11 @@ const DataTable: React.FC<DataTableProps> = ({
     priority: number;
   }[]>([]);
   const [columnFilters, setColumnFilters] = useState<{ [key: string]: any[] }>({});
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const visibleColumns = columns.filter((column) => column.visible !== false);
   const filteredData = data
@@ -369,6 +374,14 @@ const DataTable: React.FC<DataTableProps> = ({
   }, [filteredData, sortConfig]);
 
   const totalPages = Math.ceil(sortedData.length / pageSize);
+  
+  // Reset to first page if current page becomes invalid after filtering/sorting
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
   const currentData = sortedData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -1088,6 +1101,17 @@ const DataTable: React.FC<DataTableProps> = ({
             {sortedData.length} entries
           </div>
           <div className="flex items-center space-x-2">
+            {/* First Page Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              className="h-9 px-3 border-gray-200"
+            >
+              First
+            </Button>
+            {/* Previous Page Button */}
             <Button
               variant="outline"
               size="sm"
@@ -1097,18 +1121,67 @@ const DataTable: React.FC<DataTableProps> = ({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                className={`h-9 w-9 p-0 ${currentPage === page ? "bg-blue-600" : "border-gray-200"
-                  }`}
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </Button>
-            ))}
+            
+            {/* Smart Pagination Logic */}
+            {(() => {
+              const delta = 2; // Number of pages to show around current page
+              const left = currentPage - delta;
+              const right = currentPage + delta + 1;
+              const range = [];
+              const rangeWithDots = [];
+
+              // Generate page numbers that should be visible
+              for (let i = Math.max(2, left); i < Math.min(totalPages, right); i++) {
+                range.push(i);
+              }
+
+              // Always show page 1
+              if (currentPage === 1) {
+                rangeWithDots.push(1);
+              } else {
+                rangeWithDots.push(1);
+                if (left > 2) {
+                  rangeWithDots.push('...');
+                }
+              }
+
+              // Add the middle range
+              rangeWithDots.push(...range);
+
+              // Add last page if needed
+              if (right < totalPages) {
+                rangeWithDots.push('...');
+                rangeWithDots.push(totalPages);
+              } else if (range[range.length - 1] !== totalPages) {
+                rangeWithDots.push(totalPages);
+              }
+
+              return rangeWithDots.map((page, index) => {
+                if (page === '...') {
+                  return (
+                    <span key={`dots-${index}`} className="px-2 py-1 text-gray-500">
+                      ...
+                    </span>
+                  );
+                }
+                
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className={`h-9 w-9 p-0 ${
+                      currentPage === page ? "bg-blue-600" : "border-gray-200"
+                    }`}
+                    onClick={() => handlePageChange(page as number)}
+                  >
+                    {page}
+                  </Button>
+                );
+              });
+            })()}
+
+            {/* Next Page Button */}
             <Button
               variant="outline"
               size="sm"
@@ -1117,6 +1190,16 @@ const DataTable: React.FC<DataTableProps> = ({
               className="h-9 w-9 p-0 border-gray-200"
             >
               <ChevronRight className="h-4 w-4" />
+            </Button>
+            {/* Last Page Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              className="h-9 px-3 border-gray-200"
+            >
+              Last
             </Button>
           </div>
         </div>
