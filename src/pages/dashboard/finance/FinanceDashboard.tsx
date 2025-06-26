@@ -187,7 +187,7 @@ const FinanceDashboard = ({
   const monthlyFinancialSummary = [
     {
       title: "Total BF",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.balance_forward, 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.balance_forward, 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-blue-200",
@@ -195,7 +195,7 @@ const FinanceDashboard = ({
     },
     {
       title: "Total Debit",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-yellow-100",
@@ -203,7 +203,7 @@ const FinanceDashboard = ({
     },
     {
       title: "Total Credit",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-green-100",
@@ -211,7 +211,7 @@ const FinanceDashboard = ({
     },
     {
       title: "Total Bank In",
-      value: String(financeReportWithFilterAndPagination?.filter((report: FinanceReport) => report.nd_finance_report_item.some((item: FinanceReportItem) => item.nd_finance_expense_type?.name === "Bank In")).reduce((prev, curr) => prev + curr.nd_finance_item.reduce((prev, curr) => prev + curr.debit, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.filter((report: FinanceReport) => report.nd_finance_report_item.some((item: FinanceReportItem) => item.nd_finance_expense_type?.name === "Bank In")).reduce((prev, curr) => prev + curr.nd_finance_item.reduce((prev, curr) => prev + curr.debit, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-purple-100",
@@ -219,7 +219,7 @@ const FinanceDashboard = ({
     },
     {
       title: "Total Balance",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.balance, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.balance, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-gray-100",
@@ -230,7 +230,7 @@ const FinanceDashboard = ({
   const revenueExpensesSummary = [
     {
       title: "Total Revenue",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.debit, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-blue-200",
@@ -238,7 +238,7 @@ const FinanceDashboard = ({
     },
     {
       title: "Total Expenses",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.credit, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-yellow-100",
@@ -246,7 +246,7 @@ const FinanceDashboard = ({
     },
     {
       title: "Net Profit",
-      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.balance, 0), 0)),
+      value: String(financeReportWithFilterAndPagination?.reduce((prev, curr) => prev + curr.nd_finance_report_item.reduce((prev, curr) => prev + curr.balance, 0), 0).toFixed(2)),
       icon: DollarSign,
       description: "",
       iconBgColor: "bg-gray-100",
