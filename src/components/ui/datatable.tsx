@@ -1,5 +1,5 @@
 // Cleaned up: removed unnecessary comments, improved formatting, grouped related logic, and ensured consistent style.
-import React, { useState, ReactElement, ReactNode } from "react";
+import React, { useState, useEffect, ReactElement, ReactNode } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -135,6 +135,203 @@ const getCellValue = (column: Column, row: any, index: number) => {
   return row[column.key];
 };
 
+// Performant String Filter Component
+interface StringFilterUIProps {
+  column: Column;
+  filterValues: any[];
+  data: any[];
+  handleFilterChange: (key: string, value: string | string[]) => void;
+  setColumnFilters: React.Dispatch<React.SetStateAction<{ [key: string]: any[] }>>;
+}
+
+const StringFilterUI: React.FC<StringFilterUIProps> = ({
+  column,
+  filterValues,
+  data,
+  handleFilterChange,
+  setColumnFilters
+}) => {
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
+  const [displayedCount, setDisplayedCount] = useState(50); // Items per page
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  // Debounce search input for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchValue(searchValue);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // Get unique values with counts
+  const uniqueValues = React.useMemo(() => {
+    const valueCounts = new Map();
+    data.forEach(row => {
+      const val = getCellValue(column, row, 0);
+      if (val !== null && val !== '') {
+        valueCounts.set(val, (valueCounts.get(val) || 0) + 1);
+      }
+    });
+    
+    return Array.from(valueCounts.entries())
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .map(([value, count]) => ({ value, count }));
+  }, [data, column]);
+
+  // Filter values based on search
+  const filteredValues = React.useMemo(() => {
+    if (!debouncedSearchValue) return uniqueValues;
+    const searchLower = debouncedSearchValue.toLowerCase();
+    return uniqueValues.filter(({ value }) =>
+      String(value).toLowerCase().includes(searchLower)
+    );
+  }, [uniqueValues, debouncedSearchValue]);
+
+  // Get displayed values with pagination
+  const displayedValues = React.useMemo(() => {
+    return filteredValues.slice(0, displayedCount);
+  }, [filteredValues, displayedCount]);
+
+  // Load more function
+  const loadMore = React.useCallback(() => {
+    if (displayedCount < filteredValues.length && !isLoadingMore) {
+      setIsLoadingMore(true);
+      setTimeout(() => {
+        setDisplayedCount(prev => Math.min(prev + 50, filteredValues.length));
+        setIsLoadingMore(false);
+      }, 150);
+    }
+  }, [filteredValues.length, displayedCount, isLoadingMore]);
+
+  // Handle scroll events for infinite loading
+  const handleScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    
+    // Load more when user scrolls to within 50px of the bottom
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 50;
+    
+    if (nearBottom && displayedCount < filteredValues.length && !isLoadingMore) {
+      loadMore();
+    }
+  }, [loadMore, displayedCount, filteredValues.length, isLoadingMore]);
+
+  // Reset displayed count when search changes
+  useEffect(() => {
+    setDisplayedCount(50);
+    setIsLoadingMore(false);
+  }, [debouncedSearchValue]);
+
+  // Check if there are null/empty values
+  const hasNullValues = React.useMemo(() => {
+    return data.some(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '');
+  }, [data, column]);
+
+  const nullValueCount = React.useMemo(() => {
+    return data.filter(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '').length;
+  }, [data, column]);
+
+  return (
+    <div className="p-2">
+      <Command shouldFilter={false}>
+        <CommandInput 
+          placeholder="Search values..." 
+          value={searchValue}
+          onValueChange={setSearchValue}
+        />
+        
+        <CommandList className="max-h-64 overflow-auto" onScroll={handleScroll}>
+          <CommandEmpty>
+            {searchValue !== debouncedSearchValue ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Searching...
+              </div>
+            ) : (
+              "No values found."
+            )}
+          </CommandEmpty>
+          
+          <CommandGroup>
+            {/* Add a special option for NULL or empty string values */}
+            {hasNullValues && (debouncedSearchValue === "" || "not set".includes(debouncedSearchValue.toLowerCase())) && (
+              <CommandItem
+                key="__null__"
+                value="not-set-null-empty"
+                onSelect={() => handleFilterChange(column.key as string, "Not Set")}
+              >
+                <input
+                  type="checkbox"
+                  checked={filterValues.includes("Not Set")}
+                  readOnly
+                  className="mr-2"
+                />
+                <span className="flex-1">Not Set</span>
+                <span className="text-xs text-gray-500">({nullValueCount})</span>
+              </CommandItem>
+            )}
+            
+            {/* List filtered and paginated values */}
+            {displayedValues.map(({ value, count }) => (
+              <CommandItem
+                key={String(value)}
+                value={String(value)}
+                onSelect={() => handleFilterChange(column.key as string, value)}
+              >
+                <input
+                  type="checkbox"
+                  checked={filterValues.includes(value)}
+                  readOnly
+                  className="mr-2"
+                />
+                <span className="flex-1">{String(value)}</span>
+                <span className="text-xs text-gray-500">({count})</span>
+              </CommandItem>
+            ))}
+            
+            {/* Loading More Indicator */}
+            {isLoadingMore && (
+              <div className="border-t border-gray-200 p-2">
+                <div className="flex items-center justify-center text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                  Loading more values...
+                </div>
+              </div>
+            )}
+            
+            {/* Show remaining count if there are more items */}
+            {!isLoadingMore && displayedCount < filteredValues.length && (
+              <div className="border-t border-gray-200 p-2">
+                <div className="text-center text-sm text-gray-500">
+                  Showing {displayedCount} of {filteredValues.length} values
+                  <br />
+                  <span className="text-xs">Scroll down to load more</span>
+                </div>
+              </div>
+            )}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+      
+      {filterValues.length > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-2 w-full"
+          onClick={() => setColumnFilters(prev => {
+            const newFilters = { ...prev };
+            delete newFilters[column.key as string];
+            return newFilters;
+          })}
+        >
+          Clear Filter
+        </Button>
+      )}
+    </div>
+  );
+};
+
 const DataTable: React.FC<DataTableProps> = ({
   data = [],
   columns = [],
@@ -152,6 +349,11 @@ const DataTable: React.FC<DataTableProps> = ({
     priority: number;
   }[]>([]);
   const [columnFilters, setColumnFilters] = useState<{ [key: string]: any[] }>({});
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const visibleColumns = columns.filter((column) => column.visible !== false);
   const filteredData = data
@@ -369,6 +571,14 @@ const DataTable: React.FC<DataTableProps> = ({
   }, [filteredData, sortConfig]);
 
   const totalPages = Math.ceil(sortedData.length / pageSize);
+  
+  // Reset to first page if current page becomes invalid after filtering/sorting
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
   const currentData = sortedData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -803,85 +1013,10 @@ const DataTable: React.FC<DataTableProps> = ({
               Clear Filter
             </Button>
           )}
-        </div>        ); case "string":
-      default:        // Standard string filter UI
-        return (
-          <div className="p-2">
-            <Command>
-              <CommandInput placeholder={`Search...`} />
-              <CommandList>
-                <CommandEmpty>No options found.</CommandEmpty>
-                <CommandGroup>
-                  {/* Add a special option for NULL or empty string values */}
-                  {data.some(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '') && (
-                    <CommandItem
-                      key="__null__"
-                      onSelect={() =>
-                        handleFilterChange(column.key as string, "Not Set")
-                      }
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filterValues.includes("Not Set")}
-                        readOnly
-                        className="mr-2"
-                      />
-                      <span className="flex-1">Not Set</span>
-                      <span className="text-xs text-gray-500">
-                        ({data.filter(row => getCellValue(column, row, 0) === null || getCellValue(column, row, 0) === '').length})
-                      </span>
-                    </CommandItem>
-                  )}
-                  
-                  {/* List all non-null and non-empty values */}
-                  {(() => {
-                    // Count occurrences of each unique value
-                    const valueCounts = new Map();
-                    data.forEach(row => {
-                      const val = getCellValue(column, row, 0);
-                      if (val !== null && val !== '') {
-                        valueCounts.set(val, (valueCounts.get(val) || 0) + 1);
-                      }
-                    });
-                    
-                    // Convert to array and render
-                    return Array.from(valueCounts.entries())
-                      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
-                      .map(([value, count]) => (
-                        <CommandItem
-                          key={String(value)}
-                          onSelect={() => handleFilterChange(column.key as string, value)}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={filterValues.includes(value)}
-                            readOnly
-                            className="mr-2"
-                          />
-                          <span className="flex-1">{value}</span>
-                          <span className="text-xs text-gray-500">({count})</span>
-                        </CommandItem>
-                      ));
-                  })()}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-            
-            {filterValues.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full"
-                onClick={() => setColumnFilters(prev => {
-                  const newFilters = { ...prev };
-                  delete newFilters[column.key as string];
-                  return newFilters;
-                })}
-              >
-                Clear Filter
-              </Button>            )}
-          </div>
-        );
+        </div>        );      case "string":
+      default:
+        // Performant string filter UI with search, pagination, and debouncing
+        return <StringFilterUI column={column} filterValues={filterValues} data={data} handleFilterChange={handleFilterChange} setColumnFilters={setColumnFilters} />;
     }
   }; const isFilterApplied =
     (Object.keys(columnFilters).length > 0 &&
@@ -1088,6 +1223,17 @@ const DataTable: React.FC<DataTableProps> = ({
             {sortedData.length} entries
           </div>
           <div className="flex items-center space-x-2">
+            {/* First Page Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              className="h-9 px-3 border-gray-200"
+            >
+              First
+            </Button>
+            {/* Previous Page Button */}
             <Button
               variant="outline"
               size="sm"
@@ -1097,18 +1243,67 @@ const DataTable: React.FC<DataTableProps> = ({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                className={`h-9 w-9 p-0 ${currentPage === page ? "bg-blue-600" : "border-gray-200"
-                  }`}
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </Button>
-            ))}
+            
+            {/* Smart Pagination Logic */}
+            {(() => {
+              const delta = 2; // Number of pages to show around current page
+              const left = currentPage - delta;
+              const right = currentPage + delta + 1;
+              const range = [];
+              const rangeWithDots = [];
+
+              // Generate page numbers that should be visible
+              for (let i = Math.max(2, left); i < Math.min(totalPages, right); i++) {
+                range.push(i);
+              }
+
+              // Always show page 1
+              if (currentPage === 1) {
+                rangeWithDots.push(1);
+              } else {
+                rangeWithDots.push(1);
+                if (left > 2) {
+                  rangeWithDots.push('...');
+                }
+              }
+
+              // Add the middle range
+              rangeWithDots.push(...range);
+
+              // Add last page if needed
+              if (right < totalPages) {
+                rangeWithDots.push('...');
+                rangeWithDots.push(totalPages);
+              } else if (range[range.length - 1] !== totalPages) {
+                rangeWithDots.push(totalPages);
+              }
+
+              return rangeWithDots.map((page, index) => {
+                if (page === '...') {
+                  return (
+                    <span key={`dots-${index}`} className="px-2 py-1 text-gray-500">
+                      ...
+                    </span>
+                  );
+                }
+                
+                return (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className={`h-9 w-9 p-0 ${
+                      currentPage === page ? "bg-blue-600" : "border-gray-200"
+                    }`}
+                    onClick={() => handlePageChange(page as number)}
+                  >
+                    {page}
+                  </Button>
+                );
+              });
+            })()}
+
+            {/* Next Page Button */}
             <Button
               variant="outline"
               size="sm"
@@ -1117,6 +1312,16 @@ const DataTable: React.FC<DataTableProps> = ({
               className="h-9 w-9 p-0 border-gray-200"
             >
               <ChevronRight className="h-4 w-4" />
+            </Button>
+            {/* Last Page Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              className="h-9 px-3 border-gray-200"
+            >
+              Last
             </Button>
           </div>
         </div>
