@@ -44,6 +44,7 @@ const formSchema = z.object({
   title: z.string().min(1, { message: "Programme name is required" }),
   description: z.string().optional(),
   location: z.string().optional(),
+  site_id: z.string().optional(),
   start_date: z.string().min(1, { message: "Start date is required" }),
   end_date: z.string().min(1, { message: "End date is required" }),
   trainer_name: z.string().optional(),
@@ -71,6 +72,7 @@ interface ProgrammeData {
   program_name: string;
   description: string | null;
   location_event: string | null;
+  site_id: string | null;
   start_datetime: string;
   end_datetime: string;
   duration: number;
@@ -79,7 +81,7 @@ interface ProgrammeData {
   subcategory_id: string;
   program_id: string;
   module_id: string;
-  program_mode: number;
+  program_method: number;
   is_group_event: boolean;
   total_participant: number | null;
   target_participants: boolean;
@@ -120,6 +122,10 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
   const [existingAttachments, setExistingAttachments] = useState<
     { id: string; file_path: string }[]
   >([]);
+  const [siteOptions, setSiteOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [isCustomLocation, setIsCustomLocation] = useState(false);
 
   // Event types
   const eventTypes = [
@@ -148,6 +154,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       title: "",
       description: "",
       location: "",
+      site_id: "",
       start_date: "",
       end_date: "",
       trainer_name: "",
@@ -252,10 +259,32 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       }
     };
 
+    const fetchSites = async () => {
+      try {
+        const { data: siteData, error: siteError } = await supabase
+          .from("nd_site_profile")
+          .select("id, sitename")
+          .eq("is_active", true)
+          .order("sitename");
+
+        if (siteError) throw siteError;
+
+        const formattedSites = siteData.map((site) => ({
+          value: site.id.toString(),
+          label: site.sitename,
+        }));
+
+        setSiteOptions(formattedSites);
+      } catch (error) {
+        console.error("Error fetching sites:", error);
+      }
+    };
+
     fetchCategories();
     fetchPillars();
     fetchProgrammes();
     fetchModules();
+    fetchSites();
   }, []);
 
   useEffect(() => {
@@ -293,14 +322,30 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
 
   // Populate form with existing data if in edit mode
   useEffect(() => {
-    if (isEditMode && programmeData) {
+    if (isEditMode && programmeData && siteOptions.length > 0) {
       const startDateTime = new Date(programmeData.start_datetime);
       const endDateTime = new Date(programmeData.end_datetime);
+
+      // Check if we have a site_id or custom location
+      const hasSiteId = programmeData.site_id;
+      const existingLocation = programmeData.location_event || "";
+
+      // If there's a site_id, find the matching site
+      const matchingSite = hasSiteId
+        ? siteOptions.find(
+            (site) => site.value === programmeData.site_id?.toString()
+          )
+        : null;
+
+      // If no site_id but has location_event, it's a custom location
+      const shouldUseCustom = !hasSiteId && !!existingLocation;
+      setIsCustomLocation(shouldUseCustom);
 
       form.reset({
         title: programmeData.program_name || "",
         description: programmeData.description || "",
-        location: programmeData.location_event || "",
+        location: shouldUseCustom ? existingLocation : "",
+        site_id: hasSiteId ? programmeData.site_id?.toString() : "",
         start_date: format(startDateTime, "yyyy-MM-dd"),
         end_date: format(endDateTime, "yyyy-MM-dd"),
         start_time: format(startDateTime, "HH:mm"),
@@ -312,8 +357,10 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         module: programmeData.module_id?.toString() || "",
         event_type: "webinar", // This would need to be mapped from your data if available
         is_group_event: programmeData.is_group_event || false,
-        target_participants: programmeData.target_participants || false,
-        mode: programmeData.program_mode === 1 ? "Online" : "Physical",
+        target_participants: programmeData.target_participants
+          ? "komuniti_madani"
+          : "umum",
+        mode: programmeData.program_method === 1 ? "Physical" : "Online",
         max_participants: programmeData.total_participant?.toString() || "",
         is_active: programmeData.status_id === 1, // Assuming status_id 1 is active
       });
@@ -340,7 +387,15 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         }
       }
     }
-  }, [isEditMode, programmeData, pillars, programmes, modules, form]);
+  }, [
+    isEditMode,
+    programmeData,
+    pillars,
+    programmes,
+    modules,
+    siteOptions,
+    form,
+  ]);
 
   // Watch form fields to calculate duration and filter options
   const watchCategory = form.watch("category");
@@ -420,6 +475,15 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     }
   }, [watchProgramme, modules, form, isEditMode, programmeData]);
 
+  // Handle mode change and reset location-related states
+  useEffect(() => {
+    if (watchMode === "Physical") {
+      // Reset custom location state when switching to Physical
+      setIsCustomLocation(false);
+      // Don't reset the location field value to preserve user input
+    }
+  }, [watchMode]);
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
@@ -433,23 +497,25 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       const eventData = {
         program_name: data.title,
         description: data.description || "",
-        location_event: data.location || "",
+        location_event: isCustomLocation ? data.location || "" : "",
+        site_id:
+          !isCustomLocation && data.site_id ? parseInt(data.site_id) : null,
         start_datetime: startDateTime.toISOString(),
         end_datetime: endDateTime.toISOString(),
         duration: durationHours,
         trainer_name: data.trainer_name || "",
         created_by: user?.id,
         requester_id: user?.id,
-        category_id: data.category,
-        subcategory_id: data.pillar,
-        program_id: data.programme,
-        module_id: data.module,
-        program_mode: data.mode === "Online" ? 1 : 2, // 1=Online, 2=Physical
+        category_id: parseInt(data.category),
+        subcategory_id: parseInt(data.pillar),
+        program_id: parseInt(data.programme),
+        module_id: parseInt(data.module),
+        program_method: data.mode === "Physical" ? 1 : 2, // 1=Physical, 2=Online
         total_participant: data.max_participants
           ? parseInt(data.max_participants)
           : null,
         status_id: new Date(startDateTime) >= new Date() ? 2 : 1, // 2=Published if not backdated, 1=Draft if backdated
-        is_active: data.is_active ? 1 : 2, //  1=Active, 2=Inactive
+        is_active: data.is_active, // Boolean value
         is_group_event: data.is_group_event,
         target_participants: data.target_participants,
         updated_by: user?.id,
@@ -619,11 +685,49 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                       <FormLabel>
                         <LabelWithTooltip
                           label="Location"
-                          tooltip="Specify the physical location where the programme will be held."
+                          tooltip="Select a site location or choose 'Other' to enter a custom location."
                         />
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Programme location" {...field} />
+                        <div className="space-y-2">
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                            value={
+                              isCustomLocation
+                                ? "other"
+                                : form.getValues("site_id") || ""
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "other") {
+                                setIsCustomLocation(true);
+                                form.setValue("site_id", "");
+                                field.onChange(""); // Clear location for custom input
+                              } else {
+                                setIsCustomLocation(false);
+                                form.setValue("site_id", value); // Store site_id
+                                field.onChange(""); // Clear location since we're using site_id
+                              }
+                            }}
+                          >
+                            <option value="">Select Location</option>
+                            {siteOptions.map((site) => (
+                              <option key={site.value} value={site.value}>
+                                {site.label}
+                              </option>
+                            ))}
+                            <option value="other">
+                              Other (Custom Location)
+                            </option>
+                          </select>
+                          {isCustomLocation && (
+                            <Input
+                              placeholder="Enter custom location"
+                              value={field.value}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

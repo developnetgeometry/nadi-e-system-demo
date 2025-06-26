@@ -2654,6 +2654,7 @@ export type Database = {
           duration: number | null
           end_datetime: string | null
           id: string
+          is_acknowledge: boolean
           is_active: boolean
           is_group_event: boolean | null
           location_event: string | null
@@ -2682,6 +2683,7 @@ export type Database = {
           duration?: number | null
           end_datetime?: string | null
           id?: string
+          is_acknowledge?: boolean
           is_active?: boolean
           is_group_event?: boolean | null
           location_event?: string | null
@@ -2710,6 +2712,7 @@ export type Database = {
           duration?: number | null
           end_datetime?: string | null
           id?: string
+          is_acknowledge?: boolean
           is_active?: boolean
           is_group_event?: boolean | null
           location_event?: string | null
@@ -2995,6 +2998,7 @@ export type Database = {
           member_id: number | null
           updated_at: string | null
           updated_by: string | null
+          verified: boolean
           verified_by: string | null
         }
         Insert: {
@@ -3007,6 +3011,7 @@ export type Database = {
           member_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          verified?: boolean
           verified_by?: string | null
         }
         Update: {
@@ -3019,6 +3024,7 @@ export type Database = {
           member_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          verified?: boolean
           verified_by?: string | null
         }
         Relationships: [
@@ -3244,6 +3250,7 @@ export type Database = {
           created_by: string | null
           id: string
           month: string | null
+          pos_transaction_id: string | null
           site_id: number | null
           status_id: number | null
           updated_at: string | null
@@ -3256,6 +3263,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           month?: string | null
+          pos_transaction_id?: string | null
           site_id?: number | null
           status_id?: number | null
           updated_at?: string | null
@@ -3268,6 +3276,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           month?: string | null
+          pos_transaction_id?: string | null
           site_id?: number | null
           status_id?: number | null
           updated_at?: string | null
@@ -3275,6 +3284,13 @@ export type Database = {
           year?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pos_transaction_id_fk"
+            columns: ["pos_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "nd_pos_transaction"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "site_id_fk"
             columns: ["site_id"]
@@ -8779,6 +8795,7 @@ export type Database = {
         Row: {
           address: string | null
           attend_date: string | null
+          attendance_remark: string | null
           attendance_type: number | null
           check_in: string | null
           check_out: string | null
@@ -8801,6 +8818,7 @@ export type Database = {
         Insert: {
           address?: string | null
           attend_date?: string | null
+          attendance_remark?: string | null
           attendance_type?: number | null
           check_in?: string | null
           check_out?: string | null
@@ -8823,6 +8841,7 @@ export type Database = {
         Update: {
           address?: string | null
           attend_date?: string | null
+          attendance_remark?: string | null
           attendance_type?: number | null
           check_in?: string | null
           check_out?: string | null
