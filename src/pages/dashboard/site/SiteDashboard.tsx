@@ -104,7 +104,7 @@ export const SiteDashboard = ({
   const isDUSPUser =
     parsedMetadata?.user_group_name === "DUSP" &&
     !!parsedMetadata?.organization_id;
-  const isMCMCUser = parsedMetadata?.user_group_name === "MCMC"; // MCMC users don't require organization_id
+  const isMCMCUser = parsedMetadata?.user_group_name === "MCMC" || parsedMetadata?.user_type?.startsWith('sso'); // MCMC users don't require organization_id
   const isRestrictedUser = isDUSPUser || isMCMCUser; // Combined check for both DUSP and MCMC users
   const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
   const organizationId =

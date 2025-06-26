@@ -229,26 +229,30 @@ const Agreement = () => {    // Get user metadata for permissions
             <Eye className="h-4 w-4" />
             <span className="sr-only">View</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
-            onClick={() => handleEditAgreement(row.id)}
-            title="Edit agreement"
-          >
-            <Edit className="h-4 w-4" />
-            <span className="sr-only">Edit</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-100"
-            onClick={() => handleDeleteAgreement(row.id)}
-            title="Delete agreement"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Delete</span>
-          </Button>
+          {(isAdmin || isMCMC || isDusp || isTP) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+              onClick={() => handleEditAgreement(row.id)}
+              title="Edit agreement"
+            >
+              <Edit className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
+            </Button>
+          )}
+          {(isAdmin || isMCMC || isDusp || isTP) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-100"
+              onClick={() => handleDeleteAgreement(row.id)}
+              title="Delete agreement"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          )}
         </div>
       ),
       header: "Actions",
