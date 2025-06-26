@@ -64,6 +64,10 @@ export interface Site {
     city: string;
     district_id: string;
     state_id: string;
+    nd_state: {
+      id: string;
+      name: string;
+    };
   }[];
   nd_parliament?: {
     id: string;

@@ -40,7 +40,7 @@ export const fetchSites = async (
         nd_site_space:nd_site_space(nd_space:nd_space(id,eng)),
         nd_phases:nd_phases(name),
         nd_region:nd_region(eng),
-        nd_site_address:nd_site_address(address1, address2, postcode, city, district_id, state_id),
+        nd_site_address:nd_site_address(address1, address2, postcode, city, district_id,state_id, nd_state:nd_state(id, name)),
         nd_parliament:nd_parliaments(id),
         nd_dun:nd_duns(id),
         nd_mukim:nd_mukims(id),
