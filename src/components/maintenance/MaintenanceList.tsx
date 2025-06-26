@@ -98,11 +98,14 @@ export const MaintenanceList = ({
   }
 
   const filteredMaintenanceRequests = (maintenanceRequests ?? [])
-    .filter((maintenanceRequest) =>
-      maintenanceRequest.description
-        .toLowerCase()
-        .includes(filter.toLowerCase())
-    )
+    .filter((maintenanceRequest) => {
+      const lowerFilter = filter.toLowerCase();
+      return (
+        maintenanceRequest.description?.toLowerCase().includes(lowerFilter) ||
+        maintenanceRequest.no_docket?.toLowerCase().includes(lowerFilter) ||
+        maintenanceRequest.type?.name?.toLowerCase().includes(lowerFilter)
+      );
+    })
     .filter((maintenanceRequest) =>
       typeFilter
         ? String(maintenanceRequest?.type.id) === String(typeFilter)
