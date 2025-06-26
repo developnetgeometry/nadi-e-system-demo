@@ -48,19 +48,6 @@ export const AssetDetailsDialog = ({
 
   if (!asset) return null;
 
-  // TODO: Submit to DUSP
-  const handleSubmitToDusp = async () => {
-    return new Error("Function not implemented.");
-  };
-
-  const handleSubmitForApproval = async () => {
-    return new Error("Function not implemented.");
-  };
-
-  const handleApprove = async () => {
-    return new Error("Function not implemented.");
-  };
-
   const requestDate = asset.created_at ? asset.created_at.split("T")[0] : "";
 
   return (
