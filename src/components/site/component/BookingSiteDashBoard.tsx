@@ -146,7 +146,7 @@ export const BookingSiteDashBoard = ({
 
   // Get total PC
   const getTotalPC = (site: Site) => {
-    return site?.nd_site[0]?.nd_asset?.filter(pc => pc?.type_id === 3).length || 0;
+    return site?.nd_site[0]?.nd_site_profile?.nd_asset?.filter(pc => pc?.type_id === 3).length || 0;
   };
 
   // DataTable columns configuration
