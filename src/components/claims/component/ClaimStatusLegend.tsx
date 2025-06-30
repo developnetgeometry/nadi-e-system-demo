@@ -28,7 +28,7 @@ const ClaimStatusDescriptionDialog: React.FC<ClaimStatusDescriptionDialogProps> 
     >([]);
     const [loading, setLoading] = useState<boolean>(true);
 
-    const statuses = ["DRAFTED", "SUBMITTED", "PROCESSING", "COMPLETED"];
+    const statuses = ["DRAFTED", "SUBMITTED", "PROCESSING", "COMPLETED", "REJECTED"];
 
     useEffect(() => {
         const fetchDescriptions = async () => {
@@ -61,6 +61,8 @@ const ClaimStatusDescriptionDialog: React.FC<ClaimStatusDescriptionDialogProps> 
                 return "warning";
             case "COMPLETED":
                 return "success";
+            case "REJECTED":
+                return "destructive";
             default:
                 return "secondary";
         }
@@ -68,7 +70,7 @@ const ClaimStatusDescriptionDialog: React.FC<ClaimStatusDescriptionDialogProps> 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[670px]">
                 <DialogHeader>
                     <DialogTitle>Claim Status Flow</DialogTitle>
                     <DialogDescription></DialogDescription>
