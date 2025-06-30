@@ -138,6 +138,8 @@ export function ClaimListTp() {
         return "warning";
       case "COMPLETED":
         return "success";
+      case "REJECTED":
+        return "destructive";
       default:
         return "secondary";
     }

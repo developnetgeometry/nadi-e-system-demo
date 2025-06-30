@@ -51,6 +51,8 @@ const GeneralTab: React.FC<GeneralTabProps> = ({ claimData }) => {
                 return "warning";
             case "COMPLETED":
                 return "success";
+            case "REJECTED":
+                return "destructive";
             default:
                 return "secondary";
         }

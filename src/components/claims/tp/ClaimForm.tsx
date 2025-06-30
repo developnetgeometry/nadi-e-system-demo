@@ -73,7 +73,7 @@ const INITIAL_DATA: FormData = {
 const ClaimFormPage = () => {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false); // State for dialog visibility
-
+  const [isCheckboxChecked, setIsCheckboxChecked] = useState(false); // State for checkbox
   const { duspTpData, isLoading, error } = useDuspTpData();
   const [data, setData] = useState({
     ...INITIAL_DATA,
@@ -274,7 +274,12 @@ const ClaimFormPage = () => {
       </Card>
 
       {/* Confirmation Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+        setIsDialogOpen(isOpen);
+        if (!isOpen) {
+          setIsCheckboxChecked(false); // Reset checkbox state when dialog is closed
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Draft Claim</DialogTitle>
@@ -282,11 +287,29 @@ const ClaimFormPage = () => {
           </DialogHeader>
           <p>Are you sure you want to create this draft claim?</p>
           <p>Once created, the report cannot be regenerated</p>
+          <div className="flex items-center mt-4">
+            <input
+              type="checkbox"
+              id="confirm-checkbox"
+              className="mr-2"
+              onChange={(e) => setIsCheckboxChecked(e.target.checked)}
+            />
+            <label htmlFor="confirm-checkbox" className="text-sm text-gray-600">
+              I understand and confirm this action
+            </label>
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsCheckboxChecked(false); // Reset the checkbox state
+              setIsDialogOpen(false)
+            }}>
               Cancel
             </Button>
-            <Button variant="default" onClick={handleConfirm} disabled={loading}>
+            <Button
+              variant="default"
+              onClick={handleConfirm}
+              disabled={loading || !isCheckboxChecked} // Disable if loading or checkbox is not checked
+            >
               {loading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" /> {/* Spinner */}
