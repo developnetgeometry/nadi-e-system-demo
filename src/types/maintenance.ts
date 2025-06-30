@@ -5,8 +5,8 @@ export interface MaintenanceRequest {
   id?: number;
   no_docket?: string;
   description: string;
-  asset_id?: number;
-  asset?: Asset;
+  asset_id: number;
+  asset: Asset;
   type_id?: number;
   type?: TypeMaintenance;
   docket_type?: "cm" | "pm";
@@ -103,6 +103,39 @@ export const getMaintenanceStatus = (status: string): MaintenanceStatus => {
       return MaintenanceStatus.Deffered;
     default:
       return null;
+  }
+};
+
+export enum ClaimMaintenanceReportStatus {
+  New = "new",
+  InProgress = "in_progress",
+  Closed = "closed",
+}
+
+export const getClaimMaintenanceReportStatus = (
+  status: MaintenanceStatus
+): ClaimMaintenanceReportStatus => {
+  switch (status) {
+    case MaintenanceStatus.Submitted:
+    case MaintenanceStatus.Issued:
+      return ClaimMaintenanceReportStatus.New;
+    case MaintenanceStatus.Completed:
+      return ClaimMaintenanceReportStatus.Closed;
+    default:
+      return ClaimMaintenanceReportStatus.InProgress;
+  }
+};
+
+export const humanizeClaimMaintenanceReportStatus = (status: string) => {
+  switch (status) {
+    case "new":
+      return "New";
+    case "in_progress":
+      return "In Progress";
+    case "closed":
+      return "Closed";
+    default:
+      return "Unknown status";
   }
 };
 

@@ -8,6 +8,8 @@ export interface Site {
   standard_code?: string;
   phase_id: string;
   region_id: string;
+  state_id: number;
+  state: State;
   active_status: number;
   is_active: boolean;
   email: string;
@@ -62,6 +64,10 @@ export interface Site {
     city: string;
     district_id: string;
     state_id: string;
+    nd_state: {
+      id: string;
+      name: string;
+    };
   }[];
   nd_parliament?: {
     id: string;

@@ -58,10 +58,16 @@ const SmartServicesNadi2U = () => {
             id,
             program_name,
             location_event,
+            site_id,
             start_datetime,
             end_datetime,
             created_by,
-            nd_event_status:status_id(id, name)
+            nd_event_status:status_id(id, name),
+            nd_site:site_id(
+              nd_site_profile:site_profile_id(
+                sitename
+              )
+            )
           `
           )
           .eq("category_id", 2);
@@ -86,7 +92,10 @@ const SmartServicesNadi2U = () => {
             const formattedProgram = {
               id: program.id,
               title: program.program_name || "Untitled Program",
-              location: program.location_event || "No Location",
+              location:
+                program.nd_site?.nd_site_profile?.sitename ||
+                program.location_event ||
+                "No Location",
               date: program.start_datetime || new Date().toISOString(),
               createdBy: creatorName,
               status: program.nd_event_status?.name?.toLowerCase() || "draft",

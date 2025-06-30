@@ -1538,6 +1538,7 @@ export type Database = {
           date_paid: string | null
           id: number
           month: number | null
+          noa: string | null
           payment_status: boolean | null
           phase_id: number | null
           quarter: number | null
@@ -1555,6 +1556,7 @@ export type Database = {
           date_paid?: string | null
           id?: number
           month?: number | null
+          noa?: string | null
           payment_status?: boolean | null
           phase_id?: number | null
           quarter?: number | null
@@ -1572,6 +1574,7 @@ export type Database = {
           date_paid?: string | null
           id?: number
           month?: number | null
+          noa?: string | null
           payment_status?: boolean | null
           phase_id?: number | null
           quarter?: number | null
@@ -2651,6 +2654,7 @@ export type Database = {
           duration: number | null
           end_datetime: string | null
           id: string
+          is_acknowledge: boolean
           is_active: boolean
           is_group_event: boolean | null
           location_event: string | null
@@ -2679,6 +2683,7 @@ export type Database = {
           duration?: number | null
           end_datetime?: string | null
           id?: string
+          is_acknowledge?: boolean
           is_active?: boolean
           is_group_event?: boolean | null
           location_event?: string | null
@@ -2707,6 +2712,7 @@ export type Database = {
           duration?: number | null
           end_datetime?: string | null
           id?: string
+          is_acknowledge?: boolean
           is_active?: boolean
           is_group_event?: boolean | null
           location_event?: string | null
@@ -2992,6 +2998,7 @@ export type Database = {
           member_id: number | null
           updated_at: string | null
           updated_by: string | null
+          verified: boolean
           verified_by: string | null
         }
         Insert: {
@@ -3004,6 +3011,7 @@ export type Database = {
           member_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          verified?: boolean
           verified_by?: string | null
         }
         Update: {
@@ -3016,6 +3024,7 @@ export type Database = {
           member_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
+          verified?: boolean
           verified_by?: string | null
         }
         Relationships: [
@@ -3236,12 +3245,12 @@ export type Database = {
       }
       nd_finance_report: {
         Row: {
+          balance_forward: number | null
           created_at: string | null
           created_by: string | null
-          expense: number | null
           id: string
-          income: number | null
           month: string | null
+          pos_transaction_id: string | null
           site_id: number | null
           status_id: number | null
           updated_at: string | null
@@ -3249,12 +3258,12 @@ export type Database = {
           year: string | null
         }
         Insert: {
+          balance_forward?: number | null
           created_at?: string | null
           created_by?: string | null
-          expense?: number | null
           id?: string
-          income?: number | null
           month?: string | null
+          pos_transaction_id?: string | null
           site_id?: number | null
           status_id?: number | null
           updated_at?: string | null
@@ -3262,12 +3271,12 @@ export type Database = {
           year?: string | null
         }
         Update: {
+          balance_forward?: number | null
           created_at?: string | null
           created_by?: string | null
-          expense?: number | null
           id?: string
-          income?: number | null
           month?: string | null
+          pos_transaction_id?: string | null
           site_id?: number | null
           status_id?: number | null
           updated_at?: string | null
@@ -3275,6 +3284,13 @@ export type Database = {
           year?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pos_transaction_id_fk"
+            columns: ["pos_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "nd_pos_transaction"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "site_id_fk"
             columns: ["site_id"]
@@ -5628,6 +5644,30 @@ export type Database = {
           },
         ]
       }
+      nd_membership_id_running: {
+        Row: {
+          gender: string | null
+          id: number
+          running_letter: string | null
+          running_number: number | null
+          site_id: number | null
+        }
+        Insert: {
+          gender?: string | null
+          id?: number
+          running_letter?: string | null
+          running_number?: number | null
+          site_id?: number | null
+        }
+        Update: {
+          gender?: string | null
+          id?: number
+          running_letter?: string | null
+          running_number?: number | null
+          site_id?: number | null
+        }
+        Relationships: []
+      }
       nd_mukims: {
         Row: {
           code: string | null
@@ -7283,34 +7323,43 @@ export type Database = {
           },
         ]
       }
-      nd_site_agreement_attachment: {
+      nd_site_agreement: {
         Row: {
           created_at: string
           created_by: string | null
+          end_date: string | null
           file_path: string[] | null
           id: number
+          owner_name: string | null
           remark: string | null
           site_profile_id: number | null
+          start_date: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           file_path?: string[] | null
           id?: number
+          owner_name?: string | null
           remark?: string | null
           site_profile_id?: number | null
+          start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          end_date?: string | null
           file_path?: string[] | null
           id?: number
+          owner_name?: string | null
           remark?: string | null
           site_profile_id?: number | null
+          start_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -7376,32 +7425,44 @@ export type Database = {
           },
         ]
       }
-      nd_site_audit_attachment: {
+      nd_site_audit: {
         Row: {
+          audit_date: string | null
+          audit_party: string | null
           created_at: string
           created_by: string | null
           file_path: string[] | null
           id: number
+          purpose: string | null
+          rectification_status: boolean | null
           remark: string | null
           site_profile_id: number | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          audit_date?: string | null
+          audit_party?: string | null
           created_at?: string
           created_by?: string | null
           file_path?: string[] | null
           id?: number
+          purpose?: string | null
+          rectification_status?: boolean | null
           remark?: string | null
           site_profile_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          audit_date?: string | null
+          audit_party?: string | null
           created_at?: string
           created_by?: string | null
           file_path?: string[] | null
           id?: number
+          purpose?: string | null
+          rectification_status?: boolean | null
           remark?: string | null
           site_profile_id?: number | null
           updated_at?: string | null
@@ -7875,6 +7936,7 @@ export type Database = {
           email: string | null
           end_operation_date: string | null
           fullname: string | null
+          google_map: string | null
           id: number
           is_active: boolean
           latitude: string | null
@@ -7916,6 +7978,7 @@ export type Database = {
           email?: string | null
           end_operation_date?: string | null
           fullname?: string | null
+          google_map?: string | null
           id?: number
           is_active?: boolean
           latitude?: string | null
@@ -7957,6 +8020,7 @@ export type Database = {
           email?: string | null
           end_operation_date?: string | null
           fullname?: string | null
+          google_map?: string | null
           id?: number
           is_active?: boolean
           latitude?: string | null
@@ -8731,6 +8795,7 @@ export type Database = {
         Row: {
           address: string | null
           attend_date: string | null
+          attendance_remark: string | null
           attendance_type: number | null
           check_in: string | null
           check_out: string | null
@@ -8753,6 +8818,7 @@ export type Database = {
         Insert: {
           address?: string | null
           attend_date?: string | null
+          attendance_remark?: string | null
           attendance_type?: number | null
           check_in?: string | null
           check_out?: string | null
@@ -8775,6 +8841,7 @@ export type Database = {
         Update: {
           address?: string | null
           attend_date?: string | null
+          attendance_remark?: string | null
           attendance_type?: number | null
           check_in?: string | null
           check_out?: string | null
@@ -11971,6 +12038,135 @@ export type Database = {
         }
         Relationships: []
       }
+      site_profile_migration: {
+        Row: {
+          active_status: number | null
+          area_id: number | null
+          bandwidth: number | null
+          building_area_id: number | null
+          building_rental_id: boolean | null
+          building_type_id: number | null
+          cluster_id: number | null
+          created_at: string | null
+          created_by: string | null
+          dun_rfid: number | null
+          dusp_tp_id: string | null
+          email: string | null
+          end_operation_date: string | null
+          fullname: string | null
+          google_map: string | null
+          id: number
+          is_active: boolean
+          latitude: string | null
+          level_id: number | null
+          local_authority: boolean | null
+          longtitude: string | null
+          mukim_id: number | null
+          oku_friendly: boolean | null
+          operate_date: string | null
+          parliament_rfid: number | null
+          phase_id: number | null
+          refid_mcmc: string | null
+          refid_tp: string | null
+          region_id: number | null
+          remark: string | null
+          sitename: string | null
+          start_operation_date: string | null
+          state_id: number | null
+          technology: number | null
+          total_population: number | null
+          updated_at: string | null
+          updated_by: string | null
+          ust_id: number | null
+          website: string | null
+          zone_id: number | null
+        }
+        Insert: {
+          active_status?: number | null
+          area_id?: number | null
+          bandwidth?: number | null
+          building_area_id?: number | null
+          building_rental_id?: boolean | null
+          building_type_id?: number | null
+          cluster_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          dun_rfid?: number | null
+          dusp_tp_id?: string | null
+          email?: string | null
+          end_operation_date?: string | null
+          fullname?: string | null
+          google_map?: string | null
+          id?: number
+          is_active?: boolean
+          latitude?: string | null
+          level_id?: number | null
+          local_authority?: boolean | null
+          longtitude?: string | null
+          mukim_id?: number | null
+          oku_friendly?: boolean | null
+          operate_date?: string | null
+          parliament_rfid?: number | null
+          phase_id?: number | null
+          refid_mcmc?: string | null
+          refid_tp?: string | null
+          region_id?: number | null
+          remark?: string | null
+          sitename?: string | null
+          start_operation_date?: string | null
+          state_id?: number | null
+          technology?: number | null
+          total_population?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          ust_id?: number | null
+          website?: string | null
+          zone_id?: number | null
+        }
+        Update: {
+          active_status?: number | null
+          area_id?: number | null
+          bandwidth?: number | null
+          building_area_id?: number | null
+          building_rental_id?: boolean | null
+          building_type_id?: number | null
+          cluster_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          dun_rfid?: number | null
+          dusp_tp_id?: string | null
+          email?: string | null
+          end_operation_date?: string | null
+          fullname?: string | null
+          google_map?: string | null
+          id?: number
+          is_active?: boolean
+          latitude?: string | null
+          level_id?: number | null
+          local_authority?: boolean | null
+          longtitude?: string | null
+          mukim_id?: number | null
+          oku_friendly?: boolean | null
+          operate_date?: string | null
+          parliament_rfid?: number | null
+          phase_id?: number | null
+          refid_mcmc?: string | null
+          refid_tp?: string | null
+          region_id?: number | null
+          remark?: string | null
+          sitename?: string | null
+          start_operation_date?: string | null
+          state_id?: number | null
+          technology?: number | null
+          total_population?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          ust_id?: number | null
+          website?: string | null
+          zone_id?: number | null
+        }
+        Relationships: []
+      }
       site_status_log: {
         Row: {
           change_reason: string
@@ -11995,69 +12191,6 @@ export type Database = {
           new_status?: number
           previous_status?: number
           site_id?: number
-        }
-        Relationships: []
-      }
-      staging_table: {
-        Row: {
-          address: string | null
-          category: string | null
-          district_id: number | null
-          dun_id: number | null
-          dusp_id: number | null
-          latitude: number | null
-          longtitude: number | null
-          "NADI SITENAME": string | null
-          no_id: number | null
-          parliament_id: number | null
-          phase_id: number | null
-          refid_mcmc: string | null
-          refid_tp: string | null
-          remark: string | null
-          "START OPERATION DATE": string | null
-          state_id: number | null
-          status_id: number | null
-          zone_id: number | null
-        }
-        Insert: {
-          address?: string | null
-          category?: string | null
-          district_id?: number | null
-          dun_id?: number | null
-          dusp_id?: number | null
-          latitude?: number | null
-          longtitude?: number | null
-          "NADI SITENAME"?: string | null
-          no_id?: number | null
-          parliament_id?: number | null
-          phase_id?: number | null
-          refid_mcmc?: string | null
-          refid_tp?: string | null
-          remark?: string | null
-          "START OPERATION DATE"?: string | null
-          state_id?: number | null
-          status_id?: number | null
-          zone_id?: number | null
-        }
-        Update: {
-          address?: string | null
-          category?: string | null
-          district_id?: number | null
-          dun_id?: number | null
-          dusp_id?: number | null
-          latitude?: number | null
-          longtitude?: number | null
-          "NADI SITENAME"?: string | null
-          no_id?: number | null
-          parliament_id?: number | null
-          phase_id?: number | null
-          refid_mcmc?: string | null
-          refid_tp?: string | null
-          remark?: string | null
-          "START OPERATION DATE"?: string | null
-          state_id?: number | null
-          status_id?: number | null
-          zone_id?: number | null
         }
         Relationships: []
       }
@@ -12088,117 +12221,6 @@ export type Database = {
           submodule_path?: string | null
           updated_at?: string
           visible_to?: Database["public"]["Enums"]["user_type"][]
-        }
-        Relationships: []
-      }
-      testing_real_site: {
-        Row: {
-          address1: string | null
-          address2: string | null
-          address3: string | null
-          building_status: string | null
-          buildingtypeid: number | null
-          cluster: string | null
-          commence_date: number | null
-          dusp: string | null
-          economyid1: number | null
-          economyid2: number | null
-          google_map: string | null
-          id: number | null
-          jenis_ekonomi1: string | null
-          jenis_ekonomy2: string | null
-          mukim: string | null
-          mukim_id: number | null
-          nadicategory: string | null
-          population_3km: string | null
-          population_5km: string | null
-          postcode: string | null
-          priority_nadi: string | null
-          refid_mcmc: string | null
-          refid_tp: string | null
-          sector_economy1: string | null
-          sektor_economy2: string | null
-          semak: string | null
-          sitename: string | null
-          speed_mbps: string | null
-          standard_code: string | null
-          technology: string | null
-          technology_partner: string | null
-          tp_id: string | null
-          type_of_building: string | null
-          url_nadi: string | null
-        }
-        Insert: {
-          address1?: string | null
-          address2?: string | null
-          address3?: string | null
-          building_status?: string | null
-          buildingtypeid?: number | null
-          cluster?: string | null
-          commence_date?: number | null
-          dusp?: string | null
-          economyid1?: number | null
-          economyid2?: number | null
-          google_map?: string | null
-          id?: number | null
-          jenis_ekonomi1?: string | null
-          jenis_ekonomy2?: string | null
-          mukim?: string | null
-          mukim_id?: number | null
-          nadicategory?: string | null
-          population_3km?: string | null
-          population_5km?: string | null
-          postcode?: string | null
-          priority_nadi?: string | null
-          refid_mcmc?: string | null
-          refid_tp?: string | null
-          sector_economy1?: string | null
-          sektor_economy2?: string | null
-          semak?: string | null
-          sitename?: string | null
-          speed_mbps?: string | null
-          standard_code?: string | null
-          technology?: string | null
-          technology_partner?: string | null
-          tp_id?: string | null
-          type_of_building?: string | null
-          url_nadi?: string | null
-        }
-        Update: {
-          address1?: string | null
-          address2?: string | null
-          address3?: string | null
-          building_status?: string | null
-          buildingtypeid?: number | null
-          cluster?: string | null
-          commence_date?: number | null
-          dusp?: string | null
-          economyid1?: number | null
-          economyid2?: number | null
-          google_map?: string | null
-          id?: number | null
-          jenis_ekonomi1?: string | null
-          jenis_ekonomy2?: string | null
-          mukim?: string | null
-          mukim_id?: number | null
-          nadicategory?: string | null
-          population_3km?: string | null
-          population_5km?: string | null
-          postcode?: string | null
-          priority_nadi?: string | null
-          refid_mcmc?: string | null
-          refid_tp?: string | null
-          sector_economy1?: string | null
-          sektor_economy2?: string | null
-          semak?: string | null
-          sitename?: string | null
-          speed_mbps?: string | null
-          standard_code?: string | null
-          technology?: string | null
-          technology_partner?: string | null
-          tp_id?: string | null
-          type_of_building?: string | null
-          url_nadi?: string | null
         }
         Relationships: []
       }

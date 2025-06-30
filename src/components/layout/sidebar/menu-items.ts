@@ -135,7 +135,9 @@ export const siteManagementItems = [
   { title: "Vendor Management", path: "/site-management/vendor-management" },
   { title: "KPI Performance", path: "/site-management/kpi-performance" },
   { title: "NMS", path: "/site-management/nms" },
-  { title: "Phase Management", path: "/site-management/phase" },
+  { title: "Phase", path: "/site-management/phase" },
+  { title: "Agreement", path: "/site-management/agreement" },
+  { title: "Audit", path: "/site-management/audit" },
 ];
 
 export const dashboardItems = [

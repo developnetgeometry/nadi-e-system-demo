@@ -20,6 +20,12 @@ const BUCKET_NAME_SITE_CLOSURE =
 const BUCKET_NAME_SITE_INSURANCE =
   import.meta.env.VITE_SUPABASE_BUCKET_NAME_site_attachment ||
   "site-attachment";
+const BUCKET_NAME_SITE_AGREEMENT =
+  import.meta.env.VITE_SUPABASE_BUCKET_NAME_site_attachment ||
+  "site-attachment";
+const BUCKET_NAME_SITE_AUDIT =
+  import.meta.env.VITE_SUPABASE_BUCKET_NAME_site_attachment ||
+  "site-attachment";
 const BUCKET_NAME_SITE_CLAIM =
   import.meta.env.VITE_SUPABASE_BUCKET_NAME_CLAIM ||
   "claim-attachment";
@@ -43,3 +49,5 @@ export { BUCKET_NAME_UTILITIES };
 export { BUCKET_NAME_SITE_CLOSURE };
 export { BUCKET_NAME_SITE_INSURANCE };
 export { BUCKET_NAME_SITE_CLAIM };
+export { BUCKET_NAME_SITE_AGREEMENT };
+export { BUCKET_NAME_SITE_AUDIT };

@@ -68,7 +68,7 @@ const SiteManagement = () => {
 
   if (userGroup === 4) {
     // SSO
-    return <NoAccess />;
+    return <SiteDashboard />;
   }
 
   if (userGroup === 5) {

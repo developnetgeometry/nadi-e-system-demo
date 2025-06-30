@@ -5,10 +5,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useTheme } from "next-themes";
 
 export const DashboardSidebar = () => {
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
+  const { theme } = useTheme(); // Get the current theme
 
   return (
     <aside
@@ -26,7 +28,7 @@ export const DashboardSidebar = () => {
               className="text-xl font-bold flex justify-center items-center"
             >
               <img
-                src="/cmms-logo.png"
+                src={theme === "dark" ? "/NADI-white.png" : "/NADI-black.png"}
                 alt="Logo"
                 className="h-16 w-auto mx-auto"
                 style={{ maxWidth: "100%", maxHeight: "4rem" }}

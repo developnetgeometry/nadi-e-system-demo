@@ -33,7 +33,12 @@ const InventoryDashboardPage = lazy(() => import("@/pages/dashboard/inventory/In
 const InventorySettingsPage = lazy(() => import("@/pages/dashboard/inventory/InventorySettings"));
 const PhaseOverviewPage = lazy(() => import("@/pages/dashboard/site/Phase"));
 const PhaseFormPage = lazy(() => import("@/components/site/component/PhaseForm"));
+const AgreementOverviewPage = lazy(() => import("@/pages/dashboard/site/Agreement"));
+const AgreementFormPage = lazy(() => import("@/components/site/component/AgreementForm"));
+const AuditOverviewPage = lazy(() => import("@/pages/dashboard/site/Audit"));
+const AuditFormPage = lazy(() => import("@/components/site/component/AuditForm"));
 
+// test table page showcasing table features
 const TestTablePage = lazy(() => import("@/pages/dashboard/test-table"));
 
 export const siteRoutes = [
@@ -173,6 +178,46 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <PhaseFormPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/audit",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <AuditOverviewPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/audit/form/:id?",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <AuditFormPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/agreement",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <AgreementOverviewPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/agreement/form/:id?",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <AgreementFormPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

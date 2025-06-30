@@ -83,7 +83,10 @@ const EventRegistrationPage: React.FC = () => {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2">{event.program_name}</h1>
             {event.description && (
-              <p className="text-gray-600 mb-4">{event.description}</p>
+              <div
+                className="text-gray-600 mb-4 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+              />
             )}
             <div className="space-y-2 text-sm text-gray-500">
               {event.location_event && (

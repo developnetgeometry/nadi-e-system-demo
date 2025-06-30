@@ -12,6 +12,7 @@ import DuspUpdatePaymentDialog from "../dusp/DuspUpdatePaymentDialog";
 import { useNavigate } from "react-router-dom";
 import { ApplicationTab } from "./tab/ApplicationTab";
 import { useToast } from "@/hooks/use-toast";
+import DuspRejectDialog from "../dusp/DuspRejectDialog";
 
 interface ClaimViewPageProps {
   claimId: number; // Accept claimId as a prop
@@ -26,6 +27,7 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
   const userType = parsedMetadata?.user_type;
   const [activeTab, setActiveTab] = useState("general");
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false); // State for TpSubmitDialog
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false); // State for TpSubmitDialog
   const [isDuspDialogOpen, setIsDuspDialogOpen] = useState(false); // State for DuspSubmitDialog
   const [isUpdatePaymentDialogOpen, setIsUpdatePaymentDialogOpen] = useState(false); // State for DuspUpdatePaymentDialog
 
@@ -90,24 +92,45 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
           )}
 
           {userGroup === 1 && claimData?.claim_status?.name === "SUBMITTED" && (
-            <Button
-              variant="default"
-              onClick={() => {
-                if (!claimData.signed_documents || claimData.signed_documents.length === 0) {
-                  toast({
-                    title: "Signed Document Required",
-                    description: "Please upload the signed the document before submitting to MCMC.",
-                    variant: "destructive",
-                  });
-                  setActiveTab("sign");
-                  return;
-                }
-                setIsDuspDialogOpen(true); // Open DuspSubmitDialog
-              }}
-              disabled={!claimData} // Disable if claimData is not loaded
-            >
-              Submit for Payment
-            </Button>
+            <div>
+              <Button
+              className="mr-2"
+                variant="destructive"
+                onClick={() => {
+                  setIsRejectDialogOpen(true); // Open DuspSubmitDialog
+                }}
+                disabled={!claimData} // Disable if claimData is not loaded
+              >
+                Reject
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  if (!claimData.signed_documents || claimData.signed_documents.length === 0) {
+                    toast({
+                      title: "Signed Document Required",
+                      description: "Please upload the signed the document before submitting to MCMC.",
+                      variant: "destructive",
+                    });
+                    setActiveTab("sign");
+                    return;
+                  }
+                  if (claimData.noa === null || claimData.noa === "") {
+                    toast({
+                      title: "NOA Required",
+                      description: "Please insert NOA before submitting to MCMC.",
+                      variant: "destructive",
+                    });
+                    setActiveTab("sign");
+                    return;
+                  }
+                  setIsDuspDialogOpen(true); // Open DuspSubmitDialog
+                }}
+                disabled={!claimData} // Disable if claimData is not loaded
+              >
+                Save and Submit
+              </Button>
+            </div>
           )}
 
           {userGroup === 1 && claimData?.claim_status?.name === "PROCESSING" && (
@@ -136,6 +159,15 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
         <DuspSubmitDialog
           isOpen={isDuspDialogOpen}
           onClose={() => setIsDuspDialogOpen(false)} // Close DuspSubmitDialog
+          claim={claimData} // Pass claimData to DuspSubmitDialog
+        />
+      )}
+
+      {/* DuspRejectDialog */}
+      {claimData && (
+        <DuspRejectDialog
+          isOpen={isRejectDialogOpen}
+          onClose={() => setIsRejectDialogOpen(false)} // Close DuspSubmitDialog
           claim={claimData} // Pass claimData to DuspSubmitDialog
         />
       )}
