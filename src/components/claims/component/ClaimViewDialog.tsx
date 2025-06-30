@@ -128,7 +128,7 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
                 }}
                 disabled={!claimData} // Disable if claimData is not loaded
               >
-                Save / Submit
+                Save and Submit
               </Button>
             </div>
           )}
