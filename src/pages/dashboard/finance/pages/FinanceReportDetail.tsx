@@ -53,15 +53,15 @@ export const FinanceReportDetail = () => {
             const description = report.description
                 ? report.description
                 : report.debit_type
-                ? report.nd_finance_income_type.name
-                : report.nd_finance_expense_type.name;
+                    ? report.nd_finance_income_type.name
+                    : report.nd_finance_expense_type.name;
             runningBalance += report.debit - report.credit;
             return {
                 no: i + 1,
                 date: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`,
                 description,
-                debit: report.debit,
-                credit: report.credit,
+                debit: report.debit.toFixed(2),
+                credit: report.credit.toFixed(2),
                 balance: runningBalance.toFixed(2),
                 receipt: <FinanceItemReceipt
                     id={report.id}
@@ -70,9 +70,10 @@ export const FinanceReportDetail = () => {
                     credit={report.credit}
                     balance={runningBalance}
                     image={report.image_path}
+                    doc={report.doc_path}
                     date={report.created_at}
                 />,
-                action: (isTpSite && financeReport?.nd_finance_report_status?.status === "editing") && <FinanceDailyReportAction 
+                action: (isTpSite && financeReport?.nd_finance_report_status?.status === "editing") && <FinanceDailyReportAction
                     financeReportItemId={report.id}
                     refetchFinanceItem={refetchFinanceItem}
                     refetchFinanceReport={refetchFinanceReport}
@@ -114,7 +115,7 @@ export const FinanceReportDetail = () => {
             0
         );
         const pattyCashOnHand = broughtForward + debit;
-        const totalBalance = broughtForward + debit - credit;
+        const totalBalance = (broughtForward + debit) - (credit + bankIn);
         return {
             totalIncome: totalIncome.toFixed(2),
             totalExpense: totalExpense.toFixed(2),
@@ -223,7 +224,7 @@ const HeaderReportDetail = ({
     const handleSubmitReport = async () => {
         try {
             const { totalBalance } = calculationSummary();
-            await updateStatusAndMakeNewReport.mutateAsync({reportId, status: "submitted", balanceForward: Number(totalBalance)});
+            await updateStatusAndMakeNewReport.mutateAsync({ reportId, status: "submitted", balanceForward: Number(totalBalance) });
 
             toast({
                 title: "Success",
@@ -245,7 +246,7 @@ const HeaderReportDetail = ({
 
     const hanldeVerifyReport = async () => {
         try {
-            await updateStatusAndMakeNewReport.mutateAsync({reportId, status: "verified"});
+            await updateStatusAndMakeNewReport.mutateAsync({ reportId, status: "verified" });
             toast({
                 title: "Success",
                 description: "Report verified successfully",
@@ -264,9 +265,30 @@ const HeaderReportDetail = ({
         }
     }
 
-    const hanldeCloseReport = async () => {
+    const hanldeReturnReport = async () => {
         try {
-            await updateStatusAndMakeNewReport.mutateAsync({reportId, status: "closed"});
+            await updateStatusAndMakeNewReport.mutateAsync({ reportId, status: "editing" });
+            toast({
+                title: "Success",
+                description: "Report returned successfully",
+                variant: "success",
+            });
+        } catch (error) {
+            console.log(error);
+            toast({
+                title: "Error",
+                description: "Failed to return report. Please try again.",
+                variant: "destructive",
+            })
+        } finally {
+            refetchFinanceReport();
+            refetchFinanceItem();
+        }
+    }
+
+    const handleCloseReport = async () => {
+        try {
+            await updateStatusAndMakeNewReport.mutateAsync({ reportId, status: "closed" });
             toast({
                 title: "Success",
                 description: "Report closed successfully",
@@ -286,20 +308,28 @@ const HeaderReportDetail = ({
     }
 
     const handleExportToCsv = async () => {
+        const formattedTable = bodyTableData.map(item => {
+            const { receipt, action, ...rest } = item;
+            return rest;
+        });
         try {
-            exportToCSV(bodyTableData, `Finance Report ${description.replace(/\s+/g, "_")}`);
+            exportToCSV(formattedTable, `Finance Report ${description.replace(/\s+/g, "_")}`);
         } catch (error) {
             toast({
                 title: "Error",
                 description: "Failed to export to CSV. Please try again.",
                 variant: "destructive",
-            })
+            });
         }
     }
 
     const handleExportToPdf = async () => {
+        const formattedTable = bodyTableData.map(item => {
+            const { receipt, action, ...rest } = item;
+            return rest;
+        });
         try {
-            exportToPdf({data: bodyTableData, title: `Finance Report ${description.replace(/\s+/g, "_")}`});
+            exportToPdf({ data: formattedTable, title: `Finance Report ${description.replace(/\s+/g, "_")}` });
         } catch (error) {
             toast({
                 title: "Error",
@@ -323,23 +353,29 @@ const HeaderReportDetail = ({
                 <div className="flex items-center gap-2">
                     <Button onClick={handleExportToCsv} className="bg-blue-100 text-blue-600 border border-blue-500 hover:bg-blue-200">
                         <StickyNote />
-                        Export To CSV
+                        Export CSV
                     </Button>
                     <Button onClick={handleExportToPdf} className="bg-green-100 text-green-600 border border-green-500 hover:bg-green-200">
                         <FileDown />
                         Export PDF
                     </Button>
                     {(isTpFinance && financeReportStatus === "verified") && (
-                        <Button onClick={hanldeCloseReport} className="bg-yellow-500 text-white border border-yellow-200 hover:bg-yellow-600">
+                        <Button onClick={handleCloseReport } className="bg-yellow-500 text-white border border-yellow-200 hover:bg-yellow-600">
                             <Lock />
                             Close Report
                         </Button>
                     )}
                     {(isTpFinance && financeReportStatus === "submitted") && (
-                        <Button onClick={hanldeVerifyReport} className="bg-green-500 text-white border border-green-200 hover:bg-green-600">
-                            <Check />
-                            Verify Report
-                        </Button>
+                        <>
+                            <Button onClick={hanldeVerifyReport} className="bg-green-500 text-white border border-green-200 hover:bg-green-600">
+                                <Check />
+                                Verify Report
+                            </Button>
+                            <Button onClick={hanldeReturnReport} className="bg-blue-500 text-white border border-blue-200 hover:bg-blue-600">
+                                <Check />
+                                Return Report
+                            </Button>
+                        </>
                     )}
                     {(isTpSite && financeReportStatus === "editing") && (
                         <Button disabled={financeReport.nd_finance_report_item.length < 1} onClick={handleSubmitReport} className="bg-yellow-500 text-white border border-yellow-200 hover:bg-yellow-600">
