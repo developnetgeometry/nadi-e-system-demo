@@ -96,7 +96,7 @@ export const FinanceYearlyContent = () => {
             sitename: siteReport.sitename,
             totalIncome,
             totalExpense,
-            totalProfit
+            totalProfit: totalProfit.toFixed(2)
         };
     });
 
@@ -121,51 +121,51 @@ export const FinanceYearlyContent = () => {
         return [
             {
                 sitename: `${siteReport.sitename} (Income)`,
-                jan: monthlyIncome["January"],
-                feb: monthlyIncome["February"],
-                mar: monthlyIncome["March"],
-                apr: monthlyIncome["April"],
-                may: monthlyIncome["May"],
-                jun: monthlyIncome["June"],
-                jul: monthlyIncome["July"],
-                aug: monthlyIncome["August"],
-                sep: monthlyIncome["September"],
-                oct: monthlyIncome["October"],
-                nov: monthlyIncome["November"],
-                dec: monthlyIncome["December"],
-                total: Object.values(monthlyIncome).reduce((a, b) => a + b, 0)
+                jan: (monthlyIncome["January"] ?? 0).toFixed(2),
+                feb: (monthlyIncome["February"] ?? 0).toFixed(2),
+                mar: (monthlyIncome["March"] ?? 0).toFixed(2),
+                apr: (monthlyIncome["April"] ?? 0).toFixed(2),
+                may: (monthlyIncome["May"] ?? 0).toFixed(2),
+                jun: (monthlyIncome["June"] ?? 0).toFixed(2),
+                jul: (monthlyIncome["July"] ?? 0).toFixed(2),
+                aug: (monthlyIncome["August"] ?? 0).toFixed(2),
+                sep: (monthlyIncome["September"] ?? 0).toFixed(2),
+                oct: (monthlyIncome["October"] ?? 0).toFixed(2),
+                nov: (monthlyIncome["November"] ?? 0).toFixed(2),
+                dec: (monthlyIncome["December"] ?? 0).toFixed(2),
+                total: Object.values(monthlyIncome).reduce((a, b) => a + (b ?? 0), 0).toFixed(2)
             },
             {
                 sitename: `${siteReport.sitename} (Expense)`,
-                jan: monthlyExpense["January"],
-                feb: monthlyExpense["February"],
-                mar: monthlyExpense["March"],
-                apr: monthlyExpense["April"],
-                may: monthlyExpense["May"],
-                jun: monthlyExpense["June"],
-                jul: monthlyExpense["July"],
-                aug: monthlyExpense["August"],
-                sep: monthlyExpense["September"],
-                oct: monthlyExpense["October"],
-                nov: monthlyExpense["November"],
-                dec: monthlyExpense["December"],
-                total: Object.values(monthlyExpense).reduce((a, b) => a + b, 0)
+                jan: (monthlyExpense["January"] ?? 0).toFixed(2),
+                feb: (monthlyExpense["February"] ?? 0).toFixed(2),
+                mar: (monthlyExpense["March"] ?? 0).toFixed(2),
+                apr: (monthlyExpense["April"] ?? 0).toFixed(2),
+                may: (monthlyExpense["May"] ?? 0).toFixed(2),
+                jun: (monthlyExpense["June"] ?? 0).toFixed(2),
+                jul: (monthlyExpense["July"] ?? 0).toFixed(2),
+                aug: (monthlyExpense["August"] ?? 0).toFixed(2),
+                sep: (monthlyExpense["September"] ?? 0).toFixed(2),
+                oct: (monthlyExpense["October"] ?? 0).toFixed(2),
+                nov: (monthlyExpense["November"] ?? 0).toFixed(2),
+                dec: (monthlyExpense["December"] ?? 0).toFixed(2),
+                total: Object.values(monthlyExpense).reduce((a, b) => a + (b ?? 0), 0).toFixed(2)
             },
             {
                 sitename: `${siteReport.sitename} (Profit)`,
-                jan: monthlyProfit["January"],
-                feb: monthlyProfit["February"],
-                mar: monthlyProfit["March"],
-                apr: monthlyProfit["April"],
-                may: monthlyProfit["May"],
-                jun: monthlyProfit["June"],
-                jul: monthlyProfit["July"],
-                aug: monthlyProfit["August"],
-                sep: monthlyProfit["September"],
-                oct: monthlyProfit["October"],
-                nov: monthlyProfit["November"],
-                dec: monthlyProfit["December"],
-                total: Object.values(monthlyProfit).reduce((a, b) => a + b, 0)
+                jan: (monthlyProfit["January"] ?? 0).toFixed(2),
+                feb: (monthlyProfit["February"] ?? 0).toFixed(2),
+                mar: (monthlyProfit["March"] ?? 0).toFixed(2),
+                apr: (monthlyProfit["April"] ?? 0).toFixed(2),
+                may: (monthlyProfit["May"] ?? 0).toFixed(2),
+                jun: (monthlyProfit["June"] ?? 0).toFixed(2),
+                jul: (monthlyProfit["July"] ?? 0).toFixed(2),
+                aug: (monthlyProfit["August"] ?? 0).toFixed(2),
+                sep: (monthlyProfit["September"] ?? 0).toFixed(2),
+                oct: (monthlyProfit["October"] ?? 0).toFixed(2),
+                nov: (monthlyProfit["November"] ?? 0).toFixed(2),
+                dec: (monthlyProfit["December"] ?? 0).toFixed(2),
+                total: Object.values(monthlyProfit).reduce((a, b) => a + (b ?? 0), 0).toFixed(2)
             }
         ];
     });
@@ -270,7 +270,7 @@ export const FinanceYearlyContent = () => {
                         className="bg-blue-100 text-blue-500 border border-blue-500 hover:bg-blue-200"
                     >
                         <BookOpenText />
-                        Export Excel
+                        Export CSV
                     </Button>
                 </div>
             </div>
