@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { financeClient } from "./finance-client";
+import { FinanceReportItem } from "@/types/finance";
 
 export const useFinanceMuation = () => {
     const useNewReportItemMutation = () =>
         useMutation({
-            mutationFn: (reportItemData: any) => financeClient.postNewFinanceTransactionItem(reportItemData),
+            mutationFn: (reportItemData: FinanceReportItem) => financeClient.postNewFinanceTransactionItem(reportItemData),
             onSuccess: () => {
                 console.log("Report item created successfully");
             }
@@ -23,7 +24,7 @@ export const useFinanceMuation = () => {
 
     const useEditFinanceReportItemMutation = (reportItemId: string) =>
         useMutation({
-            mutationFn: (reportItemData: any) => financeClient.editFinanceReportItem(reportItemData, reportItemId),
+            mutationFn: (reportItemData: FinanceReportItem) => financeClient.editFinanceReportItem(reportItemData, reportItemId),
             onSuccess: () => {
                 console.log("Report item updated successfully");
             }
