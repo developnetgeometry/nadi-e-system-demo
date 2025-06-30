@@ -22,6 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 import { useEffect, useState, useMemo } from "react";
+import { useFinanceMuation } from "@/hooks/finance/use-finance-mutation";
+import { financeClient } from "@/hooks/finance/finance-client";
+import { getMonthNameByNumber } from "../finance/utils/getMonthNameByNumber";
 
 const POSSales = () => {
   const [searchItem, setSearchItem] = useState("");
@@ -47,6 +50,8 @@ const POSSales = () => {
   const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
   const [showSearchOptions, setShowSearchOptions] = useState(false);
   const [selectedSearchFilter, setSelectedSearchFilter] = useState<'all' | 'items' | 'services'>('all');
+  const {useNewReportItemMutation} = useFinanceMuation();
+  const newReportItemMutation = useNewReportItemMutation();
   const { toast } = useToast();
 
   const userMetadata = useUserMetadata();
@@ -578,6 +583,23 @@ const POSSales = () => {
         creatorName: creatorName,
         siteName: siteName
       });
+
+      // Capture to finance report
+      const today = new Date();
+      const month = getMonthNameByNumber(today.getMonth() + 1);
+      const year = String(today.getFullYear());
+      const siteId = parsedMetadata?.group_profile?.site_profile_id;
+      const {id} = await financeClient.getFinanceIdByMonthAndYear(month, year, siteId);
+      await newReportItemMutation.mutateAsync({
+        created_at: transactionResult[0].created_at,
+        description: 'POS Sales',
+        debit_type: null,
+        debit: total,
+        credit_type: null,
+        credit: 0,
+        balance: total,
+        finance_report_id: id
+      })
 
       setIsReceiptDialogOpen(true);
       resetSale();
