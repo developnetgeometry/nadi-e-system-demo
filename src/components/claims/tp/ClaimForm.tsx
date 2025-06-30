@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useDuspTpData } from "../hook/use-claim-data";
 import { ClaimAttachmentForm } from "../form/ClaimAttachmentForm";
 import { useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogDescription, DialogTitle } from "@/components/ui/dialog"; // Import Dialog components
 
 
 type CategoryData = {
@@ -71,6 +72,7 @@ const INITIAL_DATA: FormData = {
 
 const ClaimFormPage = () => {
   const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // State for dialog visibility
 
   const { duspTpData, isLoading, error } = useDuspTpData();
   const [data, setData] = useState({
@@ -181,37 +183,42 @@ const ClaimFormPage = () => {
     if (!isLastStep) {
       next();
     } else {
-      try {
-        setLoading(true); // Start loading
-        console.log("Data to be saved:", data);
-        await insertClaimData(data); // Call the insertClaimData function
-        toast({
-          title: "Success",
-          description: "The new claim has been drafted.",
-          variant: "default",
-        });
-        setData(INITIAL_DATA);
-        reset();
-        if (duspTpData) {
-          setData((prev) => ({
-            ...prev,
-            tp_name: duspTpData.name,
-            dusp_name: duspTpData.parent_id?.name,
-            tp_dusp_id: duspTpData.id,
-          }));
-        }
-        queryClient.invalidateQueries({ queryKey: ["nd-running-claim"] });
-        navigate("/claim/register");
-      } catch (error: any) {
-        console.error("Error saving data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to save data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false); // Stop loading
+      setIsDialogOpen(true); // Open confirmation dialog
+    }
+  };
+
+  const handleConfirm = async () => {
+    try {
+      setLoading(true); // Start loading
+      console.log("Data to be saved:", data);
+      await insertClaimData(data); // Call the insertClaimData function
+      toast({
+        title: "Success",
+        description: "The new claim has been drafted.",
+        variant: "default",
+      });
+      setData(INITIAL_DATA);
+      reset();
+      if (duspTpData) {
+        setData((prev) => ({
+          ...prev,
+          tp_name: duspTpData.name,
+          dusp_name: duspTpData.parent_id?.name,
+          tp_dusp_id: duspTpData.id,
+        }));
       }
+      queryClient.invalidateQueries({ queryKey: ["nd-running-claim"] });
+      navigate("/claim/register");
+    } catch (error: any) {
+      console.error("Error saving data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false); // Stop loading
+      setIsDialogOpen(false); // Close dialog
     }
   };
 
@@ -265,6 +272,33 @@ const ClaimFormPage = () => {
           </Button>
         </CardFooter>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Draft Claim</DialogTitle>
+            <DialogDescription></DialogDescription>
+          </DialogHeader>
+          <p>Are you sure you want to create this draft claim?</p>
+          <p>Once created, the report cannot be regenerated</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="default" onClick={handleConfirm} disabled={loading}>
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> {/* Spinner */}
+                  Creating...
+                </div>
+              ) : (
+                "Confirm"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
