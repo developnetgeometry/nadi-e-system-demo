@@ -106,10 +106,8 @@ export const FilterFinance = ({
         return <LoadingSpinner />;
     }
 
-    console.log("region", region);
-
     return (
-        <section className="flex flex-col gap-2 p-5 bg-white border border-gray-200 rounded-md">
+        <section className="flex flex-col gap-4 p-5 bg-white border border-gray-200 rounded-md">
             <div className="flex items-center gap-2">
                 <div
                     className="flex items-center flex-grow gap-2 border border-gray-200 rounded-md transition px-3 py-2 ring-0 focus-within:ring-2 focus-within:ring-gray-300 hover:ring-2 hover:ring-gray-200"

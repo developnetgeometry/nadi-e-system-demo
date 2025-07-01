@@ -3,6 +3,17 @@ import { getMonthNameByNumber } from "@/pages/dashboard/finance/utils/getMonthNa
 import { FinanceReport, FinanceReportItem } from "@/types/finance";
 
 export const financeClient = {
+    addNewTransactionReport: async (data: FinanceReport) => {
+        const { error } = await supabase
+            .from("nd_finance_report")
+            .insert(data)
+        if (error) {
+            console.error(error);
+            throw error;
+        }; 
+        return data;
+    },
+
     getAllSiteReportStatus: async () => {
         const { data, error } = await supabase
             .from("nd_finance_report_status")
@@ -305,7 +316,7 @@ export const financeClient = {
         return data;
     },
 
-    uploadImage: async (file: File) =>  {
+    uploadFile: async (file: File) =>  {
         const bucket = "finance-report";
         const filePath = `${Date.now()}-${file.name}-${crypto.randomUUID()}`;
 
@@ -368,6 +379,21 @@ export const financeClient = {
         };
 
         return data;
-    }
+    },
+
+    getFinanceIdByMonthAndYear: async (month: string, year: string, siteId: number) => {
+        const { data, error } = await supabase
+            .from("nd_finance_report")
+            .select("*")
+            .eq("month", month)
+            .eq("year", year)
+            .eq("site_id", siteId)
+            .maybeSingle();
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        return data;
+    },
 
 };

@@ -28,8 +28,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { CalendarIcon, Plus } from "lucide-react";
-import { Calendar28 } from "./Calendar28";
-import { InputFile } from "./InputFile";
 import { useFinanceQueries } from "@/hooks/finance/use-finance-queries";
 import { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
@@ -53,7 +51,8 @@ type FinanceFormValues = {
     amount: number;
     expenseType?: string;
     description?: string;
-    file?: File;
+    imageFile?: File;
+    docFile?: File;
 };
 
 interface FinanceReportItemDialogFormProps {
@@ -92,7 +91,8 @@ export const FinanceReportItemDialogForm = ({
             incomeType: "",
             expenseType: "",
             description: "",
-            file: undefined,
+            imageFile: undefined,
+            docFile: undefined
         },
     });
 
@@ -102,7 +102,14 @@ export const FinanceReportItemDialogForm = ({
             const selectedAmountToDebit = values.type === "income" ? values.amount : 0;
             const selectedAmountToCredit = values.type === "expense" ? values.amount : 0;
             const balance = selectedAmountToDebit - selectedAmountToCredit;
-            const imagePubLicUrl = await financeClient.uploadImage(values.file);
+            let imagePubLicUrl = "";
+            let docPubLicUrl = "";
+            if (values.imageFile) {
+                imagePubLicUrl = await financeClient.uploadFile(values.imageFile);
+            }
+            if (values.docFile) {
+                docPubLicUrl = await financeClient.uploadFile(values.docFile);
+            }
             const debitOrCreditTypeId = values.type === "income" ? values.incomeType : values.expenseType;
             const createdAt = new Date().toISOString();
 
@@ -113,6 +120,7 @@ export const FinanceReportItemDialogForm = ({
                 balance,
                 finance_report_id: financeReportId,
                 image_path: imagePubLicUrl,
+                doc_path: docPubLicUrl,
                 created_at: createdAt,
                 debit_type: isIncome ? debitOrCreditTypeId : null,
                 credit_type: isExpense ? debitOrCreditTypeId : null,
@@ -170,7 +178,7 @@ export const FinanceReportItemDialogForm = ({
                             Add Transaction
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-[425px] h-screen overflow-y-scroll">
                         <DialogHeader>
                             <DialogTitle>Add New Daily Transaction</DialogTitle>
                         </DialogHeader>
@@ -341,14 +349,37 @@ export const FinanceReportItemDialogForm = ({
 
                                 <FormField
                                     control={form.control}
-                                    name="file"
+                                    name="imageFile"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Upload File</FormLabel>
+                                            <FormLabel>Upload Image</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     type="file"
                                                     accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            field.onChange(file);
+                                                        }
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="docFile"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Upload Document (PDF)</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    type="file"
+                                                    accept="application/pdf"
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
