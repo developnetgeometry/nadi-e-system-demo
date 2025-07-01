@@ -1,31 +1,28 @@
 import { SiteProfile } from "./site";
 
 export interface FinanceReport {
-    id: string,
+    id?: string,
     site_id: number,
     status_id: number,
-    income: number,
-    expense: number,
     created_at: string,
     year: string,
     month: string,
     balance_forward?: number,
-    cash_on_hand?: number,
-    total_balance?: number,
     nd_site_profile?: SiteProfile
     nd_finance_report_status?: FinanceReportStatus
     nd_finance_report_item?: FinanceReportItem[]
 }
 
 export interface FinanceReportItem {
-    id: string,
+    id?: string,
     description: string,
     debit: number,
     credit: number,
     balance: number,
     image_path?: string,
+    doc_path?: string,
     created_at: string,
-    finance_report_id: string,
+    finance_report_id?: string,
     debit_type: string,
     credit_type: string,
     nd_finance_report?: FinanceReport,
