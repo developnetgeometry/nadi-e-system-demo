@@ -379,6 +379,21 @@ export const financeClient = {
         };
 
         return data;
-    }
+    },
+
+    getFinanceIdByMonthAndYear: async (month: string, year: string, siteId: number) => {
+        const { data, error } = await supabase
+            .from("nd_finance_report")
+            .select("*")
+            .eq("month", month)
+            .eq("year", year)
+            .eq("site_id", siteId)
+            .maybeSingle();
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        return data;
+    },
 
 };
