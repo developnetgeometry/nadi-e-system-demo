@@ -18,13 +18,11 @@ import { NoBookingFound } from "./component/NoBookingFound";
 import { useUserName } from "@/hooks/use-user";
 import { BulkActionButtons } from "./component/BulkActionButtons";
 import { DateRange } from "react-day-picker";
-import { bookingClient } from "@/hooks/booking/booking-client";
-import { useMemberSiteId, useSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
+import { useMemberSiteId, useTpManagerSiteId } from "@/hooks/use-site-id";
 import { PaginationCard } from "./component/PaginationCard";
 import { PaginationTable } from "./component/PaginationTable";
-import SiteDashboard from "@/pages/dashboard/site/SiteDashboard";
 import { Button } from "../ui/button";
-import { space } from "postcss/lib/list";
+import BookingSiteDashBoard from "./component/BookingSiteDashBoard";
 
 type FilterParams = {
     availability: string,
@@ -192,14 +190,12 @@ export const BookingManagementDetail = () => {
         !selectedSiteId
     ) {
         return (
-            <SiteDashboard
+            <BookingSiteDashBoard
                 isBookingsEnabled={true}
                 setSelectedSiteId={setSelectedSiteId}
             />
         );
     }
-
-    console.log("selcted pcs data", selectedPcsData);
 
     return (
         <div className="relative">
