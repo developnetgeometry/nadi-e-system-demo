@@ -3250,7 +3250,6 @@ export type Database = {
           created_by: string | null
           id: string
           month: string | null
-          pos_transaction_id: string | null
           site_id: number | null
           status_id: number | null
           updated_at: string | null
@@ -3263,7 +3262,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           month?: string | null
-          pos_transaction_id?: string | null
           site_id?: number | null
           status_id?: number | null
           updated_at?: string | null
@@ -3276,7 +3274,6 @@ export type Database = {
           created_by?: string | null
           id?: string
           month?: string | null
-          pos_transaction_id?: string | null
           site_id?: number | null
           status_id?: number | null
           updated_at?: string | null
@@ -3284,13 +3281,6 @@ export type Database = {
           year?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "pos_transaction_id_fk"
-            columns: ["pos_transaction_id"]
-            isOneToOne: false
-            referencedRelation: "nd_pos_transaction"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "site_id_fk"
             columns: ["site_id"]
@@ -3331,6 +3321,7 @@ export type Database = {
           debit: number | null
           debit_type: string | null
           description: string | null
+          doc_path: string | null
           finance_report_id: string | null
           id: string
           image_path: string | null
@@ -3346,6 +3337,7 @@ export type Database = {
           debit?: number | null
           debit_type?: string | null
           description?: string | null
+          doc_path?: string | null
           finance_report_id?: string | null
           id?: string
           image_path?: string | null
@@ -3361,6 +3353,7 @@ export type Database = {
           debit?: number | null
           debit_type?: string | null
           description?: string | null
+          doc_path?: string | null
           finance_report_id?: string | null
           id?: string
           image_path?: string | null
@@ -7939,6 +7932,7 @@ export type Database = {
           google_map: string | null
           id: number
           is_active: boolean
+          is_mini: boolean | null
           latitude: string | null
           level_id: number | null
           local_authority: boolean | null
@@ -7957,6 +7951,7 @@ export type Database = {
           state_id: number | null
           technology: number | null
           total_population: number | null
+          type_of_nadi: string | null
           updated_at: string | null
           updated_by: string | null
           ust_id: number | null
@@ -7981,6 +7976,7 @@ export type Database = {
           google_map?: string | null
           id?: number
           is_active?: boolean
+          is_mini?: boolean | null
           latitude?: string | null
           level_id?: number | null
           local_authority?: boolean | null
@@ -7999,6 +7995,7 @@ export type Database = {
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
+          type_of_nadi?: string | null
           updated_at?: string | null
           updated_by?: string | null
           ust_id?: number | null
@@ -8023,6 +8020,7 @@ export type Database = {
           google_map?: string | null
           id?: number
           is_active?: boolean
+          is_mini?: boolean | null
           latitude?: string | null
           level_id?: number | null
           local_authority?: boolean | null
@@ -8041,6 +8039,7 @@ export type Database = {
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
+          type_of_nadi?: string | null
           updated_at?: string | null
           updated_by?: string | null
           ust_id?: number | null
@@ -12038,135 +12037,6 @@ export type Database = {
         }
         Relationships: []
       }
-      site_profile_migration: {
-        Row: {
-          active_status: number | null
-          area_id: number | null
-          bandwidth: number | null
-          building_area_id: number | null
-          building_rental_id: boolean | null
-          building_type_id: number | null
-          cluster_id: number | null
-          created_at: string | null
-          created_by: string | null
-          dun_rfid: number | null
-          dusp_tp_id: string | null
-          email: string | null
-          end_operation_date: string | null
-          fullname: string | null
-          google_map: string | null
-          id: number
-          is_active: boolean
-          latitude: string | null
-          level_id: number | null
-          local_authority: boolean | null
-          longtitude: string | null
-          mukim_id: number | null
-          oku_friendly: boolean | null
-          operate_date: string | null
-          parliament_rfid: number | null
-          phase_id: number | null
-          refid_mcmc: string | null
-          refid_tp: string | null
-          region_id: number | null
-          remark: string | null
-          sitename: string | null
-          start_operation_date: string | null
-          state_id: number | null
-          technology: number | null
-          total_population: number | null
-          updated_at: string | null
-          updated_by: string | null
-          ust_id: number | null
-          website: string | null
-          zone_id: number | null
-        }
-        Insert: {
-          active_status?: number | null
-          area_id?: number | null
-          bandwidth?: number | null
-          building_area_id?: number | null
-          building_rental_id?: boolean | null
-          building_type_id?: number | null
-          cluster_id?: number | null
-          created_at?: string | null
-          created_by?: string | null
-          dun_rfid?: number | null
-          dusp_tp_id?: string | null
-          email?: string | null
-          end_operation_date?: string | null
-          fullname?: string | null
-          google_map?: string | null
-          id?: number
-          is_active?: boolean
-          latitude?: string | null
-          level_id?: number | null
-          local_authority?: boolean | null
-          longtitude?: string | null
-          mukim_id?: number | null
-          oku_friendly?: boolean | null
-          operate_date?: string | null
-          parliament_rfid?: number | null
-          phase_id?: number | null
-          refid_mcmc?: string | null
-          refid_tp?: string | null
-          region_id?: number | null
-          remark?: string | null
-          sitename?: string | null
-          start_operation_date?: string | null
-          state_id?: number | null
-          technology?: number | null
-          total_population?: number | null
-          updated_at?: string | null
-          updated_by?: string | null
-          ust_id?: number | null
-          website?: string | null
-          zone_id?: number | null
-        }
-        Update: {
-          active_status?: number | null
-          area_id?: number | null
-          bandwidth?: number | null
-          building_area_id?: number | null
-          building_rental_id?: boolean | null
-          building_type_id?: number | null
-          cluster_id?: number | null
-          created_at?: string | null
-          created_by?: string | null
-          dun_rfid?: number | null
-          dusp_tp_id?: string | null
-          email?: string | null
-          end_operation_date?: string | null
-          fullname?: string | null
-          google_map?: string | null
-          id?: number
-          is_active?: boolean
-          latitude?: string | null
-          level_id?: number | null
-          local_authority?: boolean | null
-          longtitude?: string | null
-          mukim_id?: number | null
-          oku_friendly?: boolean | null
-          operate_date?: string | null
-          parliament_rfid?: number | null
-          phase_id?: number | null
-          refid_mcmc?: string | null
-          refid_tp?: string | null
-          region_id?: number | null
-          remark?: string | null
-          sitename?: string | null
-          start_operation_date?: string | null
-          state_id?: number | null
-          technology?: number | null
-          total_population?: number | null
-          updated_at?: string | null
-          updated_by?: string | null
-          ust_id?: number | null
-          website?: string | null
-          zone_id?: number | null
-        }
-        Relationships: []
-      }
       site_status_log: {
         Row: {
           change_reason: string
@@ -12737,6 +12607,22 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vw_staff_salary: {
+        Row: {
+          basic_pay: number | null
+          fullname: string | null
+          id: number | null
+          join_date: string | null
+          name: string | null
+          payroll_date: string | null
+          position_name: string | null
+          refid_mcmc: string | null
+          service_period: string | null
+          site_name: string | null
+          state_name: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {

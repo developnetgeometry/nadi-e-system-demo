@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useState, FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { PersonalForm } from "@/components/member/form/PersonalForm";
 import { AddressForm } from "@/components/member/form/AddressForm";
 import { DemographicForm } from "@/components/member/form/DemographicForm";
@@ -133,6 +134,7 @@ const INITIAL_DATA: FormData = {
 
 const RegistrationPage = () => {
   const [data, setData] = useState(INITIAL_DATA);
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false); // Add loading state
   const { genders, statusMemberships, nationalities, races, ethnics, occupations, typeSectors, incomeLevels, ictKnowledge, educationLevels, identityNoTypes, typeRelationships, registrationMethods } = useGeneralData();
   const { siteProfiles } = useSiteGeneralData();
@@ -244,6 +246,8 @@ const RegistrationPage = () => {
         setData(INITIAL_DATA);
         reset();
         setDialogOpen(true); // Assuming you have a state to control the dialog visibility
+        queryClient.invalidateQueries({ queryKey: ["members"] });
+
         setDialogMembershipId(membershipId); // Pass the membershipId to the dialog
       } catch (error) {
         console.error("Error saving data:", error);
