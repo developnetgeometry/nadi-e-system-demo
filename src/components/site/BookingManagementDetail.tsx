@@ -462,6 +462,7 @@ export const PcMainContent = ({
                 assetData={pcsData}
                 header="PC Status"
                 isLoading={isLoading}
+                isTpSite={isTpSite}
             />
             <PaginationTable
                 headTable={headTable}
@@ -983,6 +984,8 @@ const AssetStatus = ({
                                 <PaginationCard
                                     items={pcs}
                                     isFacility={false}
+                                    isTpSite={isTpSite}
+                                    isMember={isMember}
                                 />
                             </>
                         )

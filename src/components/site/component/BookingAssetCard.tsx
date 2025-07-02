@@ -100,6 +100,10 @@ export const BookingAssetCard = ({
     const { siteId: memberSiteId, isLoading: memberSiteIdLoading } = useMemberSiteId(isMember);
     const { siteId: tpManagerSiteId, isLoading: tpManagerSiteIdLoading } = useTpManagerSiteId(isTpSite);
 
+    console.log("is member", isMember);
+    console.log("is tp site", isTpSite);
+    console.log("member site id", memberSiteId);
+    console.log("tp manager site id", tpManagerSiteId);
     // Member or TP Site Site ID
     const siteId =
         memberSiteId
@@ -107,6 +111,8 @@ export const BookingAssetCard = ({
             : tpManagerSiteId
                 ? Number(tpManagerSiteId)
                 : undefined;
+
+    console.log("site id", siteId);
 
     const { useBookingFacilityMutation } = useBookingMutation();
     const bookingFacilityMutation = useBookingFacilityMutation(!!siteId);
