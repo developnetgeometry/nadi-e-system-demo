@@ -30,7 +30,7 @@ const useGeoData = () => {
       const { data, error } = await supabase
         .from("nd_district")
         .select("id, name")
-        .eq("state_id", stateId); // Filter districts by state_id
+        .eq("state_id", Number(stateId)); // Filter districts by state_id
       if (error) throw error;
       setDistricts(data); // Update districts state
     } catch (error) {
