@@ -33,36 +33,6 @@ export const bookingClient = {
     },
 
     deleteBooking: async (bookingId: string) => {
-        const { data: bookingData, error: bookingDataError } = await supabase
-            .from("nd_booking")
-            .select(`*, nd_site_space(*)`)
-            .eq("id", bookingId)
-            .single();
-
-        if (bookingDataError) throw bookingDataError;
-
-        const { data: assetsData, error: assetsDataError } = await supabase
-            .from("nd_asset")
-            .select("*")
-            .eq("site_id", bookingData.nd_site_space.site_id)
-            .eq("location_id", bookingData.nd_site_space.space_id)
-
-        if (assetsDataError) throw assetsDataError;
-
-        if (assetsData && assetsData.length > 0) {
-            for (const asset of assetsData) {
-                const {error: assetError} = await supabase
-                    .from("nd_booking")
-                    .delete()
-                    .eq("asset_id", asset.id);
-
-                if (assetError) {
-                    console.error("Failed delete booking", assetError);
-                    throw assetError;
-                }
-            }
-        }
-
         const { error } = await supabase
             .from("nd_booking")
             .delete()

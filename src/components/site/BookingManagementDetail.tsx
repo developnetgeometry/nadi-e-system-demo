@@ -329,6 +329,7 @@ const BookingContent = ({
                 isMember={isMember}
                 setBookingsData={setFacilitiesBookingsData}
                 setSelectedFacilitiesData={setSelectedFacilitiesData}
+                setSelectedPcsData={setSelectedPcsData}
             />
             <FacilityCalender
                 isMember={isMember}
@@ -570,6 +571,7 @@ interface FacilityBookingProps {
     isMember?: boolean
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
+    setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
 
 const FacilityBooking = ({
@@ -578,7 +580,8 @@ const FacilityBooking = ({
     isTpSite,
     isMember,
     setBookingsData,
-    setSelectedFacilitiesData
+    setSelectedFacilitiesData,
+    setSelectedPcsData
 }: FacilityBookingProps) => {
     return (
         <TabsContent className="w-full" value={value}>
@@ -588,6 +591,7 @@ const FacilityBooking = ({
                 isTpSite={isTpSite}
                 isMember={isMember}
                 setSelectedFacilitiesData={setSelectedFacilitiesData}
+                setSelectedPcsData={setSelectedPcsData}
                 setBookingsData={setBookingsData}
             />
         </TabsContent>
@@ -693,6 +697,7 @@ interface AssetStatusProps {
     isMember?: boolean
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
+    setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
 
 const AssetStatus = ({
@@ -703,7 +708,8 @@ const AssetStatus = ({
     isTpSite,
     isMember,
     setBookingsData,
-    setSelectedFacilitiesData
+    setSelectedFacilitiesData,
+    setSelectedPcsData
 }: AssetStatusProps) => {
     const { useSpaces } = useBookingQueries();
     const { data: spaces, isLoading: allSpacesLoading } = useSpaces();
@@ -1017,6 +1023,7 @@ const AssetStatus = ({
                                     isTpSite={isTpSite}
                                     isMember={isMember}
                                     setSelectedFacilitiesData={setSelectedFacilitiesData}
+                                    setSelectedPcsData={setSelectedPcsData}
                                 />
                             </>
 

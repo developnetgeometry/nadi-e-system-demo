@@ -109,12 +109,24 @@ export const BookingCalendar = ({
         try {
             await bookingClient.deleteBooking(bookingId);
 
+            if (isFacility) {
+                setBookingCalendarData((prevBook) => prevBook.filter((booking) => booking.id !== bookingId));
+            } else {
+                setBookingsData((prevBook) => prevBook.filter((booking) => booking.id !== bookingId));
+            }
+
             toast({
                 title: "Success",
                 description: "Booking has been deleted successfully",
                 variant: "success"
             })
         } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to delete booking. Please try again.",
+                variant: "destructive"
+            });
+            
             console.error(error);
         }
     }

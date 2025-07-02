@@ -18,8 +18,8 @@ export default function RemotePcStream({ pcId, siteId }) {
     const [isControlEnabled, setIsControlEnabled] = useState(false);
     const [canvasSize, setCanvasSize] = useState({ width: 1280, height: 720 });
 
-    const userId = pcId;
-    const channelName = siteId;
+    const userId: string = "web" + pcId;
+    const channelName: string = siteId;
 
     // Canvas rendering function
     const drawVideoFrame = useCallback(() => {
