@@ -32,7 +32,41 @@ export const bookingClient = {
         return data;
     },
 
-    deleteBooking: async (bookingId: string) => {
+    deleteBooking: async (bookingId: string, isFacility: boolean) => {
+        if (isFacility) {
+            const { data: facilitiesBooking, error: facilitiesBookingError } = await supabase
+                .from("nd_booking")
+                .select("*")
+                .eq("id", bookingId)
+                .maybeSingle();
+            console.log("facilitiesBooking", facilitiesBooking);
+            if (facilitiesBookingError) throw facilitiesBookingError;
+
+            const { data: siteSpaceBooking, error: siteSpaceBookingError } = await supabase
+                .from("nd_booking")
+                .select("*")
+                .eq("site_space_id", facilitiesBooking.site_space_id);
+
+            console.log("siteSpaceBooking", siteSpaceBooking);
+
+            if (siteSpaceBookingError) throw siteSpaceBookingError;
+
+            const { data, error } = await supabase
+                .from("nd_booking")
+                .delete()
+                .in("id", siteSpaceBooking.map((booking) => booking.id))
+                .select("*");
+
+            if (error) {
+                console.error("Failed delete booking", error);
+                throw error;
+            }
+
+            console.log("deleted data", data);
+
+            return { site_space_id: facilitiesBooking.site_space_id };
+        };
+
         const { error } = await supabase
             .from("nd_booking")
             .delete()
@@ -42,6 +76,8 @@ export const bookingClient = {
             console.error("Failed delete booking", error);
             throw error;
         }
+
+        return { site_space_id: null };
     },
 
     postNewSpaceBooking: async (bookingData: Booking, isBookingAllowed: boolean): Promise<Booking> => {

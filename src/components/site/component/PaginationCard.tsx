@@ -19,6 +19,7 @@ interface PaginationCardProps {
     isMember?: boolean
     isTpSite?: boolean
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
+    setPcsBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
     setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
@@ -29,6 +30,7 @@ export const PaginationCard = ({
     isMember,
     isTpSite,
     setBookingsData,
+    setPcsBookingsData,
     setSelectedFacilitiesData,
     setSelectedPcsData
 }: PaginationCardProps) => {
@@ -65,6 +67,7 @@ export const PaginationCard = ({
                         isMember={isMember}
                         isTpSite={isTpSite}
                         setBookingsData={setBookingsData}
+                        setPcsBookingsData={setPcsBookingsData}
                         setSelectedFacilitiesData={setSelectedFacilitiesData}
                         setSelectedPcsData={setSelectedPcsData}
                         className={`hover:scale-105 hover:shadow-sm hover:shadow-blue-300 ${asset.bgCustomClass}`}

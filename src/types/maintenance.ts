@@ -6,7 +6,7 @@ export interface MaintenanceRequest {
   no_docket?: string;
   description: string;
   asset_id: number;
-  asset: Asset;
+  asset?: Asset;
   type_id?: number;
   type?: TypeMaintenance;
   docket_type?: "cm" | "pm";
