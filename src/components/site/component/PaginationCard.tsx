@@ -11,6 +11,7 @@ import { ChevronLeft, ChevronRight, CircleDot } from "lucide-react";
 import BookingAssetCard from "./BookingAssetCard";
 import { Booking } from "@/types/booking";
 import { SiteSpace } from "@/types/site";
+import { Asset } from "@/types/asset";
 
 interface PaginationCardProps {
     items: any[]
@@ -19,6 +20,7 @@ interface PaginationCardProps {
     isTpSite?: boolean
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
+    setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
 
 export const PaginationCard = ({
@@ -27,7 +29,8 @@ export const PaginationCard = ({
     isMember,
     isTpSite,
     setBookingsData,
-    setSelectedFacilitiesData
+    setSelectedFacilitiesData,
+    setSelectedPcsData
 }: PaginationCardProps) => {
     const {
         currentPage,
@@ -63,6 +66,7 @@ export const PaginationCard = ({
                         isTpSite={isTpSite}
                         setBookingsData={setBookingsData}
                         setSelectedFacilitiesData={setSelectedFacilitiesData}
+                        setSelectedPcsData={setSelectedPcsData}
                         className={`hover:scale-105 hover:shadow-sm hover:shadow-blue-300 ${asset.bgCustomClass}`}
                     />
                 ))}

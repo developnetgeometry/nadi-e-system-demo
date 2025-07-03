@@ -49,6 +49,7 @@ import { stringToDateWithTime } from "../utils/stringToDateWithTime";
 import { Booking } from "@/types/booking";
 import { SiteSpace } from "@/types/site";
 import { formatToISO } from "../utils/formatToIso";
+import { Asset } from "@/types/asset";
 
 interface BookingAssetCardProps {
     id: string;
@@ -69,6 +70,7 @@ interface BookingAssetCardProps {
     isTpSite?: boolean;
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>;
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>;
+    setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
 
 export const BookingAssetCard = ({
@@ -89,7 +91,8 @@ export const BookingAssetCard = ({
     isMember,
     isTpSite,
     setBookingsData,
-    setSelectedFacilitiesData
+    setSelectedFacilitiesData,
+    setSelectedPcsData
 }: BookingAssetCardProps) => {
     const [isOpenMaintenanceForm, setIsOpenMaintenanceForm] = useState(false);
     const [isOpenDialog, setIsOpenDialog] = useState(false);
@@ -97,6 +100,10 @@ export const BookingAssetCard = ({
     const { siteId: memberSiteId, isLoading: memberSiteIdLoading } = useMemberSiteId(isMember);
     const { siteId: tpManagerSiteId, isLoading: tpManagerSiteIdLoading } = useTpManagerSiteId(isTpSite);
 
+    console.log("is member", isMember);
+    console.log("is tp site", isTpSite);
+    console.log("member site id", memberSiteId);
+    console.log("tp manager site id", tpManagerSiteId);
     // Member or TP Site Site ID
     const siteId =
         memberSiteId
@@ -104,6 +111,8 @@ export const BookingAssetCard = ({
             : tpManagerSiteId
                 ? Number(tpManagerSiteId)
                 : undefined;
+
+    console.log("site id", siteId);
 
     const { useBookingFacilityMutation } = useBookingMutation();
     const bookingFacilityMutation = useBookingFacilityMutation(!!siteId);
@@ -156,6 +165,18 @@ export const BookingAssetCard = ({
                         nd_booking: [
                             ...fa.nd_booking,
                             newBookingData
+                        ]
+                    }
+                }
+            }))
+
+            setSelectedPcsData((prevPc) => prevPc.map((pc) => {
+                if (pc.name === assetName) {
+                    return {
+                        ...pc,
+                        nd_booking: [
+                            ...pc.nd_booking,
+                            ...newBookingData.pcsBookingData
                         ]
                     }
                 }
@@ -417,7 +438,7 @@ const BookingPcCardDetails = ({
                 <RemotePc
                     value="remote-pc"
                     pcId={id}
-                    siteId={siteId}
+                    siteId={String(siteId)}
                 />
             </Tabs>
         </DialogContent>
@@ -723,6 +744,8 @@ const Maintenance = ({
                 maintenance_date,
                 space_id,
                 no_docket,
+                asset_id: null,
+                asset: null,
                 created_at,
                 created_by
             }
