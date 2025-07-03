@@ -69,6 +69,7 @@ interface BookingAssetCardProps {
     isMember?: boolean;
     isTpSite?: boolean;
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>;
+    setPcsBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>;
     setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
@@ -91,6 +92,7 @@ export const BookingAssetCard = ({
     isMember,
     isTpSite,
     setBookingsData,
+    setPcsBookingsData,
     setSelectedFacilitiesData,
     setSelectedPcsData
 }: BookingAssetCardProps) => {
@@ -100,10 +102,6 @@ export const BookingAssetCard = ({
     const { siteId: memberSiteId, isLoading: memberSiteIdLoading } = useMemberSiteId(isMember);
     const { siteId: tpManagerSiteId, isLoading: tpManagerSiteIdLoading } = useTpManagerSiteId(isTpSite);
 
-    console.log("is member", isMember);
-    console.log("is tp site", isTpSite);
-    console.log("member site id", memberSiteId);
-    console.log("tp manager site id", tpManagerSiteId);
     // Member or TP Site Site ID
     const siteId =
         memberSiteId
@@ -111,8 +109,6 @@ export const BookingAssetCard = ({
             : tpManagerSiteId
                 ? Number(tpManagerSiteId)
                 : undefined;
-
-    console.log("site id", siteId);
 
     const { useBookingFacilityMutation } = useBookingMutation();
     const bookingFacilityMutation = useBookingFacilityMutation(!!siteId);
@@ -153,34 +149,34 @@ export const BookingAssetCard = ({
 
             const newBookingData = await bookingFacilityMutation.mutateAsync(submitedFormData);
             
-            setBookingsData((prevBook) => [
-                ...prevBook,
-                newBookingData
-            ])
+            setBookingsData((prevBook) => [...prevBook, newBookingData])
+            setPcsBookingsData((prevPcBook) => [...prevPcBook, ...newBookingData.pcsBookingData])
 
-            setSelectedFacilitiesData((prevFacility) => prevFacility.map((fa) => {
-                if (fa.nd_space.eng === assetName) {
-                    return {
+            setSelectedFacilitiesData((prevFacility) => 
+                prevFacility.map((fa) => 
+                    fa.nd_space.eng === assetName ? 
+                    {
                         ...fa,
-                        nd_booking: [
-                            ...fa.nd_booking,
-                            newBookingData
-                        ]
-                    }
-                }
-            }))
+                        nd_booking: [...fa.nd_booking, newBookingData]
+                    } 
+                    : 
+                    fa
+                )
+            )
 
-            setSelectedPcsData((prevPc) => prevPc.map((pc) => {
-                if (pc.name === assetName) {
-                    return {
-                        ...pc,
-                        nd_booking: [
-                            ...pc.nd_booking,
-                            ...newBookingData.pcsBookingData
-                        ]
-                    }
-                }
-            }))
+            newBookingData.pcsBookingData.forEach((pcState) => {
+                setSelectedPcsData((prevPc) => 
+                    prevPc.map((pc) => {
+                        if (pc.name === pcState.nd_asset.name) {
+                            return {
+                                ...pc,
+                                nd_booking: [...pc.nd_booking, newBookingData.pcsBookingData.find((p) => p.nd_asset.name === pc.name)!]
+                            }
+                        }
+                        return pc;
+                    })
+                )
+            });
 
             toast({
                 title: "Add new booking success",
@@ -745,7 +741,6 @@ const Maintenance = ({
                 space_id,
                 no_docket,
                 asset_id: null,
-                asset: null,
                 created_at,
                 created_by
             }

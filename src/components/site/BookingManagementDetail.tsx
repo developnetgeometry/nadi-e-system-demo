@@ -185,6 +185,9 @@ export const BookingManagementDetail = () => {
         return <LoadingSpinner />;
     }
 
+    console.log("selected pcs data", selectedPcsData);
+    console.log("selected facilities data", selectedFacilitiesData);
+
     if (
         (isTpAdmin || isSuperAdmin) &&
         !selectedSiteId
@@ -268,7 +271,7 @@ const BookingContent = ({
     const now = new Date().getTime();
 
     const totalPcs = pcsData.length;
-    const pcInUse = pcsData.filter((pc) => pc.nd_booking.find(
+    const pcInUse = pcsData.filter((pc) => pc?.nd_booking?.find(
                         (b) => new Date(b.booking_start).getTime() <= now && new Date(b.booking_end).getTime() >= now && b.is_active
                     )).length;
     const pcAvailable = totalPcs - pcInUse;
@@ -328,6 +331,7 @@ const BookingContent = ({
                 isTpSite={isTpSite}
                 isMember={isMember}
                 setBookingsData={setFacilitiesBookingsData}
+                setPcsBookingsData={setPcsBookingsData}
                 setSelectedFacilitiesData={setSelectedFacilitiesData}
                 setSelectedPcsData={setSelectedPcsData}
             />
@@ -339,6 +343,8 @@ const BookingContent = ({
                 facilitiesData={facilitiesData.map(facility => facility?.nd_space?.eng)}
                 isTpAdmin={isTpAdmin}
                 setBookingsData={setFacilitiesBookingsData}
+                setPcsBookingsData={setPcsBookingsData}
+                setSelectedPcsData={setSelectedPcsData}
                 setSelectedFacilitiesData={setSelectedFacilitiesData}
             />
         </Tabs>
@@ -553,13 +559,14 @@ export const PcCalender = ({
                 date={date}
                 setDate={setDate}
                 bookingType="pc"
+                isFacility={false}
                 bookingData={bookingCalendarData}
                 setBookingCalendarData={setBookingCalendarData}
                 isLoading={isLoading}
                 setBookingsData={setBookingsData}
                 isTpAdmin={isTpAdmin}
                 onChangeFilter={onChangeFilter}
-                setSeletedPcsData={setSelectedPcsData}
+                setSelectedPcsData={setSelectedPcsData}
             />
         </TabsContent>
     )
@@ -571,6 +578,7 @@ interface FacilityBookingProps {
     isTpSite?: boolean
     isMember?: boolean
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
+    setPcsBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
     setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
@@ -581,6 +589,7 @@ const FacilityBooking = ({
     isTpSite,
     isMember,
     setBookingsData,
+    setPcsBookingsData,
     setSelectedFacilitiesData,
     setSelectedPcsData
 }: FacilityBookingProps) => {
@@ -594,6 +603,7 @@ const FacilityBooking = ({
                 setSelectedFacilitiesData={setSelectedFacilitiesData}
                 setSelectedPcsData={setSelectedPcsData}
                 setBookingsData={setBookingsData}
+                setPcsBookingsData={setPcsBookingsData}
             />
         </TabsContent>
     )
@@ -604,11 +614,13 @@ interface FacilityCalendarProps {
     facilitiesData: string[];
     bookingsData: Booking[];
     setBookingsData: React.Dispatch<Booking[]>;
+    setPcsBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>
     isLoading?: boolean;
     isMember: boolean;
     isTpSite: boolean;
     isTpAdmin: boolean;
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
+    setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
 
 const FacilityCalender = ({
@@ -619,7 +631,9 @@ const FacilityCalender = ({
     isTpAdmin,
     bookingsData,
     setBookingsData,
-    setSelectedFacilitiesData
+    setSelectedFacilitiesData,
+    setSelectedPcsData,
+    setPcsBookingsData
 }: FacilityCalendarProps) => {
     const [bookingCalendarData, setBookingCalendarData] = useState<Booking[]>([]);
     const [rawBookingCalendarData, setRawBookingCalendarData] = useState([]);
@@ -681,8 +695,10 @@ const FacilityCalender = ({
                 bookingData={bookingCalendarData}
                 setBookingCalendarData={setBookingCalendarData}
                 setBookingsData={setBookingsData}
+                setPcsBookingsData={setPcsBookingsData}
                 isTpAdmin={isTpAdmin}
                 onChangeFilter={onChangeFilter}
+                setSelectedPcsData={setSelectedPcsData}
                 setSelectedFacilitiesData={setSelectedFacilitiesData}
             />
         </TabsContent>
@@ -697,6 +713,7 @@ interface AssetStatusProps {
     isTpSite?: boolean
     isMember?: boolean
     setBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
+    setPcsBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>
     setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>
 }
@@ -709,6 +726,7 @@ const AssetStatus = ({
     isTpSite,
     isMember,
     setBookingsData,
+    setPcsBookingsData,
     setSelectedFacilitiesData,
     setSelectedPcsData
 }: AssetStatusProps) => {
@@ -986,6 +1004,7 @@ const AssetStatus = ({
                                     isFacility={false}
                                     isTpSite={isTpSite}
                                     isMember={isMember}
+                                    setSelectedPcsData={setSelectedPcsData}
                                 />
                             </>
                         )
@@ -1023,6 +1042,7 @@ const AssetStatus = ({
                                     items={facilities}
                                     isFacility={true}
                                     setBookingsData={setBookingsData}
+                                    setPcsBookingsData={setPcsBookingsData}
                                     isTpSite={isTpSite}
                                     isMember={isMember}
                                     setSelectedFacilitiesData={setSelectedFacilitiesData}

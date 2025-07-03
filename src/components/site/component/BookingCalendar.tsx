@@ -43,9 +43,10 @@ interface BookingCalendarProp {
     onChangeFilter: (assetTypeName: string, searchInput: string) => void,
     setBookingCalendarData: React.Dispatch<React.SetStateAction<Booking[]>>,
     setBookingsData: React.Dispatch<React.SetStateAction<Booking[]>>,
+    setPcsBookingsData?: React.Dispatch<React.SetStateAction<Booking[]>>,
     isLoading?: boolean,
     isFacility?: boolean,
-    setSeletedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>,
+    setSelectedPcsData?: React.Dispatch<React.SetStateAction<Asset[]>>,
     setSelectedFacilitiesData?: React.Dispatch<React.SetStateAction<SiteSpace[]>>,
     isMember: boolean,
     isTpSite: boolean
@@ -64,9 +65,10 @@ export const BookingCalendar = ({
     isFacility,
     setBookingCalendarData,
     setBookingsData,
+    setPcsBookingsData,
     onChangeFilter,
     isLoading,
-    setSeletedPcsData,
+    setSelectedPcsData,
     setSelectedFacilitiesData
 }: BookingCalendarProp) => {
     const [formattedBookingData, setFormattedBookingData] = useState<BodyTableData[]>([]);
@@ -107,12 +109,28 @@ export const BookingCalendar = ({
 
     const handleCancleBooking = async (bookingId: string) => {
         try {
-            await bookingClient.deleteBooking(bookingId);
+            const {site_space_id} = await bookingClient.deleteBooking(bookingId, isFacility);
 
             if (isFacility) {
                 setBookingCalendarData((prevBook) => prevBook.filter((booking) => booking.id !== bookingId));
+                setBookingsData((prevBook) => prevBook.filter((booking) => booking.id !== bookingId));
+                setPcsBookingsData((prevBook) => prevBook.filter((booking) => booking.site_space_id !== site_space_id));
+                setSelectedFacilitiesData((prevBook) => prevBook.map((facility) => ({
+                    ...facility,
+                    nd_booking: [
+                        ...facility.nd_booking.filter((booking) => booking.id !== bookingId)
+                    ]
+                })));
+                setSelectedPcsData((prevBook) => prevBook.map((pc) => ({
+                    ...pc,
+                    nd_booking: pc.nd_booking?.filter((booking) => booking.site_space_id !== site_space_id)
+                })));
             } else {
                 setBookingsData((prevBook) => prevBook.filter((booking) => booking.id !== bookingId));
+                setSelectedPcsData((prevBook) => prevBook.map((pc) => ({
+                    ...pc,
+                    nd_booking: pc.nd_booking?.filter((booking) => booking.id !== bookingId)
+                })));
             }
 
             toast({
@@ -235,7 +253,7 @@ export const BookingCalendar = ({
                             isLoading={isLoading}
                             assetsName={assetTypeNames.filter((name) => name !== "all pc")}
                             setSelectedFacilitiesData={setSelectedFacilitiesData}
-                            setSeletedPcsData={setSeletedPcsData}
+                            setSeletedPcsData={setSelectedPcsData}
                         />
                     </Dialog>
                 )}
