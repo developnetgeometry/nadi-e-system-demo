@@ -204,7 +204,7 @@ export const MaintenanceList = ({
           >
             <option value="">All Docket Types</option>
             <option key="cm" value="cm">
-              Comprehensive
+              Corrective
             </option>
             <option key="pm" value="pm">
               Preventive
@@ -335,7 +335,7 @@ export const MaintenanceList = ({
                         <TableCell>
                           {maintenanceRequest?.docket_type &&
                           maintenanceRequest?.docket_type === "cm"
-                            ? "Comprehensive Maintenance"
+                            ? "Corrective Maintenance"
                             : "Preventive Maintenance"}
                         </TableCell>
                         <TableCell>
