@@ -227,7 +227,7 @@ export const MaintenanceRequestFormDialog = ({
       description: description,
       type_id: Number(formData.get("maintenanceType")),
       asset_id: selectedAsset?.id as number,
-      frequency: Number(formData.get("frequency")),
+      frequency: String(formData.get("frequency")),
       requester_by: user.id,
       vendor_id: Number(selectedVendor),
       maintenance_date: estimatedCompletionDate,
@@ -539,9 +539,9 @@ export const MaintenanceRequestFormDialog = ({
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Weekly</SelectItem>
-                      <SelectItem value="1">Monthly</SelectItem>
-                      <SelectItem value="2">Yearly</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
