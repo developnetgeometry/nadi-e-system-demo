@@ -1,4 +1,7 @@
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { fetchAllSites, fetchTPSites } from "@/components/site/hook/site-utils";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -14,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SelectOne } from "@/components/ui/SelectOne";
+import { Textarea } from "@/components/ui/textarea";
 import { useAssets } from "@/hooks/use-assets";
 import { useMaintenance } from "@/hooks/use-maintenance";
 import { useToast } from "@/hooks/use-toast";
@@ -24,14 +35,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Asset } from "@/types/asset";
 import { MaintenanceDocketType, MaintenanceStatus } from "@/types/maintenance";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { LoadingSpinner } from "../shared/LoadingSpinner";
-import { Calendar } from "../ui/calendar";
-import { Input } from "../ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Textarea } from "../ui/textarea";
 import { AttachmentUploadField } from "./AttachmentUploadField";
 import { useAttachment } from "./hooks/use-attachment";
 import { generateDocketNumber } from "./report/utils";
@@ -50,6 +57,19 @@ export const MaintenanceRequestFormDialog = ({
 
   const userMetadata = useUserMetadata();
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPUser =
+    parsedMetadata?.user_group_name === "TP" &&
+    !!parsedMetadata?.organization_id;
+  const isDUSPUser =
+    parsedMetadata?.user_group_name === "DUSP" &&
+    !!parsedMetadata?.organization_id;
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    (isTPUser || isDUSPUser) &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
   const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
 
@@ -65,11 +85,36 @@ export const MaintenanceRequestFormDialog = ({
   const [estimatedCompletionDate, setEstimatedCompletionDate] =
     useState<Date | null>(null);
 
+  const [selectedSiteId, setSelectedSiteId] = useState<string | null>(null);
+
+  // Fetch all sites for SuperAdmin
+  const {
+    data: allSites = [],
+    isLoading: isLoadingAllSites,
+    refetch: refetchSites,
+  } = useQuery({
+    queryKey: ["sites"],
+    queryFn: () => fetchAllSites(),
+    enabled: isSuperAdmin && open,
+  });
+
+  // Fetch sites for TP user
+  const { data: tpSites = [], isLoading: isLoadingTpSites } = useQuery({
+    queryKey: ["tpSites", organizationId],
+    queryFn: () => fetchTPSites(organizationId || ""),
+    enabled: !!organizationId && isTPUser && open,
+  });
+
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [assetsFilter, setAssetsFilter] = useState("");
   const { useAssetsByNameQuery } = useAssets();
   const { data: assets = [], isLoading: isLoadingAssets } =
-    useAssetsByNameQuery(assetsFilter, true); // get only active assets
+    useAssetsByNameQuery(assetsFilter, true, selectedSiteId); // get only active assets
+
+  useEffect(() => {
+    setSelectedAsset(null);
+    setAssetsFilter("");
+  }, [selectedSiteId]);
 
   const {
     data: vendors,
@@ -376,6 +421,25 @@ export const MaintenanceRequestFormDialog = ({
                   />
                 </div>
 
+                {(isSuperAdmin || isDUSPUser || isTPUser) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="site">Site</Label>
+                    <SelectOne
+                      options={isTPUser ? tpSites : allSites}
+                      value={selectedSiteId}
+                      onChange={(value) => {
+                        const newSiteId = value as string;
+                        setSelectedSiteId(newSiteId);
+                      }}
+                      placeholder="Select a site"
+                      disabled={
+                        (isTPUser ? isLoadingTpSites : isLoadingAllSites) ||
+                        isSubmitting
+                      }
+                    />
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="asset">Asset</Label>
                   <div className="relative flex space-x-4">
@@ -484,6 +548,25 @@ export const MaintenanceRequestFormDialog = ({
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
+
+                {(isSuperAdmin || isDUSPUser || isTPUser) && (
+                  <div className="space-y-2">
+                    <Label htmlFor="site">Site</Label>
+                    <SelectOne
+                      options={isTPUser ? tpSites : allSites}
+                      value={selectedSiteId}
+                      onChange={(value) => {
+                        const newSiteId = value as string;
+                        setSelectedSiteId(newSiteId);
+                      }}
+                      placeholder="Select a site"
+                      disabled={
+                        (isTPUser ? isLoadingTpSites : isLoadingAllSites) ||
+                        isSubmitting
+                      }
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="asset">Asset</Label>

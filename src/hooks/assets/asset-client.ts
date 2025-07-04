@@ -59,7 +59,8 @@ export const assetClient = {
     organizationId: string | null,
     siteId: string | null,
     name: string | null,
-    isActive?: boolean | null
+    isActive?: boolean | null,
+    selectedSiteId?: string | null
   ): Promise<Asset[]> => {
     if (!name) return [];
 
@@ -76,12 +77,12 @@ export const assetClient = {
       )
       .is("deleted_at", null);
 
-    if (siteId) {
-      query = query.eq("site_id", Number(siteId));
+    if (siteId || selectedSiteId) {
+      query = query.eq("site_id", Number(siteId || selectedSiteId));
     }
 
     if (name) {
-      query = query.textSearch("name", name, { type: "plain" });
+      query = query.ilike("name", `%${name}%`);
     }
 
     if (isActive) {
