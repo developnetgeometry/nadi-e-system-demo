@@ -203,26 +203,6 @@ export const siteRoutes = [
     ),
   },
   {
-    path: "/site-management/agreement",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* <ProtectedRoute requiredPermission=""> */}
-        <AgreementOverviewPage />
-        {/* </ProtectedRoute> */}
-      </Suspense>
-    ),
-  },
-  {
-    path: "/site-management/agreement/form/:id?",
-    element: (
-      <Suspense fallback={<LoadingSpinner />}>
-        {/* <ProtectedRoute requiredPermission=""> */}
-        <AgreementFormPage />
-        {/* </ProtectedRoute> */}
-      </Suspense>
-    ),
-  },
-  {
     path: "/site-management/local-authority",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
@@ -238,6 +218,26 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <LocalAuthorityFormPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/agreement",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <AgreementOverviewPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/agreement/form/:id?",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <AgreementFormPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
