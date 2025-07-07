@@ -30,6 +30,8 @@ type FormData = {
     phase_id: number;
     category_ids: CategoryData[];
     is_finished_generate: boolean;
+    start_date: string;
+    end_date: string;
 };
 
 export const insertClaimData = async (data: FormData) => {
@@ -56,7 +58,9 @@ export const insertClaimData = async (data: FormData) => {
                 created_by: createdBy,
                 tp_dusp_id: data.tp_dusp_id,
                 claim_type: data.claim_type,
-                updated_at: new Date(),
+                updated_at: new Date().toISOString(),
+                start_date: data.start_date,
+                end_date: data.end_date,
             })
             .select("id")
             .single();
@@ -92,35 +96,35 @@ export const insertClaimData = async (data: FormData) => {
                 const requestId = claimRequest.id;
 
                 // Step 3.2: Upload summary_report_file to storage
-                if (item.summary_report_file) {
-                    const fileName = `summary_${Date.now()}_${item.summary_report_file.name}`;
-                    const filePath = `${data.dusp_name}/${data.tp_name}/${data.year}/${data.ref_no}_${fileName}`;
+                // if (item.summary_report_file) {
+                //     const fileName = `summary_${Date.now()}_${item.summary_report_file.name}`;
+                //     const filePath = `${data.dusp_name}/${data.tp_name}/${data.year}/${data.ref_no}_${fileName}`;
 
-                    const fileBlob = new Blob([item.summary_report_file], { type: "application/pdf" });
+                //     const fileBlob = new Blob([item.summary_report_file], { type: "application/pdf" });
 
-                    const { error: uploadError } = await supabase.storage
-                        .from(BUCKET_NAME_SITE_CLAIM)
-                        .upload(filePath, fileBlob);
+                //     const { error: uploadError } = await supabase.storage
+                //         .from(BUCKET_NAME_SITE_CLAIM)
+                //         .upload(filePath, fileBlob);
 
-                    if (uploadError) {
-                        console.error("Error uploading summary_report_file:", uploadError);
-                        throw new Error("Failed to upload summary_report_file");
-                    }
+                //     if (uploadError) {
+                //         console.error("Error uploading summary_report_file:", uploadError);
+                //         throw new Error("Failed to upload summary_report_file");
+                //     }
 
-                    // Insert into nd_claim_attachment
-                    const { error: attachmentError } = await supabase
-                        .from("nd_claim_attachment")
-                        .insert({
-                            request_id: requestId,
-                            claim_type_id: 2, // Summary report
-                            file_path: filePath,
-                        });
+                //     // Insert into nd_claim_attachment
+                //     const { error: attachmentError } = await supabase
+                //         .from("nd_claim_attachment")
+                //         .insert({
+                //             request_id: requestId,
+                //             claim_type_id: 2, // Summary report
+                //             file_path: filePath,
+                //         });
 
-                    if (attachmentError) {
-                        console.error("Error inserting summary_report_file into nd_claim_attachment:", attachmentError);
-                        throw new Error("Failed to insert summary_report_file into nd_claim_attachment");
-                    }
-                }
+                //     if (attachmentError) {
+                //         console.error("Error inserting summary_report_file into nd_claim_attachment:", attachmentError);
+                //         throw new Error("Failed to insert summary_report_file into nd_claim_attachment");
+                //     }
+                // }
 
                 // Step 3.3: Upload suppport_doc_file to storage
                 if (item.suppport_doc_file && item.suppport_doc_file.length > 0) {

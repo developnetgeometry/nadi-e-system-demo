@@ -1536,6 +1536,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           date_paid: string | null
+          end_date: string | null
           id: number
           month: number | null
           noa: string | null
@@ -1543,6 +1544,7 @@ export type Database = {
           phase_id: number | null
           quarter: number | null
           ref_no: string | null
+          start_date: string | null
           tp_dusp_id: string | null
           updated_at: string | null
           updated_by: string | null
@@ -1554,6 +1556,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           date_paid?: string | null
+          end_date?: string | null
           id?: number
           month?: number | null
           noa?: string | null
@@ -1561,6 +1564,7 @@ export type Database = {
           phase_id?: number | null
           quarter?: number | null
           ref_no?: string | null
+          start_date?: string | null
           tp_dusp_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -1572,6 +1576,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           date_paid?: string | null
+          end_date?: string | null
           id?: number
           month?: number | null
           noa?: string | null
@@ -1579,6 +1584,7 @@ export type Database = {
           phase_id?: number | null
           quarter?: number | null
           ref_no?: string | null
+          start_date?: string | null
           tp_dusp_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -6391,6 +6397,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          finance_item_id: string | null
           id: string
           member_id: number | null
           remarks: string | null
@@ -6402,6 +6409,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          finance_item_id?: string | null
           id?: string
           member_id?: number | null
           remarks?: string | null
@@ -6413,6 +6421,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          finance_item_id?: string | null
           id?: string
           member_id?: number | null
           remarks?: string | null
@@ -6421,7 +6430,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "finance_item_id_fk"
+            columns: ["finance_item_id"]
+            isOneToOne: false
+            referencedRelation: "nd_finance_report_item"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_pos_transaction_item: {
         Row: {
@@ -7852,6 +7869,64 @@ export type Database = {
           },
         ]
       }
+      nd_site_local_authority: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          file_path: string[] | null
+          id: number
+          site_profile_id: number | null
+          start_date: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          file_path?: string[] | null
+          id?: number
+          site_profile_id?: number | null
+          start_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          file_path?: string[] | null
+          id?: number
+          site_profile_id?: number | null
+          start_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_site_local_authority_site_profile_id_fkey"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_local_authority_site_profile_id_fkey"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_site_local_authority_site_profile_id_fkey"
+            columns: ["site_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_site_operation: {
         Row: {
           close_time: string | null
@@ -7951,7 +8026,6 @@ export type Database = {
           state_id: number | null
           technology: number | null
           total_population: number | null
-          type_of_nadi: string | null
           updated_at: string | null
           updated_by: string | null
           ust_id: number | null
@@ -7995,7 +8069,6 @@ export type Database = {
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
-          type_of_nadi?: string | null
           updated_at?: string | null
           updated_by?: string | null
           ust_id?: number | null
@@ -8039,7 +8112,6 @@ export type Database = {
           state_id?: number | null
           technology?: number | null
           total_population?: number | null
-          type_of_nadi?: string | null
           updated_at?: string | null
           updated_by?: string | null
           ust_id?: number | null
@@ -9416,6 +9488,44 @@ export type Database = {
             columns: ["staff_id"]
             isOneToOne: false
             referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_staff_payroll_attachment: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          file_path: string | null
+          id: string
+          staff_payroll_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_payroll_attachment_nd_staff_payroll_fk"
+            columns: ["staff_payroll_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_payroll"
             referencedColumns: ["id"]
           },
         ]

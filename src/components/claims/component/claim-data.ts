@@ -23,7 +23,9 @@ export const useFetchClaimById = (id: number) => {
             noa,
             date_paid,
             payment_status,
-            tp_dusp_id (id, name, parent_id (id, name, logo_url, description))
+            tp_dusp_id (id, name, parent_id (id, name, logo_url, description)),
+            start_date,
+            end_date
           `)
           .eq("id", id)
           .single();

@@ -33,6 +33,7 @@ type ClaimData = {
   phase_id: number;
   claim_type: string;
   category_ids: CategoryData[];
+  is_site_empty: boolean;
 };
 
 type ClaimApplicationFormProps = ClaimData & {
@@ -43,6 +44,7 @@ export function ClaimApplicationForm({
   phase_id,
   claim_type,
   category_ids,
+  is_site_empty,
   updateFields,
 }: ClaimApplicationFormProps) {
   const { categories } = useClaimCategorySimple();
@@ -97,6 +99,14 @@ export function ClaimApplicationForm({
     );
   };
 
+  useEffect(() => {
+    const hasEmptySiteIds = category_ids.some(category =>
+      category.item_ids.some(item => item.site_ids.length === 0)
+    );
+
+    updateFields({ is_site_empty: hasEmptySiteIds });
+  }, [category_ids, updateFields]);
+
   const toggleAllSites = (checked: boolean) => {
     setTempSelectedSites(checked ? sites.map((site) => site.id) : []);
   };
@@ -136,7 +146,8 @@ export function ClaimApplicationForm({
   return (
     <div>
       <header className="mb-4">Phase, Items, & Sites</header>
-      {/* <pre>{JSON.stringify(category_ids, null, 2)}</pre> */}
+      <pre>{JSON.stringify(category_ids, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(is_site_empty, null, 2)}</pre> */}
 
       {/* Phase Selection */}
       <div className="space-y-2 mb-4">
