@@ -37,9 +37,9 @@ const AgreementOverviewPage = lazy(() => import("@/pages/dashboard/site/Agreemen
 const AgreementFormPage = lazy(() => import("@/components/site/component/AgreementForm"));
 const AuditOverviewPage = lazy(() => import("@/pages/dashboard/site/Audit"));
 const AuditFormPage = lazy(() => import("@/components/site/component/AuditForm"));
+const LocalAuthorityOverviewPage = lazy(() => import("@/pages/dashboard/site/LocalAuthority"));
+const LocalAuthorityFormPage = lazy(() => import("@/components/site/component/LocalAuthorityForm"));
 
-// test table page showcasing table features
-const TestTablePage = lazy(() => import("@/pages/dashboard/test-table"));
 
 export const siteRoutes = [
   {
@@ -223,11 +223,21 @@ export const siteRoutes = [
     ),
   },
   {
-    path: "/test-table",
+    path: "/site-management/local-authority",
     element: (
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
-        <TestTablePage />
+        <LocalAuthorityOverviewPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/local-authority/form/:id?",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <LocalAuthorityFormPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),
