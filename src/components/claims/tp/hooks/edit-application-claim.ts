@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { deleteAttachment } from "../../hook/upload-attachment";
 
 
 export const updateClaimApplication = async (id: number, phase_id: number) => {
@@ -82,8 +83,53 @@ type DeleteClaimRequestData = {
     application_id: number;
 };
 
+
 export const deleteClaimRequest = async (data: DeleteClaimRequestData) => {
     try {
+        // First, get the nd_claim_request.id (requestId)
+        const { data: claimRequest, error: selectError } = await supabase
+            .from("nd_claim_request")
+            .select("id")
+            .match({
+                item_id: data.item_id,
+                application_id: data.application_id,
+            })
+            .single();
+
+        if (selectError) {
+            console.error("Error selecting claim request:", selectError);
+            throw new Error("Failed to find claim request");
+        }
+
+        if (!claimRequest) {
+            console.error("No claim request found for the given item_id and application_id");
+            throw new Error("Claim request not found");
+        }
+
+        const requestId = claimRequest.id;
+
+        // Get all attachment IDs where request_id = requestId
+        const { data: attachments, error: attachmentError } = await supabase
+            .from("nd_claim_attachment")
+            .select("id")
+            .eq("request_id", requestId);
+
+        if (attachmentError) {
+            console.error("Error fetching attachments:", attachmentError);
+            throw new Error("Failed to fetch attachments");
+        }
+
+        // Delete all attachments if they exist
+        if (attachments && attachments.length > 0) {
+            const fileIds = attachments.map(attachment => attachment.id);
+            
+            // Delete each attachment using the exported function
+            for (const fileId of fileIds) {
+                await deleteAttachment(fileId);
+            }
+        }
+
+        // Finally, delete the nd_claim_request
         const { error: deleteError } = await supabase
             .from("nd_claim_request")
             .delete()
