@@ -31,7 +31,7 @@ import Refresh from "../template/Training/Refresh";
 import Maintenance from "../template/ComprehensiveMaintenance/Maintenance";
 import SmartService from "../template/SmartServices/SmartService";
 import FrontPage from "../template/component/FrontPage";
-import Appendix from "../template/component/Appendix";
+import AppendixBlob from "../template/component/AppendixBlob";
 
 type CategoryData = {
     id: number;
@@ -43,7 +43,6 @@ type CategoryData = {
         need_summary_report: boolean;
         suppport_doc_file: File[] | null;
         summary_report_file: File | null;
-        status_item: boolean;
         remark: string;
         site_ids: number[];
     }[];
@@ -433,12 +432,14 @@ export function ClaimAttachmentForm({
 
     const handleDownloadAllReports = async () => {
         setIsDownloading(true);
+        const generatedUrls: string[] = [];
+
         try {
             const pdfDoc = await PDFDocument.create();
 
             // Add the FrontPage as the first page
             const frontPageFile = await FrontPage({
-                duspName: dusp_description, // Adjust this based on your data structure
+                duspName: dusp_description,
                 claimType: claim_type,
                 year: year,
                 quarter: quarter,
@@ -452,12 +453,12 @@ export function ClaimAttachmentForm({
 
             // Simulate progress
             let newProgress = 0;
-            const num1 = Math.floor(category_ids.length * 0.8);
-            const num2 = Math.floor(category_ids.length * 0.2);
+            const totalCategories = category_ids.length;
+            const num1 = Math.floor(totalCategories * 0.8);
+            const num2 = totalCategories - num1;
 
-            const increment1 = 80 / num1;
-            const increment2 = 20 / num2;
-
+            const increment1 = num1 === 0 ? 0 : 80 / num1;
+            const increment2 = num2 === 0 ? 0 : 20 / num2;
 
             // Generate and add summary reports
             for (const category of category_ids) {
@@ -465,7 +466,6 @@ export function ClaimAttachmentForm({
                     if (item.need_summary_report) {
                         setProgressAll(Math.min(newProgress, 80));
                         newProgress += increment1;
-
 
                         const reportFile = await generateReportForItem(item.id);
 
@@ -486,14 +486,19 @@ export function ClaimAttachmentForm({
                         setProgressAll(Math.min(newProgress, 100));
                         newProgress += increment2;
 
-                        const appendixFile = await Appendix({
+                        // Convert File objects to proper attachment format
+                        const attachments = item.suppport_doc_file.map((file) => ({
+                            file: file, // Pass the File object directly
+                            name: file.name,
+                            description: `Supporting Document for ${item.name}`,
+                        }));
+
+                        const appendixFile = await AppendixBlob({
                             appendixNumber: "APPENDIX",
                             title: item.name,
-                            attachments: item.suppport_doc_file.map((file) => ({
-                                path: file.name, // Using file.name since we have File objects, not file paths
-                                description: `Supporting Document for ${item.name}`,
-                            })),
+                            attachments: attachments,
                         });
+
                         const appendixBytes = await appendixFile.arrayBuffer();
                         const appendixPdf = await PDFDocument.load(appendixBytes);
                         const appendixPages = await pdfDoc.copyPages(appendixPdf, appendixPdf.getPageIndices());
@@ -510,7 +515,7 @@ export function ClaimAttachmentForm({
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Combined-Report-${claim_type}-${year}-Q${quarter}.pdf`;
+            link.download = `ClaimData_Combined_Report.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -519,10 +524,13 @@ export function ClaimAttachmentForm({
         } catch (error) {
             console.error('Error creating combined report:', error);
         } finally {
+            // Clean up blob URLs created for file attachments
+            generatedUrls.forEach(url => URL.revokeObjectURL(url));
             setIsDownloading(false);
             setProgressAll(0);
         }
     };
+
 
 
 
@@ -539,6 +547,7 @@ export function ClaimAttachmentForm({
                     {isDownloading ? 'Generating Combined Report...' : 'Download All Combined Report'}
                 </Button>
             </div>
+            {/* <pre>{JSON.stringify(category_ids, null, 2)}</pre> */}
 
             {isDownloading && (
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded">

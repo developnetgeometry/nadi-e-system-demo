@@ -19,24 +19,31 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import useClaimCategorySimple from "../../hook/use-claim-categoy-simple";
 import { useSiteByPhase } from "../../hook/use-claim-data";
-
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { deleteClaimRequest, updateClaimApplication, upsertClaimRequest } from "../../tp/hooks/edit-application-claim";
 
 
 interface ApplicationEditTabProps {
     claimData: any;
     onDataChange: (hasChanges: boolean) => void;
+    refetch: () => void;
 }
 
-const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDataChange }) => {
+const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDataChange, refetch }) => {
     const { categories } = useClaimCategorySimple();
     const { phases, fetchSitesByPhase } = useSiteByPhase();
     const [sites, setSites] = useState<{ id: number; name: string; refid_mcmc: string; refid_tp: string }[]>([]);
     const [selectedItem, setSelectedItem] = useState<{ categoryId: number; itemId: number } | null>(null);
     const [tempSelectedSites, setTempSelectedSites] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const [loading, setLoading] = useState(false);
 
     // Helper function to map claimData.requests to category_ids format
     const mapRequestsToCategoryIds = (requests: any[], categories: any[]) => {
@@ -177,10 +184,76 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
         }
     };
 
-    const handleSave = () => {
-        // TODO: Implement save functionality
-        console.log("Saving changes:", formData);
-        onDataChange(false); // Reset changes state after save
+
+    const handleSave = async () => {
+        try {
+            setLoading(true);
+            if (claimData && formData) {
+                // Create arrays for upsert and delete operations
+                const upsertPromises = [];
+                const deletePromises = [];
+
+                // First, update the main claim application
+                await updateClaimApplication(claimData.id, formData.phase_id);
+
+                // Then, handle upserts for current formData
+                for (const category of formData.category_ids) {
+                    for (const item of category.item_ids) {
+                        upsertPromises.push(
+                            upsertClaimRequest({
+                                category_id: category.id,
+                                application_id: claimData.id,
+                                item_id: item.id,
+                                site_ids: item.site_ids,
+                            })
+                        );
+                    }
+                }
+
+                // Then, identify items to delete by comparing originalData with formData
+                for (const originalCategory of originalData.category_ids) {
+                    for (const originalItem of originalCategory.item_ids) {
+                        // Check if this item still exists in formData
+                        const stillExists = formData.category_ids.some(formCategory =>
+                            formCategory.id === originalCategory.id &&
+                            formCategory.item_ids.some(formItem => formItem.id === originalItem.id)
+                        );
+
+                        // If item doesn't exist in formData, delete it
+                        if (!stillExists) {
+                            deletePromises.push(
+                                deleteClaimRequest({
+                                    item_id: originalItem.id,
+                                    application_id: claimData.id,
+                                })
+                            );
+                        }
+                    }
+                }
+
+                // Execute all operations concurrently
+                await Promise.all([
+                    ...upsertPromises,
+                    ...deletePromises
+                ]);
+
+                toast({ title: "Success", description: "Claim updated successfully." });
+
+                // Invalidate the query to refresh the ClaimList
+                queryClient.invalidateQueries({ queryKey: ["claimStats"] });
+                queryClient.invalidateQueries({ queryKey: ["fetchClaimTP"] });
+                queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
+
+                // Refresh the current data
+                refetch();
+            }
+        } catch (error) {
+            console.error("Error saving claim:", error);
+            toast({ title: "Error", description: "Failed to update claim.", variant: "destructive" });
+        } finally {
+            setLoading(false);
+            handleReset();
+        }
     };
 
     const handleReset = () => {
@@ -196,14 +269,24 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                     <Button variant="outline" onClick={handleReset}>
                         Revert
                     </Button>
-                    <Button onClick={handleSave}>
-                        Save Changes
+                    <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <div className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Saving...
+                            </div>
+                        ) : (
+                            "Save Changes"
+                        )}
                     </Button>
                 </div>
             </div>
-            {/* <pre>{JSON.stringify(claimData.requests, null, 2)}</pre> */}
-            <pre>{JSON.stringify(formData.category_ids, null, 2)}</pre>
-            <pre>{JSON.stringify(originalData.category_ids, null, 2)}</pre>
+            {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(formData, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(originalData.category_ids, null, 2)}</pre> */}
 
             {/* Phase Selection */}
             <div className="space-y-2">

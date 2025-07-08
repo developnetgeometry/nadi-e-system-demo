@@ -24,7 +24,6 @@ type CategoryData = {
     need_summary_report: boolean;
     summary_report_file: File | null; // New state for the support document
     suppport_doc_file: File[] | null; // New state for the summary report
-    status_item: boolean;
     remark: string;
     site_ids: number[];
   }[];

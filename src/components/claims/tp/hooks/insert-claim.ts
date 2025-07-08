@@ -7,7 +7,6 @@ type ItemData = {
     need_summary_report: boolean;
     summary_report_file: File | null;
     suppport_doc_file: File[] | null;
-    status_item: boolean;
     remark: string;
     site_ids: number[];
 };
@@ -80,7 +79,6 @@ export const insertClaimData = async (data: FormData) => {
                     .insert({
                         category_id: category.id,
                         item_id: item.id,
-                        status_item: item.status_item ?? false,
                         remark: item.remark,
                         site_ids: item.site_ids,
                         created_by: createdBy,

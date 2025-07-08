@@ -48,7 +48,7 @@ export const useFetchClaimById = (id: number) => {
             application_id
           `)
           .eq("application_id", id)
-          .order("id", { ascending: true });
+          .order("item_id", { ascending: true });
 
         if (claimReqError) {
           console.error("Error fetching nd_claim_request:", claimReqError);

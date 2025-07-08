@@ -146,7 +146,7 @@ export function ClaimApplicationForm({
   return (
     <div>
       <header className="mb-4">Phase, Items, & Sites</header>
-      <pre>{JSON.stringify(category_ids, null, 2)}</pre>
+      {/* <pre>{JSON.stringify(category_ids, null, 2)}</pre> */}
       {/* <pre>{JSON.stringify(is_site_empty, null, 2)}</pre> */}
 
       {/* Phase Selection */}
