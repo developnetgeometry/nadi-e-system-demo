@@ -23,6 +23,7 @@ import SettingsExample from "@/pages/examples/SettingsExample";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import EventRegistrationPage from "./pages/dashboard/programmes/EventRegistrationPage";
+import TestTablePage from "@/pages/dashboard/test-table";
 
 const queryClient = new QueryClient();
 
@@ -42,9 +43,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/member-login" element={<MemberLogin />} />
               <Route path="/register" element={<Register />} />
               <Route path="/ui-components" element={<UIComponents />} />
+              <Route path="/test-table" element={<TestTablePage />} />       
 
               {/* Example Pages */}
               <Route path="/examples/home" element={<HomeExample />} />
