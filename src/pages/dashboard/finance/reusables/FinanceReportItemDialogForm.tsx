@@ -178,7 +178,7 @@ export const FinanceReportItemDialogForm = ({
                             Add Transaction
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px] h-screen overflow-y-scroll">
+                    <DialogContent className="sm:max-w-[425px] max-h-screen overflow-y-scroll">
                         <DialogHeader>
                             <DialogTitle>Add New Daily Transaction</DialogTitle>
                         </DialogHeader>
@@ -229,7 +229,7 @@ export const FinanceReportItemDialogForm = ({
                                     rules={{ required: "Date is required" }}
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                            <FormLabel>Date of birth</FormLabel>
+                                            <FormLabel>Date</FormLabel>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>

@@ -10,7 +10,7 @@ export const financeClient = {
         if (error) {
             console.error(error);
             throw error;
-        }; 
+        };
         return data;
     },
 
@@ -193,7 +193,11 @@ export const financeClient = {
         const to = from + perPage - 1;
         const { data, error } = await supabase
             .from("nd_finance_report_item")
-            .select(`*, nd_finance_income_type(*), nd_finance_expense_type(*), nd_finance_report(*, nd_site_profile(*))`)
+            .select(`*, 
+                nd_finance_income_type(*), 
+                nd_finance_expense_type(*), 
+                nd_finance_report(*, nd_site_profile(*)),
+                nd_pos_transaction(*)`)
             .eq("finance_report_id", reportId)
             .range(from, to);
         if (error) {
@@ -205,14 +209,16 @@ export const financeClient = {
     },
 
     postNewFinanceTransactionItem: async (data: any) => {
-        const { error } = await supabase
+        const { data: newData, error } = await supabase
             .from("nd_finance_report_item")
             .insert(data)
+            .select("*")
+            .maybeSingle();
         if (error) {
             console.error(error);
             throw error;
         };
-        return data;
+        return newData;
     },
 
     updateFinanceReportStatus: async (reportId: string, status: string, balanceForward?: number) => {
@@ -245,25 +251,25 @@ export const financeClient = {
             const balance_forward = balanceForward;
             const created_at = new Date().toISOString();
             const { data: status_id, error: status_id_error } = await supabase
-            .from("nd_finance_report_status")
-            .select("id")
-            .eq("status", "editing")
-            .maybeSingle();
+                .from("nd_finance_report_status")
+                .select("id")
+                .eq("status", "editing")
+                .maybeSingle();
 
             if (status_id_error) {
                 console.error(status_id_error);
                 throw status_id_error;
             }
             const { error: createNewReportError } = await supabase
-            .from("nd_finance_report")
-            .insert({
-                status_id: status_id?.id,
-                site_id: data.site_id,
-                month,
-                year,
-                balance_forward,
-                created_at
-            });
+                .from("nd_finance_report")
+                .insert({
+                    status_id: status_id?.id,
+                    site_id: data.site_id,
+                    month,
+                    year,
+                    balance_forward,
+                    created_at
+                });
 
             if (createNewReportError) {
                 console.error(createNewReportError);
@@ -316,7 +322,7 @@ export const financeClient = {
         return data;
     },
 
-    uploadFile: async (file: File) =>  {
+    uploadFile: async (file: File) => {
         const bucket = "finance-report";
         const filePath = `${Date.now()}-${file.name}-${crypto.randomUUID()}`;
 
@@ -388,6 +394,59 @@ export const financeClient = {
             .eq("month", month)
             .eq("year", year)
             .eq("site_id", siteId)
+            .maybeSingle();
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        return data;
+    },
+
+    getPosTransactionItemByTransactionId: async (transactionId: string) => {
+        const { data, error } = await supabase
+            .from("nd_pos_transaction_item")
+            .select("*")
+            .eq("transaction_id", transactionId);
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        const mergedData = [];
+        for (const item of data) {
+            const { data: inventoryData, error: inventoryError } = await supabase
+                .from("nd_inventory")
+                .select(`*, nd_inventory_attachment(*)`)
+                .eq("id", item?.item_id);
+            if (inventoryError) {
+                console.error(inventoryError);
+                throw inventoryError;
+            };
+            mergedData.push({
+                ...item,
+                inventory: inventoryData
+            });
+        }
+        return mergedData;
+    },
+
+    getMemberProfileById: async (memberId: number) => {
+        const { data, error } = await supabase
+            .from("nd_member_profile")
+            .select("*")
+            .eq("id", memberId)
+            .maybeSingle();
+        if (error) {
+            console.error(error);
+            throw error;
+        };
+        return data;
+    },
+
+    getInventoryById: async (inventoryId: number) => {
+        const { data, error } = await supabase
+            .from("nd_inventory")
+            .select(`*, nd_inventory_attachment(*)`)
+            .eq("id", inventoryId)
             .maybeSingle();
         if (error) {
             console.error(error);
