@@ -155,7 +155,7 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
               <TabsContent value="report_edit">
                 <>
                   <div className="border border-gray-300 rounded-md p-4 shadow-sm">
-                    <ReportEditTab claimData={claimData} onDataChange={setIsEditChanged}/>
+                    <ReportEditTab claimData={claimData} onDataChange={setIsEditChanged} refetch={refetch}/>
                   </div>
                 </>
               </TabsContent>

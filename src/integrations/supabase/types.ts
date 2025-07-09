@@ -1749,6 +1749,7 @@ export type Database = {
           id: number
           is_active: boolean | null
           name: string | null
+          need_appendix: boolean | null
           need_summary_report: boolean | null
           need_support_doc: boolean | null
           updated_at: string | null
@@ -1763,6 +1764,7 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           name?: string | null
+          need_appendix?: boolean | null
           need_summary_report?: boolean | null
           need_support_doc?: boolean | null
           updated_at?: string | null
@@ -1777,6 +1779,7 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           name?: string | null
+          need_appendix?: boolean | null
           need_summary_report?: boolean | null
           need_support_doc?: boolean | null
           updated_at?: string | null

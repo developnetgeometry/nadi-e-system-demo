@@ -59,6 +59,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                     name: requestItem.item.name,
                     need_support_doc: requestItem.item.need_support_doc,
                     need_summary_report: requestItem.item.need_summary_report,
+                    need_appendix: requestItem.item.need_appendix,
                     site_ids: requestItem.item.site_ids
                 }))
             };
@@ -240,8 +241,6 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                 toast({ title: "Success", description: "Claim updated successfully." });
 
                 // Invalidate the query to refresh the ClaimList
-                queryClient.invalidateQueries({ queryKey: ["claimStats"] });
-                queryClient.invalidateQueries({ queryKey: ["fetchClaimTP"] });
                 queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
 
                 // Refresh the current data
@@ -252,7 +251,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
             toast({ title: "Error", description: "Failed to update claim.", variant: "destructive" });
         } finally {
             setLoading(false);
-            handleReset();
+            onDataChange(false);
         }
     };
 
@@ -284,8 +283,8 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                     </Button>
                 </div>
             </div>
-            {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
-            {/* <pre>{JSON.stringify(formData, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(claimData.requests, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(formData.category_ids, null, 2)}</pre> */}
             {/* <pre>{JSON.stringify(originalData.category_ids, null, 2)}</pre> */}
 
             {/* Phase Selection */}
@@ -334,6 +333,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                                                 name: item.name,
                                                 need_support_doc: item.need_support_doc,
                                                 need_summary_report: item.need_summary_report,
+                                                need_appendix: item.need_appendix,
                                                 site_ids: sites.map((site) => site.id),
                                             })),
                                         }))
@@ -389,6 +389,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                                                                         name: item.name,
                                                                         need_support_doc: item.need_support_doc,
                                                                         need_summary_report: item.need_summary_report,
+                                                                        need_appendix: item.need_appendix,
                                                                         site_ids: sites.map((site) => site.id),
                                                                     }));
 
@@ -412,6 +413,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                                                                                 name: item.name,
                                                                                 need_support_doc: item.need_support_doc,
                                                                                 need_summary_report: item.need_summary_report,
+                                                                                need_appendix: item.need_appendix,
                                                                                 site_ids: sites.map((site) => site.id),
                                                                             })),
                                                                         },
@@ -483,6 +485,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                                                                                         name: item.name,
                                                                                         need_support_doc: item.need_support_doc,
                                                                                         need_summary_report: item.need_summary_report,
+                                                                                        need_appendix: item.need_appendix,
                                                                                         site_ids: sites.map((site) => site.id),
                                                                                     },
                                                                                 ],
@@ -501,6 +504,7 @@ const ApplicationEditTab: React.FC<ApplicationEditTabProps> = ({ claimData, onDa
                                                                                     name: item.name,
                                                                                     need_support_doc: item.need_support_doc,
                                                                                     need_summary_report: item.need_summary_report,
+                                                                                    need_appendix: item.need_appendix,
                                                                                     site_ids: sites.map((site) => site.id),
                                                                                 },
                                                                             ],

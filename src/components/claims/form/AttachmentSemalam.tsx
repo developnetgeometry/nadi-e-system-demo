@@ -7,14 +7,31 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { PDFDocument } from "pdf-lib";
 import { Button } from "@/components/ui/button";
 import { Download, RefreshCw, Trash2 } from "lucide-react";
 import { Progress } from "@radix-ui/react-progress";
 import { Textarea } from "@/components/ui/textarea";
-import { PDFDocument } from "pdf-lib";
+import Audit from "../template/SiteManagement/Audit";
+import Salary from "../template/Salary&HRManagement/Salary";
+import PerformanceIncentive from "../template/Salary&HRManagement/PerformanceIncentive";
+import ManPower from "../template/Salary&HRManagement/ManpowerManagement";
+import LocalAuthority from "../template/SiteManagement/LocalAuthority";
+import Insurance from "../template/SiteManagement/SiteInsurance";
+import Agreement from "../template/SiteManagement/SiteAgreement";
+import Utilities from "../template/SiteManagement/Utilities";
+import AwarenessPromotion from "../template/SiteManagement/Awareness&Promotion";
+import CMS from "../template/NADIeSystem/CMS";
+import PortalWebService from "../template/NADIeSystem/Portal&WebService";
+import ManageInternetService from "../template/InternetAccess/ManageInternetService";
+import NMS from "../template/InternetAccess/NMS";
+import Monitoring from "../template/InternetAccess/Monitoring&Reporting";
+import Upscaling from "../template/Training/Upscaling";
+import Refresh from "../template/Training/Refresh";
+import Maintenance from "../template/ComprehensiveMaintenance/Maintenance";
+import SmartService from "../template/SmartServices/SmartService";
 import FrontPage from "../template/component/FrontPage";
 import AppendixBlob from "../template/component/AppendixBlob";
-import { generateReportByItemId } from "../hook/getGenerateReport";
 
 type CategoryData = {
     id: number;
@@ -24,14 +41,13 @@ type CategoryData = {
         name: string;
         need_appendix: boolean;
         need_summary_report: boolean;
-        need_support_doc: boolean;
-        appendix_file: File[] | null; // New state for the appendix document
-        summary_report_file: File | null; // New state for the support document
-        suppport_doc_file: File[] | null; // New state for the summary report
+        appendix_file: File[] | null;
+        suppport_doc_file: File[] | null;
         remark: string;
         site_ids: number[];
     }[];
-}
+};
+
 type ClaimData = {
     claim_type: string;
     year: number;
@@ -41,8 +57,9 @@ type ClaimData = {
     end_date: string;
     ref_no: string;
     tp_dusp_id: string;
+    dusp_name: string;
+    dusp_description: string; // Optional field for description
     dusp_id: string;
-    dusp_description: string;
     dusp_logo: string;
     phase_id: number;
     category_ids: CategoryData[];
@@ -62,8 +79,9 @@ export function ClaimAttachmentForm({
     end_date,
     ref_no,
     tp_dusp_id,
+    dusp_name,
+    dusp_description, // Optional field for description
     dusp_id,
-    dusp_description,
     dusp_logo,
     phase_id,
     category_ids,
@@ -117,7 +135,45 @@ export function ClaimAttachmentForm({
         let generatedFile: File | null = null;
 
         try {
-            return await generateReportByItemId(itemId, reportData);
+            if (itemId === 1) {
+                generatedFile = await Salary(reportData);
+            } else if (itemId === 2) {
+                generatedFile = await PerformanceIncentive(reportData);
+            } else if (itemId === 3) {
+                generatedFile = await ManPower(reportData);
+            } else if (itemId === 4) {
+                generatedFile = await LocalAuthority(reportData);
+            } else if (itemId === 5) {
+                generatedFile = await Insurance(reportData);
+            } else if (itemId === 6) {
+                generatedFile = await Audit(reportData);
+            } else if (itemId === 7) {
+                generatedFile = await Agreement(reportData);
+            } else if (itemId === 9) {
+                generatedFile = await Utilities(reportData);
+            } else if (itemId === 11) {
+                generatedFile = await AwarenessPromotion(reportData);
+            } else if (itemId === 13) {
+                generatedFile = await CMS(reportData);
+            } else if (itemId === 14) {
+                generatedFile = await PortalWebService(reportData);
+            } else if (itemId === 15) {
+                generatedFile = await ManageInternetService(reportData);
+            } else if (itemId === 16) {
+                generatedFile = await NMS(reportData);
+            } else if (itemId === 17) {
+                generatedFile = await Monitoring(reportData);
+            } else if (itemId === 18) {
+                generatedFile = await Upscaling(reportData);
+            } else if (itemId === 19) {
+                generatedFile = await Refresh(reportData);
+            } else if (itemId === 20) {
+                generatedFile = await Maintenance(reportData);
+            } else if (itemId === 24) {
+                generatedFile = await SmartService(reportData);
+            }
+
+            return generatedFile;
         } catch (error) {
             console.error(`Error generating report for item ${itemId}:`, error);
             return null;
@@ -254,6 +310,8 @@ export function ClaimAttachmentForm({
             for (const category of category_ids) {
                 for (const item of category.item_ids) {
                     if (item.need_summary_report) {
+                        setProgressAll(Math.min(newProgress, 80));
+                        newProgress += increment1;
 
                         const reportFile = await generateReportForItem(item.id);
 
@@ -263,37 +321,19 @@ export function ClaimAttachmentForm({
                             const reportPages = await pdfDoc.copyPages(reportPdf, reportPdf.getPageIndices());
                             reportPages.forEach((page) => pdfDoc.addPage(page));
                         }
-
-                        setProgressAll(Math.min(newProgress, 80));
-                        newProgress += increment1;
                     }
-
-                    // // Add supporting documents for this item right after its summary report (per category)
-                    // if (item.suppport_doc_file?.length > 0) {
-                    //     for (const supportFile of item.suppport_doc_file) {
-                    //         try {
-                    //             const supportFileBytes = await supportFile.arrayBuffer();
-                    //             const supportPdf = await PDFDocument.load(supportFileBytes);
-                    //             const supportPages = await pdfDoc.copyPages(supportPdf, supportPdf.getPageIndices());
-                    //             supportPages.forEach((page) => pdfDoc.addPage(page));
-                    //         } catch (error) {
-                    //             console.error(`Error processing support document ${supportFile.name}:`, error);
-                    //             // Continue with next file if one fails
-                    //         }
-                    //     }
-                    // }
                 }
             }
 
-            // Add all appendix after items
+            // Add all attachments after items
             for (const category of category_ids) {
                 for (const item of category.item_ids) {
-                    if (item.appendix_file?.length > 0) {
+                    if (item.suppport_doc_file?.length > 0) {
                         setProgressAll(Math.min(newProgress, 100));
                         newProgress += increment2;
 
                         // Convert File objects to proper attachment format
-                        const attachments = item.appendix_file.map((file) => ({
+                        const attachments = item.suppport_doc_file.map((file) => ({
                             file: file, // Pass the File object directly
                             name: file.name,
                             description: `Appendix for ${item.name}`,
@@ -337,6 +377,9 @@ export function ClaimAttachmentForm({
         }
     };
 
+
+
+
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
@@ -368,10 +411,9 @@ export function ClaimAttachmentForm({
                     <TableRow>
                         <TableHead className="px-4 py-2 border">Category</TableHead>
                         <TableHead className="px-4 py-2 border">Items</TableHead>
-                        <TableHead className="px-10 py-2 text-center border">Summary Report</TableHead>
-                        <TableHead className="px-10 py-2 text-center border">Supporting Document</TableHead>
-                        <TableHead className="px-10 py-2 text-center border">Appendix</TableHead>
-                        <TableHead className="px-10 py-2 text-center border">Remark</TableHead>
+                        <TableHead className="px-4 py-2 text-center border">Summary Report</TableHead>
+                        <TableHead className="px-4 py-2 text-center border">Appendix</TableHead>
+                        <TableHead className="px-4 py-2 text-center border">Remark</TableHead>
                     </TableRow>
                 </TableHeader>
 
@@ -387,7 +429,6 @@ export function ClaimAttachmentForm({
                                 ) : null}
 
                                 <TableCell className="px-4 py-2 border">{item.name}</TableCell>
-
                                 <TableCell className="px-4 py-2 border text-center">
                                     {item.need_summary_report ? (
                                         generatingIndex === item.id ? (
@@ -428,7 +469,7 @@ export function ClaimAttachmentForm({
                                 </TableCell>
 
                                 <TableCell className="px-4 py-2 text-center border">
-                                    {item.need_support_doc ? (
+                                    {item.need_appendix ? (
                                         <div className="flex flex-col items-center gap-2">
                                             {item.suppport_doc_file?.length > 0 ? (
                                                 <div className="flex flex-col gap-2">
@@ -489,68 +530,6 @@ export function ClaimAttachmentForm({
                                     )}
                                 </TableCell>
 
-                                <TableCell className="px-4 py-2 text-center border">
-                                    {item.need_appendix ? (
-                                        <div className="flex flex-col items-center gap-2">
-                                            {item.appendix_file?.length > 0 ? (
-                                                <div className="flex flex-col gap-2">
-                                                    {item.appendix_file.map((file, idx) => (
-                                                        <div key={idx} className="flex items-center gap-2">
-                                                            <a
-                                                                href={URL.createObjectURL(file)}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-sm text-blue-600 underline"
-                                                            >
-                                                                {file.name}
-                                                            </a>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-6 w-6 text-red-600"
-                                                                onClick={() => {
-                                                                    const updatedFiles = item.appendix_file!.filter((_, i) => i !== idx);
-                                                                    item.appendix_file = updatedFiles.length ? updatedFiles : null;
-                                                                    updateFields({ category_ids: [...category_ids] }); // trigger re-render
-                                                                }}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <span className="text-gray-500">No Files</span>
-                                            )}
-
-                                            <div>
-                                                <input
-                                                    type="file"
-                                                    id={`appendixInput-${category.id}-${item.id}`}
-                                                    className="hidden"
-                                                    multiple
-                                                    onChange={(e) => {
-                                                        if (e.target.files) {
-                                                            const newFiles = Array.from(e.target.files);
-                                                            item.appendix_file = [...(item.appendix_file || []), ...newFiles];
-                                                            updateFields({ category_ids: [...category_ids] }); // trigger re-render
-                                                            e.target.value = ""; // reset input
-                                                        }
-                                                    }}
-                                                />
-                                                <label
-                                                    htmlFor={`appendixInput-${category.id}-${item.id}`}
-                                                    className="cursor-pointer text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-                                                >
-                                                    Upload File
-                                                </label>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <span className="text-gray-500">Not Required</span>
-                                    )}
-                                </TableCell>
-
                                 <TableCell className="px-4 py-2 border">
                                     <Textarea
                                         placeholder="Enter remark..."
@@ -567,7 +546,6 @@ export function ClaimAttachmentForm({
                         ))
                     )}
                 </TableBody>
-
             </Table>
         </div>
     );

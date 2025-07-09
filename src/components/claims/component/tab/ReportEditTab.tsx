@@ -12,18 +12,21 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Download, RefreshCw, Trash2 } from "lucide-react";
+import { Search, Download, RefreshCw, Trash2, Loader2 } from "lucide-react";
 import { Progress } from "@radix-ui/react-progress";
 import { Textarea } from "@/components/ui/textarea";
 import useClaimCategorySimple from "../../hook/use-claim-categoy-simple";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { updateClaimReport, updateRemark, uploadAttachment } from "../../tp/hooks/edit-reports-claim";
+import { deleteAttachment } from "../../hook/upload-attachment";
 interface ReportEditTabProps {
     claimData: any;
     onDataChange: (hasChanges: boolean) => void;
+    refetch: () => void;
 }
 
-const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange }) => {
+const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, refetch }) => {
     const { categories } = useClaimCategorySimple();
     const [generatingIndex, setGeneratingIndex] = useState<number | null>(null);
     const [progress, setProgress] = useState(0);
@@ -49,10 +52,12 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange }
                     name: requestItem.item.name,
                     need_support_doc: requestItem.item.need_support_doc,
                     need_summary_report: requestItem.item.need_summary_report,
+                    need_appendix: requestItem.item.need_appendix,
                     site_ids: requestItem.item.site_ids,
                     remark: requestItem.item.remark,
                     suppport_doc_file: requestItem.item.suppport_doc_file,
-                    summary_report_file: requestItem.item.summary_report_file
+                    summary_report_file: requestItem.item.summary_report_file,
+                    appendix_file: requestItem.item.appendix_file
                 }))
             };
         });
@@ -179,10 +184,129 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange }
         }
     };
 
-    const handleSave = () => {
-        // TODO: Implement save functionality
-        console.log("Saving changes:", formData);
-        onDataChange(false); // Reset changes state after save
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            // Step 1: Update claim report
+            await updateClaimReport(claimData.id);
+
+            // Step 2: Update remarks for all items
+            for (const category of formData.category_ids) {
+                for (const item of category.item_ids) {
+                    await updateRemark(item.request_id, item.remark || "");
+                }
+            }
+
+            // Step 3: Handle file deletions - compare original vs current and delete missing files
+            for (let categoryIndex = 0; categoryIndex < originalData.category_ids.length; categoryIndex++) {
+                const originalCategory = originalData.category_ids[categoryIndex];
+                const formCategory = formData.category_ids.find(cat => cat.id === originalCategory.id);
+
+                if (!formCategory) continue;
+
+                for (let itemIndex = 0; itemIndex < originalCategory.item_ids.length; itemIndex++) {
+                    const originalItem = originalCategory.item_ids[itemIndex];
+                    const formItem = formCategory.item_ids.find(itm => itm.id === originalItem.id);
+
+                    if (!formItem) continue;
+
+                    // Check for deleted support documents
+                    if (originalItem.suppport_doc_file?.length > 0) {
+                        for (const originalFile of originalItem.suppport_doc_file) {
+                            // Check if this file exists in current form data
+                            const fileStillExists = formItem.suppport_doc_file?.some(
+                                (formFile: any) => formFile.id === originalFile.id
+                            );
+
+                            if (!fileStillExists && originalFile.id) {
+                                await deleteAttachment(originalFile.id);
+                            }
+                        }
+                    }
+
+                    // Check for deleted appendix files
+                    if (originalItem.appendix_file?.length > 0) {
+                        for (const originalFile of originalItem.appendix_file) {
+                            // Check if this file exists in current form data
+                            const fileStillExists = formItem.appendix_file?.some(
+                                (formFile: any) => formFile.id === originalFile.id
+                            );
+
+                            if (!fileStillExists && originalFile.id) {
+                                await deleteAttachment(originalFile.id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 4: Upload new support documents
+            for (const category of formData.category_ids) {
+                for (const item of category.item_ids) {
+                    if (item.suppport_doc_file?.length > 0) {
+                        for (const file of item.suppport_doc_file) {
+                            // Only upload if it's a File object (new file), not an existing one with id
+                            if (file instanceof File) {
+                                await uploadAttachment(
+                                    file,
+                                    claimData.tp_dusp_id,
+                                    claimData.year,
+                                    claimData.ref_no,
+                                    item.request_id,
+                                    1 // claimTypeId for supporting document
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 5: Upload new appendix files
+            for (const category of formData.category_ids) {
+                for (const item of category.item_ids) {
+                    if (item.appendix_file?.length > 0) {
+                        for (const file of item.appendix_file) {
+                            // Only upload if it's a File object (new file), not an existing one with id
+                            if (file instanceof File) {
+                                await uploadAttachment(
+                                    file,
+                                    claimData.tp_dusp_id,
+                                    claimData.year,
+                                    claimData.ref_no,
+                                    item.request_id,
+                                    4 // claimTypeId for appendix
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Success feedback
+            toast({
+                title: "Success",
+                description: "Changes saved successfully!",
+            });
+
+            // Refresh data
+            queryClient.invalidateQueries({ queryKey: ["fetchClaimById"] });
+
+            // Reset changes state
+            onDataChange(false);
+
+            // Update originalData to match current formData (after successful save)
+            refetch();
+
+        } catch (error) {
+            console.error("Error saving changes:", error);
+            toast({
+                title: "Error",
+                description: "Failed to save changes. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleReset = () => {
@@ -193,19 +317,29 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange }
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-lg font-bold">Edit Claim Reports And Attachments (Draft)</h2>
+                <h2 className="text-lg font-bold">Edit Claim Application (Draft)</h2>
                 <div className="space-x-2">
                     <Button variant="outline" onClick={handleReset}>
                         Revert
                     </Button>
-                    <Button onClick={handleSave}>
-                        Save Changes
+                    <Button
+                        onClick={handleSave}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <div className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Saving...
+                            </div>
+                        ) : (
+                            "Save Changes"
+                        )}
                     </Button>
                 </div>
             </div>
 
-            {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
-            {/* <pre>{JSON.stringify(formData, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(claimData.requests, null, 2)}</pre> */}
+            {/* <pre>{JSON.stringify(formData.category_ids, null, 2)}</pre> */}
             {/* <pre>{JSON.stringify(originalData.category_ids, null, 2)}</pre> */}
 
             <div className="flex justify-between items-center mb-4">
@@ -236,9 +370,10 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange }
                     <TableRow>
                         <TableHead className="px-4 py-2 border">Category</TableHead>
                         <TableHead className="px-4 py-2 border">Items</TableHead>
-                        <TableHead className="px-4 py-2 text-center border">Summary Report</TableHead>
-                        <TableHead className="px-4 py-2 text-center border">Supporting Document</TableHead>
-                        <TableHead className="px-4 py-2 text-center border">Remark</TableHead>
+                        <TableHead className="px-10 py-2 text-center border">Summary Report</TableHead>
+                        <TableHead className="px-10 py-2 text-center border">Supporting Document</TableHead>
+                        <TableHead className="px-10 py-2 text-center border">Appendix</TableHead>
+                        <TableHead className="px-10 py-2 text-center border">Remark</TableHead>
                     </TableRow>
                 </TableHeader>
 
@@ -372,6 +507,95 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange }
                                                 />
                                                 <label
                                                     htmlFor={`fileInput-${category.id}-${item.id}`}
+                                                    className="cursor-pointer text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                                                >
+                                                    Upload File
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-500">Not Required</span>
+                                    )}
+                                </TableCell>
+
+                                <TableCell className="px-4 py-2 text-center border">
+                                    {item.need_appendix ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            {item.appendix_file?.length > 0 ? (
+                                                <div className="flex flex-col gap-2">
+                                                    {item.appendix_file.map((file, idx) => (
+                                                        <div key={idx} className="flex items-center gap-2">
+                                                            <a
+                                                                href={file.file_path}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-sm text-blue-600 underline"
+                                                            >
+                                                                View File {idx + 1}
+                                                            </a>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 text-red-600"
+                                                                onClick={() => {
+                                                                    const updatedCategoryIds = formData.category_ids.map(cat =>
+                                                                        cat.id === category.id
+                                                                            ? {
+                                                                                ...cat,
+                                                                                item_ids: cat.item_ids.map(itm =>
+                                                                                    itm.id === item.id
+                                                                                        ? {
+                                                                                            ...itm,
+                                                                                            appendix_file: itm.appendix_file?.filter((_, i) => i !== idx)
+                                                                                        }
+                                                                                        : itm
+                                                                                )
+                                                                            }
+                                                                            : cat
+                                                                    );
+                                                                    handleInputChange('category_ids', updatedCategoryIds);
+                                                                }}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-500">No Files</span>
+                                            )}
+
+                                            <div>
+                                                <input
+                                                    type="file"
+                                                    id={`appendixInput-${category.id}-${item.id}`}
+                                                    className="hidden"
+                                                    multiple
+                                                    onChange={(e) => {
+                                                        if (e.target.files) {
+                                                            const newFiles = Array.from(e.target.files);
+                                                            const updatedCategoryIds = formData.category_ids.map(cat =>
+                                                                cat.id === category.id
+                                                                    ? {
+                                                                        ...cat,
+                                                                        item_ids: cat.item_ids.map(itm =>
+                                                                            itm.id === item.id
+                                                                                ? {
+                                                                                    ...itm,
+                                                                                    appendix_file: [...(itm.appendix_file || []), ...newFiles]
+                                                                                }
+                                                                                : itm
+                                                                        )
+                                                                    }
+                                                                    : cat
+                                                            );
+                                                            handleInputChange('category_ids', updatedCategoryIds);
+                                                            e.target.value = "";
+                                                        }
+                                                    }}
+                                                />
+                                                <label
+                                                    htmlFor={`appendixInput-${category.id}-${item.id}`}
                                                     className="cursor-pointer text-sm text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
                                                 >
                                                     Upload File

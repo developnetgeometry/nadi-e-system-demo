@@ -3,10 +3,9 @@ import { BUCKET_NAME_SITE_CLAIM, supabase } from "@/integrations/supabase/client
 type ItemData = {
     id: number;
     name: string;
-    need_support_doc: boolean;
-    need_summary_report: boolean;
     summary_report_file: File | null;
     suppport_doc_file: File[] | null;
+    appendix_file: File[] | null; // New state for the appendix document
     remark: string;
     site_ids: number[];
 };
@@ -153,6 +152,39 @@ export const insertClaimData = async (data: FormData) => {
                         if (attachmentError) {
                             console.error("Error inserting suppport_doc_file into nd_claim_attachment:", attachmentError);
                             throw new Error("Failed to insert suppport_doc_file into nd_claim_attachment");
+                        }
+                    }
+                }
+
+                // Step 3.4: Upload appendix_file to storage
+                if (item.appendix_file && item.appendix_file.length > 0) {
+                    for (const file of item.appendix_file) {
+                        const fileName = `appendix_${Date.now()}_${file.name}`;
+                        const filePath = `${data.dusp_name}/${data.tp_name}/${data.year}/${data.ref_no}_${fileName}`;
+
+                        const fileBlob = new Blob([file], { type: file.type });
+
+                        const { error: uploadError } = await supabase.storage
+                            .from(BUCKET_NAME_SITE_CLAIM)
+                            .upload(filePath, fileBlob);
+
+                        if (uploadError) {
+                            console.error("Error uploading appendix_file:", uploadError);
+                            throw new Error("Failed to upload appendix_file");
+                        }
+
+                        // Insert into nd_claim_attachment
+                        const { error: attachmentError } = await supabase
+                            .from("nd_claim_attachment")
+                            .insert({
+                                request_id: requestId,
+                                claim_type_id: 4, // Appendix document
+                                file_path: filePath,
+                            });
+
+                        if (attachmentError) {
+                            console.error("Error inserting appendix_file into nd_claim_attachment:", attachmentError);
+                            throw new Error("Failed to insert appendix_file into nd_claim_attachment");
                         }
                     }
                 }

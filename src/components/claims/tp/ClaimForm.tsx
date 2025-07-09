@@ -20,8 +20,10 @@ type CategoryData = {
   item_ids: {
     id: number;
     name: string;
-    need_support_doc: boolean;
+    need_appendix: boolean;
     need_summary_report: boolean;
+    need_support_doc: boolean;
+    appendix_file: File[] | null; // New state for the appendix document
     summary_report_file: File | null; // New state for the support document
     suppport_doc_file: File[] | null; // New state for the summary report
     remark: string;
@@ -47,8 +49,6 @@ type FormData = {
   phase_id: number;
   category_ids: CategoryData[];
   is_finished_generate: boolean;
-  is_site_empty: boolean; // New field to indicate if the site is empty
-
 };
 
 const INITIAL_DATA: FormData = {
@@ -69,7 +69,6 @@ const INITIAL_DATA: FormData = {
   phase_id: null,
   category_ids: [], // Initialize as empty array
   is_finished_generate: false,
-  is_site_empty: false, // Initialize as false
 };
 
 const ClaimFormPage = () => {
@@ -165,20 +164,16 @@ const ClaimFormPage = () => {
       }
     }
 
-    if (currentStepIndex === 1) {
-      // if (!data.phase_id) {
-      //   showValidationError("Phase is required");
-      //   return;
-      // }
-      // if (data.category_ids.length === 0) {
-      //   showValidationError("At least one item is required");
-      //   return;
-      // }
-      if (data.is_site_empty) {
-        showValidationError("Site cannot be empty. Please select at least one site.");
-        return;
-      }
-    }
+    // if (currentStepIndex === 1) {
+    //   if (!data.phase_id) {
+    //     showValidationError("Phase is required");
+    //     return;
+    //   }
+    //   if (data.category_ids.length === 0) {
+    //     showValidationError("At least one item is required");
+    //     return;
+    //   }
+    // }
 
     // if (currentStepIndex === 2) {
     //   if (!data.is_finished_generate) {

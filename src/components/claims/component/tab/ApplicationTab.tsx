@@ -36,11 +36,13 @@ type ClaimData = {
         name: string;
         need_support_doc: boolean;
         need_summary_report: boolean;
+        need_appendix: boolean;
         status_item: boolean;
         remark: string | null;
         site_ids: number[];
         suppport_doc_file: { id: number; file_path: string }[];
         summary_report_file: { id: number; file_path: string } | null;
+        appendix_file: { id: number; file_path: string }[];
       };
     }[];
   }[];
@@ -157,6 +159,7 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
             <TableHead className="px-4 py-2 border w-[120px]">Sites</TableHead>
             <TableHead className="px-4 py-2 text-center border w-[120px]">Summary Report</TableHead>
             <TableHead className="px-4 py-2 text-center border">Attachment</TableHead>
+            <TableHead className="px-4 py-2 text-center border">Appendix</TableHead>
             <TableHead className="px-4 py-2 text-center border w-[300px]">Remark</TableHead>
           </TableRow>
         </TableHeader>
@@ -220,6 +223,31 @@ export function ApplicationTab({ claimData, refetch }: ApplicationTabProps) {
                         {item.item.suppport_doc_file?.length > 0 ? (
                           <div className="flex flex-col gap-2">
                             {item.item.suppport_doc_file.map((file, idx) => (
+                              <a
+                                key={idx}
+                                href={file.file_path}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 underline"
+                              >
+                                View File {idx + 1}
+                              </a>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-500">No Files</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500">Not Required</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="px-4 py-2 text-center border">
+                    {item.item.need_appendix ? (
+                      <div className="flex flex-col items-center gap-2">
+                        {item.item.appendix_file?.length > 0 ? (
+                          <div className="flex flex-col gap-2">
+                            {item.item.appendix_file.map((file, idx) => (
                               <a
                                 key={idx}
                                 href={file.file_path}

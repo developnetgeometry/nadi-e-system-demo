@@ -41,7 +41,7 @@ export const useFetchClaimById = (id: number) => {
           .select(`
             id,
             category_id (id, name),
-            item_id (id, name, need_support_doc, need_summary_report),
+            item_id (id, name, need_support_doc, need_summary_report, need_appendix),
             status_item,
             remark,
             site_ids,
@@ -140,6 +140,7 @@ export const useFetchClaimById = (id: number) => {
               name: req.item_id.name,
               need_support_doc: req.item_id.need_support_doc,
               need_summary_report: req.item_id.need_summary_report,
+              need_appendix: req.item_id.need_appendix,
               status_item: req.status_item,
               remark: req.remark,
               site_ids: req.site_ids,
@@ -152,10 +153,15 @@ export const useFetchClaimById = (id: number) => {
               summary_report_file: updatedClaimAttachments.find(
                 (attach) => attach.request_id === req.id && attach.claim_type_id === 2
               ) || null,
+              appendix_file: updatedClaimAttachments
+                .filter((attach) => attach.request_id === req.id && attach.claim_type_id === 4)
+                .map((attach) => ({
+                  id: attach.id,
+                  file_path: attach.file_path,
+                })),
             },
           });
         });
-
         const requests = Array.from(categoryMap.values());
 
 
