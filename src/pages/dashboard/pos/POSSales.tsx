@@ -483,6 +483,23 @@ const POSSales = () => {
         console.error("Error retrieving user data from localStorage:", error);
       }
 
+      // Capture to finance report
+      const today = new Date();
+      const month = getMonthNameByNumber(today.getMonth() + 1);
+      const year = String(today.getFullYear());
+      const siteId = parsedMetadata?.group_profile?.site_profile_id;
+      const {id} = await financeClient.getFinanceIdByMonthAndYear(month, year, siteId);
+      const financeItem = await newReportItemMutation.mutateAsync({
+        created_at: new Date(Date.now() + (7 * 60 * 60 * 1000)).toISOString(),
+        description: 'POS Sales',
+        debit_type: null,
+        debit: total,
+        credit_type: null,
+        credit: 0,
+        balance: total,
+        finance_report_id: id
+      })
+
       const transactionData = {
         member_id: selectedMember?.id || null,
         type: selectedPaymentMethod,
@@ -492,6 +509,7 @@ const POSSales = () => {
         updated_by: null,
         updated_at: null,
         remarks: remarks || null,
+        finance_item_id: financeItem.id
       }
 
       const { data: transactionResult, error: insertTransactionError } = await supabase
@@ -583,23 +601,6 @@ const POSSales = () => {
         creatorName: creatorName,
         siteName: siteName
       });
-
-      // Capture to finance report
-      const today = new Date();
-      const month = getMonthNameByNumber(today.getMonth() + 1);
-      const year = String(today.getFullYear());
-      const siteId = parsedMetadata?.group_profile?.site_profile_id;
-      const {id} = await financeClient.getFinanceIdByMonthAndYear(month, year, siteId);
-      await newReportItemMutation.mutateAsync({
-        created_at: transactionResult[0].created_at,
-        description: 'POS Sales',
-        debit_type: null,
-        debit: total,
-        credit_type: null,
-        credit: 0,
-        balance: total,
-        finance_report_id: id
-      })
 
       setIsReceiptDialogOpen(true);
       resetSale();

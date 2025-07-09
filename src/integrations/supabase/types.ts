@@ -1541,6 +1541,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           date_paid: string | null
+          dusp_logo: string | null
           end_date: string | null
           id: number
           month: number | null
@@ -1561,6 +1562,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           date_paid?: string | null
+          dusp_logo?: string | null
           end_date?: string | null
           id?: number
           month?: number | null
@@ -1581,6 +1583,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           date_paid?: string | null
+          dusp_logo?: string | null
           end_date?: string | null
           id?: number
           month?: number | null

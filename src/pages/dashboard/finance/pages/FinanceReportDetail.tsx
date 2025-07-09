@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { FinanceItemReceipt } from "../reusables/FinanceItemReceipt";
 import { exportToCSV } from "@/utils/export-utils";
 import { exportToPdf } from "../utils/exportToPdf";
+import { PosTransactionReceipt } from "../reusables/PosTransactionReceipt";
 
 export interface CalculationSummary {
     totalIncome: string;
@@ -53,8 +54,8 @@ export const FinanceReportDetail = () => {
             const description = report.description
                 ? report.description
                 : report.debit_type
-                    ? report.nd_finance_income_type.name
-                    : report.nd_finance_expense_type.name;
+                    ? report.nd_finance_income_type?.name
+                    : report.nd_finance_expense_type?.name;
             runningBalance += report.debit - report.credit;
             return {
                 no: i + 1,
@@ -63,7 +64,7 @@ export const FinanceReportDetail = () => {
                 debit: report.debit.toFixed(2),
                 credit: report.credit.toFixed(2),
                 balance: runningBalance.toFixed(2),
-                receipt: <FinanceItemReceipt
+                receipt: (report?.nd_pos_transaction.length < 1) ? <FinanceItemReceipt
                     id={report.id}
                     siteName={financeReport?.nd_site_profile.sitename}
                     debit={report.debit}
@@ -72,6 +73,12 @@ export const FinanceReportDetail = () => {
                     image={report.image_path}
                     doc={report.doc_path}
                     date={report.created_at}
+                /> : <PosTransactionReceipt 
+                    key={report.id}
+                    memberId={report?.nd_pos_transaction[0]?.member_id}
+                    posTransactionId={report?.nd_pos_transaction[0]?.id}
+                    posTransactionData={report?.nd_pos_transaction}
+                    siteName={financeReport?.nd_site_profile.sitename}
                 />,
                 action: (isTpSite && financeReport?.nd_finance_report_status?.status === "editing") && <FinanceDailyReportAction
                     financeReportItemId={report.id}
@@ -134,6 +141,8 @@ export const FinanceReportDetail = () => {
     ) {
         return <LoadingSpinner />
     }
+
+    console.log("finance item", financeItem);
 
     return (
         <section className="space-y-6">

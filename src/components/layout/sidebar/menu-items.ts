@@ -138,6 +138,7 @@ export const siteManagementItems = [
   { title: "Phase", path: "/site-management/phase" },
   { title: "Agreement", path: "/site-management/agreement" },
   { title: "Audit", path: "/site-management/audit" },
+  { title: "Local Authority", path: "/site-management/local-authority" },
 ];
 
 export const dashboardItems = [

@@ -115,6 +115,25 @@ export const useFinanceQueries = () => {
             queryFn: () => financeClient.getAllSiteReports(siteId, siteIds)
     });
 
+    const usePosTransactionItemByTransactionId = (transactionId: string) =>
+        useQuery({
+            queryKey: ["posTransactionItemByTransactionId", transactionId],
+            queryFn: () => financeClient.getPosTransactionItemByTransactionId(transactionId)
+    });
+
+    const useMemberProfileById = (memberId: number) =>
+        useQuery({
+            queryKey: ["memberProfileById", memberId],
+            queryFn: () => financeClient.getMemberProfileById(memberId)
+    });
+
+    const useInventoryById = (inventoryId: number) =>
+        useQuery({
+            queryKey: ["inventoryById", inventoryId],
+            queryFn: () => financeClient.getInventoryById(inventoryId),
+            enabled: !!inventoryId
+    });
+
     return {
         useSiteReportStatusQuery,
         useTwelveMonthNamesQuery,
@@ -127,6 +146,9 @@ export const useFinanceQueries = () => {
         useSiteNameByReportId,
         useAllFinanceIncomeTypes,
         useAllFinanceExpenseTypes,
-        useAllSiteReport
+        useAllSiteReport,
+        usePosTransactionItemByTransactionId,
+        useMemberProfileById,
+        useInventoryById
     };
 };
