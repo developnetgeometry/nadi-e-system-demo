@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -11,8 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Download, RefreshCw, Trash2, Loader2 } from "lucide-react";
+import { Download, Trash2, Loader2 } from "lucide-react";
 import { Progress } from "@radix-ui/react-progress";
 import { Textarea } from "@/components/ui/textarea";
 import useClaimCategorySimple from "../../hook/use-claim-categoy-simple";
@@ -20,6 +16,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { updateClaimReport, updateRemark, uploadAttachment } from "../../tp/hooks/edit-reports-claim";
 import { deleteAttachment } from "../../hook/upload-attachment";
+import { PDFDocument } from "pdf-lib";
+import FrontPage from "../../template/component/FrontPage";
+import Appendix from "../../template/component/Appendix";
+import { generateReportByItemId } from "../../hook/getGenerateReport";
+
+
 interface ReportEditTabProps {
     claimData: any;
     onDataChange: (hasChanges: boolean) => void;
@@ -101,14 +103,63 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
         }));
     };
 
+    const generateReportForItem = async (itemId: number) => {
+        let targetItem = null;
+        let categoryIndex = -1;
+        let itemIndex = -1;
+
+        // Find the category and item in formData
+        for (let i = 0; i < formData.category_ids.length; i++) {
+            const category = formData.category_ids[i];
+            for (let j = 0; j < category.item_ids.length; j++) {
+                if (category.item_ids[j].id === itemId) {
+                    categoryIndex = i;
+                    itemIndex = j;
+                    targetItem = category.item_ids[j];
+                    break;
+                }
+            }
+            if (targetItem) break;
+        }
+
+        if (!targetItem || !targetItem.need_summary_report) return null;
+
+        // Find the first item in this category that needs a summary report for header logic
+        const category = formData.category_ids[categoryIndex];
+        const firstTrueItem = category.item_ids.find((itm) => itm.need_summary_report);
+        const firstTrueItemId = firstTrueItem?.id;
+
+        const reportData = {
+            claimType: claimData.claim_type,
+            quater: String(claimData.quarter),
+            startDate: claimData.start_date,
+            endDate: claimData.end_date,
+            tpFilter: claimData.tp_dusp_id.id,
+            phaseFilter: claimData.phase_id.id,
+            duspFilter: claimData.tp_dusp_id.parent_id.id,
+            dusplogo: claimData.tp_dusp_id.parent_id.logo_url,
+            nadiFilter: targetItem.site_ids,
+            header: itemId === firstTrueItemId,
+        };
+
+        try {
+            return await generateReportByItemId(itemId, reportData);
+        } catch (error) {
+            console.error(`Error generating report for item ${itemId}:`, error);
+            return null;
+        }
+    };
+
     const generateSummaryReport = async (itemId: number) => {
         setGeneratingIndex(itemId);
         setProgress(0);
 
+        let generatedFile: File | null = null;
+
         // Simulate progress
         let newProgress = 0;
         while (newProgress <= 80) {
-            const increment = Math.floor(Math.random() * 10) + 5;
+            const increment = Math.floor(Math.random() * 10) + 39;
             newProgress = Math.min(newProgress + increment, 100);
             setProgress(newProgress);
             if (newProgress > 80) break;
@@ -116,14 +167,19 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
         }
 
         try {
-            // TODO: Implement actual report generation logic
-            console.log(`Generating report for item ${itemId}`);
+            generatedFile = await generateReportForItem(itemId);
             setProgress(100);
 
-            // Simulate opening in new tab
-            setTimeout(() => {
-                console.log(`Report generated for item ${itemId}`);
-            }, 500);
+            if (generatedFile) {
+                // Open the generated file in a new tab instead of saving it
+                const fileURL = URL.createObjectURL(generatedFile);
+                window.open(fileURL, '_blank');
+
+                // Clean up the object URL after a short delay
+                setTimeout(() => {
+                    URL.revokeObjectURL(fileURL);
+                }, 1000);
+            }
 
         } catch (error) {
             console.error('Error generating report:', error);
@@ -137,10 +193,12 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
         setGeneratingIndex(itemId);
         setProgress(0);
 
+        let generatedFile: File | null = null;
+
         // Simulate progress
         let newProgress = 0;
         while (newProgress <= 80) {
-            const increment = Math.floor(Math.random() * 10) + 5;
+            const increment = Math.floor(Math.random() * 10) + 39;
             newProgress = Math.min(newProgress + increment, 100);
             setProgress(newProgress);
             if (newProgress > 80) break;
@@ -148,9 +206,24 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
         }
 
         try {
-            // TODO: Implement actual report download logic
-            console.log(`Downloading report for item ${itemId}`);
+            generatedFile = await generateReportForItem(itemId);
             setProgress(100);
+
+            if (generatedFile) {
+                // Download the generated file without saving to state
+                const fileURL = URL.createObjectURL(generatedFile);
+                const link = document.createElement('a');
+                link.href = fileURL;
+                link.download = generatedFile.name || `report-${itemId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Clean up the object URL after a short delay
+                setTimeout(() => {
+                    URL.revokeObjectURL(fileURL);
+                }, 1000);
+            }
 
         } catch (error) {
             console.error('Error downloading report:', error);
@@ -162,28 +235,127 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
 
     const handleDownloadAllReports = async () => {
         setIsDownloading(true);
-        setProgressAll(0);
+
+        const generatedUrls: string[] = [];
 
         try {
-            // TODO: Implement combined report generation
+            const pdfDoc = await PDFDocument.create();
+
+            // Add the FrontPage as the first page
+            const frontPageFile = await FrontPage({
+                duspName: claimData.tp_dusp_id.parent_id.description,
+                claimType: claimData.claim_type,
+                year: claimData.year,
+                quarter: claimData.quarter,
+                month: claimData.month,
+                dusplogo: claimData.tp_dusp_id.parent_id.logo_url,
+            });
+            const frontPageBytes = await frontPageFile.arrayBuffer();
+            const frontPagePdf = await PDFDocument.load(frontPageBytes);
+            const frontPagePages = await pdfDoc.copyPages(frontPagePdf, frontPagePdf.getPageIndices());
+            frontPagePages.forEach((page) => pdfDoc.addPage(page));
+
+            // Simulate progress
             let newProgress = 0;
-            while (newProgress < 100) {
-                const increment = Math.floor(Math.random() * 10) + 5;
-                newProgress = Math.min(newProgress + increment, 100);
-                setProgressAll(newProgress);
-                await new Promise(resolve => setTimeout(resolve, 300));
+            const totalCategories = formData.category_ids.length;
+            const num1 = Math.floor(totalCategories * 0.8);
+            const num2 = totalCategories - num1;
+
+            const increment1 = num1 === 0 ? 0 : 80 / num1;
+            const increment2 = num2 === 0 ? 0 : 20 / num2;
+
+            // Generate and add summary reports with supporting documents
+            for (const category of formData.category_ids) {
+                for (const item of category.item_ids) {
+                    if (item.need_summary_report) {
+                        setProgressAll(Math.min(newProgress, 80));
+                        newProgress += increment1;
+
+                        const reportFile = await generateReportForItem(item.id);
+
+                        if (reportFile) {
+                            const reportBytes = await reportFile.arrayBuffer();
+                            const reportPdf = await PDFDocument.load(reportBytes);
+                            const reportPages = await pdfDoc.copyPages(reportPdf, reportPdf.getPageIndices());
+                            reportPages.forEach((page) => pdfDoc.addPage(page));
+                        }
+
+                        // Add supporting documents for this item right after its summary report
+
+                    }
+                }
             }
 
-            console.log('Combined report generated');
+            // Add all appendix after items
+            for (const category of formData.category_ids) {
+                for (const item of category.item_ids) {
+                    if (item.appendix_file?.length > 0) {
+                        setProgressAll(Math.min(newProgress, 100));
+                        newProgress += increment2;
+
+                        // Handle both File objects and existing files with paths
+                        const fileAttachments = [];
+                        const pathAttachments = [];
+
+                        for (const file of item.appendix_file) {
+                            if (file instanceof File) {
+                                fileAttachments.push({
+                                    file: file,
+                                    name: file.name,
+                                    description: `Appendix for ${item.name}`,
+                                });
+                            } else if (file.file_path) {
+                                pathAttachments.push({
+                                    path: file.file_path,
+                                    description: `Appendix for ${item.name}`,
+                                });
+                            }
+                        }
+
+                        let appendixFile = null;
+
+                        if (pathAttachments.length > 0) {
+                            // Use Appendix for file paths
+                            appendixFile = await Appendix({
+                                appendixNumber: "APPENDIX",
+                                title: item.name,
+                                attachments: pathAttachments,
+                            });
+                        }
+
+                        if (appendixFile) {
+                            const appendixBytes = await appendixFile.arrayBuffer();
+                            const appendixPdf = await PDFDocument.load(appendixBytes);
+                            const appendixPages = await pdfDoc.copyPages(appendixPdf, appendixPdf.getPageIndices());
+                            appendixPages.forEach((page) => pdfDoc.addPage(page));
+                        }
+                    }
+                }
+            }
+
+            setProgressAll(100);
+
+            // Save and download the combined PDF
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ClaimData_Combined_Report.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
         } catch (error) {
             console.error('Error creating combined report:', error);
         } finally {
+            // Clean up blob URLs created for file attachments
+            generatedUrls.forEach(url => URL.revokeObjectURL(url));
             setIsDownloading(false);
             setProgressAll(0);
         }
     };
-
     const handleSave = async () => {
         setLoading(true);
         try {
@@ -343,7 +515,15 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
             {/* <pre>{JSON.stringify(originalData.category_ids, null, 2)}</pre> */}
 
             <div className="flex justify-between items-center mb-4">
-                <header>Category & Items Attachments</header>
+                <div>
+                    <header>Category & Items Attachments</header>
+                    <a
+                        href="/reference_report.pdf" // replace with your actual PDF URL
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'blue', textDecoration: 'underline' }}
+                    >View Reference</a>
+                </div>
                 <Button
                     onClick={handleDownloadAllReports}
                     disabled={isDownloading || formData.category_ids.length === 0}

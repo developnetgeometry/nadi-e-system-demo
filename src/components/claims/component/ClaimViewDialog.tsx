@@ -97,12 +97,17 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
     }
   };
 
+  // Handle successful submission
+  const handleSubmitSuccess = () => {
+    setActiveTab("application");
+  };
+
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <h1 className="text-xl font-bold">Claim Details</h1>
         <Button variant="outline" onClick={handleBackClick}>
-          Back
+          Back to Claim Dashboard
         </Button>
       </header>
       {/* <pre>{JSON.stringify(claimData, null, 2)}</pre> */}
@@ -123,10 +128,10 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
 
               )}
               {(userGroup === 3 && claimData?.claim_status?.name === "DRAFTED") && (
-                <TabsTrigger value="report_edit">Claim Reports (Draft)</TabsTrigger>
+                <TabsTrigger value="report_edit">Claim Reports and Attachments (Draft)</TabsTrigger>
 
               )}
-              {claimData?.claim_status?.name !== "" && (
+              {claimData?.claim_status?.name !== "DRAFTED" && (
                 <TabsTrigger value="application">Application</TabsTrigger>
               )}
               {(userGroup === 1 || userGroup === 2) && (
@@ -136,52 +141,42 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
             </TabsList>
 
             <TabsContent value="general">
-              <>
-                <div className="border border-gray-300 rounded-md p-4 shadow-sm">
-                  <GeneralTab claimData={claimData} />
-                </div>
-              </>
+              <div className="border border-gray-300 rounded-md p-4 shadow-sm">
+                <GeneralTab claimData={claimData} />
+              </div>
             </TabsContent>
             {(userGroup === 3 && claimData?.claim_status?.name === "DRAFTED") && (
               <TabsContent value="application_edit">
-                <>
-                  <div className="border border-gray-300 rounded-md p-4 shadow-sm">
-                    <ApplicationEditTab claimData={claimData} onDataChange={setIsEditChanged} refetch={refetch} />
-                  </div>
-                </>
+                <div className="border border-gray-300 rounded-md p-4 shadow-sm">
+                  <ApplicationEditTab claimData={claimData} onDataChange={setIsEditChanged} refetch={refetch} />
+                </div>
               </TabsContent>
             )}
             {(userGroup === 3 && claimData?.claim_status?.name === "DRAFTED") && (
               <TabsContent value="report_edit">
-                <>
-                  <div className="border border-gray-300 rounded-md p-4 shadow-sm">
-                    <ReportEditTab claimData={claimData} onDataChange={setIsEditChanged} refetch={refetch}/>
-                  </div>
-                </>
+                <div className="border border-gray-300 rounded-md p-4 shadow-sm">
+                  <ReportEditTab claimData={claimData} onDataChange={setIsEditChanged} refetch={refetch} />
+                </div>
               </TabsContent>
             )}
-            <TabsContent value="application">
-              <>
+            {claimData?.claim_status?.name !== "DRAFTED" && (
+              <TabsContent value="application">
                 <div className="border border-gray-300 rounded-md p-4 shadow-sm">
                   <ApplicationTab claimData={claimData} refetch={refetch} />
                 </div>
-              </>
-            </TabsContent>
+              </TabsContent>
+            )}
             {(userGroup === 1 || userGroup === 2) && (
               <TabsContent value="sign">
-                <>
-                  <div className="border border-gray-300 rounded-md p-4 shadow-sm">
-                    <SignTab claimData={claimData} />
-                  </div>
-                </>
+                <div className="border border-gray-300 rounded-md p-4 shadow-sm">
+                  <SignTab claimData={claimData} />
+                </div>
               </TabsContent>
             )}
             <TabsContent value="log">
-              <>
-                <div className="border border-gray-300 rounded-md p-4 shadow-sm">
-                  <LogTab claimData={claimData} />
-                </div>
-              </>
+              <div className="border border-gray-300 rounded-md p-4 shadow-sm">
+                <LogTab claimData={claimData} />
+              </div>
             </TabsContent>
           </Tabs>
         )}
@@ -277,6 +272,7 @@ const ClaimViewPage: React.FC<ClaimViewPageProps> = ({ claimId }) => {
         <TpSubmitDialog
           isOpen={isSubmitDialogOpen}
           onClose={() => setIsSubmitDialogOpen(false)}
+          onSuccess={handleSubmitSuccess} // Add success callback
           claim={claimData}
         />
       )}

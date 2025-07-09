@@ -136,7 +136,7 @@ export function ClaimAttachmentForm({
         // const newProgress = Math.min(progress + Math.floor(Math.random() * 10) + 1, 99);
 
         while (newProgress <= 80) {
-            const increment = Math.floor(Math.random() * 10) + 49;
+            const increment = Math.floor(Math.random() * 10) + 39;
             newProgress = Math.min(newProgress + increment, 100);
 
             setProgress(newProgress);
@@ -181,7 +181,7 @@ export function ClaimAttachmentForm({
         let newProgress = 0;
 
         while (newProgress <= 80) {
-            const increment = Math.floor(Math.random() * 10) + 49;
+            const increment = Math.floor(Math.random() * 10) + 39;
             newProgress = Math.min(newProgress + increment, 100);
 
             setProgress(newProgress);
@@ -222,6 +222,7 @@ export function ClaimAttachmentForm({
 
     const handleDownloadAllReports = async () => {
         setIsDownloading(true);
+        
         const generatedUrls: string[] = [];
 
         try {
@@ -340,7 +341,15 @@ export function ClaimAttachmentForm({
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <header>Category & Items Attachments</header>
+                <div>
+                    <header>Category & Items Attachments</header>
+                    <a
+                        href="/reference_report.pdf" // replace with your actual PDF URL
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'blue', textDecoration: 'underline' }}
+                    >View Reference</a>
+                </div>
                 <Button
                     onClick={handleDownloadAllReports}
                     disabled={isDownloading || category_ids.length === 0}
