@@ -54,8 +54,8 @@ export const FinanceReportDetail = () => {
             const description = report.description
                 ? report.description
                 : report.debit_type
-                    ? report.nd_finance_income_type.name
-                    : report.nd_finance_expense_type.name;
+                    ? report.nd_finance_income_type?.name
+                    : report.nd_finance_expense_type?.name;
             runningBalance += report.debit - report.credit;
             return {
                 no: i + 1,
