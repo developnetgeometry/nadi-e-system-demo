@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cleanIdentityNumber, insertAndCleanupMember } from './validate';
+import { cleanIdentityNumber, insertAndCleanupMember, checkICExists } from './validate';
 import DataTable, { Column } from '@/components/ui/datatable';
 import { FileUpload } from '@/components/ui/file-upload';
 
@@ -34,12 +34,14 @@ interface CSVRow {
 
 const CSVUpload: React.FC = () => {
     const [csvData, setCsvData] = useState<CSVRow[]>([]);
+    const [fileName, setFileName] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const requiredFields = ['FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER'];
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
+        setFileName(file.name);
         if (!file) return;
 
         setIsProcessing(true);
@@ -64,6 +66,8 @@ const CSVUpload: React.FC = () => {
                 // Change from tab to comma separation
                 const values = lines[i].split(',');
                 const row: any = {};
+                let reasons: string[] = [];
+
 
                 headers.forEach((header, index) => {
                     row[header.trim()] = values[index]?.trim() || '';
@@ -77,18 +81,40 @@ const CSVUpload: React.FC = () => {
 
                 // Validate Identity Number
                 let identityValid = false;
+                let cleanedIdentityNumber = '';
+
                 if (row.IDENTITY_NO && row.IDENTITY_TYPE) {
                     try {
-                        const cleaned = cleanIdentityNumber(row.IDENTITY_NO, parseInt(row.IDENTITY_TYPE));
-                        identityValid = cleaned === row.IDENTITY_NO.replace(/-/g, '');
+                        // Step 1: Clean the identity number
+                        cleanedIdentityNumber = cleanIdentityNumber(row.IDENTITY_NO, parseInt(row.IDENTITY_TYPE));
+
+                        // Step 2: Check if the cleaned identity number exists in database
+                        const icExists = await checkICExists(cleanedIdentityNumber);
+
+                        // Identity is valid if it's unique (doesn't exist in database)
+                        identityValid = icExists;
+
                     } catch (error) {
                         identityValid = false;
+                        cleanedIdentityNumber = '';
                     }
                 }
+
                 row.IDENTITY_NO_VALID = identityValid ? 'PASS' : 'FAILED';
 
-                // Test database insertion
-                let insertResult = false;
+                // Update the reasons array - only check for uniqueness
+                if (!identityValid && row.IDENTITY_NO && row.IDENTITY_TYPE) {
+                    if (cleanedIdentityNumber) {
+                        reasons.push("Identity number already exists in database");
+                    }
+                }
+
+                let insertResult = { success: false, error: null };
+
+                if (!isComplete) {
+                    reasons.push("Form incomplete");
+                }
+
                 if (isComplete && identityValid) {
                     try {
                         const memberData = {
@@ -113,10 +139,38 @@ const CSVUpload: React.FC = () => {
                         };
 
                         insertResult = await insertAndCleanupMember(memberData);
+                        if (!insertResult.success && insertResult.error) {
+                            // Handle foreign key constraint violations
+                            if (insertResult.error.includes('violates foreign key constraint')) {
+                                if (insertResult.error.includes('race_id_fkey')) {
+                                    reasons.push(`Race ID ${row.RACE} does not exist in table Races`);
+                                } else if (insertResult.error.includes('gender_fkey')) {
+                                    reasons.push(`Gender ID ${row.GENDER} does not exist in table Genders`);
+                                } else if (insertResult.error.includes('nationality_id_fkey')) {
+                                    reasons.push(`Nationality ID ${row.NATIONALITY} does not exist in table Nationalities`);
+                                } else if (insertResult.error.includes('identity_no_type_fkey')) {
+                                    reasons.push(`Identity Type ID ${row.IDENTITY_TYPE} does not exist in tale IdentityTypes`);
+                                } else if (insertResult.error.includes('district_id_fkey')) {
+                                    reasons.push(`District ID ${row.DISTRICT} does not exist in table Districts`);
+                                } else if (insertResult.error.includes('state_id_fkey')) {
+                                    reasons.push(`State ID ${row.STATE} does not exist in table States`);
+                                } else if (insertResult.error.includes('ref_id_fkey')) {
+                                    reasons.push(`NADI Site ID ${row.NADI_SITE} does not exist in table NadiSites`);
+                                } else {
+                                    reasons.push('Invalid reference ID - check lookup tables');
+                                }
+                            } else {
+                                reasons.push(insertResult.error);
+                            }
+                        }
                     } catch (error) {
-                        insertResult = false;
+                        insertResult = { success: false, error: error instanceof Error ? error.message : "Unknown error" };
+                        reasons.push(insertResult.error || "Unknown error");
                     }
                 }
+
+                row.RESULT = insertResult.success ? 'PASS' : 'FAILED';
+                row.REASONS = reasons.length > 0 ? reasons.join('; ') : 'All validations passed';
 
                 row.RESULT = insertResult ? 'PASS' : 'FAILED';
                 processedData.push(row);
@@ -129,6 +183,12 @@ const CSVUpload: React.FC = () => {
             setIsProcessing(false);
         }
     };
+
+    const handleReset = () => {
+        setCsvData([]);
+        setFileName(null);
+    };
+
 
     const columns: Column[] = [
         {
@@ -299,6 +359,20 @@ const CSVUpload: React.FC = () => {
                 </Badge>
             ),
         },
+        {
+            key: "REASONS",
+            header: "Reasons",
+            filterable: true,
+            visible: true,
+            filterType: "string" as const,
+            align: "left" as const,
+            width: "12%",
+            render: (value) => (
+                <div className="text-sm text-gray-600">
+                    {value || "-"}
+                </div>
+            ),
+        },
     ];
 
     return (
@@ -323,13 +397,32 @@ const CSVUpload: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        <FileUpload
+                        {/* <FileUpload
                             maxFiles={1}
                             acceptedFileTypes=".csv"
                             maxSizeInMB={10}
                             buttonText="Choose CSV File"
                             onChange={handleFileUpload}
-                        />
+                        /> */}
+
+                        {csvData.length === 0 ? (
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleFileUpload}
+                                className="block"
+                            />
+                        ) : (
+                            <div className="space-y-2">
+                                <p className="text-sm text-green-700">Uploaded: {fileName}</p>
+                                <button
+                                    onClick={handleReset}
+                                    className="bg-red-600 text-white px-4 py-1 rounded"
+                                >
+                                    Reset Upload
+                                </button>
+                            </div>
+                        )}
 
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <div className="flex">

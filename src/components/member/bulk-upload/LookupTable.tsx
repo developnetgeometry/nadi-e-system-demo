@@ -394,7 +394,7 @@ const LookupTable: React.FC = () => {
                                 Districts & States
                             </TabsTrigger>
                             <TabsTrigger value="siteProfiles" className="flex items-center gap-2">
-                                Site Profiles
+                                NADI Sites
                             </TabsTrigger>
                         </TabsList>
 
@@ -484,7 +484,7 @@ const LookupTable: React.FC = () => {
                                 <li>• For Nationality: Use ID values (1, 2, 3, etc.) not the text values</li>
                                 <li>• For District: Use District ID values from the Districts & States table</li>
                                 <li>• For State: Use State ID values from the Districts & States table</li>
-                                <li>• For Site Id: Use Site Profile ID values from the Site Profiles table</li>
+                                <li>• For NADI Site: ID values from the Site Profiles table</li>
                                 <li>• Always refer to these tables for the most up-to-date reference data</li>
                             </ul>
                         </div>

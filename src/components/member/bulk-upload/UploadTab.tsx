@@ -169,7 +169,7 @@ const UploadTab: React.FC = () => {
                             city: row.CITY,
                         };
 
-                        insertResult = await insertAndCleanupMember(memberData);
+                        // insertResult = await insertAndCleanupMember(memberData);
                     } catch (error) {
                         insertResult = false;
                     }

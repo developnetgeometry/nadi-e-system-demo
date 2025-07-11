@@ -12,101 +12,107 @@ export function cleanIdentityNumber(identityNumber: string, identityType: number
   return identityNumber;
 }
 
-export function useCheckICExists(identity_no: string | null) {
-  const [isUnique, setIsUnique] = useState<boolean | null>(null);
+export async function checkICExists(identity_no: string | null): Promise<boolean | null> {
+  if (!identity_no) return null;
 
-  useEffect(() => {
-    if (!identity_no) return;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("ic_number")
+    .eq("ic_number", identity_no)
+    .maybeSingle();
 
-    const checkIC = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("ic_number")
-        .eq("ic_number", identity_no)
-        .maybeSingle();
+  if (error) {
+    console.error("Error checking IC:", error);
+    return null;
+  }
 
-      if (error) {
-        console.error("Error checking IC:", error);
-        setIsUnique(null);
-        return;
-      }
+  return !data; // true = unique (doesn't exist), false = already exists
+}
 
-      setIsUnique(!data); // if data exists, it's NOT unique
+
+interface MemberData {
+  fullname?: string;
+  identity_no?: string;
+  identity_no_type?: number;
+  gender?: number;
+  race_id?: number;
+  pdpa_declare?: boolean;
+  agree_declare?: boolean;
+  nationality_id?: number;
+  community_status?: boolean;
+  status_entrepreneur?: boolean;
+  supervision?: string;
+  address1?: string;
+  address2?: string;
+  ref_id?: number;
+  district_id?: number;
+  state_id?: number;
+  postcode?: string;
+  city?: string;
+}
+
+interface MemberData {
+  fullname?: string;
+  identity_no?: string;
+  identity_no_type?: number;
+  gender?: number;
+  race_id?: number;
+  pdpa_declare?: boolean;
+  agree_declare?: boolean;
+  nationality_id?: number;
+  community_status?: boolean;
+  status_entrepreneur?: boolean;
+  supervision?: string;
+  address1?: string;
+  address2?: string;
+  ref_id?: number;
+  district_id?: number;
+  state_id?: number;
+  postcode?: string;
+  city?: string;
+}
+
+export async function insertAndCleanupMember(data: MemberData): Promise<{ success: boolean; error: string | null }> {
+  try {
+    // Step 1: Insert the data and return the inserted ID
+    const { data: inserted, error: insertError } = await supabase
+      .from("nd_member_bulk")
+      .insert(data)
+      .select("id") // get the inserted row's id
+      .single();
+
+    if (insertError || !inserted) {
+      console.error("Insert failed:", insertError);
+      return {
+        success: false,
+        error: insertError?.message || "Failed to insert data"
+      };
+    }
+
+    // Step 2: Delete the inserted row
+    const { error: deleteError } = await supabase
+      .from("nd_member_bulk")
+      .delete()
+      .eq("id", inserted.id);
+
+    if (deleteError) {
+      console.error("Delete failed:", deleteError);
+      return {
+        success: false,
+        error: null
+      };
+    }
+
+    return {
+      success: true,
+      error: null
     };
-
-    checkIC();
-  }, [identity_no]);
-
-  return isUnique;
-}
-
-
-interface MemberData {
-  fullname?: string;
-  identity_no?: string;
-  identity_no_type?: number;
-  gender?: number;
-  race_id?: number;
-  pdpa_declare?: boolean;
-  agree_declare?: boolean;
-  nationality_id?: number;
-  community_status?: boolean;
-  status_entrepreneur?: boolean;
-  supervision?: string;
-  address1?: string;
-  address2?: string;
-  ref_id?: number;
-  district_id?: number;
-  state_id?: number;
-  postcode?: string;
-  city?: string;
-}
-
-interface MemberData {
-  fullname?: string;
-  identity_no?: string;
-  identity_no_type?: number;
-  gender?: number;
-  race_id?: number;
-  pdpa_declare?: boolean;
-  agree_declare?: boolean;
-  nationality_id?: number;
-  community_status?: boolean;
-  status_entrepreneur?: boolean;
-  supervision?: string;
-  address1?: string;
-  address2?: string;
-  ref_id?: number;
-  district_id?: number;
-  state_id?: number;
-  postcode?: string;
-  city?: string;
-}
-
-export async function insertAndCleanupMember(data: MemberData): Promise<boolean> {
-  // Step 1: Insert the data and return the inserted ID
-  const { data: inserted, error: insertError } = await supabase
-    .from("nd_member_bulk")
-    .insert(data)
-    .select("id") // get the inserted row's id
-    .single();
-
-  if (insertError || !inserted) {
-    console.error("Insert failed:", insertError);
-    return false;
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "An unexpected error occurred"
+    };
   }
-
-  // Step 2: Delete the inserted row
-  const { error: deleteError } = await supabase
-    .from("nd_member_bulk")
-    .delete()
-    .eq("id", inserted.id);
-
-  if (deleteError) {
-    console.error("Delete failed:", deleteError);
-    return true;
-  }
-
-  return true;
 }
 
