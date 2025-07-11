@@ -29,6 +29,23 @@ export async function checkICExists(identity_no: string | null): Promise<boolean
   return !data; // true = unique (doesn't exist), false = already exists
 }
 
+export async function checkEmailExists(email: string | null): Promise<boolean | null> {
+  if (!email) return null;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error checking Email:", error);
+    return null;
+  }
+
+  return !data; // true = unique (doesn't exist), false = already exists
+}
+
 
 interface MemberData {
   fullname?: string;

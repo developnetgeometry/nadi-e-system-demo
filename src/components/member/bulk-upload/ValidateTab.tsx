@@ -8,26 +8,25 @@ import DataTable, { Column } from '@/components/ui/datatable';
 import { FileUpload } from '@/components/ui/file-upload';
 
 interface CSVRow {
+    NADI_SITE: string;
     FULLNAME: string;
     IDENTITY_NO: string;
     IDENTITY_TYPE: string;
+    EMAIL: string;
     GENDER: string;
     RACE: string;
     PDPA_DECLARE: string;
     AGREE_DECLARE: string;
     NATIONALITY: string;
-    MADANI_COMMUNITY: string;
-    ENTREPRENEUR_STATUS: string;
     GUARDIAN_NAME: string;
     ADDRESS1: string;
     ADDRESS2: string;
-    NADI_SITE: string;
     DISTRICT: string;
     STATE: string;
     POSTCODE: string;
     CITY: string;
-    COMPLETE_FORM: string;
-    IDENTITY_NO_VALID: string;
+    MADANI_COMMUNITY: string;
+    ENTREPRENEUR_STATUS: string;
     RESULT: string;
     REASONS: string;
 }
@@ -54,11 +53,12 @@ const CSVUpload: React.FC = () => {
 
             // Validate headers
             const expectedHeaders = [
-                'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER', 'RACE',
-                'PDPA_DECLARE', 'AGREE_DECLARE', 'NATIONALITY', 'MADANI_COMMUNITY',
-                'ENTREPRENEUR_STATUS', 'GUARDIAN_NAME', 'ADDRESS1', 'ADDRESS2',
-                'NADI_SITE', 'DISTRICT', 'STATE', 'POSTCODE', 'CITY'
+                'NADI_SITE', 'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER', 'RACE',
+                'PDPA_DECLARE', 'AGREE_DECLARE', 'ENTREPRENEUR_STATUS', 'GUARDIAN_NAME',
+                'ADDRESS1', 'ADDRESS2', 'DISTRICT', 'STATE', 'POSTCODE', 'CITY',
+                'NATIONALITY', 'MADANI_COMMUNITY'
             ];
+
 
             const processedData: CSVRow[] = [];
 
@@ -67,55 +67,64 @@ const CSVUpload: React.FC = () => {
                 const values = lines[i].split(',');
                 const row: any = {};
                 let reasons: string[] = [];
-
+                let validationFailed = false;
 
                 headers.forEach((header, index) => {
                     row[header.trim()] = values[index]?.trim() || '';
                 });
 
-                // Check required fields
+                // Step 1: Check required fields
                 const missingFields = requiredFields.filter(field => !row[field]);
-                const isComplete = missingFields.length === 0;
+                if (missingFields.length > 0) {
+                    validationFailed = true;
+                    reasons.push(`Missing required fields: ${missingFields.join(', ')}`);
+                    row.RESULT = 'FAILED';
+                    row.REASONS = reasons.join('; ');
+                    processedData.push(row);
+                    continue; // Skip to next row
+                }
 
-                row.COMPLETE_FORM = isComplete ? 'PASS' : 'FORM INCOMPLETE';
+                // Step 2: Validate Identity Number (only if required fields check passed)
+                if (!validationFailed) {
+                    let identityValid = false;
+                    let cleanedIdentityNumber = '';
 
-                // Validate Identity Number
-                let identityValid = false;
-                let cleanedIdentityNumber = '';
+                    if (row.IDENTITY_NO && row.IDENTITY_TYPE) {
+                        try {
+                            // Clean the identity number
+                            cleanedIdentityNumber = cleanIdentityNumber(row.IDENTITY_NO, parseInt(row.IDENTITY_TYPE));
 
-                if (row.IDENTITY_NO && row.IDENTITY_TYPE) {
-                    try {
-                        // Step 1: Clean the identity number
-                        cleanedIdentityNumber = cleanIdentityNumber(row.IDENTITY_NO, parseInt(row.IDENTITY_TYPE));
+                            // Check if the cleaned identity number exists in database
+                            const icExists = await checkICExists(cleanedIdentityNumber);
 
-                        // Step 2: Check if the cleaned identity number exists in database
-                        const icExists = await checkICExists(cleanedIdentityNumber);
+                            // Identity is valid if it's unique (doesn't exist in database)
+                            identityValid = icExists;
 
-                        // Identity is valid if it's unique (doesn't exist in database)
-                        identityValid = icExists;
+                            if (!identityValid) {
+                                validationFailed = true;
+                                reasons.push("Identity number already exists in database");
+                            }
+                        } catch (error) {
+                            validationFailed = true;
+                            reasons.push("Invalid identity number format");
+                        }
+                    } else {
+                        validationFailed = true;
+                        reasons.push("Identity number or type is missing");
+                    }
 
-                    } catch (error) {
-                        identityValid = false;
-                        cleanedIdentityNumber = '';
+                    if (validationFailed) {
+                        row.RESULT = 'FAILED';
+                        row.REASONS = reasons.join('; ');
+                        processedData.push(row);
+                        continue; // Skip to next row
                     }
                 }
 
-                row.IDENTITY_NO_VALID = identityValid ? 'PASS' : 'FAILED';
 
-                // Update the reasons array - only check for uniqueness
-                if (!identityValid && row.IDENTITY_NO && row.IDENTITY_TYPE) {
-                    if (cleanedIdentityNumber) {
-                        reasons.push("Identity number already exists in database");
-                    }
-                }
 
-                let insertResult = { success: false, error: null };
-
-                if (!isComplete) {
-                    reasons.push("Form incomplete");
-                }
-
-                if (isComplete && identityValid) {
+                // Step 4: Test database insertion (only if all previous validations passed)
+                if (!validationFailed) {
                     try {
                         const memberData = {
                             fullname: row.FULLNAME,
@@ -138,43 +147,50 @@ const CSVUpload: React.FC = () => {
                             city: row.CITY,
                         };
 
-                        insertResult = await insertAndCleanupMember(memberData);
-                        if (!insertResult.success && insertResult.error) {
-                            // Handle foreign key constraint violations
-                            if (insertResult.error.includes('violates foreign key constraint')) {
-                                if (insertResult.error.includes('race_id_fkey')) {
-                                    reasons.push(`Race ID ${row.RACE} does not exist in table Races`);
-                                } else if (insertResult.error.includes('gender_fkey')) {
-                                    reasons.push(`Gender ID ${row.GENDER} does not exist in table Genders`);
-                                } else if (insertResult.error.includes('nationality_id_fkey')) {
-                                    reasons.push(`Nationality ID ${row.NATIONALITY} does not exist in table Nationalities`);
-                                } else if (insertResult.error.includes('identity_no_type_fkey')) {
-                                    reasons.push(`Identity Type ID ${row.IDENTITY_TYPE} does not exist in tale IdentityTypes`);
-                                } else if (insertResult.error.includes('district_id_fkey')) {
-                                    reasons.push(`District ID ${row.DISTRICT} does not exist in table Districts`);
-                                } else if (insertResult.error.includes('state_id_fkey')) {
-                                    reasons.push(`State ID ${row.STATE} does not exist in table States`);
-                                } else if (insertResult.error.includes('ref_id_fkey')) {
-                                    reasons.push(`NADI Site ID ${row.NADI_SITE} does not exist in table NadiSites`);
+                        const insertResult = await insertAndCleanupMember(memberData);
+
+                        if (!insertResult.success) {
+                            validationFailed = true;
+                            if (insertResult.error) {
+                                // Handle foreign key constraint violations
+                                if (insertResult.error.includes('violates foreign key constraint')) {
+                                    if (insertResult.error.includes('race_id_fkey')) {
+                                        reasons.push(`Race ID ${row.RACE} does not exist in table Races`);
+                                    } else if (insertResult.error.includes('gender_fkey')) {
+                                        reasons.push(`Gender ID ${row.GENDER} does not exist in table Genders`);
+                                    } else if (insertResult.error.includes('nationality_id_fkey')) {
+                                        reasons.push(`Nationality ID ${row.NATIONALITY} does not exist in table Nationalities`);
+                                    } else if (insertResult.error.includes('identity_no_type_fkey')) {
+                                        reasons.push(`Identity Type ID ${row.IDENTITY_TYPE} does not exist in table IdentityTypes`);
+                                    } else if (insertResult.error.includes('district_id_fkey')) {
+                                        reasons.push(`District ID ${row.DISTRICT} does not exist in table Districts`);
+                                    } else if (insertResult.error.includes('state_id_fkey')) {
+                                        reasons.push(`State ID ${row.STATE} does not exist in table States`);
+                                    } else if (insertResult.error.includes('ref_id_fkey')) {
+                                        reasons.push(`NADI Site ID ${row.NADI_SITE} does not exist in table NadiSites`);
+                                    } else {
+                                        reasons.push('Invalid reference ID - check lookup tables');
+                                    }
                                 } else {
-                                    reasons.push('Invalid reference ID - check lookup tables');
+                                    reasons.push(insertResult.error);
                                 }
                             } else {
-                                reasons.push(insertResult.error);
+                                reasons.push("Database insertion failed");
                             }
                         }
                     } catch (error) {
-                        insertResult = { success: false, error: error instanceof Error ? error.message : "Unknown error" };
-                        reasons.push(insertResult.error || "Unknown error");
+                        validationFailed = true;
+                        reasons.push(error instanceof Error ? error.message : "Unknown error during database insertion");
                     }
                 }
 
-                row.RESULT = insertResult.success ? 'PASS' : 'FAILED';
+                // Set final result
+                row.RESULT = validationFailed ? 'FAILED' : 'PASS';
                 row.REASONS = reasons.length > 0 ? reasons.join('; ') : 'All validations passed';
 
-                row.RESULT = insertResult ? 'PASS' : 'FAILED';
                 processedData.push(row);
             }
+
 
             setCsvData(processedData);
         } catch (error) {
@@ -191,6 +207,16 @@ const CSVUpload: React.FC = () => {
 
 
     const columns: Column[] = [
+                {
+            key: "NADI_SITE",
+            header: "NADI Site",
+            filterable: true,
+            visible: true,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
         {
             key: (_, i) => `${i + 1}.`,
             header: "No",
@@ -221,6 +247,16 @@ const CSVUpload: React.FC = () => {
         {
             key: "IDENTITY_TYPE",
             header: "ID Type",
+            filterable: true,
+            visible: true,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "EMAIL",
+            header: "EMAIL",
             filterable: true,
             visible: true,
             filterType: "string" as const,
@@ -261,9 +297,7 @@ const CSVUpload: React.FC = () => {
         {
             key: "ADDRESS1",
             header: "Address 1",
-            filterable: true,
             visible: true,
-            filterType: "string" as const,
             align: "left" as const,
             width: "8%",
             render: (value) => value || "-",
@@ -271,9 +305,7 @@ const CSVUpload: React.FC = () => {
         {
             key: "ADDRESS2",
             header: "Address 2",
-            filterable: true,
             visible: true,
-            filterType: "string" as const,
             align: "left" as const,
             width: "8%",
             render: (value) => value || "-",
@@ -297,50 +329,6 @@ const CSVUpload: React.FC = () => {
             align: "center" as const,
             width: "5%",
             render: (value) => value || "-",
-        },
-        {
-            key: "NADI_SITE",
-            header: "NADI Site",
-            filterable: true,
-            visible: true,
-            filterType: "string" as const,
-            align: "center" as const,
-            width: "5%",
-            render: (value) => value || "-",
-        },
-        {
-            key: "COMPLETE_FORM",
-            header: "Form Complete",
-            filterable: true,
-            visible: true,
-            filterType: "string" as const,
-            align: "center" as const,
-            width: "8%",
-            render: (value) => (
-                <Badge
-                    variant="outline"
-                    className={value === 'PASS' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}
-                >
-                    {value}
-                </Badge>
-            ),
-        },
-        {
-            key: "IDENTITY_NO_VALID",
-            header: "Identity Number Valid",
-            filterable: true,
-            visible: true,
-            filterType: "string" as const,
-            align: "center" as const,
-            width: "7%",
-            render: (value) => (
-                <Badge
-                    variant="outline"
-                    className={value === 'PASS' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}
-                >
-                    {value}
-                </Badge>
-            ),
         },
         {
             key: "RESULT",
@@ -397,20 +385,14 @@ const CSVUpload: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {/* <FileUpload
-                            maxFiles={1}
-                            acceptedFileTypes=".csv"
-                            maxSizeInMB={10}
-                            buttonText="Choose CSV File"
-                            onChange={handleFileUpload}
-                        /> */}
 
                         {csvData.length === 0 ? (
-                            <input
-                                type="file"
-                                accept=".csv"
+                            <FileUpload
+                                maxFiles={1}
+                                acceptedFileTypes=".csv"
+                                maxSizeInMB={10}
+                                buttonText="Choose CSV File"
                                 onChange={handleFileUpload}
-                                className="block"
                             />
                         ) : (
                             <div className="space-y-2">
