@@ -35,11 +35,10 @@ export const BookingManagementDetail = () => {
     // Set UI content based on role access modifier
     const userMetadata = useUserMetadata();
     const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
-    const tpAdminOrganizationId =
+    const tpOrganizationId =
         parsedMetadata?.user_type !== "super_admin" &&
             parsedMetadata?.user_group_name === "TP" &&
-            parsedMetadata?.user_type === "tp_admin" &&
-            !!parsedMetadata?.organization_name &&
+            parsedMetadata?.user_group === 3 &&
             parsedMetadata?.organization_id
             ? parsedMetadata.organization_id
             : null;
@@ -51,7 +50,7 @@ export const BookingManagementDetail = () => {
             ? parsedMetadata.organization_id
             : null;
 
-    const isTpAdmin = !!tpAdminOrganizationId;
+    const isTp = !!tpOrganizationId;
     const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
     const isTpSite = !!tpSiteOrganizationId;
     const isMember = parsedMetadata?.user_group === 7;
@@ -74,7 +73,7 @@ export const BookingManagementDetail = () => {
         useSpacesBySite
     } = useBookingQueries();
 
-    const { data: tpsSites, isLoading: isTpsSitesLoading } = useTpsSites(tpAdminOrganizationId);
+    const { data: tpsSites, isLoading: isTpsSitesLoading } = useTpsSites(tpOrganizationId);
     const tpsSiteIds = tpsSites?.map(tp => tp.id) ?? [];
 
     // Member or TP Site Site ID
@@ -91,7 +90,7 @@ export const BookingManagementDetail = () => {
     const { data: tpsSitesFacilitiesBookings, isLoading: isTpsSitesFacilitiesBookingsLoading } = useBookingSpacesInTpsSites(tpsSiteIds);
 
     // All PC in tp admin sites
-    const { data: pcsInTpsAdminSites, isLoading: pcsInTpsAdminSitesLoading } = useAssetsInTpsSites(tpAdminOrganizationId);
+    const { data: pcsInTpsAdminSites, isLoading: pcsInTpsAdminSitesLoading } = useAssetsInTpsSites(tpOrganizationId);
 
     // State to share to the TP admin dashboard (choosing a site)
     const [selectedSiteId, setSelectedSiteId] = useState<number | null>();
@@ -111,12 +110,12 @@ export const BookingManagementDetail = () => {
 
     useEffect(() => {
         const sourcePcBooking =
-            (isTpAdmin || isSuperAdmin)
+            (isTp || isSuperAdmin)
                 ? filterededBookingInTpSite
                 : pcsBooking;
 
         const sourceFacilitiesBooking =
-            (isTpAdmin || isSuperAdmin)
+            (isTp || isSuperAdmin)
                 ? filterededBookingInTpSite
                 : facilitiesBooking;
 
@@ -133,7 +132,7 @@ export const BookingManagementDetail = () => {
         tpsSitesFacilitiesBookings,
         selectedSiteId,
         isSuperAdmin,
-        isTpAdmin
+        isTp
     ]);
 
     // State to share to the PC and Faility status to update the availability
@@ -141,12 +140,12 @@ export const BookingManagementDetail = () => {
     const [selectedFacilitiesData, setSelectedFacilitiesData] = useState<SiteSpace[]>([]);
     useEffect(() => {
         const sourcePcsData =
-            (isTpAdmin || isSuperAdmin)
+            (isTp || isSuperAdmin)
                 ? tpsSitePcs
                 : sitesPcs;
 
         const sourceFacilitiesData =
-            (isTpAdmin || isSuperAdmin)
+            (isTp || isSuperAdmin)
                 ? tpsSitesFacilities
                 : sitesFacilities;
 
@@ -162,7 +161,7 @@ export const BookingManagementDetail = () => {
         tpsSitesFacilities,
         tpsSitePcs,
         sitesFacilities,
-        isTpAdmin,
+        isTp,
         isSuperAdmin
     ]);
 
@@ -189,7 +188,7 @@ export const BookingManagementDetail = () => {
     console.log("selected facilities data", selectedFacilitiesData);
 
     if (
-        (isTpAdmin || isSuperAdmin) &&
+        (isTp || isSuperAdmin) &&
         !selectedSiteId
     ) {
         return (
@@ -204,7 +203,7 @@ export const BookingManagementDetail = () => {
         <div className="relative">
 
             <>
-                {(isTpAdmin || isSuperAdmin) && (
+                {(isTp || isSuperAdmin) && (
                     <Button className="absolute top-0 left-0 items-center gap-2 font-medium text-base" onClick={handleResetselectedSite}>
                         <ChevronLeft className="h-32" />
                         Choose Other Site
@@ -221,7 +220,7 @@ export const BookingManagementDetail = () => {
                     setPcsBookingsData={setPcsBookingsData}
                     setFacilitiesBookingsData={setFacilitiesBookingsData}
                     isBookingLoading={isBookingLoading}
-                    isTpAdmin={isTpAdmin}
+                    isTpAdmin={isTp}
                     setSelectedPcsData={setSelectedPcsData}
                     setSelectedFacilitiesData={setSelectedFacilitiesData}
                 />
