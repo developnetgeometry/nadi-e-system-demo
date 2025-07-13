@@ -266,8 +266,8 @@ export const ViewMaintenanceDetailsDialog = ({
 
       if (!estimatedCompletionDate) {
         toast({
-          title: "Estimated Completion Date is required",
-          description: "Please select an estimated completion date.",
+          title: "Completion Date is required",
+          description: "Please select an completion date.",
           variant: "destructive",
         });
 
@@ -350,7 +350,7 @@ export const ViewMaintenanceDetailsDialog = ({
         </div>
         <div className="space-y-2">
           <Label className="text-sm font-medium text-gray-500">
-            Estimated Completion Date
+            Completion Date
           </Label>
           <Popover>
             <PopoverTrigger asChild>
@@ -947,8 +947,8 @@ export const ViewMaintenanceDetailsDialog = ({
               <div>
                 <Label className="text-sm font-medium text-gray-500">
                   {maintenanceRequest?.maintenance_date
-                    ? "Estimated Completion"
-                    : "No Estimated Date"}
+                    ? "Completion Date"
+                    : "No Completion Date"}
                 </Label>
                 <div className="mt-1 flex items-center">
                   {maintenanceRequest?.maintenance_date && (

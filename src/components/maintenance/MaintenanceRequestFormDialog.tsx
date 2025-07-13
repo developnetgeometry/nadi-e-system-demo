@@ -617,7 +617,7 @@ export const MaintenanceRequestFormDialog = ({
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-500">
-                    Estimated Completion Date
+                    Completion Date
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
