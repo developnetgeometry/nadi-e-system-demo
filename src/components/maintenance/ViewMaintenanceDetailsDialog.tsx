@@ -206,6 +206,7 @@ export const ViewMaintenanceDetailsDialog = ({
     const [estimatedCompletionDate, setEstimatedCompletionDate] =
       useState<Date | null>(null);
     const [sla, setSLA] = useState<number>(null);
+    const [priority, setPriority] = useState<number>(null);
 
     const [buttonText, setButtonText] = useState("Update Request");
 
@@ -250,6 +251,7 @@ export const ViewMaintenanceDetailsDialog = ({
       setIsSubmitting(true);
 
       const remarks = formData.get("remarks") as string;
+      const priority = formData.get("priority") as string;
 
       if (!remarks) {
         toast({
@@ -273,6 +275,17 @@ export const ViewMaintenanceDetailsDialog = ({
         return;
       }
 
+      if (!priority) {
+        toast({
+          title: "Priority is required",
+          description: "Please select a priority for the update.",
+          variant: "destructive",
+        });
+
+        setIsSubmitting(false);
+        return;
+      }
+
       const logs = maintenanceRequest?.logs || [];
       logs.push({
         description: "SLA updated",
@@ -286,6 +299,7 @@ export const ViewMaintenanceDetailsDialog = ({
           .from("nd_maintenance_request")
           .update({
             sla_id: sla,
+            priority_type_id: Number(priority),
             maintenance_date: estimatedCompletionDate,
             logs: logs,
             remarks: remarks,
@@ -312,8 +326,28 @@ export const ViewMaintenanceDetailsDialog = ({
       }
     };
 
+    const handlePriorityChange = (value: string) => {
+      if (value === "0") {
+        setPriority(0);
+      } else if (value === "1") {
+        setPriority(1);
+      }
+    };
+
     return (
       <form onSubmit={handleSLAUpdate} className="space-y-4">
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-gray-500">Priority</Label>
+          <Select name="priority" required onValueChange={handlePriorityChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Critical</SelectItem>
+              <SelectItem value="1">Non-Critical</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-2">
           <Label className="text-sm font-medium text-gray-500">
             Estimated Completion Date
@@ -345,9 +379,23 @@ export const ViewMaintenanceDetailsDialog = ({
                 onSelect={handleEstimatedCompletionDateChange}
                 initialFocus
                 className="pointer-events-auto"
-                disabled={(date) =>
-                  date <= new Date(new Date().setHours(0, 0, 0, 0))
-                } // disable dates before today
+                disabled={(date) => {
+                  // disable dates before today
+                  const today = new Date(new Date().setHours(0, 0, 0, 0));
+
+                  // Set startDate and endDate based on priority
+                  const startDate = new Date(today);
+                  const endDate = new Date(today);
+                  if (priority === 0) {
+                    // Critical priority — allow today to 14 days ahead
+                    startDate.setDate(today.getDate() + 14);
+                    return date < startDate;
+                  } else {
+                    // Non-critical — same 14-day window (adjust here if needed)
+                    startDate.setDate(today.getDate() + 14);
+                    return date < today || date > endDate;
+                  }
+                }}
               />
             </PopoverContent>
           </Popover>
