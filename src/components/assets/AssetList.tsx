@@ -181,7 +181,6 @@ export const AssetList = ({
       "Type",
       "Brand",
       "Barcode / SKU",
-      "Quantity",
       "Remark",
       "NADI Centre",
       "Location",
@@ -334,7 +333,6 @@ export const AssetList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Item Name</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Quantity</TableHead>
                 {/* Add DUSP TP column for super admin */}
                 {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
                 <TableHead>Nadi Centre</TableHead>
@@ -384,7 +382,6 @@ export const AssetList = ({
                 <TableHead>No.</TableHead>
                 <TableHead>Item Name</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Quantity</TableHead>
                 {/* Add DUSP TP column for super admin */}
                 {isSuperAdmin && <TableHead>TP (DUSP)</TableHead>}
                 <TableHead>Nadi Centre</TableHead>

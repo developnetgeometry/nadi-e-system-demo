@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { fetchUserProfileNameById } from "@/hooks/auth/utils/profile-handler";
 import { useToast } from "@/hooks/use-toast";
-import { Asset } from "@/types/asset";
+import { Asset, RetailTypes } from "@/types/asset";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 interface AssetDetailsDialogProps {
@@ -63,8 +63,11 @@ export const AssetDetailsDialog = ({
               <span>{asset.name}</span>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-semibold">Quantity</span>
-              <span>{asset.qty_unit}</span>
+              <span className="font-semibold">Retail</span>
+              <span>
+                {RetailTypes.find((type) => type.id === asset.retail_type)
+                  ?.name || "Unknown"}
+              </span>{" "}
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold">Request Date</span>
