@@ -225,16 +225,16 @@ export const ViewMaintenanceDetailsDialog = ({
       let buttonLabel: string;
 
       if (diffInDays >= 1 && diffInDays <= 3) {
-        slaLevel = 1; // Critical
+        slaLevel = 4; // Low
         buttonLabel = "Update Request";
       } else if (diffInDays >= 4 && diffInDays <= 7) {
-        slaLevel = 2; // High
-        buttonLabel = "Update Request";
-      } else if (diffInDays >= 8 && diffInDays <= 14) {
         slaLevel = 3; // Moderate
         buttonLabel = "Update Request";
+      } else if (diffInDays >= 8 && diffInDays <= 14) {
+        slaLevel = 2; // High
+        buttonLabel = "Update Request";
       } else {
-        slaLevel = 4; // Low
+        slaLevel = 1; // Critical
         buttonLabel = "Submit to DUSP";
       }
 
