@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, FileText, AlertCircle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cleanIdentityNumber, insertAndCleanupMember, checkICExists } from './validate';
+import { cleanIdentityNumber, insertAndCleanupMember, checkICExists, checkEmailExists } from './validate';
 import DataTable, { Column } from '@/components/ui/datatable';
 import { FileUpload } from '@/components/ui/file-upload';
 
@@ -36,7 +36,7 @@ const CSVUpload: React.FC = () => {
     const [fileName, setFileName] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const requiredFields = ['FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER'];
+    const requiredFields = ['NADI_SITE', 'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER'];
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -50,14 +50,6 @@ const CSVUpload: React.FC = () => {
             const lines = text.split('\n').filter(line => line.trim());
             // Change from tab to comma separation
             const headers = lines[0].split(',');
-
-            // Validate headers
-            const expectedHeaders = [
-                'NADI_SITE', 'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER', 'RACE',
-                'PDPA_DECLARE', 'AGREE_DECLARE', 'ENTREPRENEUR_STATUS', 'GUARDIAN_NAME',
-                'ADDRESS1', 'ADDRESS2', 'DISTRICT', 'STATE', 'POSTCODE', 'CITY',
-                'NATIONALITY', 'MADANI_COMMUNITY'
-            ];
 
 
             const processedData: CSVRow[] = [];
@@ -98,7 +90,7 @@ const CSVUpload: React.FC = () => {
                             const icExists = await checkICExists(cleanedIdentityNumber);
 
                             // Identity is valid if it's unique (doesn't exist in database)
-                            identityValid = icExists;
+                            identityValid = !icExists;
 
                             if (!identityValid) {
                                 validationFailed = true;
@@ -121,6 +113,46 @@ const CSVUpload: React.FC = () => {
                     }
                 }
 
+                // Step 3: Validate Email (only if required fields and identity checks passed)
+                if (!validationFailed) {
+                    let emailValid = false;
+
+                    if (row.EMAIL) {
+                        try {
+                            // Clean and validate email format
+                            const email = row.EMAIL.trim().toLowerCase();
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                            if (!emailRegex.test(email)) {
+                                validationFailed = true;
+                                reasons.push("Invalid email format");
+                            } else {
+                                // Check if email exists in database
+                                const emailExists = await checkEmailExists(email);
+
+                                if (emailExists) {
+                                    validationFailed = true;
+                                    reasons.push("Email already exists in database");
+                                } else {
+                                    emailValid = true;
+                                }
+                            }
+                        } catch (error) {
+                            validationFailed = true;
+                            reasons.push("Error validating email");
+                        }
+                    } else {
+                        validationFailed = true;
+                        reasons.push("Email is missing");
+                    }
+
+                    if (validationFailed) {
+                        row.RESULT = 'FAILED';
+                        row.REASONS = reasons.join('; ');
+                        processedData.push(row);
+                        continue; // Skip to next row
+                    }
+                }
 
 
                 // Step 4: Test database insertion (only if all previous validations passed)
@@ -128,21 +160,21 @@ const CSVUpload: React.FC = () => {
                     try {
                         const memberData = {
                             fullname: row.FULLNAME,
-                            identity_no: cleanIdentityNumber(row.IDENTITY_NO, parseInt(row.IDENTITY_TYPE)),
-                            identity_no_type: parseInt(row.IDENTITY_TYPE),
-                            gender: parseInt(row.GENDER),
-                            race_id: parseInt(row.RACE),
+                            identity_no: cleanIdentityNumber(row.IDENTITY_NO, row.IDENTITY_TYPE),
+                            identity_no_type: row.IDENTITY_TYPE,
+                            gender: row.GENDER === "" ? null : row.GENDER,
+                            race_id: row.RACE === "" ? null : row.RACE,
                             pdpa_declare: row.PDPA_DECLARE?.toLowerCase() === 'true',
                             agree_declare: row.AGREE_DECLARE?.toLowerCase() === 'true',
-                            nationality_id: parseInt(row.NATIONALITY),
+                            nationality_id: row.NATIONALITY,
                             community_status: row.MADANI_COMMUNITY?.toLowerCase() === 'true',
                             status_entrepreneur: row.ENTREPRENEUR_STATUS?.toLowerCase() === 'true',
                             supervision: row.GUARDIAN_NAME,
                             address1: row.ADDRESS1,
                             address2: row.ADDRESS2,
-                            ref_id: parseInt(row.NADI_SITE),
-                            district_id: parseInt(row.DISTRICT),
-                            state_id: parseInt(row.STATE),
+                            ref_id: row.NADI_SITE,
+                            district_id: row.DISTRICT,
+                            state_id: row.STATE,
                             postcode: row.POSTCODE,
                             city: row.CITY,
                         };
@@ -207,7 +239,14 @@ const CSVUpload: React.FC = () => {
 
 
     const columns: Column[] = [
-                {
+        {
+            key: (_, i) => `${i + 1}.`,
+            header: "No",
+            width: "3%",
+            visible: true,
+            align: "center" as const,
+        },
+        {
             key: "NADI_SITE",
             header: "NADI Site",
             filterable: true,
@@ -216,13 +255,6 @@ const CSVUpload: React.FC = () => {
             align: "center" as const,
             width: "5%",
             render: (value) => value || "-",
-        },
-        {
-            key: (_, i) => `${i + 1}.`,
-            header: "No",
-            width: "3%",
-            visible: true,
-            align: "center" as const,
         },
         {
             key: "FULLNAME",
@@ -246,8 +278,8 @@ const CSVUpload: React.FC = () => {
         },
         {
             key: "IDENTITY_TYPE",
-            header: "ID Type",
-            filterable: true,
+            header: "Identity Type",
+            filterable: false,
             visible: true,
             filterType: "string" as const,
             align: "center" as const,
@@ -256,7 +288,7 @@ const CSVUpload: React.FC = () => {
         },
         {
             key: "EMAIL",
-            header: "EMAIL",
+            header: "Email",
             filterable: true,
             visible: true,
             filterType: "string" as const,
@@ -267,7 +299,7 @@ const CSVUpload: React.FC = () => {
         {
             key: "GENDER",
             header: "Gender",
-            filterable: true,
+            filterable: false,
             visible: true,
             filterType: "string" as const,
             align: "center" as const,
@@ -277,7 +309,7 @@ const CSVUpload: React.FC = () => {
         {
             key: "RACE",
             header: "Race",
-            filterable: true,
+            filterable: false,
             visible: true,
             filterType: "string" as const,
             align: "center" as const,
@@ -287,8 +319,58 @@ const CSVUpload: React.FC = () => {
         {
             key: "NATIONALITY",
             header: "Nationality",
-            filterable: true,
+            filterable: false,
             visible: true,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "ENTREPRENEUR_STATUS",
+            header: "Entrepreneur Status",
+            filterable: false,
+            visible: false,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "MADANI_COMMUNITY",
+            header: "MADANI Community",
+            filterable: false,
+            visible: false,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "PDPA_DECLARE",
+            header: "PDPA Declaration",
+            filterable: false,
+            visible: false,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "AGREE_DECLARE",
+            header: "Agreement Declaration",
+            filterable: false,
+            visible: false,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "GUARDIAN_NAME",
+            header: "Guardian Name",
+            filterable: false,
+            visible: false,
             filterType: "string" as const,
             align: "center" as const,
             width: "5%",
@@ -297,7 +379,8 @@ const CSVUpload: React.FC = () => {
         {
             key: "ADDRESS1",
             header: "Address 1",
-            visible: true,
+            filterable: false,
+            visible: false,
             align: "left" as const,
             width: "8%",
             render: (value) => value || "-",
@@ -305,7 +388,8 @@ const CSVUpload: React.FC = () => {
         {
             key: "ADDRESS2",
             header: "Address 2",
-            visible: true,
+            filterable: false,
+            visible: false,
             align: "left" as const,
             width: "8%",
             render: (value) => value || "-",
@@ -331,6 +415,26 @@ const CSVUpload: React.FC = () => {
             render: (value) => value || "-",
         },
         {
+            key: "POSTCODE",
+            header: "Postcode",
+            filterable: false,
+            visible: false,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
+            key: "CITY",
+            header: "City",
+            filterable: false,
+            visible: false,
+            filterType: "string" as const,
+            align: "center" as const,
+            width: "5%",
+            render: (value) => value || "-",
+        },
+        {
             key: "RESULT",
             header: "Result",
             filterable: true,
@@ -350,7 +454,7 @@ const CSVUpload: React.FC = () => {
         {
             key: "REASONS",
             header: "Reasons",
-            filterable: true,
+            filterable: false,
             visible: true,
             filterType: "string" as const,
             align: "left" as const,
@@ -368,9 +472,9 @@ const CSVUpload: React.FC = () => {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">CSV Bulk Upload</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Validate Bulk Upload</h1>
                     <p className="text-gray-600 mt-1">
-                        Upload and validate member data via CSV file
+                        Validate member data via CSV file before uploading to the system.
                     </p>
                 </div>
             </div>
@@ -380,7 +484,7 @@ const CSVUpload: React.FC = () => {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Upload className="h-5 w-5" />
-                        Upload CSV File
+                        Validate CSV File
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -414,11 +518,15 @@ const CSVUpload: React.FC = () => {
                                         CSV Format Requirements
                                     </h3>
                                     <div className="mt-2 text-sm text-yellow-700">
-                                        <p><strong>Required Headers (comma-separated):</strong></p>
+                                        <p><strong>Required Headers:</strong></p>
                                         <p className="font-mono text-xs mt-1">
-                                            FULLNAME,IDENTITY_NO,IDENTITY_TYPE,GENDER,RACE,PDPA_DECLARE,AGREE_DECLARE,NATIONALITY,MADANI_COMMUNITY,ENTREPRENEUR_STATUS,GUARDIAN_NAME,ADDRESS1,ADDRESS2,NADI_SITE,DISTRICT,STATE,POSTCODE,CITY
+                                            NADI_SITE,FULLNAME,IDENTITY_NO,IDENTITY_TYPE,EMAIL,GENDER
                                         </p>
-                                        <p className="mt-2"><strong>Required Fields:</strong> FULLNAME, IDENTITY_NO, IDENTITY_TYPE, GENDER</p>
+                                        <p className="mt-2"><strong>Optional Headers:</strong></p>
+                                        <p className="font-mono text-xs mt-1">
+                                            RACE,PDPA_DECLARE,AGREE_DECLARE,NATIONALITY,MADANI_COMMUNITY,ENTREPRENEUR_STATUS,GUARDIAN_NAME,ADDRESS1,ADDRESS2,DISTRICT,STATE,POSTCODE,CITY
+                                        </p>
+                                        <p className="mt-2"><strong>Required Fields:</strong> NADI_SITE, FULLNAME, IDENTITY_NO, IDENTITY_TYPE, GENDER</p>
                                     </div>
                                 </div>
                             </div>
