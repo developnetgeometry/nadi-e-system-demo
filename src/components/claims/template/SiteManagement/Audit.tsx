@@ -152,9 +152,16 @@ const Audit = async ({
                         data={audits}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID" },
-                            { key: "site_name", header: "NADI" },
-                            { key: "state", header: "STATE" },
+                            { key: "standard_code", header: "REFID", width: "20%" },
+                            { key: "site_name", header: "NADI", width: "35%" },
+                            { key: "state", header: "STATE", width: "25%" },
+                            { 
+                                key: "status", 
+                                header: "STATUS", 
+                                width: "15%",
+                                align: "center",
+                                render: (value, item) => item.status ? "Done" : "-"
+                            },
                         ]}
                     />
                 ) : (

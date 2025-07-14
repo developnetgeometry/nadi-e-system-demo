@@ -6,6 +6,7 @@ export interface AuditData {
     site_name: string;
     refId: string;
     state: string;
+    status: boolean; // Whether site has audit or not in the date range
     attachments_path: string[];
 }
 
@@ -21,44 +22,80 @@ export const fetchAuditData = async ({
     nadiFilter = [],
     tpFilter = null,
 }) => {
-    // Fetch from nd_site_audit_attachment, join nd_site_profile, nd_site, nd_state
-    let query = supabase
-        .from("nd_site_audit_attachment")
+    // 1. Fetch all site details from nd_site_profile
+    let siteQuery = supabase
+        .from("nd_site_profile")
         .select(`
             id,
-            site_profile_id,
-            file_path,
-            nd_site_profile:site_profile_id(
-                id,
-                sitename,
-                nd_site:nd_site(standard_code, refid_tp),
-                state_id:nd_state(name)
-            )
+            sitename,
+            nd_site:nd_site(standard_code, refid_tp),
+            state_id:nd_state(name)
         `);
-    if (phaseFilter) query = query.eq("nd_site_profile.phase_id", Number(phaseFilter));
-    if (nadiFilter && nadiFilter.length > 0) query = query.in("site_profile_id", nadiFilter.map(Number));
-    // Add TP and DUSP filter logic if needed
-    const { data: auditDetails, error } = await query;
-    if (error) throw error;
-    if (!auditDetails || auditDetails.length === 0) return { audits: [] };
-    const audits = auditDetails.map(audit => {
-        const profile = audit.nd_site_profile;
-        // nd_site is likely an array, but if not, fallback gracefully
-        let standard_code = "";
-        let refId = "";
-        if (profile?.nd_site && Array.isArray(profile.nd_site)) {
-            standard_code = profile.nd_site[0]?.standard_code || "";
-            refId = profile.nd_site[0]?.refid_tp || "";
+    
+    if (phaseFilter) siteQuery = siteQuery.eq("phase_id", Number(phaseFilter));
+    if (nadiFilter && nadiFilter.length > 0) siteQuery = siteQuery.in("id", nadiFilter.map(Number));
+
+    const { data: siteDetails, error: siteError } = await siteQuery;
+    if (siteError) throw siteError;
+    if (!siteDetails || siteDetails.length === 0) return { audits: [] };
+
+    // 2. Get site IDs for checking audit status
+    const siteIds = siteDetails.map(site => site.id);
+
+    // 3. Fetch audit data for these sites
+    let auditQuery = supabase
+        .from("nd_site_audit")
+        .select(`
+            site_profile_id,
+            audit_date,
+            file_path
+        `)
+        .in("site_profile_id", siteIds);
+
+    // Apply date range filter if provided
+    if (startDate && endDate) {
+        auditQuery = auditQuery.gte("audit_date", startDate).lte("audit_date", endDate);
+    } else if (startDate) {
+        auditQuery = auditQuery.gte("audit_date", startDate);
+    } else if (endDate) {
+        auditQuery = auditQuery.lte("audit_date", endDate);
+    }
+
+    const { data: auditRecords, error: auditError } = await auditQuery;
+    if (auditError) throw auditError;
+
+    // 4. Create a Set for quick lookup of sites with audits in the date range
+    const sitesWithAudits = new Set();
+    const siteAttachments = new Map(); // To store file paths for sites with audits
+
+    (auditRecords || []).forEach(audit => {
+        if (audit.site_profile_id) {
+            sitesWithAudits.add(audit.site_profile_id);
+            
+            // Collect file paths for sites with audits
+            if (audit.file_path && audit.file_path.length > 0) {
+                const existingPaths = siteAttachments.get(audit.site_profile_id) || [];
+                siteAttachments.set(audit.site_profile_id, [...existingPaths, ...audit.file_path]);
+            }
         }
+    });
+
+    // 5. Generate audit records - one row per site with status
+    const audits = siteDetails.map(site => {
+        const hasAudit = sitesWithAudits.has(site.id);
+        const attachments = siteAttachments.get(site.id) || [];
+
         return {
-            site_id: String(profile?.id || audit.site_profile_id),
-            standard_code,
-            site_name: profile?.sitename || "",
-            refId,
-            state: profile?.state_id?.name || "",
-            attachments_path: audit.file_path || []
+            site_id: String(site.id),
+            standard_code: site.nd_site?.[0]?.standard_code || "",
+            site_name: site.sitename || "",
+            refId: site.nd_site?.[0]?.refid_tp || "",
+            state: site.state_id?.name || "",
+            status: hasAudit, // True if site has audit in the date range
+            attachments_path: attachments
         };
     });
+
     return { audits };
 }
 
