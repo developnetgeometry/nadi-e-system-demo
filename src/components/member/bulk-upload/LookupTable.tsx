@@ -485,6 +485,10 @@ const LookupTable: React.FC = () => {
                                 <li>• For District: Use District ID values from the Districts & States table</li>
                                 <li>• For State: Use State ID values from the Districts & States table</li>
                                 <li>• For NADI Site: ID values from the Site Profiles table</li>
+                                <li>• For Entrepreneur Status: use TRUE or FALSE (TRUE = Yes, FALSE = No)</li>
+                                <li>• For MANADI Community: use TRUE or FALSE (TRUE = Yes, FALSE = No)</li>
+                                <li>• For PDPA Declare: use TRUE or FALSE  (TRUE = Agree, FALSE = Disagree)</li>
+                                <li>• For Agreement Declare: use TRUE or FALSE (TRUE = Agree, FALSE = Disagree)</li>
                                 <li>• Always refer to these tables for the most up-to-date reference data</li>
                             </ul>
                         </div>
