@@ -32,7 +32,7 @@ export const fetchAgreementData = async ({
         .select(`
             id,
             sitename,
-            nd_site:nd_site(standard_code, refid_tp),
+            nd_site:nd_site(standard_code, refid_tp, refid_mcmc),
             state_id:nd_state(name)
         `);
     
@@ -119,7 +119,7 @@ export const fetchAgreementData = async ({
 
         return {
             site_id: String(site.id),
-            standard_code: site.nd_site?.[0]?.standard_code || "",
+            standard_code: site.nd_site?.[0]?.refid_mcmc || "",
             site_name: site.sitename || "",
             refId: site.nd_site?.[0]?.refid_tp || "",
             state: site.state_id?.name || "",
