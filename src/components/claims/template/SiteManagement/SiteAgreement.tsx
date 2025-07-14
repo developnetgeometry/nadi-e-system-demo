@@ -152,9 +152,30 @@ const Agreement = async ({
                         data={agreement}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID" },
-                            { key: "site_name", header: "NADI" },
-                            { key: "state", header: "STATE" },
+                            { key: "standard_code", header: "REFID", width: "16%" },
+                            { key: "site_name", header: "NADI", width: "25%" },
+                            { key: "state", header: "STATE", width: "14%" },
+                            { 
+                                key: "status", 
+                                header: "STATUS", 
+                                width: "8%",
+                                align: "center",
+                                render: (value, item) => item.status ? "Yes" : "No"
+                            },
+                            { 
+                                key: "start_date", 
+                                header: "START DATE", 
+                                width: "16%", 
+                                align: "center",
+                                render: (value, item) => item.start_date ? new Date(item.start_date).toLocaleDateString('en-GB') : "-"
+                            },
+                            { 
+                                key: "end_date", 
+                                header: "END DATE", 
+                                width: "16%", 
+                                align: "center",
+                                render: (value, item) => item.end_date ? new Date(item.end_date).toLocaleDateString('en-GB') : "-"
+                            },
                         ]}
                     />
                 ) : (

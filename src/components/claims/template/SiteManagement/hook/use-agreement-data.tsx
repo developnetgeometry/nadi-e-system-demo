@@ -7,6 +7,9 @@ export interface agreementData {
     site_name: string;
     refId: string;
     state: string;
+    status: boolean; // Whether site has agreement or not in the date range
+    start_date: string | null;
+    end_date: string | null;
     attachments_path?: string[]; // Optional attachment field
 }
 
@@ -15,8 +18,6 @@ export interface agreementData {
  * Data fetching function (non-hook) for agreement data
  * This function is used by agreement.tsx to fetch agreement data directly without React hooks
  */
-
-
 export const fetchAgreementData = async ({
     startDate = null,
     endDate = null,
@@ -25,47 +26,111 @@ export const fetchAgreementData = async ({
     nadiFilter = [],
     tpFilter = null,
 }) => {
-    // Fetch from nd_site_agreement_attachment, join nd_site_profile, nd_site, nd_state
-    let query = supabase
-        .from("nd_site_agreement_attachment")
+    // 1. Fetch all site details from nd_site_profile
+    let siteQuery = supabase
+        .from("nd_site_profile")
         .select(`
             id,
-            site_profile_id,
-            file_path,
-            nd_site_profile:site_profile_id(
-                id,
-                sitename,
-                nd_site:nd_site(standard_code, refid_tp),
-                state_id:nd_state(name)
-            )
+            sitename,
+            nd_site:nd_site(standard_code, refid_tp),
+            state_id:nd_state(name)
         `);
+    
+    if (phaseFilter) siteQuery = siteQuery.eq("phase_id", Number(phaseFilter));
+    if (nadiFilter && nadiFilter.length > 0) siteQuery = siteQuery.in("id", nadiFilter.map(Number));
 
-    if (nadiFilter && nadiFilter.length > 0) query = query.in("site_profile_id", nadiFilter.map(Number));
+    const { data: siteDetails, error: siteError } = await siteQuery;
+    if (siteError) throw siteError;
+    if (!siteDetails || siteDetails.length === 0) return { agreement: [] };
 
-    const { data: agreementDetails, error } = await query;
-    if (error) throw error;
+    // 2. Get site IDs for checking agreement status
+    const siteIds = siteDetails.map(site => site.id);
 
-    if (!agreementDetails || agreementDetails.length === 0) return { agreement: [] };
+    // 3. Fetch agreement data for these sites
+    let agreementQuery = supabase
+        .from("nd_site_agreement")
+        .select(`
+            site_profile_id,
+            start_date,
+            end_date,
+            file_path
+        `)
+        .in("site_profile_id", siteIds);
 
-    // Map the fetched data to the desired format
-    const agreement = agreementDetails.map(ag => {
-        const profile = ag.nd_site_profile;
-        let standard_code = "";
-        let refId = "";
-        if (profile?.nd_site && Array.isArray(profile.nd_site)) {
-            standard_code = profile.nd_site[0]?.standard_code || "";
-            refId = profile.nd_site[0]?.refid_tp || "";
+    // Apply date range filters if provided
+    if (startDate && endDate) {
+        agreementQuery = agreementQuery
+            .or(`start_date.lte.${endDate},start_date.is.null`)
+            .or(`end_date.gte.${startDate},end_date.is.null`);
+    } else if (startDate) {
+        agreementQuery = agreementQuery
+            .or(`end_date.gte.${startDate},end_date.is.null`);
+    } else if (endDate) {
+        agreementQuery = agreementQuery
+            .or(`start_date.lte.${endDate},start_date.is.null`);
+    }
+
+    const { data: agreementRecords, error: agreementError } = await agreementQuery;
+    if (agreementError) throw agreementError;
+
+    // 4. Consolidate overlapping agreement records per site (earliest start, latest end)
+    const consolidatedAgreements = new Map();
+
+    (agreementRecords || []).forEach(agreement => {
+        if (agreement.site_profile_id && agreement.start_date && agreement.end_date) {
+            const siteId = agreement.site_profile_id;
+            
+            if (!consolidatedAgreements.has(siteId)) {
+                // First agreement for this site
+                consolidatedAgreements.set(siteId, {
+                    site_profile_id: siteId,
+                    start_date: agreement.start_date,
+                    end_date: agreement.end_date,
+                    file_paths: agreement.file_path || []
+                });
+            } else {
+                // Consolidate with existing agreement for this site
+                const existing = consolidatedAgreements.get(siteId);
+                const earliestStart = new Date(existing.start_date) < new Date(agreement.start_date) 
+                    ? existing.start_date 
+                    : agreement.start_date;
+                    
+                const latestEnd = new Date(existing.end_date) > new Date(agreement.end_date) 
+                    ? existing.end_date 
+                    : agreement.end_date;
+                
+                consolidatedAgreements.set(siteId, {
+                    ...existing,
+                    start_date: earliestStart,
+                    end_date: latestEnd,
+                    file_paths: [...existing.file_paths, ...(agreement.file_path || [])]
+                });
+            }
         }
+    });
+
+    // 5. Create a Set for quick lookup of sites with agreements
+    const sitesWithAgreements = new Set(consolidatedAgreements.keys());
+
+    // 6. Generate agreement records - one row per site with status
+    const agreement = siteDetails.map(site => {
+        const hasAgreement = sitesWithAgreements.has(site.id);
+        const consolidatedData = consolidatedAgreements.get(site.id);
+
         return {
-            site_id: String(profile?.id || ag.site_profile_id),
-            standard_code,
-            site_name: profile?.sitename || "",
-            refId,
-            state: profile?.state_id?.name || "",
-            attachments_path: ag.file_path || []
+            site_id: String(site.id),
+            standard_code: site.nd_site?.[0]?.standard_code || "",
+            site_name: site.sitename || "",
+            refId: site.nd_site?.[0]?.refid_tp || "",
+            state: site.state_id?.name || "",
+            status: hasAgreement, // True if site has agreement in the date range
+            start_date: consolidatedData?.start_date || null,
+            end_date: consolidatedData?.end_date || null,
+            attachments_path: consolidatedData?.file_paths || []
         };
     });
-    return { agreement:agreement as agreementData[] };
+
+    return { agreement: agreement as agreementData[] };
 }
 
 // For backward compatibility
