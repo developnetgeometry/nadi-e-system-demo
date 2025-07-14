@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { NoAccess } from "@/components/NoAccess";
 import MemberProfileSettings from "@/components/profile/MemberProfileSettings";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 
@@ -8,7 +9,7 @@ const MemberPersonalDetails = () => {
   const userGroup = parsedMetadata?.user_group;
 
   if (userGroup !== 7) {
-    return <div>You do not have access to this dashboard.</div>;
+    return <NoAccess/>;
   }
 
   return (

@@ -67,6 +67,7 @@ type AwarenessPromotionDataProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
+    uploadAttachment?: File | null;
 };
 
 // Convert to an async function that returns a File object
@@ -80,7 +81,8 @@ const AwarenessPromotion = async ({
     claimType = null,
     quater = null,
     header = false,
-    dusplogo = null
+    dusplogo = null,
+    uploadAttachment = null,
 
 }: AwarenessPromotionDataProps): Promise<File> => {
     // Fetch anp data based on filters

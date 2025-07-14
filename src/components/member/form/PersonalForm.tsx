@@ -154,7 +154,9 @@ export function PersonalForm({
           <Input
             type="email"
             value={email}
-            onChange={(e) => updateFields({ email: e.target.value })}
+            onChange={(e) =>
+              updateFields({ email: e.target.value.toLowerCase() })
+            }
           />
           {email.length > 5 && (
             <div className="mt-1 flex items-center space-x-1 text-sm">
@@ -162,7 +164,7 @@ export function PersonalForm({
                 <span className="text-gray-500 italic">Checking...</span>
               ) : hasCheckedEmail ? (
                 isEmailExist ? (
-                  <span/>
+                  <span />
                 ) : (
                   <span className="text-red-600 flex items-center">
                     <XCircle className="w-4 h-4 mr-1" />

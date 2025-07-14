@@ -4,50 +4,50 @@ import { createUser } from "@/routes/api/createUser";
 export const insertMemberData = async (formData: {
   identity_no_type: string;
   identity_no: string;
-  isIcNumberExist: boolean;
-  isIcNumberValid: boolean;
+  isIcNumberExist?: boolean;
+  isIcNumberValid?: boolean;
   isUnder12: boolean;
-  parent_fullname: string;
-  parent_ic_no: string;
-  parent_relationship_id: string;
-  parent_mobile_no: string;
-  parent_address1: string;
-  parent_address2: string;
-  parent_district_id: string;
-  parent_state_id: string;
-  parent_city: string;
-  parent_postcode: string;
+  parent_fullname?: string;
+  parent_ic_no?: string;
+  parent_relationship_id?: string;
+  parent_mobile_no?: string;
+  parent_address1?: string;
+  parent_address2?: string;
+  parent_district_id?: string;
+  parent_state_id?: string;
+  parent_city?: string;
+  parent_postcode?: string;
 
   fullname: string;
   ref_id: number | string; // bigint
   community_status: boolean | string;
-  dob: string; // ISO date string
+  dob?: string; // ISO date string
   mobile_no: string;
   email: string;
   gender: number | string;
   status_membership: number | string;
   status_entrepreneur: boolean | string;
   register_method: number | string;
-  join_date: string; // ISO timestamp string
+  join_date?: string; // ISO timestamp string
   registration_status: boolean | string;
 
   nationality_id: number | string;
   race_id: number | string;
-  ethnic_id: number | string;
-  occupation_id: number | string;
-  type_sector: number | string;
-  ict_knowledge: number | string;
-  education_level: number | string;
-  oku_status: boolean | string;
-  income_range: number | string;
+  ethnic_id?: number | string;
+  occupation_id?: number | string;
+  type_sector?: number | string;
+  ict_knowledge?: number | string;
+  education_level?: number | string;
+  oku_status?: boolean | string;
+  income_range?: number | string;
 
-  distance: number | string;
-  address1: string;
-  address2: string;
-  district_id: number | string;
-  state_id: number | string;
-  city: string;
-  postcode: string;
+  distance?: number | string;
+  address1?: string;
+  address2?: string;
+  district_id?: number | string;
+  state_id?: number | string;
+  city?: string;
+  postcode?: string;
 
   pdpa_declare: boolean | string;
   agree_declare: boolean | string;

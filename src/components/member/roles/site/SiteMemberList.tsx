@@ -121,6 +121,14 @@ const McmcMemberList = () => {
                     </div>
 
                     {/* Right side: Button */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    <Button
+                        className="flex items-center gap-2 self-start sm:self-auto bg-green-600 hover:bg-green-500"
+                        onClick={() => navigate(`/member-management/bulk-registration`)}
+                    >
+                        <UserPlus className="h-4 w-4" />
+                        Bulk Upload
+                    </Button>
                     <Button
                         className="flex items-center gap-2 self-start sm:self-auto"
                         onClick={() => navigate(`/member-management/registration`)}
@@ -128,6 +136,7 @@ const McmcMemberList = () => {
                         <UserPlus className="h-4 w-4" />
                         Add New Member
                     </Button>
+                    </div>
                 </div>
 
                 {/* Stats card */}

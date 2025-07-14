@@ -70,6 +70,8 @@ type PortalWebServiceProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
+    uploadAttachment?: File | null;
+
 };
 
 // Convert to an async function that returns a File object
@@ -83,7 +85,8 @@ const PortalWebService = async ({
     claimType = null,
     quater = null,
     header = false,
-    dusplogo = null
+    dusplogo = null,
+    uploadAttachment = null,
 
 }: PortalWebServiceProps): Promise<File> => {
     // Fetch PortalWebService data based on filters
