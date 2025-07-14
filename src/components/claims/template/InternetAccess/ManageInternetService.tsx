@@ -68,6 +68,8 @@ type ManageInternetServiceProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
+    uploadAttachment?: File | null; // Optional attachment file
+    
 };
 
 // Convert to an async function that returns a File object
@@ -81,7 +83,8 @@ const ManageInternetService = async ({
     claimType = null,
     quater = null,
     header = false,
-    dusplogo = null
+    dusplogo = null,
+    uploadAttachment = null
 
 }: ManageInternetServiceProps): Promise<File> => {
     // Fetch ManageInternetService data based on filters

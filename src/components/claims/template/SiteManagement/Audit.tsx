@@ -67,6 +67,7 @@ type AuditProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
+    uploadAttachment?: File | null;
 };
 
 // Convert to an async function that returns a File object
@@ -80,7 +81,8 @@ const Audit = async ({
     claimType = null,
     quater = null,
     header = false,
-    dusplogo = null
+    dusplogo = null,
+    uploadAttachment = null,
 
 }: AuditProps): Promise<File> => {
     // Fetch audit data based on filters
