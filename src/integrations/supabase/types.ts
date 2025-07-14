@@ -3102,6 +3102,47 @@ export type Database = {
           },
         ]
       }
+      nd_event_schedule: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          day_number: number | null
+          end_time: string | null
+          event_id: string | null
+          id: number
+          schedule_date: string | null
+          start_time: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          day_number?: number | null
+          end_time?: string | null
+          event_id?: string | null
+          id?: number
+          schedule_date?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          day_number?: number | null
+          end_time?: string | null
+          event_id?: string | null
+          id?: number
+          schedule_date?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_schedule_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_event_status: {
         Row: {
           created_at: string | null
@@ -5393,7 +5434,7 @@ export type Database = {
           health_cond?: string | null
           health_detail?: string | null
           height?: number | null
-          id: number
+          id?: number
           member_id?: number | null
           pdpa_declare?: boolean | null
           pulse?: number | null
@@ -5424,7 +5465,15 @@ export type Database = {
           updated_by?: string | null
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_member_health_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "nd_member_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_member_parents: {
         Row: {

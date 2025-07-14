@@ -26,7 +26,7 @@ export async function checkICExists(identity_no: string | null): Promise<boolean
     return null;
   }
 
-  return !data; // true = unique (doesn't exist), false = already exists
+  return !!data; // true = unique (doesn't exist), false = already exists
 }
 
 export async function checkEmailExists(email: string | null): Promise<boolean | null> {
@@ -43,7 +43,7 @@ export async function checkEmailExists(email: string | null): Promise<boolean | 
     return null;
   }
 
-  return !data; // true = unique (doesn't exist), false = already exists
+  return !!data; // true = unique (doesn't exist), false = already exists
 }
 
 
