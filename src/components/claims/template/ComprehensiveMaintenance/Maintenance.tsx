@@ -70,6 +70,7 @@ type MaintenanceProps = {
   quater?: string | null; //optional, used for quarterly reports
   header?: boolean; // Optional header for the PDF
   dusplogo?: string | null; // Optional DUSP logo
+  uploadAttachment?: File | null;
 };
 
 // Convert to an async function that returns a File object
@@ -84,6 +85,8 @@ const Maintenance = async ({
   quater = null,
   header = false,
   dusplogo = null,
+  uploadAttachment = null
+
 }: MaintenanceProps): Promise<File> => {
   // Fetch Maintenance data based on filters
   const { maintenance } = await fetchMaintenanceData({

@@ -15,6 +15,7 @@ type NMSProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
+    uploadAttachment?: File | null;
 };
 
 const NMS = async ({
@@ -27,7 +28,8 @@ const NMS = async ({
     claimType = null,
     quater = null,
     header = false,
-    dusplogo = null
+    dusplogo = null,
+    uploadAttachment = null,
 }: NMSProps): Promise<File> => {
     // Fetch NMS data based on filters
     const { nms } = await fetchNMSData({
