@@ -158,21 +158,18 @@ const Agreement = async ({
                             { 
                                 key: "status", 
                                 header: "STATUS", 
-                                width: "8%",
                                 align: "center",
                                 render: (value, item) => item.status ? "Yes" : "No"
                             },
                             { 
                                 key: "start_date", 
                                 header: "START DATE", 
-                                width: "16%", 
                                 align: "center",
                                 render: (value, item) => item.start_date ? new Date(item.start_date).toLocaleDateString('en-GB') : "-"
                             },
                             { 
                                 key: "end_date", 
                                 header: "END DATE", 
-                                width: "16%", 
                                 align: "center",
                                 render: (value, item) => item.end_date ? new Date(item.end_date).toLocaleDateString('en-GB') : "-"
                             },
