@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       announcement_views: {
@@ -1536,7 +1541,6 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           date_paid: string | null
-          dusp_logo: string | null
           end_date: string | null
           id: number
           month: number | null
@@ -1557,7 +1561,6 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           date_paid?: string | null
-          dusp_logo?: string | null
           end_date?: string | null
           id?: number
           month?: number | null
@@ -1578,7 +1581,6 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           date_paid?: string | null
-          dusp_logo?: string | null
           end_date?: string | null
           id?: number
           month?: number | null
@@ -1747,6 +1749,7 @@ export type Database = {
           id: number
           is_active: boolean | null
           name: string | null
+          need_appendix: boolean | null
           need_summary_report: boolean | null
           need_support_doc: boolean | null
           updated_at: string | null
@@ -1761,6 +1764,7 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           name?: string | null
+          need_appendix?: boolean | null
           need_summary_report?: boolean | null
           need_support_doc?: boolean | null
           updated_at?: string | null
@@ -1775,6 +1779,7 @@ export type Database = {
           id?: number
           is_active?: boolean | null
           name?: string | null
+          need_appendix?: boolean | null
           need_summary_report?: boolean | null
           need_support_doc?: boolean | null
           updated_at?: string | null
@@ -2673,7 +2678,7 @@ export type Database = {
           program_mode: number | null
           program_name: string | null
           requester_id: string | null
-          site_id: number | null
+          site_id: Json | null
           start_datetime: string | null
           status_id: number | null
           subcategory_id: number | null
@@ -2702,7 +2707,7 @@ export type Database = {
           program_mode?: number | null
           program_name?: string | null
           requester_id?: string | null
-          site_id?: number | null
+          site_id?: Json | null
           start_datetime?: string | null
           status_id?: number | null
           subcategory_id?: number | null
@@ -2731,7 +2736,7 @@ export type Database = {
           program_mode?: number | null
           program_name?: string | null
           requester_id?: string | null
-          site_id?: number | null
+          site_id?: Json | null
           start_datetime?: string | null
           status_id?: number | null
           subcategory_id?: number | null
@@ -2790,13 +2795,6 @@ export type Database = {
             columns: ["program_mode"]
             isOneToOne: false
             referencedRelation: "nd_program_mode"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_event_nd_site_fk"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "nd_site"
             referencedColumns: ["id"]
           },
         ]
@@ -3093,6 +3091,47 @@ export type Database = {
             columns: ["subcategory_id"]
             isOneToOne: false
             referencedRelation: "nd_event_subcategory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_event_schedule: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          day_number: number | null
+          end_time: string | null
+          event_id: string | null
+          id: number
+          schedule_date: string | null
+          start_time: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          day_number?: number | null
+          end_time?: string | null
+          event_id?: string | null
+          id?: number
+          schedule_date?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          day_number?: number | null
+          end_time?: string | null
+          event_id?: string | null
+          id?: number
+          schedule_date?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_event_schedule_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "nd_event"
             referencedColumns: ["id"]
           },
         ]
@@ -5219,6 +5258,139 @@ export type Database = {
           },
         ]
       }
+      nd_member_bulk: {
+        Row: {
+          address1: string | null
+          address2: string | null
+          agree_declare: boolean | null
+          city: string | null
+          community_status: boolean | null
+          created_at: string
+          district_id: number | null
+          fullname: string | null
+          gender: number | null
+          id: number
+          identity_no: string | null
+          identity_no_type: number | null
+          nationality_id: number | null
+          pdpa_declare: boolean | null
+          postcode: string | null
+          race_id: number | null
+          ref_id: number | null
+          state_id: number | null
+          status_entrepreneur: boolean | null
+          supervision: string | null
+        }
+        Insert: {
+          address1?: string | null
+          address2?: string | null
+          agree_declare?: boolean | null
+          city?: string | null
+          community_status?: boolean | null
+          created_at?: string
+          district_id?: number | null
+          fullname?: string | null
+          gender?: number | null
+          id?: number
+          identity_no?: string | null
+          identity_no_type?: number | null
+          nationality_id?: number | null
+          pdpa_declare?: boolean | null
+          postcode?: string | null
+          race_id?: number | null
+          ref_id?: number | null
+          state_id?: number | null
+          status_entrepreneur?: boolean | null
+          supervision?: string | null
+        }
+        Update: {
+          address1?: string | null
+          address2?: string | null
+          agree_declare?: boolean | null
+          city?: string | null
+          community_status?: boolean | null
+          created_at?: string
+          district_id?: number | null
+          fullname?: string | null
+          gender?: number | null
+          id?: number
+          identity_no?: string | null
+          identity_no_type?: number | null
+          nationality_id?: number | null
+          pdpa_declare?: boolean | null
+          postcode?: string | null
+          race_id?: number | null
+          ref_id?: number | null
+          state_id?: number | null
+          status_entrepreneur?: boolean | null
+          supervision?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_member_bulk_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_gender_fkey"
+            columns: ["gender"]
+            isOneToOne: false
+            referencedRelation: "nd_genders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_identity_no_type_fkey"
+            columns: ["identity_no_type"]
+            isOneToOne: false
+            referencedRelation: "nd_identity_no_type"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_nationality_id_fkey"
+            columns: ["nationality_id"]
+            isOneToOne: false
+            referencedRelation: "nd_nationalities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "nd_races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_member_health: {
         Row: {
           agree_declare: boolean | null
@@ -5255,7 +5427,7 @@ export type Database = {
           health_cond?: string | null
           health_detail?: string | null
           height?: number | null
-          id: number
+          id?: number
           member_id?: number | null
           pdpa_declare?: boolean | null
           pulse?: number | null
@@ -5286,7 +5458,15 @@ export type Database = {
           updated_by?: string | null
           weight?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nd_member_health_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "nd_member_profile"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_member_parents: {
         Row: {
@@ -6400,6 +6580,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          finance_item_id: string | null
           id: string
           member_id: number | null
           remarks: string | null
@@ -6411,6 +6592,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          finance_item_id?: string | null
           id?: string
           member_id?: number | null
           remarks?: string | null
@@ -6422,6 +6604,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          finance_item_id?: string | null
           id?: string
           member_id?: number | null
           remarks?: string | null
@@ -6430,7 +6613,15 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "finance_item_id_fk"
+            columns: ["finance_item_id"]
+            isOneToOne: false
+            referencedRelation: "nd_finance_report_item"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nd_pos_transaction_item: {
         Row: {
@@ -9231,7 +9422,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "nd_staff_job_nd_staff_profile_fk"
+            foreignKeyName: "nd_staff_job_staff_id_fkey"
             columns: ["staff_id"]
             isOneToOne: false
             referencedRelation: "nd_staff_profile"
@@ -9414,13 +9605,271 @@ export type Database = {
       }
       nd_staff_payroll: {
         Row: {
+          allowance: number | null
+          approved_at: string | null
+          approved_by: string | null
+          bank_reference: string | null
+          basic_pay: number | null
+          basic_rate: number | null
+          bonus: number | null
+          created_at: string | null
+          created_by: string | null
+          earnings_json: Json | null
+          employee_deductions: Json | null
+          employer_deductions: Json | null
+          epf_deduction: number | null
+          gross_pay: number | null
+          id: string
+          month: number | null
+          net_pay: number | null
+          organization_id: string | null
+          overtime: number | null
+          pay_info_id: number | null
+          payment_reference: string | null
+          payroll_date: string | null
+          site_id: number | null
+          staff_eis: number | null
+          staff_epf: number | null
+          staff_id: string | null
+          staff_job_id: number | null
+          staff_socso: number | null
+          status: string | null
+          total_employee_deductions: number | null
+          total_employer_deductions: number | null
+          updated_at: string | null
+          updated_by: string | null
+          year: number | null
+        }
+        Insert: {
+          allowance?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_reference?: string | null
+          basic_pay?: number | null
+          basic_rate?: number | null
+          bonus?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          earnings_json?: Json | null
+          employee_deductions?: Json | null
+          employer_deductions?: Json | null
+          epf_deduction?: number | null
+          gross_pay?: number | null
+          id?: string
+          month?: number | null
+          net_pay?: number | null
+          organization_id?: string | null
+          overtime?: number | null
+          pay_info_id?: number | null
+          payment_reference?: string | null
+          payroll_date?: string | null
+          site_id?: number | null
+          staff_eis?: number | null
+          staff_epf?: number | null
+          staff_id?: string | null
+          staff_job_id?: number | null
+          staff_socso?: number | null
+          status?: string | null
+          total_employee_deductions?: number | null
+          total_employer_deductions?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          year?: number | null
+        }
+        Update: {
+          allowance?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_reference?: string | null
+          basic_pay?: number | null
+          basic_rate?: number | null
+          bonus?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          earnings_json?: Json | null
+          employee_deductions?: Json | null
+          employer_deductions?: Json | null
+          epf_deduction?: number | null
+          gross_pay?: number | null
+          id?: string
+          month?: number | null
+          net_pay?: number | null
+          organization_id?: string | null
+          overtime?: number | null
+          pay_info_id?: number | null
+          payment_reference?: string | null
+          payroll_date?: string | null
+          site_id?: number | null
+          staff_eis?: number | null
+          staff_epf?: number | null
+          staff_id?: string | null
+          staff_job_id?: number | null
+          staff_socso?: number | null
+          status?: string | null
+          total_employee_deductions?: number | null
+          total_employer_deductions?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_payroll_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_nd_staff_pay_info_fk"
+            columns: ["pay_info_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_pay_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_nd_staff_profile_fk"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_staff_job_id_fkey"
+            columns: ["staff_job_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_job"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_staff_payroll_attachment: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          document_type: string | null
+          file_path: string | null
+          file_size: number | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          is_current: boolean | null
+          staff_payroll_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_current?: boolean | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_current?: boolean | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_payroll_attachment_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_attachment_nd_staff_payroll_fk"
+            columns: ["staff_payroll_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_payroll"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_staff_payroll_attachment_backup: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          file_path: string | null
+          id: string | null
+          staff_payroll_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      nd_staff_payroll_backup: {
+        Row: {
           basic_pay: number | null
           basic_rate: number | null
           created_at: string | null
           created_by: string | null
           epf_deduction: number | null
           gross_pay: number | null
-          id: string
+          id: string | null
           net_pay: number | null
           pay_info_id: number | null
           payroll_date: string | null
@@ -9438,7 +9887,7 @@ export type Database = {
           created_by?: string | null
           epf_deduction?: number | null
           gross_pay?: number | null
-          id?: string
+          id?: string | null
           net_pay?: number | null
           pay_info_id?: number | null
           payroll_date?: string | null
@@ -9456,7 +9905,7 @@ export type Database = {
           created_by?: string | null
           epf_deduction?: number | null
           gross_pay?: number | null
-          id?: string
+          id?: string | null
           net_pay?: number | null
           pay_info_id?: number | null
           payroll_date?: string | null
@@ -9467,60 +9916,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "nd_staff_payroll_nd_staff_pay_info_fk"
-            columns: ["pay_info_id"]
-            isOneToOne: false
-            referencedRelation: "nd_staff_pay_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_staff_payroll_nd_staff_profile_fk"
-            columns: ["staff_id"]
-            isOneToOne: false
-            referencedRelation: "nd_staff_profile"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nd_staff_payroll_attachment: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          file_path: string | null
-          id: string
-          staff_payroll_id: string | null
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          file_path?: string | null
-          id?: string
-          staff_payroll_id?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          file_path?: string | null
-          id?: string
-          staff_payroll_id?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nd_staff_payroll_attachment_nd_staff_payroll_fk"
-            columns: ["staff_payroll_id"]
-            isOneToOne: false
-            referencedRelation: "nd_staff_payroll"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       nd_staff_photo: {
         Row: {
@@ -12639,6 +13035,14 @@ export type Database = {
           },
         ]
       }
+      payroll_migration_summary: {
+        Row: {
+          metric: string | null
+          unit: string | null
+          value: number | null
+        }
+        Relationships: []
+      }
       vw_site_profile_details: {
         Row: {
           bandwidth: number | null
@@ -12828,7 +13232,7 @@ export type Database = {
         | "submitted"
         | "draft"
       notification_channel: "in_app" | "email" | "sms"
-      notification_type: "info" | "warning" | "success" | "error"
+      notification_type: "info" | "warning" | "success" | "error" | "payroll"
       organization_type: "dusp" | "tp"
       priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
@@ -12881,21 +13285,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -12913,14 +13321,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -12936,14 +13346,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -12959,14 +13371,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -12974,14 +13388,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
@@ -13015,7 +13431,7 @@ export const Constants = {
         "draft",
       ],
       notification_channel: ["in_app", "email", "sms"],
-      notification_type: ["info", "warning", "success", "error"],
+      notification_type: ["info", "warning", "success", "error", "payroll"],
       organization_type: ["dusp", "tp"],
       priority_level: ["low", "medium", "high", "urgent"],
       programme_status: ["draft", "active", "completed", "cancelled"],
