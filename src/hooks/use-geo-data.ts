@@ -16,7 +16,7 @@ const useGeoData = () => {
       try {
         const { data, error } = await supabase
           .from("nd_district")
-          .select("id, state_id, code, name");
+          .select("id, state_id (id, name), code, name");
         if (error) throw error;
         setDistricts(data);
       } catch (error) {

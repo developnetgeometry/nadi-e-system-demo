@@ -110,3 +110,47 @@ export function useSiteProfiles() {
 
   return { profiles, loading, error };
 }
+
+
+export function useSiteProfileAll() {
+  const [profiles, setProfiles] = useState<SiteProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchAllProfiles() {
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from("nd_site_profile_name")
+          .select("id, sitename, fullname, standard_code, refid_mcmc, refid_tp, name_tp, name_dusp")
+          .order("id", { ascending: true });
+          
+        if (error) throw error;
+        
+        if (isMounted) setProfiles(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Error fetching all site profiles:", err);
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load site profiles"
+          );
+          setProfiles([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    fetchAllProfiles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return { profiles, loading, error };
+}

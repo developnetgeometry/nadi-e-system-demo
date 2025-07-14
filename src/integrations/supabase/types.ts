@@ -5224,6 +5224,139 @@ export type Database = {
           },
         ]
       }
+      nd_member_bulk: {
+        Row: {
+          address1: string | null
+          address2: string | null
+          agree_declare: boolean | null
+          city: string | null
+          community_status: boolean | null
+          created_at: string
+          district_id: number | null
+          fullname: string | null
+          gender: number | null
+          id: number
+          identity_no: string | null
+          identity_no_type: number | null
+          nationality_id: number | null
+          pdpa_declare: boolean | null
+          postcode: string | null
+          race_id: number | null
+          ref_id: number | null
+          state_id: number | null
+          status_entrepreneur: boolean | null
+          supervision: string | null
+        }
+        Insert: {
+          address1?: string | null
+          address2?: string | null
+          agree_declare?: boolean | null
+          city?: string | null
+          community_status?: boolean | null
+          created_at?: string
+          district_id?: number | null
+          fullname?: string | null
+          gender?: number | null
+          id?: number
+          identity_no?: string | null
+          identity_no_type?: number | null
+          nationality_id?: number | null
+          pdpa_declare?: boolean | null
+          postcode?: string | null
+          race_id?: number | null
+          ref_id?: number | null
+          state_id?: number | null
+          status_entrepreneur?: boolean | null
+          supervision?: string | null
+        }
+        Update: {
+          address1?: string | null
+          address2?: string | null
+          agree_declare?: boolean | null
+          city?: string | null
+          community_status?: boolean | null
+          created_at?: string
+          district_id?: number | null
+          fullname?: string | null
+          gender?: number | null
+          id?: number
+          identity_no?: string | null
+          identity_no_type?: number | null
+          nationality_id?: number | null
+          pdpa_declare?: boolean | null
+          postcode?: string | null
+          race_id?: number | null
+          ref_id?: number | null
+          state_id?: number | null
+          status_entrepreneur?: boolean | null
+          supervision?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_member_bulk_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "nd_district"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_gender_fkey"
+            columns: ["gender"]
+            isOneToOne: false
+            referencedRelation: "nd_genders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_identity_no_type_fkey"
+            columns: ["identity_no_type"]
+            isOneToOne: false
+            referencedRelation: "nd_identity_no_type"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_nationality_id_fkey"
+            columns: ["nationality_id"]
+            isOneToOne: false
+            referencedRelation: "nd_nationalities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "nd_races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_ref_id_fkey"
+            columns: ["ref_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_member_bulk_state_id_fkey"
+            columns: ["state_id"]
+            isOneToOne: false
+            referencedRelation: "nd_state"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nd_member_health: {
         Row: {
           agree_declare: boolean | null
@@ -9247,7 +9380,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "nd_staff_job_nd_staff_profile_fk"
+            foreignKeyName: "nd_staff_job_staff_id_fkey"
             columns: ["staff_id"]
             isOneToOne: false
             referencedRelation: "nd_staff_profile"
@@ -9430,13 +9563,247 @@ export type Database = {
       }
       nd_staff_payroll: {
         Row: {
+          allowance: number | null
+          approved_at: string | null
+          approved_by: string | null
+          bank_reference: string | null
+          basic_pay: number | null
+          basic_rate: number | null
+          bonus: number | null
+          created_at: string | null
+          created_by: string | null
+          earnings_json: Json | null
+          employee_deductions: Json | null
+          employer_deductions: Json | null
+          epf_deduction: number | null
+          gross_pay: number | null
+          id: string
+          month: number | null
+          net_pay: number | null
+          organization_id: string | null
+          overtime: number | null
+          pay_info_id: number | null
+          payment_reference: string | null
+          payroll_date: string | null
+          staff_eis: number | null
+          staff_epf: number | null
+          staff_id: string | null
+          staff_job_id: number | null
+          staff_socso: number | null
+          status: string | null
+          total_employee_deductions: number | null
+          total_employer_deductions: number | null
+          updated_at: string | null
+          updated_by: string | null
+          year: number | null
+        }
+        Insert: {
+          allowance?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_reference?: string | null
+          basic_pay?: number | null
+          basic_rate?: number | null
+          bonus?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          earnings_json?: Json | null
+          employee_deductions?: Json | null
+          employer_deductions?: Json | null
+          epf_deduction?: number | null
+          gross_pay?: number | null
+          id?: string
+          month?: number | null
+          net_pay?: number | null
+          organization_id?: string | null
+          overtime?: number | null
+          pay_info_id?: number | null
+          payment_reference?: string | null
+          payroll_date?: string | null
+          staff_eis?: number | null
+          staff_epf?: number | null
+          staff_id?: string | null
+          staff_job_id?: number | null
+          staff_socso?: number | null
+          status?: string | null
+          total_employee_deductions?: number | null
+          total_employer_deductions?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          year?: number | null
+        }
+        Update: {
+          allowance?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bank_reference?: string | null
+          basic_pay?: number | null
+          basic_rate?: number | null
+          bonus?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          earnings_json?: Json | null
+          employee_deductions?: Json | null
+          employer_deductions?: Json | null
+          epf_deduction?: number | null
+          gross_pay?: number | null
+          id?: string
+          month?: number | null
+          net_pay?: number | null
+          organization_id?: string | null
+          overtime?: number | null
+          pay_info_id?: number | null
+          payment_reference?: string | null
+          payroll_date?: string | null
+          staff_eis?: number | null
+          staff_epf?: number | null
+          staff_id?: string | null
+          staff_job_id?: number | null
+          staff_socso?: number | null
+          status?: string | null
+          total_employee_deductions?: number | null
+          total_employer_deductions?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_payroll_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_nd_staff_pay_info_fk"
+            columns: ["pay_info_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_pay_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_nd_staff_profile_fk"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_staff_job_id_fkey"
+            columns: ["staff_job_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_job"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_staff_payroll_attachment: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          document_type: string | null
+          file_path: string | null
+          file_size: number | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          is_current: boolean | null
+          staff_payroll_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_current?: boolean | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          document_type?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_current?: boolean | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nd_staff_payroll_attachment_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_attachment_nd_staff_payroll_fk"
+            columns: ["staff_payroll_id"]
+            isOneToOne: false
+            referencedRelation: "nd_staff_payroll"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nd_staff_payroll_attachment_backup: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          file_path: string | null
+          id: string | null
+          staff_payroll_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string | null
+          staff_payroll_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      nd_staff_payroll_backup: {
+        Row: {
           basic_pay: number | null
           basic_rate: number | null
           created_at: string | null
           created_by: string | null
           epf_deduction: number | null
           gross_pay: number | null
-          id: string
+          id: string | null
           net_pay: number | null
           pay_info_id: number | null
           payroll_date: string | null
@@ -9454,7 +9821,7 @@ export type Database = {
           created_by?: string | null
           epf_deduction?: number | null
           gross_pay?: number | null
-          id?: string
+          id?: string | null
           net_pay?: number | null
           pay_info_id?: number | null
           payroll_date?: string | null
@@ -9472,7 +9839,7 @@ export type Database = {
           created_by?: string | null
           epf_deduction?: number | null
           gross_pay?: number | null
-          id?: string
+          id?: string | null
           net_pay?: number | null
           pay_info_id?: number | null
           payroll_date?: string | null
@@ -9483,60 +9850,7 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "nd_staff_payroll_nd_staff_pay_info_fk"
-            columns: ["pay_info_id"]
-            isOneToOne: false
-            referencedRelation: "nd_staff_pay_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_staff_payroll_nd_staff_profile_fk"
-            columns: ["staff_id"]
-            isOneToOne: false
-            referencedRelation: "nd_staff_profile"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      nd_staff_payroll_attachment: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          file_path: string | null
-          id: string
-          staff_payroll_id: string | null
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          file_path?: string | null
-          id?: string
-          staff_payroll_id?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          file_path?: string | null
-          id?: string
-          staff_payroll_id?: string | null
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "nd_staff_payroll_attachment_nd_staff_payroll_fk"
-            columns: ["staff_payroll_id"]
-            isOneToOne: false
-            referencedRelation: "nd_staff_payroll"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       nd_staff_photo: {
         Row: {
@@ -12654,6 +12968,14 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payroll_migration_summary: {
+        Row: {
+          metric: string | null
+          unit: string | null
+          value: number | null
+        }
+        Relationships: []
       }
       vw_site_profile_details: {
         Row: {

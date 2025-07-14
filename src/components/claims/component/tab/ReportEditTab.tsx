@@ -140,7 +140,9 @@ const ReportEditTab: React.FC<ReportEditTabProps> = ({ claimData, onDataChange, 
             dusplogo: claimData.tp_dusp_id.parent_id.logo_url,
             nadiFilter: targetItem.site_ids,
             header: itemId === firstTrueItemId,
+            uploadAttachment: targetItem.suppport_doc_file || null,
         };
+
 
         try {
             return await generateReportByItemId(itemId, reportData);

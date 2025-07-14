@@ -112,7 +112,10 @@ export function ClaimAttachmentForm({
             dusplogo: dusp_logo,
             nadiFilter: targetItem.site_ids,
             header: itemId === firstTrueItemId,
+            uploadAttachment: targetItem.suppport_doc_file || null,
         };
+
+
 
         let generatedFile: File | null = null;
 
@@ -222,7 +225,7 @@ export function ClaimAttachmentForm({
 
     const handleDownloadAllReports = async () => {
         setIsDownloading(true);
-        
+
         const generatedUrls: string[] = [];
 
         try {
