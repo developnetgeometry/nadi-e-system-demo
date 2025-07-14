@@ -28,6 +28,7 @@ export type ReportData = {
     dusplogo: string;
     nadiFilter: number[];
     header: boolean;
+    uploadAttachment: File | null;
 };
 
 export const generateReportByItemId = async (itemId: number, reportData: ReportData): Promise<File | null> => {
