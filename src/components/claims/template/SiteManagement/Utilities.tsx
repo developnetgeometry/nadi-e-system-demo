@@ -108,76 +108,228 @@ const Utilities = async ({
     });
     console.log("utility data:", utility);
 
+    // Group utility data by month/year and get all unique sites
+    const utilityByMonth: Record<string, any[]> = {};
+    const allSitesMap = new Map();
+    
+    // First, collect all unique sites
+    utility.forEach(item => {
+        if (!allSitesMap.has(item.site_id)) {
+            allSitesMap.set(item.site_id, {
+                site_id: item.site_id,
+                standard_code: item.standard_code,
+                site_name: item.site_name,
+                refId: item.refId,
+                state: item.state
+            });
+        }
+    });
+    
+    // Group by month/year
+    utility.forEach(item => {
+        const monthKey = `${item.bill_year}-${String(item.bill_month).padStart(2, '0')}`;
+        if (!utilityByMonth[monthKey]) {
+            utilityByMonth[monthKey] = [];
+        }
+        utilityByMonth[monthKey].push(item);
+    });
+    
+    // For each month, ensure all sites are included
+    const monthsWithAllSites: Record<string, any[]> = {};
+    Object.keys(utilityByMonth).forEach(monthKey => {
+        const [year, month] = monthKey.split('-');
+        const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+        
+        monthsWithAllSites[monthKey] = Array.from(allSitesMap.values()).map(site => {
+            // Find utility data for this site in this month
+            const siteUtility = utilityByMonth[monthKey].find(item => item.site_id === site.site_id);
+            
+            return {
+                ...site,
+                water: siteUtility?.water || null,
+                electricity: siteUtility?.electricity || null,
+                sewerage: siteUtility?.sewerage || null,
+                bill_month: parseInt(month),
+                bill_year: parseInt(year),
+                monthName
+            };
+        });
+    });
+
+    console.log("Utility by month (all sites):", monthsWithAllSites);
+    console.log("All months:", Object.keys(monthsWithAllSites));
+
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
-    const phaseLabel = phase?.name || "All Phases";    // Define the PDF document (only the main report pages)
+    const phaseLabel = phase?.name || "All Phases";
+    
+    // Define the PDF document with multiple pages for each month
     const utilityDoc = (
         <Document>
-            {/* Page 1: utility */}
-            <Page size="A4" style={styles.page}>
+            {/* Page 1: First month utilities */}
+            {Object.entries(monthsWithAllSites).length > 0 ? (
+                (() => {
+                    const [firstMonthKey, firstMonthData] = Object.entries(monthsWithAllSites)[0];
+                    const monthName = firstMonthData[0]?.monthName || '';
+                    return (
+                        <Page size="A4" style={styles.page}>
+                            {header && (
+                                <>
+                                    <PDFHeader
+                                        mcmcLogo={"/MCMC_Logo.png"}
+                                        duspLogo={dusplogo}
+                                    />
+                                    <PDFMetaSection
+                                        reportTitle="2.0 Site Management"
+                                        phaseLabel={phaseLabel}
+                                        claimType={claimType}
+                                        quater={quater}
+                                        startDate={startDate}
+                                        endDate={endDate}
+                                    />
+                                </>
+                            )}
 
-                {header && (
-                    <>
-                        <PDFHeader
-                            mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
-                            duspLogo={dusplogo} // Use provided DUSP logo or placeholder
-                        />
+                            <PDFSectionTitle title="2.5 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
 
+                            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                                <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
+                                    <View style={{ ...styles.totalBox }}>
+                                        <Text>Total Sites</Text>
+                                        <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{allSitesMap.size}</Text>
+                                    </View>
+                                </View>
+                                {!header && (
+                                    <View style={{ alignSelf: "flex-end" }}>
+                                        <PDFPhaseQuarterInfo
+                                            phaseLabel={phaseLabel}
+                                            claimType={claimType}
+                                            quater={quater}
+                                            startDate={startDate}
+                                            endDate={endDate}
+                                        />
+                                    </View>
+                                )}
+                            </View>
 
-                        <PDFMetaSection
-                            reportTitle="2.0 Site Management"
-                            phaseLabel={phaseLabel}
-                            claimType={claimType}
-                            quater={quater}
-                            startDate={startDate}
-                            endDate={endDate}
-                        />
-                    </>
-                )}
-
-                <PDFSectionTitle title="2.5 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
-
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
-                        <View style={{ ...styles.totalBox }}>
-                            <Text>Total NADI</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{utility.length}</Text>
-                        </View>
-                    </View>
-                    {!header && (
-                        <View style={{ alignSelf: "flex-end" }}>
-                            {/* when header not provided, show phase and quarter info */}
-                            <PDFPhaseQuarterInfo
+                            <View style={{ marginTop: 15 }}>
+                                <Text style={{ 
+                                    fontSize: 10, 
+                                    fontWeight: "bold", 
+                                    marginBottom: 5,
+                                    textTransform: "uppercase" 
+                                }}>
+                                    {monthName} - UTILITIES
+                                </Text>
+                                <PDFTable
+                                    data={firstMonthData as any[]}
+                                    columns={[
+                                        { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                                        { key: "standard_code", header: "REFID", width: "15%" },
+                                        { key: "site_name", header: "NADI", width: "25%" },
+                                        { key: "state", header: "STATE", width: "15%" },
+                                        { 
+                                            key: "water", 
+                                            header: "WATER (RM)", 
+                                            width: "13.33%", 
+                                            align: "center",
+                                            render: (value) => value ? value.toFixed(2) : "-"
+                                        },
+                                        { 
+                                            key: "electricity", 
+                                            header: "ELECTRICITY (RM)", 
+                                            width: "13.33%", 
+                                            align: "center",
+                                            render: (value) => value ? value.toFixed(2) : "-"
+                                        },
+                                        { 
+                                            key: "sewerage", 
+                                            header: "SEWERAGE (RM)", 
+                                            width: "13.33%", 
+                                            align: "center",
+                                            render: (value) => value ? value.toFixed(2) : "-"
+                                        },
+                                    ]}
+                                />
+                            </View>
+                            <PDFFooter />
+                        </Page>
+                    );
+                })()
+            ) : (
+                <Page size="A4" style={styles.page}>
+                    {header && (
+                        <>
+                            <PDFHeader
+                                mcmcLogo={"/MCMC_Logo.png"}
+                                duspLogo={dusplogo}
+                            />
+                            <PDFMetaSection
+                                reportTitle="2.0 Site Management"
                                 phaseLabel={phaseLabel}
                                 claimType={claimType}
                                 quater={quater}
                                 startDate={startDate}
                                 endDate={endDate}
                             />
-                        </View>
+                        </>
                     )}
-                </View>
-
-                {utility.length > 0 ? (
-                    <PDFTable
-                        data={utility}
-                        columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID" },
-                            { key: "site_name", header: "NADI" },
-                            { key: "state", header: "STATE" },
-                            { key: (row) => row.water, header: "WATER", render: (value) => <PDFCheckbox checked={!!value} /> },
-                            { key: (row) => row.electricity, header: "ELECTRICITY", render: (value) => <PDFCheckbox checked={!!value} /> },
-                            { key: (row) => row.sewerage, header: "SEWERAGE", render: (value) => <PDFCheckbox checked={!!value} /> }
-                        ]}
-                    />
-                ) : (
+                    <PDFSectionTitle title="2.5 UTILITIES (WATER, ELECTRICITY, SEWERAGE)" />
                     <Text>No utility data available.</Text>
-                )}
-                <PDFFooter />
-            </Page>
+                    <PDFFooter />
+                </Page>
+            )}
 
+            {/* Additional pages for remaining months */}
+            {Object.entries(monthsWithAllSites).slice(1).map(([monthKey, monthData]) => {
+                const monthName = monthData[0]?.monthName || '';
+                return (
+                    <Page key={monthKey} size="A4" style={styles.page}>
+                        <View style={{ marginTop: 15 }}>
+                            <Text style={{ 
+                                fontSize: 10, 
+                                fontWeight: "bold", 
+                                marginBottom: 5,
+                                textTransform: "uppercase" 
+                            }}>
+                                {monthName} - UTILITIES
+                            </Text>
+                            <PDFTable
+                                data={monthData as any[]}
+                                columns={[
+                                    { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                                    { key: "standard_code", header: "REFID", width: "15%" },
+                                    { key: "site_name", header: "NADI", width: "25%" },
+                                    { key: "state", header: "STATE", width: "15%" },
+                                    { 
+                                        key: "water", 
+                                        header: "WATER (RM)", 
+                                        width: "13.33%", 
+                                        align: "center",
+                                        render: (value) => value ? value.toFixed(2) : "-"
+                                    },
+                                    { 
+                                        key: "electricity", 
+                                        header: "ELECTRICITY (RM)", 
+                                        width: "13.33%", 
+                                        align: "center",
+                                        render: (value) => value ? value.toFixed(2) : "-"
+                                    },
+                                    { 
+                                        key: "sewerage", 
+                                        header: "SEWERAGE (RM)", 
+                                        width: "13.33%", 
+                                        align: "center",
+                                        render: (value) => value ? value.toFixed(2) : "-"
+                                    },
+                                ]}
+                            />
+                        </View>
+                        <PDFFooter />
+                    </Page>
+                );
+            })}
         </Document>
     );
     // Create a blob from the PDF document (main report and appendix title page)
