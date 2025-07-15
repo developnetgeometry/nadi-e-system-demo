@@ -17,6 +17,12 @@ const AssetDashboard = () => {
   const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
   const isStaffUser = parsedMetadata?.user_group_name === "Centre Staff";
   const isTpSiteUser = parsedMetadata?.user_group_name === "Site";
+  const isDUSPUser = parsedMetadata?.user_group_name === "DUSP";
+  const organizationId =
+    parsedMetadata?.user_type !== "super_admin" &&
+    parsedMetadata?.organization_id
+      ? parsedMetadata.organization_id
+      : null;
 
   const siteIdStaff = useSiteId(isStaffUser);
   const { siteId: siteProfileIdTpManager, isLoading: siteIdTpManagerLoading } =
@@ -55,7 +61,7 @@ const AssetDashboard = () => {
     return <div>Error fetching assets</div>;
   }
 
-  const displayAssets = (isStaffUser || isTpSiteUser) && !site_id ? [] : assets;
+  let displayAssets = (isStaffUser || isTpSiteUser) && !site_id ? [] : assets;
 
   if (!isLoadingAssets && assets) {
     if (displayAssets.length > 0) {
@@ -65,6 +71,12 @@ const AssetDashboard = () => {
         maintenance: displayAssets.filter((a) => !a?.is_active).length,
       };
     }
+  }
+
+  if (isDUSPUser && organizationId && assets) {
+    displayAssets = displayAssets.filter((a) => {
+      return a.site.dusp_tp.parent.id === organizationId;
+    });
   }
 
   const items: AssetStatsCardProps[] = [

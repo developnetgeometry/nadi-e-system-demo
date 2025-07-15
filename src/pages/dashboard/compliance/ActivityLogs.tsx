@@ -1,5 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ReportList } from "@/components/reports/ReportList";
+import { ActivityLogList } from "@/components/activity/ActivityLogList";
 
 const ActivityLogs = () => {
   return (
@@ -11,6 +12,8 @@ const ActivityLogs = () => {
             View and manage activity logs
           </p>
         </div>
+
+        <ActivityLogList />
       </div>
     </div>
   );

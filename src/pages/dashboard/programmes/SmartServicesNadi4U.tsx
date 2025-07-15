@@ -62,17 +62,48 @@ const SmartServicesNadi4U = () => {
             start_datetime,
             end_datetime,
             created_by,
-            nd_event_status:status_id(id, name),
-            nd_site:site_id(
-              nd_site_profile:site_profile_id(
-                sitename
-              )
-            )
+            nd_event_status:status_id(id, name)
           `
           )
           .eq("category_id", 1);
 
         if (programError) throw programError;
+
+        const { data: scheduleData, error: scheduleError } = await supabase
+          .from("nd_event_schedule")
+          .select("event_id, day_number, schedule_date, start_time, end_time")
+          .order("day_number");
+
+        if (scheduleError) {
+          console.error("Error fetching schedule data:", scheduleError);
+        }
+
+        // Create schedule lookup map
+        const scheduleMap = {};
+        if (scheduleData) {
+          scheduleData.forEach(schedule => {
+            if (!scheduleMap[schedule.event_id]) {
+              scheduleMap[schedule.event_id] = [];
+            }
+            scheduleMap[schedule.event_id].push(schedule);
+          });
+        }
+
+        const { data: siteProfiles, error: siteError } = await supabase
+          .from("nd_site_profile")
+          .select("id, sitename");
+
+        if (siteError) {
+          console.error("Error fetching site profiles:", siteError);
+        }
+
+        // Lookup map for site names
+        const siteMap = {};
+        if (siteProfiles) {
+          siteProfiles.forEach(site => {
+            siteMap[site.id] = site.sitename;
+          });
+        }
 
         // Format data
         const formattedData = await Promise.all(
@@ -89,14 +120,35 @@ const SmartServicesNadi4U = () => {
               creatorName = userData?.full_name || "Unknown";
             }
 
+            const location = program.location_event || "No Location Specified";
+            let participatingSites = "No participating sites";
+
+            if (program.site_id && Array.isArray(program.site_id) && program.site_id.length > 0) {
+              // If site_id is an array, get the names of all sites
+              const siteNames = program.site_id
+                .map(siteId => siteMap[siteId])
+                .filter(Boolean);
+
+              if (siteNames.length > 0) {
+                participatingSites = siteNames.join(", ");
+              }
+            }
+
+            let displayDate = program.start_datetime;
+            const programSchedules = scheduleMap[program.id] || [];
+            const firstDaySchedule = programSchedules.find(s => s.day_number === 1);
+            
+            if (firstDaySchedule && firstDaySchedule.schedule_date) {
+              displayDate = firstDaySchedule.schedule_date;
+            }
+
             const formattedProgram = {
               id: program.id,
               title: program.program_name || "Untitled Program",
-              location:
-                program.nd_site?.nd_site_profile?.sitename ||
-                program.location_event ||
-                "No Location",
-              date: program.start_datetime || new Date().toISOString(),
+              location: location,
+              participatingSites: participatingSites,
+              date: displayDate,
+              schedules: programSchedules,
               createdBy: creatorName,
               status: program.nd_event_status?.name?.toLowerCase() || "draft",
               statusId: program.nd_event_status?.id || 1, // Default to 1 (Draft) if no status
@@ -109,6 +161,12 @@ const SmartServicesNadi4U = () => {
               statusId: formattedProgram.statusId,
               statusName: program.nd_event_status?.name,
               originalStatus: program.nd_event_status,
+              location: location,
+              participatingSites: participatingSites,
+              siteIds: program.site_id,
+              displayDate: displayDate,
+              schedulesCount: programSchedules.length,
+              firstDaySchedule: firstDaySchedule,
             });
 
             return formattedProgram;
@@ -116,6 +174,7 @@ const SmartServicesNadi4U = () => {
         );
 
         setProgrammes(formattedData);
+        console.log(formattedData);
       } catch (error) {
         console.error("Error fetching program data:", error);
       } finally {
@@ -144,7 +203,7 @@ const SmartServicesNadi4U = () => {
       case "2":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-            Published
+            Submitted
           </Badge>
         );
       case "3":

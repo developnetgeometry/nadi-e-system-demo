@@ -35,6 +35,13 @@ interface Participant {
   verified_by: string | null;
 }
 
+interface EventSchedule {
+  day_number: number;
+  schedule_date: string;
+  start_time: string;
+  end_time: string;
+}
+
 interface EventDetails {
   id: string;
   program_name: string;
@@ -54,6 +61,7 @@ interface EventDetails {
   status_id: number;
   status_name: string;
   is_acknowledge: boolean;
+  schedules: EventSchedule[];
 }
 
 interface EventDetailsDialogProps {
@@ -133,6 +141,16 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
 
         if (error) throw error;
 
+        const { data: schedulesData, error: scheduleError } = await supabase
+          .from('nd_event_schedule')
+          .select('*')
+          .eq("event_id", eventId)
+          .order("day_number")
+
+        if (scheduleError) {
+          console.error("Error fetching schedules:", scheduleError);
+        }
+
         // Transform the data to the expected format
         const formattedEvent: EventDetails = {
           id: event.id,
@@ -153,6 +171,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
           status_id: event.status_id,
           status_name: event.nd_event_status?.name || "Unknown",
           is_acknowledge: event.is_acknowledge || false,
+          schedules: schedulesData || [],
         };
 
         setEventDetails(formattedEvent);
@@ -232,10 +251,10 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             Registered
           </Badge>
         );
-      case "published":
+      case "submitted":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-            Published
+            Submitted
           </Badge>
         );
       case "active":
@@ -279,8 +298,8 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   // Check if attendance can be verified (status is completed)
   const canVerifyAttendance = eventDetails && eventDetails.status_id === 6; // status_id 6 is COMPLETED
 
-  // Check if event status can be updated (status is published)
-  const canUpdateStatus = eventDetails && eventDetails.status_id === 2; // status_id 2 is PUBLISHED
+  // Check if event status can be updated (status is submitted)
+  const canUpdateStatus = eventDetails && eventDetails.status_id === 2; // status_id 2 is SUBMITTED
 
   const handleEdit = () => {
     if (eventDetails) {
@@ -554,20 +573,74 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center space-x-2 text-sm mb-2">
-                    <CalendarIcon className="h-4 w-4 opacity-70" />
-                    <span>
-                      {formatDate(eventDetails.start_datetime)} -{" "}
-                      {formatDate(eventDetails.end_datetime)}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Clock className="h-4 w-4 opacity-70" />
-                    <span>
-                      {formatTime(eventDetails.start_datetime)} -{" "}
-                      {formatTime(eventDetails.end_datetime)}
-                    </span>
-                  </div>
+                  {eventDetails.schedules && eventDetails.schedules.length > 0 ? (
+                    // Multi-day event with schedule
+                    <div className="space-y-3">
+                      {eventDetails.schedules.map((schedule, index) => (
+                        <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-sm text-gray-900">
+                              Day {schedule.day_number}
+                            </span>
+                            <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                              {format(new Date(schedule.schedule_date), "EEEE")}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm mb-1">
+                            <CalendarIcon className="h-4 w-4 opacity-70" />
+                            <span>{format(new Date(schedule.schedule_date), "PPP")}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm">
+                            <Clock className="h-4 w-4 opacity-70" />
+                            <span>
+                              {format(new Date(`2000-01-01T${schedule.start_time}`), "h:mm a")} - {" "}
+                              {format(new Date(`2000-01-01T${schedule.end_time}`), "h:mm a")}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="text-sm text-gray-600">
+                          <span className="font-medium">Total Duration: </span>
+                          <span>
+                            {eventDetails.duration != null
+                              ? `${eventDetails.duration.toFixed(1)} hours`
+                              : "Duration not specified"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Single day event or fallback to start/end datetime
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm mb-2">
+                        <CalendarIcon className="h-4 w-4 opacity-70" />
+                        <span>
+                          {formatDate(eventDetails.start_datetime)}
+                          {formatDate(eventDetails.start_datetime) !== formatDate(eventDetails.end_datetime) && 
+                            ` - ${formatDate(eventDetails.end_datetime)}`
+                          }
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Clock className="h-4 w-4 opacity-70" />
+                        <span>
+                          {formatTime(eventDetails.start_datetime)} -{" "}
+                          {formatTime(eventDetails.end_datetime)}
+                        </span>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="text-sm text-gray-600">
+                          <span className="font-medium">Duration: </span>
+                          <span>
+                            {eventDetails.duration != null
+                              ? `${eventDetails.duration.toFixed(1)} hours`
+                              : "Duration not specified"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
