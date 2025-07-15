@@ -3,7 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Site } from "@/types/site";
-import { SiteFormData } from "../form-tabs/schema";
+import { SiteFormData } from "../form-tabs/schemas/schema.ts";
 import { useSiteImage } from "./use-site-image";
 
 interface OperationTime {
