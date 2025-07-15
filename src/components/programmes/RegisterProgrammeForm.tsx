@@ -712,6 +712,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       //   (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
 
       let startDateTime, endDateTime, durationHours;
+      let actualStartDate;
 
       if (differentDays > 1) {
         // For multi-day events, use the first day's start time and last day's end time
@@ -746,6 +747,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         });
 
         durationHours = totalDuration;
+        actualStartDate = new Date(data.start_date);
       } else {
         // For single day events, use the original logic but get times from form
         const startTime = data.start_time;
@@ -766,6 +768,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         startDateTime = new Date(startDateStr);
         endDateTime = new Date(endDateStr);
         durationHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+        actualStartDate = startDateTime;
       }
 
       // Prepare event data
@@ -789,7 +792,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         total_participant: data.max_participants
           ? parseInt(data.max_participants)
           : null,
-        status_id: new Date(startDateTime) >= new Date() ? 2 : 1, // 2=Submitted if not backdated, 1=Draft if backdated
+        status_id: actualStartDate >= new Date().setHours(0, 0, 0, 0) ? 2 : 1, // 2=Submitted if not backdated, 1=Draft if backdated
         is_active: data.is_active, // Boolean value
         is_group_event: data.is_group_event,
         target_participants: data.target_participants,
