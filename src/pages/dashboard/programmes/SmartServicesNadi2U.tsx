@@ -144,7 +144,7 @@ const SmartServicesNadi2U = () => {
       case "2":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-            Published
+            Submitted
           </Badge>
         );
       case "3":

@@ -197,7 +197,6 @@ export const MaintenanceRequestFormDialog = ({
       requester_by: user.id,
       attachment: attachmentUrl,
       status: MaintenanceStatus.Submitted,
-      priority_type_id: Number(formData.get("prirority")),
       docket_type: "cm",
     };
 
@@ -488,19 +487,6 @@ export const MaintenanceRequestFormDialog = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select name="priority" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">Critical</SelectItem>
-                      <SelectItem value="1">Non-Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="attachment">Attachment</Label>
                   <AttachmentUploadField
                     previewUrl={attachmentPreviewUrl}
@@ -631,7 +617,7 @@ export const MaintenanceRequestFormDialog = ({
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-500">
-                    Estimated Completion Date
+                    Completion Date
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>

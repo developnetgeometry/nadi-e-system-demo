@@ -347,13 +347,15 @@ export const MaintenanceList = ({
                           </TableCell>
                         )}
                         <TableCell className="whitespace-nowrap">
-                          <Badge
-                            className={getSLACategoryClass(
-                              maintenanceRequest?.sla
-                            )}
-                          >
-                            {maintenanceRequest?.sla?.name || "Not set"}
-                          </Badge>
+                          {maintenanceRequest?.docket_type === "cm" && (
+                            <Badge
+                              className={getSLACategoryClass(
+                                maintenanceRequest?.sla
+                              )}
+                            >
+                              {maintenanceRequest?.sla?.name || "Not set"}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           {(maintenanceRequest?.maintenance_date &&

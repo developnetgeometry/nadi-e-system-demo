@@ -34,6 +34,7 @@ export const posMenuItems = [
   { title: "Products", path: "/pos/products" },
   { title: "Sales", path: "/pos/sales" },
   { title: "Transactions", path: "/pos/transactions" },
+  { title: "My Transactions", path: "/pos/my-transactions" },
   { title: "PUDO", path: "/pos/pudo" },
 ];
 
@@ -125,6 +126,7 @@ export const siteManagementItems = [
   { title: "Site Management", path: "/site-management" },
   { title: "Usage", path: "/site-management/usage" },
   { title: "Booking Management", path: "/site-management/booking-management" },
+  { title: "My Bookings", path: "/site-management/my-bookings" },
   { title: "NADI Closure", path: "/site-management/closure" },
   { title: "Insurance", path: "/site-management/insurance" },
   {

@@ -403,7 +403,7 @@ export function PayrollForm({
                   </Select>
 
                   {/* Debug Information - Remove this in production */}
-                  <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded mt-2">
+                  {/* <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded mt-2">
                     <strong>Debug - Selected Staff ID:</strong>{" "}
                     {formData.staffId || "None"}
                     <br />
@@ -415,7 +415,7 @@ export function PayrollForm({
                         {JSON.stringify(employees[0], null, 2)}
                       </>
                     )}
-                  </div>
+                  </div> */}
                 </div>
 
                 <div>
