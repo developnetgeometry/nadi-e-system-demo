@@ -23,6 +23,16 @@ export const dashboardRoutes = [
       </Suspense>
     ),
   },
+  {
+    path: "/dashboard/home",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission="view_site_details"> */}
+        <SiteManagementDashboard />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
 ];
 
 export const DashboardRoutes = () => {
