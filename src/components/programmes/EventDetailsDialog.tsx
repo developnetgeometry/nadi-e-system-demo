@@ -232,10 +232,10 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             Registered
           </Badge>
         );
-      case "published":
+      case "submitted":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-            Published
+            Submitted
           </Badge>
         );
       case "active":
@@ -279,8 +279,8 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   // Check if attendance can be verified (status is completed)
   const canVerifyAttendance = eventDetails && eventDetails.status_id === 6; // status_id 6 is COMPLETED
 
-  // Check if event status can be updated (status is published)
-  const canUpdateStatus = eventDetails && eventDetails.status_id === 2; // status_id 2 is PUBLISHED
+  // Check if event status can be updated (status is submitted)
+  const canUpdateStatus = eventDetails && eventDetails.status_id === 2; // status_id 2 is SUBMITTED
 
   const handleEdit = () => {
     if (eventDetails) {
