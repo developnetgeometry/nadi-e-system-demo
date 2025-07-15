@@ -155,7 +155,7 @@ const PerformanceIncentive = async ({
                     </>
                 )}
 
-                <PDFSectionTitle title="1.2 PERFORMANCE INCENTIVE (MANAGER / ASSISTANT MANAGER / PART TIMER)" />
+                <PDFSectionTitle title="1.2 PERFORMANCE INCENTIVE (MANAGER / ASSISTANT MANAGER)" />
 
 
                 <View style={{ flexDirection: "column", justifyContent: "space-between" }}>
