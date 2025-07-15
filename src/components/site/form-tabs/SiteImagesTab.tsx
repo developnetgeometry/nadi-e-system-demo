@@ -1,8 +1,9 @@
 import { FileUpload } from "@/components/ui/file-upload";
 import { SUPABASE_URL } from "@/integrations/supabase/client";
-import { useRef, useEffect, useState, useMemo } from "react";
-import { useSiteImage } from "../hook/use-site-image";
+import { useMemo } from "react";
 import { Site } from "@/types/site";
+import { UseFormReturn } from "react-hook-form";
+import { SiteFormData } from "./schemas/schema";
 
 interface SiteImage {
   id: number;
@@ -12,125 +13,101 @@ interface SiteImage {
 }
 
 interface SiteImagesTabProps {
+  form: UseFormReturn<SiteFormData>;
   site?: Site | null;
-  open: boolean;
-  onImagesChange: (selectedFiles: File[], imagesToDelete: string[], siteImages: SiteImage[]) => void;
 }
 
-export const SiteImagesTab = ({
-  site,
-  open,
-  onImagesChange
-}: SiteImagesTabProps) => {
-  const fileUploadRef = useRef<any>(null);
-  const [siteImages, setSiteImages] = useState<SiteImage[]>([]);
-  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
-  const [existingImagePaths, setExistingImagePaths] = useState<string[]>([]);
-  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-  const [hasInitializedImages, setHasInitializedImages] = useState(false);
+export const SiteImagesTab = ({ form, site }: SiteImagesTabProps) => {
+  // Get current form values
+  const selectedImageFiles = form.watch("selectedImageFiles") || [];
+  const imagesToDelete = form.watch("imagesToDelete") || [];
+  const siteImages = form.watch("siteImages") || [];
 
-  const { fetchSiteImages, loading: imageLoading } = useSiteImage();
-
-  // Fetch site images when editing a site
-  useEffect(() => {
-    if (site && open && !hasInitializedImages) {
-      console.log("Fetching site images for site:", site.id);
-      const loadImages = async () => {
-        try {
-          const images = await fetchSiteImages(site.id);
-          console.log("Fetched site images:", images);
-          setSiteImages(images);
-
-          // Extract all image paths for tracking existing images
-          const allPaths = images.flatMap((img) => {
-            if (img.file_urls && Array.isArray(img.file_urls)) {
-              return img.file_urls;
-            } else if (img.file_url) {
-              return [img.file_url];
-            }
-            return [];
-          });
-
-          setExistingImagePaths(allPaths);
-          setHasInitializedImages(true);
-        } catch (error) {
-          console.error("Error fetching site images:", error);
-        }
-      };
-
-      loadImages();
-    }
-  }, [site, open, fetchSiteImages, hasInitializedImages]);
-
-  // Reset form and image states when dialog is closed
-  useEffect(() => {
-    if (!open) {
-      // Reset all image-related states
-      setSiteImages([]);
-      setSelectedImageFiles([]);
-      setExistingImagePaths([]);
-      setImagesToDelete([]);
-      setHasInitializedImages(false);
-      if (fileUploadRef.current) {
-        fileUploadRef.current.clearFiles();
-      }
-    }
-  }, [open]);
-
-  // Notify parent of changes
-  useEffect(() => {
-    onImagesChange(selectedImageFiles, imagesToDelete, siteImages);
-  }, [selectedImageFiles, imagesToDelete, siteImages, onImagesChange]);
+  // Note: Site images data loading is now handled in the main SiteForm component
+  // when the form loads, so we don't need to load it here anymore.
 
   // Format existing images for FileUpload component
   const formattedExistingImages = useMemo(() => {
-    console.log("Formatting site images:", siteImages);
-
     if (!siteImages || siteImages.length === 0) {
-      console.log("No site images to format");
       return null;
     }
 
-    // Handle case where an image might have multiple URLs in file_urls array
-    const allImages = siteImages.flatMap((image) => {
+    const allImages = siteImages.flatMap((image: SiteImage) => {
       const urls = image.file_urls || (image.file_url ? [image.file_url] : []);
-      return urls.map((url, index) => ({
-        url,
-        name: `Site Image ${urls.length > 1 ? index + 1 : ""}`.trim(),
-      }));
+      return urls
+        .filter((url) => !imagesToDelete.includes(url)) // Filter out images marked for deletion
+        .map((url, index) => {
+          const fullUrl = url.startsWith("http") ? url : `${SUPABASE_URL}${url}`;
+          
+          // Extract the original filename from the path
+          // Path format: /storage/v1/object/public/site-attachment/site-image/SITECODE_timestamp_originalfilename.ext
+          const pathParts = url.split('/');
+          const fileName = pathParts[pathParts.length - 1]; // Get the last part (filename)
+          
+          // Extract original filename by removing the site code and timestamp prefix
+          // Format: SITECODE_timestamp_random_originalfilename.ext
+          let displayName = fileName;
+          const underscoreIndex = fileName.indexOf('_');
+          if (underscoreIndex !== -1) {
+            const secondUnderscoreIndex = fileName.indexOf('_', underscoreIndex + 1);
+            if (secondUnderscoreIndex !== -1) {
+              const thirdUnderscoreIndex = fileName.indexOf('_', secondUnderscoreIndex + 1);
+              if (thirdUnderscoreIndex !== -1) {
+                // Extract everything after the third underscore (original filename)
+                displayName = fileName.substring(thirdUnderscoreIndex + 1);
+              }
+            }
+          }
+          
+          return {
+            url: fullUrl,
+            name: displayName,
+          };
+        });
     });
 
-    console.log("Formatted images:", allImages);
     return allImages.length > 0 ? allImages : null;
-  }, [siteImages]);
+  }, [siteImages, imagesToDelete]);
 
-  // Handle image selection
-  const handleImagesChange = (files: File[]) => {
-    setSelectedImageFiles(files);
+  // Handle new image selection
+  const handleNewImagesSelected = (files: File[]) => {
+    // Since the FileUpload component is now controlled, just set the files directly
+    form.setValue("selectedImageFiles", files);
   };
 
-  // Handle existing images change (when user removes an image)
+  // Handle existing image removal
   const handleExistingImagesChange = (
     updatedImages: Array<{ url: string; name: string }>,
     supabaseUrl: string
   ) => {
-    const updatedPaths = updatedImages.map((img) =>
-      img.url.startsWith(supabaseUrl)
-        ? img.url.substring(supabaseUrl.length)
-        : img.url
+    // Extract storage paths from the updated images
+    const updatedPaths = updatedImages.map((img) => {
+      if (img.url.startsWith(supabaseUrl)) {
+        // Remove the supabase URL to get the storage path
+        return img.url.substring(supabaseUrl.length);
+      }
+      return img.url;
+    });
+
+    // Get current existing image paths from siteImages
+    // These are stored as paths like: /storage/v1/object/public/site-attachment/site-image/...
+    const currentPaths = siteImages.flatMap((img: SiteImage) => {
+      if (img.file_urls && Array.isArray(img.file_urls)) {
+        return img.file_urls;
+      } else if (img.file_url) {
+        return [img.file_url];
+      }
+      return [];
+    });
+
+    // Find removed images by comparing the storage paths
+    const removedPaths = currentPaths.filter(
+      (currentPath) => !updatedPaths.includes(currentPath)
     );
 
-    // Find removed images
-    const removedPaths = existingImagePaths.filter(
-      (path) => !updatedPaths.includes(path)
-    );
-
-    // Instead of deleting immediately, mark them for deletion when form is submitted
     if (removedPaths.length > 0) {
-      console.log("Images marked for deletion:", removedPaths);
-      setImagesToDelete((prev) => [...prev, ...removedPaths]);
-      // Update the visible image paths (but don't actually delete from database yet)
-      setExistingImagePaths(updatedPaths);
+      const newImagesToDelete = [...imagesToDelete, ...removedPaths];
+      form.setValue("imagesToDelete", newImagesToDelete);
     }
   };
 
@@ -168,17 +145,17 @@ export const SiteImagesTab = ({
         )}
         
         <FileUpload
-          ref={fileUploadRef}
-          maxFiles={3}
+          maxFiles={5}
           acceptedFileTypes=".jpg,.jpeg,.png,.gif,.webp"
           maxSizeInMB={5}
           buttonText="Choose Images"
-          onFilesSelected={handleImagesChange}
+          onFilesSelected={handleNewImagesSelected}
           multiple={true}
           existingFiles={formattedExistingImages}
           onExistingFilesChange={(files) =>
             handleExistingImagesChange(files, SUPABASE_URL)
           }
+          selectedFiles={selectedImageFiles}
         >
           Add Site Images
         </FileUpload>

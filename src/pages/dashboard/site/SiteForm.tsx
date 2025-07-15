@@ -27,22 +27,13 @@ import {
   getFirstTabWithError
 } from "@/components/site/form-tabs";
 import { SiteOperationHours } from "@/components/site/form-tabs/SiteOperationHours";
-import { fetchSiteBySiteId } from "@/components/site/hook/site-utils";
-
-interface OperationTime {
-  day: string;
-  openTime: string;
-  closeTime: string;
-  isClosed: boolean;
-  id?: number;
-}
-
-interface SiteImage {
-  id: number;
-  site_profile_id: string | number;
-  file_url: string;
-  file_urls?: string[];
-}
+import { 
+  fetchSiteBySiteId, 
+  fetchSiteOperationHours, 
+  fetchSiteImages,
+  type OperationTime,
+  type SiteImage
+} from "@/components/site/hook/site-utils";
 
 const SiteFormPage = () => {
   const navigate = useNavigate();
@@ -64,12 +55,9 @@ const SiteFormPage = () => {
   const isEditing = Boolean(siteId);
 
   // State management
-  const [operationTimes, setOperationTimes] = useState<OperationTime[]>([]);
   const [activeTab, setActiveTab] = useState("basic-info");
-  const [savedOperationTimes, setSavedOperationTimes] = useState<OperationTime[]>([]);
-  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
-  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-  const [siteImages, setSiteImages] = useState<SiteImage[]>([]);
+  const [originalSiteData, setOriginalSiteData] = useState<SiteFormData | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Fetch site data if editing
   const { data: site, isLoading } = useQuery({
@@ -95,7 +83,7 @@ const SiteFormPage = () => {
       is_mini: false,
       longitude: "",
       latitude: "",
-      status: "",
+      status: "2", // Default to "In Progress" status (ID: 2)
       address: "",
       address2: "",
       district: "",
@@ -116,6 +104,10 @@ const SiteFormPage = () => {
       socio_economic: [],
       space: [],
       dusp_tp_id: "",
+      selectedImageFiles: [],
+      imagesToDelete: [],
+      siteImages: [],
+      hasLoadedOperationData: false,
     },
   });
 
@@ -123,10 +115,10 @@ const SiteFormPage = () => {
   const { submitForm, isSubmitting } = useSiteFormSubmission({
     site,
     organizationId,
-    operationTimes,
-    selectedImageFiles,
-    imagesToDelete,
-    siteImages,
+    operationTimes: (form.watch("operationTimes") || []) as OperationTime[],
+    selectedImageFiles: form.watch("selectedImageFiles") || [],
+    imagesToDelete: form.watch("imagesToDelete") || [],
+    siteImages: form.watch("siteImages") || [],
     onSuccess: () => {
       toast({
         title: "Success",
@@ -136,25 +128,8 @@ const SiteFormPage = () => {
     },
   });
 
-  // Handlers
-  const handleImagesChange = (selectedFiles: File[], imagesToDelete: string[], siteImages: SiteImage[]) => {
-    setSelectedImageFiles(selectedFiles);
-    setImagesToDelete(imagesToDelete);
-    setSiteImages(siteImages);
-  };
-
-  const handleOperationTimesChange = (times: OperationTime[]) => {
-    setOperationTimes(times);
-    setSavedOperationTimes(times);
-  };
-
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    if (value === "operation") {
-      setOperationTimes(savedOperationTimes);
-    } else if (activeTab === "operation") {
-      setSavedOperationTimes(operationTimes);
-    }
   };
 
   const handleSubmit = async (data: SiteFormData) => {
@@ -181,9 +156,40 @@ const SiteFormPage = () => {
     navigate("/site-management");
   };
 
-  // Effects
-  useEffect(() => {
+  // Function to check if form has changes
+  const checkForChanges = () => {
+    if (!originalSiteData || !isEditing) {
+      setHasChanges(false);
+      return;
+    }
+
+    const currentValues = form.getValues();
+    
+    // Compare each field
+    const fieldsChanged = Object.keys(originalSiteData).some((key) => {
+      const originalValue = originalSiteData[key as keyof SiteFormData];
+      const currentValue = currentValues[key as keyof SiteFormData];
+      
+      // Handle arrays (socio_economic, space)
+      if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
+        return JSON.stringify(originalValue.sort()) !== JSON.stringify(currentValue.sort());
+      }
+      
+      // Handle regular values
+      return originalValue !== currentValue;
+    });
+
+    // Also check for changes in operation times, images, etc.
+    const hasOperationChanges = (form.watch("operationTimes") || []).length > 0;
+    const hasImageChanges = (form.watch("selectedImageFiles") || []).length > 0 || 
+                           (form.watch("imagesToDelete") || []).length > 0;
+    
+    setHasChanges(fieldsChanged || hasOperationChanges || hasImageChanges);
+  };
+
+  const handleResetChanges = () => {
     if (site) {
+      // Reset form to original site data
       const siteData: SiteFormData = {
         code: site.nd_site[0]?.standard_code || "",
         name: site.sitename || "",
@@ -198,7 +204,7 @@ const SiteFormPage = () => {
         is_mini: site.is_mini ?? false,
         longitude: site.longtitude || "",
         latitude: site.latitude || "",
-        status: site.active_status ? String(site.active_status) : "",
+        status: site.active_status ? String(site.active_status) : "2", // Reset to original or default
         address: site.nd_site_address[0]?.address1 || "",
         address2: site.nd_site_address[0]?.address2 || "",
         city: site.nd_site_address[0]?.city || "",
@@ -219,10 +225,109 @@ const SiteFormPage = () => {
         socio_economic: site.nd_site_socioeconomic?.map((s: any) => String(s.nd_socioeconomics.id)) || [],
         space: site.nd_site_space?.map((s: any) => String(s.nd_space.id)) || [],
         dusp_tp_id: site.dusp_tp_id ? String(site.dusp_tp_id) : "",
+        selectedImageFiles: [],
+        imagesToDelete: [],
+        siteImages: originalSiteData?.siteImages || [], // Reset to original loaded images
+        operationTimes: originalSiteData?.operationTimes || [], // Reset to original operation times
+        hasLoadedOperationData: false,
       };
+      
       form.reset(siteData);
+      
+      // Reset form state for operation times and images to original data
+      form.setValue("operationTimes", originalSiteData?.operationTimes || []);
+      form.setValue("selectedImageFiles", []);
+      form.setValue("imagesToDelete", []);
+      form.setValue("siteImages", originalSiteData?.siteImages || []);
+      form.setValue("hasLoadedOperationData", false);
+      setHasChanges(false);
+      
+      toast({
+        title: "Changes Reset",
+        description: "All changes have been reverted to the original values.",
+      });
     }
-  }, [site, form]);
+  };
+
+  // Effects
+  useEffect(() => {
+    if (site) {
+      const loadSiteData = async () => {
+        // Load basic site data
+        const siteData: SiteFormData = {
+          code: site.nd_site[0]?.standard_code || "",
+          name: site.sitename || "",
+          phase: site.phase_id ? String(site.phase_id) : "",
+          region: site.region_id ? String(site.region_id) : "",
+          parliament: site.nd_parliament?.id ? String(site.nd_parliament.id) : "",
+          dun: site.nd_dun?.id ? String(site.nd_dun.id) : "",
+          mukim: site.nd_mukim?.id ? String(site.nd_mukim.id) : "",
+          email: site.email || "",
+          website: site.website || "",
+          website_last_updated: site.website_last_updated ? site.website_last_updated.split("T")[0] : "",
+          is_mini: site.is_mini ?? false,
+          longitude: site.longtitude || "",
+          latitude: site.latitude || "",
+          status: site.active_status ? String(site.active_status) : "2", // Default to "In Progress" if no status
+          address: site.nd_site_address[0]?.address1 || "",
+          address2: site.nd_site_address[0]?.address2 || "",
+          city: site.nd_site_address[0]?.city || "",
+          postCode: site.nd_site_address[0]?.postcode || "",
+          district: site.nd_site_address[0]?.district_id ? String(site.nd_site_address[0].district_id) : "",
+          state: site.nd_site_address[0]?.state_id ? String(site.nd_site_address[0]?.state_id) : "",
+          technology: site.technology ? String(site.technology) : "",
+          bandwidth: site.bandwidth ? String(site.bandwidth) : "",
+          building_type: site.building_type_id ? String(site.building_type_id) : "",
+          building_area: site.building_area_id ? String(site.building_area_id) : "",
+          building_rental: site.building_rental_id ?? false,
+          zone: site.zone_id ? String(site.zone_id) : "",
+          category_area: site.area_id ? String(site.area_id) : "",
+          building_level: site.level_id ? String(site.level_id) : "",
+          oku: site.oku_friendly ?? false,
+          coordinates: site.longtitude && site.latitude ? `${site.longtitude},${site.latitude}` : "",
+          operate_date: site.operate_date ? site.operate_date.split("T")[0] : "",
+          socio_economic: site.nd_site_socioeconomic?.map((s: any) => String(s.nd_socioeconomics.id)) || [],
+          space: site.nd_site_space?.map((s: any) => String(s.nd_space.id)) || [],
+          dusp_tp_id: site.dusp_tp_id ? String(site.dusp_tp_id) : "",
+          selectedImageFiles: [],
+          imagesToDelete: [],
+          siteImages: [],
+          hasLoadedOperationData: true, // Mark as loaded since we're loading it here
+        };
+
+        // Load operation hours data
+        const operationTimes = await fetchSiteOperationHours(siteId);
+        siteData.operationTimes = operationTimes;
+
+        // Load site images data
+        const siteImages = await fetchSiteImages(site.id);
+        siteData.siteImages = siteImages;
+
+        form.reset(siteData);
+        setOriginalSiteData(siteData);
+        setHasChanges(false);
+      };
+
+      loadSiteData();
+    }
+  }, [site, form, siteId]);
+
+  // Monitor form changes
+  useEffect(() => {
+    if (isEditing && originalSiteData) {
+      const subscription = form.watch(() => {
+        checkForChanges();
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [form, isEditing, originalSiteData]);
+
+  // Monitor form changes
+  useEffect(() => {
+    if (isEditing) {
+      checkForChanges();
+    }
+  }, [isEditing]);
 
   // Auto-jump to first tab with validation errors
   useEffect(() => {
@@ -282,18 +387,29 @@ const SiteFormPage = () => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {isEditing && hasChanges && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleResetChanges}
+              disabled={isSubmitting}
+            >
+              Reset Changes
+            </Button>
+          )}
           {!isEditing && (
             <Button
               type="button"
               variant="outline"
               onClick={() => {
+                // Reset to default values defined in form initialization
                 form.reset();
-                setActiveTab("basic-info");
-                setOperationTimes([]);
-                setSavedOperationTimes([]);
-                setSelectedImageFiles([]);
-                setImagesToDelete([]);
-                setSiteImages([]);
+                // Reset form state for operation times and images
+                form.setValue("operationTimes", []);
+                form.setValue("selectedImageFiles", []);
+                form.setValue("imagesToDelete", []);
+                form.setValue("siteImages", []);
+                form.setValue("hasLoadedOperationData", false);
               }}
               disabled={isSubmitting}
             >
@@ -366,7 +482,13 @@ const SiteFormPage = () => {
                   <TabsTrigger value="images" className="text-xs">
                     Images
                   </TabsTrigger>
-                  <TabsTrigger value="operation" className="text-xs">
+                  <TabsTrigger 
+                    value="operation" 
+                    className={cn(
+                      "text-xs",
+                      hasTabErrors("operation", form.formState.errors) ? "text-red-500 font-medium" : ""
+                    )}
+                  >
                     Operation Hours
                   </TabsTrigger>
                   <TabsTrigger
@@ -403,17 +525,15 @@ const SiteFormPage = () => {
 
                   <TabsContent value="images" className="space-y-4">
                     <SiteImagesTab
+                      form={form}
                       site={site}
-                      open={true}
-                      onImagesChange={handleImagesChange}
                     />
                   </TabsContent>
 
                   <TabsContent value="operation">
                     <SiteOperationHours
+                      form={form}
                       siteId={siteId}
-                      onOperationTimesChange={handleOperationTimesChange}
-                      initialTimes={savedOperationTimes}
                     />
                   </TabsContent>
 

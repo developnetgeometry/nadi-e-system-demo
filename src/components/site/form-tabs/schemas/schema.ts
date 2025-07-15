@@ -57,6 +57,60 @@ export const siteFormSchema = z.object({
 
   // Additional
   operate_date: z.string().optional(),
+
+  // Images (handled separately from form but included for typing)
+  selectedImageFiles: z.array(z.any()).default([]).optional(),
+  imagesToDelete: z.array(z.string()).default([]).optional(),
+  siteImages: z.array(z.any()).default([]).optional(),
+
+  // Operation Hours
+  operationTimes: z.array(z.object({
+    day: z.string(),
+    openTime: z.string(),
+    closeTime: z.string(),
+    isClosed: z.boolean(),
+    id: z.number().optional(),
+  })).default([]).refine((times) => {
+    // Check if all 7 days of the week are defined
+    const requiredDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const definedDays = times.map(time => time.day);
+    const missingDays = requiredDays.filter(day => !definedDays.includes(day));
+    return missingDays.length === 0;
+  }, {
+    message: "All 7 days of the week must be defined for operation hours"
+  }).refine((times) => {
+    // Validate each day's times
+    for (const time of times) {
+      if (!time.isClosed) {
+        // Check if open time and close time are provided
+        if (!time.openTime || !time.closeTime) {
+          return false;
+        }
+        
+        // Check if times are in valid format (HH:MM)
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(time.openTime) || !timeRegex.test(time.closeTime)) {
+          return false;
+        }
+        
+        // Check if open time is before close time
+        const [openHour, openMin] = time.openTime.split(':').map(Number);
+        const [closeHour, closeMin] = time.closeTime.split(':').map(Number);
+        const openMinutes = openHour * 60 + openMin;
+        const closeMinutes = closeHour * 60 + closeMin;
+        
+        if (openMinutes >= closeMinutes) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }, {
+    message: "Invalid operation times: Open time must be before close time, and times must be in HH:MM format"
+  }),
+  
+  // Internal state tracking
+  hasLoadedOperationData: z.boolean().default(false).optional(),
 });
 
 export type SiteFormData = z.infer<typeof siteFormSchema>;

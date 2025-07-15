@@ -1,11 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TimeInput from "@/components/ui/TimePicker";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
+import { SiteFormData } from "./schemas/schema";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface OperationTime {
   day: string;
@@ -16,9 +24,8 @@ interface OperationTime {
 }
 
 interface SiteOperationHoursProps {
+  form: UseFormReturn<SiteFormData>;
   siteId?: string | null;
-  onOperationTimesChange?: (operationTimes: OperationTime[]) => void;
-  initialTimes?: OperationTime[]; // Add this prop to initialize from parent component
 }
 
 const DAYS_OF_WEEK = [
@@ -35,112 +42,14 @@ const DEFAULT_OPEN_TIME = "08:00";
 const DEFAULT_CLOSE_TIME = "18:00";
 
 export const SiteOperationHours = ({
+  form,
   siteId,
-  onOperationTimesChange,
-  initialTimes,
 }: SiteOperationHoursProps) => {
-  // Initialize with initialTimes if available, but keep a reference to the original initialTimes
-  const [operationTimes, setOperationTimes] = useState<OperationTime[]>(
-    initialTimes || []
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false); // Track initialization state
+  const operationTimes = form.watch("operationTimes") || [];
+  const hasLoadedOperationData = form.watch("hasLoadedOperationData") || false;
 
-  // Initialize operation hours - either from existing site or empty
-  useEffect(() => {
-    const initializeOperationTimes = async () => {
-      if (hasInitialized) return; // Prevent reinitialization
-      setIsLoading(true);
-
-      // Set a timeout to prevent infinite loading
-      const timeoutId = setTimeout(() => {
-        console.log("Operation hours loading timed out");
-        setIsLoading(false);
-        setOperationTimes(initialTimes || []);
-        setHasInitialized(true); // Mark as initialized even on timeout
-      }, 5000); // 5 second timeout
-
-      if (siteId) {
-        // If we're editing an existing site, fetch its operation times
-        try {
-          const { data, error } = await supabase
-            .from("nd_site_operation")
-            .select("*")
-            .eq("site_id", Number(siteId));
-
-          clearTimeout(timeoutId); // Clear timeout on successful response
-
-          if (error) throw error;
-
-          if (data && data.length > 0) {
-            // Map the database data to our OperationTime format
-            const mappedData: OperationTime[] = data
-              .map((item) => ({
-                id: item.id,
-                day: item.days_of_week,
-                openTime: item.open_time
-                  ? item.open_time.substring(0, 5)
-                  : DEFAULT_OPEN_TIME,
-                closeTime: item.close_time
-                  ? item.close_time.substring(0, 5)
-                  : DEFAULT_CLOSE_TIME,
-                isClosed: item.is_closed || false,
-              }))
-              .sort(
-                (a, b) =>
-                  DAYS_OF_WEEK.indexOf(a.day) - DAYS_OF_WEEK.indexOf(b.day)
-              );
-
-            setOperationTimes(mappedData);
-          } else {
-            // No existing operation times, initialize with empty array
-            setOperationTimes(initialTimes || []);
-          }
-        } catch (error) {
-          console.error("Error fetching operation times:", error);
-          setOperationTimes(initialTimes || []);
-        }
-      } else if (initialTimes && initialTimes.length > 0) {
-        clearTimeout(timeoutId);
-        // Initialize from initialTimes prop
-        setOperationTimes(initialTimes);
-      } else {
-        clearTimeout(timeoutId);
-        // New site, initialize with empty array
-        setOperationTimes([]);
-      }
-
-      setIsLoading(false);
-      setHasInitialized(true); // Mark as initialized
-    };
-
-    initializeOperationTimes();
-  }, [siteId, initialTimes, hasInitialized]);
-
-  // Add effect to handle changes to initialTimes from parent
-  useEffect(() => {
-    // If we have initialTimes and they're different from current operation times, update
-    if (initialTimes && initialTimes.length > 0) {
-      // Only update if we have different values
-      if (JSON.stringify(initialTimes) !== JSON.stringify(operationTimes)) {
-        setOperationTimes(initialTimes);
-      }
-    }
-  }, [initialTimes]);
-
-  // Reset initialization state when siteId changes
-  useEffect(() => {
-    if (siteId) {
-      setHasInitialized(false);
-    }
-  }, [siteId]);
-
-  // Notify parent of changes
-  useEffect(() => {
-    if (onOperationTimesChange) {
-      onOperationTimesChange(operationTimes);
-    }
-  }, [operationTimes, onOperationTimesChange]);
+  // Note: Operation times data loading is now handled in the main SiteForm component
+  // when the form loads, so we don't need to load it here anymore.
 
   // Create default operation times for all days
   const createDefaultOperationTimes = () => {
@@ -151,227 +60,330 @@ export const SiteOperationHours = ({
       isClosed: false,
     }));
 
-    setOperationTimes(defaultTimes);
+    form.setValue("operationTimes", defaultTimes);
   };
 
-  // Add a single day operation time
-  const addOperationTime = (day: string) => {
+  // Add a specific day operation time
+  const addSpecificDay = (dayName: string) => {
     // Check if day already exists
-    if (operationTimes.some((time) => time.day === day)) {
-      return;
-    }
+    const existingDay = operationTimes.find(time => time.day === dayName);
+    if (existingDay) return; // Don't add if already exists
 
-    setOperationTimes((prev) =>
-      [
-        ...prev,
-        {
-          day,
-          openTime: DEFAULT_OPEN_TIME,
-          closeTime: DEFAULT_CLOSE_TIME,
-          isClosed: false,
-        },
-      ].sort(
-        (a, b) => DAYS_OF_WEEK.indexOf(a.day) - DAYS_OF_WEEK.indexOf(b.day)
-      )
-    );
+    const newTime: OperationTime = {
+      day: dayName,
+      openTime: DEFAULT_OPEN_TIME,
+      closeTime: DEFAULT_CLOSE_TIME,
+      isClosed: false,
+    };
+
+    form.setValue("operationTimes", [...operationTimes, newTime]);
   };
 
-  // Remove a single day operation time
-  const removeOperationTime = (day: string) => {
-    setOperationTimes((prev) => prev.filter((time) => time.day !== day));
+  // Add a new operation time slot
+  const addOperationTime = () => {
+    // Find the next available day that isn't already set
+    const usedDays = operationTimes.map(time => time.day);
+    const availableDays = DAYS_OF_WEEK.filter(day => !usedDays.includes(day));
+    const nextDay = availableDays.length > 0 ? availableDays[0] : "Monday";
+
+    const newTime: OperationTime = {
+      day: nextDay,
+      openTime: DEFAULT_OPEN_TIME,
+      closeTime: DEFAULT_CLOSE_TIME,
+      isClosed: false,
+    };
+
+    form.setValue("operationTimes", [...operationTimes, newTime]);
+  };
+
+  // Remove an operation time slot by day name
+  const removeOperationTimeByDay = (dayName: string) => {
+    const updatedTimes = operationTimes.filter((time) => time.day !== dayName);
+    form.setValue("operationTimes", updatedTimes);
+  };
+
+  // Remove an operation time slot by index (keep for backward compatibility)
+  const removeOperationTime = (index: number) => {
+    const updatedTimes = operationTimes.filter((_, i) => i !== index);
+    form.setValue("operationTimes", updatedTimes);
+  };
+
+  // Update a specific operation time by day name
+  const updateOperationTimeByDay = (dayName: string, updatedTime: Partial<OperationTime>) => {
+    const updatedTimes = operationTimes.map((time) =>
+      time.day === dayName ? { ...time, ...updatedTime } : time
+    );
+    form.setValue("operationTimes", updatedTimes);
+  };
+
+  // Update a specific operation time by index (keep for backward compatibility)
+  const updateOperationTime = (index: number, updatedTime: Partial<OperationTime>) => {
+    const updatedTimes = operationTimes.map((time, i) =>
+      i === index ? { ...time, ...updatedTime } : time
+    );
+    form.setValue("operationTimes", updatedTimes);
   };
 
   // Clear all operation times
-  const clearAllOperationTimes = () => {
-    setOperationTimes([]);
+  const clearOperationTimes = () => {
+    form.setValue("operationTimes", []);
+    // Don't reset hasLoadedInitialData here - we want to prevent auto-reload
   };
 
-  const handleOpenTimeChange = (day: string, time: string) => {
-    setOperationTimes((prev) =>
-      prev.map((item) =>
-        item.day === day ? { ...item, openTime: time } : item
-      )
-    );
+  // Get missing days for individual buttons
+  const missingDays = DAYS_OF_WEEK.filter(day => !operationTimes.some(time => time.day === day));
+  
+  // Check for validation errors
+  const fieldError = form.formState.errors.operationTimes;
+  const hasValidationError = fieldError && missingDays.length > 0;
+  
+  // Helper function to validate individual day times
+  const validateDayTimes = (day: string) => {
+    const dayData = operationTimes.find(time => time.day === day);
+    if (!dayData || dayData.isClosed) return { isValid: true, error: "" };
+    
+    if (!dayData.openTime || !dayData.closeTime) {
+      return { isValid: false, error: "Times required" };
+    }
+    
+    // Check time format
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(dayData.openTime) || !timeRegex.test(dayData.closeTime)) {
+      return { isValid: false, error: "Invalid format" };
+    }
+    
+    // Check if open time is before close time
+    const [openHour, openMin] = dayData.openTime.split(':').map(Number);
+    const [closeHour, closeMin] = dayData.closeTime.split(':').map(Number);
+    const openMinutes = openHour * 60 + openMin;
+    const closeMinutes = closeHour * 60 + closeMin;
+    
+    if (openMinutes >= closeMinutes) {
+      return { isValid: false, error: "Open must be before close" };
+    }
+    
+    return { isValid: true, error: "" };
   };
-
-  const handleCloseTimeChange = (day: string, time: string) => {
-    setOperationTimes((prev) =>
-      prev.map((item) =>
-        item.day === day ? { ...item, closeTime: time } : item
-      )
-    );
-  };
-
-  const handleOpenToggle = (day: string, isOpen: boolean) => {
-    setOperationTimes((prev) =>
-      prev.map((item) =>
-        item.day === day ? { ...item, isClosed: !isOpen } : item
-      )
-    );
-  };
-
-  // Generate available days that aren't already in the operation times
-  const getAvailableDays = () => {
-    const usedDays = operationTimes.map((time) => time.day);
-    return DAYS_OF_WEEK.filter((day) => !usedDays.includes(day));
-  };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Operation Hours</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center p-8 space-y-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-            <p className="text-sm text-muted-foreground">
-              Loading operation hours...
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Operation Hours</CardTitle>
-        <div className="flex space-x-2">
-          {operationTimes.length > 0 ? (
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              onClick={clearAllOperationTimes}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          ) : (
-            <Button onClick={createDefaultOperationTimes} size="sm" type="button">
-              <Plus className="h-4 w-4 mr-2" />
-              Add All Days
-            </Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Operation Hours</h3>
+          <p className="text-sm text-muted-foreground">
+            All 7 days must be defined with valid times <span className="text-red-500">*</span>
+          </p>
+          {fieldError && (
+            <p className="text-sm text-red-500 mt-1">
+              {fieldError.message || "Please fix operation hours errors"}
+              {missingDays.length > 0 && ` (${missingDays.length} day${missingDays.length > 1 ? 's' : ''} missing)`}
+            </p>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {operationTimes.length === 0 ? (
-          <div className="text-center p-6 border border-dashed rounded-md">
-            <p className="text-gray-500 mb-4">No operation hours set.</p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {DAYS_OF_WEEK.map((day) => (
-                <Button
-                  key={day}
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  onClick={() => addOperationTime(day)}
-                >
-                  {day}
-                </Button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-              {operationTimes.map((item) => (
-                <div
-                  key={item.day}
-                  className="flex flex-col space-y-2 p-3 border rounded-md relative"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{item.day}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      type="button"
-                      className="h-6 w-6 absolute top-1 right-1"
-                      onClick={() => removeOperationTime(item.day)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor={`open-switch-${item.day}`}
-                      className="text-sm"
-                    >
-                      Open
-                    </Label>
-                    <Switch
-                      id={`open-switch-${item.day}`}
-                      checked={!item.isClosed} // Invert the logic - Switch ON means NOT closed
-                      onCheckedChange={(isOpen) =>
-                        handleOpenToggle(item.day, isOpen)
-                      }
-                    />
-                  </div>
-
-                  {!item.isClosed && (
-                    <>
-                      <div className="space-y-1">
-                        <Label htmlFor={`open-${item.day}`} className="text-sm">
-                          Open Time
-                        </Label>
-                        <TimeInput
-                          id={`open-${item.day}`}
-                          value={item.openTime}
-                          onChange={(value) =>
-                            handleOpenTimeChange(item.day, value)
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label
-                          htmlFor={`close-${item.day}`}
-                          className="text-sm"
-                        >
-                          Close Time
-                        </Label>
-                        <TimeInput
-                          id={`close-${item.day}`}
-                          value={item.closeTime}
-                          onChange={(value) =>
-                            handleCloseTimeChange(item.day, value)
-                          }
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {getAvailableDays().length > 0 && (
-              <div className="mt-4">
-                <div className="text-sm font-medium mb-2">Add more days:</div>
-                <div className="flex flex-wrap gap-2">
-                  {getAvailableDays().map((day) => (
-                    <Button
-                      key={day}
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      onClick={() => addOperationTime(day)}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      {day}
-                    </Button>
-                  ))}
-                </div>
+        
+        {/* Top right buttons - only show when we have some days defined */}
+        {operationTimes.length > 0 && (
+          <div className="flex gap-2 flex-wrap items-center">
+            {/* Individual buttons for each missing day */}
+            {missingDays.length > 0 && (
+              <div className="flex gap-1">
+                <span className="text-xs text-muted-foreground mr-2 self-center">Missing:</span>
+                {missingDays.map((day) => (
+                  <Button
+                    key={day}
+                    onClick={() => addSpecificDay(day)}
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    className="text-xs h-7 px-2 border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    {day.substring(0, 3)}
+                  </Button>
+                ))}
               </div>
             )}
-          </>
+            
+            {/* Status indicator */}
+            {(() => {
+              const hasTimeErrors = operationTimes.some(time => !validateDayTimes(time.day).isValid);
+              const allValid = missingDays.length === 0 && !hasTimeErrors;
+              
+              if (allValid) {
+                return (
+                  <div className="flex items-center text-green-600 text-xs">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Complete
+                  </div>
+                );
+              } else {
+                const errorCount = missingDays.length + (hasTimeErrors ? 1 : 0);
+                return (
+                  <div className="flex items-center text-red-600 text-xs">
+                    <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                    {missingDays.length > 0 && `${missingDays.length} missing`}
+                    {missingDays.length > 0 && hasTimeErrors && ', '}
+                    {hasTimeErrors && 'time errors'}
+                  </div>
+                );
+              }
+            })()}
+            
+            {/* Clear All button */}
+            <Button onClick={clearOperationTimes} variant="destructive" size="sm" type="button" className="h-7">
+              Clear All
+            </Button>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {operationTimes.length === 0 ? (
+        /* No days defined - centered Create Standard Week */
+        <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-red-300 rounded-lg bg-red-50/30">
+          <div className="text-center">
+            <h4 className="text-lg font-medium text-gray-900 mb-2">Operation Hours Required</h4>
+            <p className="text-muted-foreground mb-2">
+              All 7 days must be defined with valid open and close times
+            </p>
+            <p className="text-red-600 text-sm mb-6">
+              This is required to create or update the site
+            </p>
+            <Button onClick={createDefaultOperationTimes} variant="default" type="button" className="mb-2">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Standard Week (Mon-Sun)
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Creates default operation hours (8:00 AM - 6:00 PM) for all 7 days
+            </p>
+          </div>
+        </div>
+      ) : (
+        /* Horizontal view with separated cards for each day */
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+          {DAYS_OF_WEEK.map((dayName) => {
+            // Find if we have operation time for this day
+            const dayOperationIndex = operationTimes.findIndex(time => time.day === dayName);
+            const dayOperation = dayOperationIndex >= 0 ? operationTimes[dayOperationIndex] : null;
+            
+            // Validate times for this day
+            const timeValidation = validateDayTimes(dayName);
+            const hasTimeError = !timeValidation.isValid;
+            
+            return (
+              <Card key={dayName} className={`min-h-[200px] ${
+                dayOperation 
+                  ? hasTimeError 
+                    ? 'border-red-300 bg-red-50/30' 
+                    : 'border-blue-200 bg-blue-50/30'
+                  : hasValidationError 
+                    ? 'border-red-300 bg-red-50/30' 
+                    : 'border-gray-200 bg-gray-50/30'
+              }`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-center flex-1">
+                      {dayName}
+                    </CardTitle>
+                    {dayOperation && (
+                      <Button
+                        onClick={() => removeOperationTimeByDay(dayName)}
+                        variant="ghost"
+                        size="sm"
+                        type="button"
+                        className="text-destructive hover:text-destructive h-6 w-6 p-0"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {dayOperation ? (
+                    /* Day has operation hours */
+                    <div className="space-y-3">
+                      {/* Closed toggle */}
+                      <div className="flex items-center justify-center">
+                        <Switch
+                          id={`closed-${dayName}`}
+                          checked={dayOperation.isClosed}
+                          onCheckedChange={(checked) => updateOperationTimeByDay(dayName, { isClosed: checked })}
+                        />
+                        <Label htmlFor={`closed-${dayName}`} className="text-xs ml-2">
+                          {dayOperation.isClosed ? 'Closed' : 'Open'}
+                        </Label>
+                      </div>
+                      
+                      {!dayOperation.isClosed && (
+                        <>
+                          {/* Opening Time */}
+                          <div>
+                            <Label htmlFor={`open-time-${dayName}`} className="text-xs">Open</Label>
+                            <TimeInput
+                              id={`open-time-${dayName}`}
+                              value={dayOperation.openTime}
+                              onChange={(value) => updateOperationTimeByDay(dayName, { openTime: value })}
+                              className={cn(
+                                "text-xs h-8 mt-1",
+                                hasTimeError ? "border-red-300 focus:border-red-500" : ""
+                              )}
+                            />
+                          </div>
+                          
+                          {/* Closing Time */}
+                          <div>
+                            <Label htmlFor={`close-time-${dayName}`} className="text-xs">Close</Label>
+                            <TimeInput
+                              id={`close-time-${dayName}`}
+                              value={dayOperation.closeTime}
+                              onChange={(value) => updateOperationTimeByDay(dayName, { closeTime: value })}
+                              className={cn(
+                                "text-xs h-8 mt-1",
+                                hasTimeError ? "border-red-300 focus:border-red-500" : ""
+                              )}
+                            />
+                          </div>
+                          
+                          {/* Time validation error */}
+                          {hasTimeError && (
+                            <div className="text-red-500 text-xs text-center mt-2">
+                              {timeValidation.error}
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {dayOperation.isClosed && (
+                        <div className="text-center text-xs text-muted-foreground py-4">
+                          This day is closed
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Day doesn't have operation hours */
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center">
+                        <div className="text-red-600 mb-3">
+                          <span className="text-xs font-medium">Required</span>
+                        </div>
+                        <Button
+                          onClick={() => addSpecificDay(dayName)}
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          className="border-dashed border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Hours
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
-
-export default SiteOperationHours;

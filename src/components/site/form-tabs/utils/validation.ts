@@ -55,6 +55,11 @@ export const hasTabErrors = (tabName: string, errors: FieldErrors<SiteFormData>)
         errors.space
       );
     
+    case "operation":
+      return !!(
+        errors.operationTimes
+      );
+    
     case "operational-status":
       return !!(
         errors.status ||
@@ -122,7 +127,12 @@ export const getFirstTabWithError = (errors: FieldErrors<SiteFormData>): string 
     return "facilities";
   }
   
-  // Operational Status tab fields - sixth priority
+  // Operation Hours tab fields - sixth priority
+  if (errors.operationTimes) {
+    return "operation";
+  }
+  
+  // Operational Status tab fields - seventh priority
   if (
     errors.status ||
     errors.operate_date
@@ -178,6 +188,10 @@ export const TAB_FIELD_MAPPING = {
   "facilities": [
     "socio_economic",
     "space"
+  ] as const,
+  
+  "operation": [
+    "operationTimes"
   ] as const,
   
   "operational-status": [

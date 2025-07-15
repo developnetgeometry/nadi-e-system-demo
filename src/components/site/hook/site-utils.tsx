@@ -22,6 +22,115 @@ import {
   Zone,
 } from "@/types/site";
 
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+const DEFAULT_OPEN_TIME = "08:00";
+const DEFAULT_CLOSE_TIME = "18:00";
+
+export interface OperationTime {
+  day: string;
+  openTime: string;
+  closeTime: string;
+  isClosed: boolean;
+  id?: number;
+}
+
+export interface SiteImage {
+  id: number;
+  site_profile_id: string | number;
+  file_url: string;
+  file_urls?: string[];
+}
+
+// Fetch operation hours for a site
+export const fetchSiteOperationHours = async (siteId: string): Promise<OperationTime[]> => {
+  if (!siteId) return [];
+  
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_operation")
+      .select("*")
+      .eq("site_id", Number(siteId));
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      const mappedOperationTimes = data
+        .map((item) => ({
+          id: item.id,
+          day: item.days_of_week,
+          openTime: item.open_time ? item.open_time.substring(0, 5) : DEFAULT_OPEN_TIME,
+          closeTime: item.close_time ? item.close_time.substring(0, 5) : DEFAULT_CLOSE_TIME,
+          isClosed: item.is_closed || false,
+        }))
+        .sort((a, b) => DAYS_OF_WEEK.indexOf(a.day) - DAYS_OF_WEEK.indexOf(b.day));
+
+      return mappedOperationTimes;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching operation times:", error);
+    return [];
+  }
+};
+
+// Fetch images for a site
+export const fetchSiteImages = async (siteProfileId: string | number): Promise<SiteImage[]> => {
+  if (!siteProfileId) return [];
+  
+  try {
+    const { data, error } = await supabase
+      .from("nd_site_image")
+      .select("*")
+      .eq("site_profile_id", siteProfileId);
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      // Transform data to match our expected format (same logic as useSiteImage hook)
+      const mappedImages = data.map((item) => {
+        // Handle file_path as an array
+        let fileUrls: string[] = [];
+        if (Array.isArray(item.file_path)) {
+          fileUrls = item.file_path;
+        } else if (typeof item.file_path === 'string') {
+          try {
+            // If it's a JSON string, parse it
+            const parsed = JSON.parse(item.file_path);
+            fileUrls = Array.isArray(parsed) ? parsed : [item.file_path];
+          } catch {
+            // If parsing fails, use it as a single string
+            fileUrls = [item.file_path];
+          }
+        }
+
+        return {
+          id: item.id,
+          site_profile_id: item.site_profile_id,
+          file_url: fileUrls[0] || '', // Use the first URL for backward compatibility
+          file_urls: fileUrls // Store all URLs
+        };
+      });
+      
+      return mappedImages;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Error fetching site images:", error);
+    return [];
+  }
+};
+
 export const fetchSites = async (
   organizationId: string | null,
   isTPUser: boolean = false,
