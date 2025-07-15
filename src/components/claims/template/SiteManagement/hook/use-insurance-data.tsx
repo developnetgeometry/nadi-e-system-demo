@@ -30,7 +30,14 @@ export const fetchInsuranceData = async ({
     nadiFilter = [],
     tpFilter = null,
 }) => {
-    // 1. Fetch all site details from nd_site_profile
+    // 1. Fetch all available insurance types from database
+    const { data: allInsuranceTypes, error: typesError } = await supabase
+        .from("nd_insurance_coverage_type")
+        .select("id, name");
+    
+    if (typesError) throw typesError;
+
+    // 2. Fetch all site details from nd_site_profile
     let siteQuery = supabase
         .from("nd_site_profile")
         .select(`
@@ -45,9 +52,9 @@ export const fetchInsuranceData = async ({
 
     const { data: siteDetails, error: siteError } = await siteQuery;
     if (siteError) throw siteError;
-    if (!siteDetails || siteDetails.length === 0) return { insurance: [] };
+    if (!siteDetails || siteDetails.length === 0) return { insurance: [], insuranceTypes: allInsuranceTypes || [] };
 
-    // 2. Get site IDs for checking insurance status
+    // 3. Get site IDs for checking insurance status
     const siteIds = siteDetails.map(site => site.id);
 
     // 3. Fetch insurance data for these sites
@@ -195,7 +202,7 @@ export const fetchInsuranceData = async ({
         }
     });
 
-    return { insurance };
+    return { insurance, insuranceTypes: allInsuranceTypes || [] };
 };
 
 // React Query hook

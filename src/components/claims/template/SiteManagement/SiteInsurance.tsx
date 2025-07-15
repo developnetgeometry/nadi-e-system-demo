@@ -86,7 +86,7 @@ const Insurance = async ({
 
 }: InsuranceProps): Promise<File> => {
     // Fetch insurance data based on filters
-    const { insurance } = await fetchInsuranceData({
+    const { insurance, insuranceTypes } = await fetchInsuranceData({
         startDate,
         endDate,
         duspFilter,
@@ -95,12 +95,12 @@ const Insurance = async ({
         tpFilter
     });
     console.log("insurance data:", insurance);
+    console.log("insurance types from DB:", insuranceTypes);
 
     // Group insurance data by type, but include ALL sites for each type
     const insuranceByType: Record<string, any[]> = {};
-    const allInsuranceTypes = new Set<string>();
     
-    // First, collect all unique sites and insurance types
+    // First, collect all unique sites
     const allSitesMap = new Map();
     insurance.forEach(item => {
         // Store unique sites
@@ -113,36 +113,31 @@ const Insurance = async ({
                 state: item.state
             });
         }
-        
-        // Collect all insurance types
-        if (item.status && item.insurance_type) {
-            allInsuranceTypes.add(item.insurance_type);
-        }
     });
     
-    // For each insurance type, create a table with ALL sites
-    allInsuranceTypes.forEach(insuranceType => {
-        insuranceByType[insuranceType] = Array.from(allSitesMap.values()).map(site => {
+    // For each insurance type from database, create a table with ALL sites
+    insuranceTypes.forEach(insuranceTypeObj => {
+        const insuranceTypeName = insuranceTypeObj.name;
+        insuranceByType[insuranceTypeName] = Array.from(allSitesMap.values()).map(site => {
             // Find if this site has this specific insurance type
             const siteInsurance = insurance.find(item => 
                 item.site_id === site.site_id && 
-                item.insurance_type === insuranceType && 
-                item.status
+                item.insurance_type === insuranceTypeName
             );
             
             return {
                 ...site,
-                status: !!siteInsurance,
+                status: !!siteInsurance?.status,
                 duration: siteInsurance?.duration || "",
                 start_date: siteInsurance?.start_date || null,
                 end_date: siteInsurance?.end_date || null,
-                insurance_type: insuranceType
+                insurance_type: insuranceTypeName
             };
         });
     });
 
     console.log("Insurance by type (all sites):", insuranceByType);
-    console.log("All insurance types:", Array.from(allInsuranceTypes));
+    console.log("Insurance types from database:", insuranceTypes);
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
