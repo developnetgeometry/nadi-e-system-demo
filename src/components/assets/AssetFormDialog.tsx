@@ -22,7 +22,7 @@ import { useOrganizations } from "@/hooks/use-organizations";
 import { useToast } from "@/hooks/use-toast";
 import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { supabase } from "@/integrations/supabase/client";
-import { Asset } from "@/types/asset";
+import { Asset, RetailTypes } from "@/types/asset";
 import { Site, Space } from "@/types/site";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -71,13 +71,6 @@ export const AssetFormDialog = ({
 
   const { useOrganizationsByTypeQuery } = useOrganizations();
 
-  // TODO: use real data
-  const retail_types = [
-    { id: 1, name: "Retail Type 1" },
-    { id: 2, name: "Retail Type 2" },
-    { id: 3, name: "Retail Type 3" },
-  ];
-
   const [assetId, setAssetId] = useState<number | null>(asset?.id ?? null);
   const [assetName, setAssetName] = useState("");
   const [assetType, setAssetType] = useState("");
@@ -85,7 +78,6 @@ export const AssetFormDialog = ({
   const [assetDescription, setAssetDescription] = useState("");
   const [assetSerialNumber, setAssetSerialNumber] = useState("");
   const [assetRetailType, setAssetRetailType] = useState("");
-  const [assetQuantity, setAssetQuantity] = useState("");
   const [assetLocationId, setAssetLocationId] = useState("");
 
   const [duspId, setDuspId] = useState("");
@@ -144,7 +136,6 @@ export const AssetFormDialog = ({
       setAssetName(asset.name);
       setAssetDescription(asset.remark);
       setAssetSerialNumber(asset.serial_number);
-      setAssetQuantity(String(asset.qty_unit));
       setLocations(
         (asset.site?.nd_site_space ?? []).map((s): Space => s.nd_space)
       );
@@ -201,7 +192,6 @@ export const AssetFormDialog = ({
       setAssetType("");
       setAssetBrandId("");
       setAssetDescription("");
-      setAssetQuantity("");
       setAssetLocationId("");
       setAssetSerialNumber("");
       setAssetRetailType("");
@@ -267,7 +257,6 @@ export const AssetFormDialog = ({
       remark: String(formData.get("description")),
       serial_number: assetSerialNumber,
       retail_type: Number(assetRetailType),
-      qty_unit: Number(formData.get("quantity")),
       location_id: Number(assetLocationId) || null,
       site_id: Number(site?.id),
     };
@@ -554,22 +543,6 @@ export const AssetFormDialog = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="quantity">
-                  Quantity <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="quantity"
-                  name="quantity"
-                  type="number"
-                  required
-                  placeholder="Enter asset quantity"
-                  value={assetQuantity}
-                  onChange={(e) => setAssetQuantity(e.target.value)}
-                  min={0}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="retail_type">
                   Retail Category / Type <span className="text-red-500">*</span>
                 </Label>
@@ -582,7 +555,7 @@ export const AssetFormDialog = ({
                     <SelectValue placeholder="Select retail type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {retail_types.map((type, index) => (
+                    {RetailTypes.map((type, index) => (
                       <SelectItem key={index} value={type.id.toString()}>
                         {type.name}
                       </SelectItem>
