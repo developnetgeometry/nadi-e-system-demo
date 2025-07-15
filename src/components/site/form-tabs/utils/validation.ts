@@ -39,6 +39,7 @@ export const hasTabErrors = (tabName: string, errors: FieldErrors<SiteFormData>)
         errors.zone ||
         errors.category_area ||
         errors.building_level ||
+        errors.is_mini ||
         errors.oku
       );
     
@@ -99,6 +100,7 @@ export const getFirstTabWithError = (errors: FieldErrors<SiteFormData>): string 
     errors.zone ||
     errors.category_area ||
     errors.building_level ||
+    errors.is_mini ||
     errors.oku
   ) {
     return "building";
@@ -150,6 +152,7 @@ export const TAB_FIELD_MAPPING = {
     "zone",
     "category_area", 
     "building_level",
+    "is_mini",
     "oku"
   ] as const,
   

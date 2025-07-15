@@ -89,6 +89,7 @@ export const useSiteFormSubmission = ({
     email: data.email || "",
     website: data.website || "",
     website_last_updated: data.website_last_updated || null,
+    is_mini: data.is_mini ?? false,
     longtitude: data.longitude || null,
     latitude: data.latitude || null,
     state_id: data.state === "" ? null : Number(data.state),

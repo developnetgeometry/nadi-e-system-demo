@@ -13,6 +13,7 @@ export const siteFormSchema = z.object({
   email: z.string().email("Invalid email format").optional().or(z.literal("")),
   website: z.string().optional(),
   website_last_updated: z.string().optional(),
+  is_mini: z.boolean().default(false),
   status: z.string().min(1, "Site status is required"),
   dusp_tp_id: z.string().optional(),
 

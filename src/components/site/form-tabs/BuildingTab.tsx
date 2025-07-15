@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { SelectOne } from "@/components/ui/SelectOne";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -89,19 +89,19 @@ export const BuildingTab = ({
           control={form.control}
           name="building_rental"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Building Rental</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Is this building rented?
-                </div>
-              </div>
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
-                <Switch
+                <Checkbox
                   checked={field.value ?? false}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Building Rental</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Check if this building is rented
+                </p>
+              </div>
             </FormItem>
           )}
         />
@@ -182,24 +182,46 @@ export const BuildingTab = ({
           )}
         />
 
+        {/* Mini Site */}
+        <FormField
+          control={form.control}
+          name="is_mini"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Mini Site</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Check if this is a mini site
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+
         {/* OKU Friendly */}
         <FormField
           control={form.control}
           name="oku"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">OKU Friendly</FormLabel>
-                <div className="text-sm text-muted-foreground">
-                  Is this building OKU friendly?
-                </div>
-              </div>
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
-                <Switch
+                <Checkbox
                   checked={field.value ?? false}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>OKU Friendly</FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Check if this building is OKU friendly
+                </p>
+              </div>
             </FormItem>
           )}
         />
