@@ -14,7 +14,6 @@ import { useState } from "react";
 import { fetchSites, Site, toggleSiteActiveStatus, deleteSite, fetchPhase, fetchRegion, fetchSiteStatus, fetchAllStates } from "./hook/site-utils"; // Import fetchPhase, fetchRegion, fetchStatus, and fetchAllStates
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { SiteFormDialog } from "./SiteFormDialog"; // Import SiteFormDialog
 import { Input } from "@/components/ui/input"; // Import Input component
 import { PaginationComponent } from "../ui/PaginationComponent"; // Correct import path
 import { useNavigate } from 'react-router-dom';
@@ -38,8 +37,6 @@ export const SiteList = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
   const [filter, setFilter] = useState("");
   const [phaseFilter, setPhaseFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
@@ -133,13 +130,7 @@ export const SiteList = () => {
   };
 
   const handleEditClick = (site: Site) => {
-    setSiteToEdit(site);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleEditDialogClose = () => {
-    setIsEditDialogOpen(false);
-    setSiteToEdit(null);
+    navigate(`/site-management/edit/${site.id}`);
   };
 
   const handleViewDetailsClick = (siteId: string) => {
@@ -419,13 +410,6 @@ export const SiteList = () => {
         </DialogContent>
       </Dialog>
 
-      {isEditDialogOpen && ( // Render SiteFormDialog only when isEditDialogOpen is true
-        <SiteFormDialog
-          open={isEditDialogOpen}
-          onOpenChange={handleEditDialogClose}
-          site={siteToEdit} // Pass the site to edit
-        />
-      )}
     </div>
   );
 };

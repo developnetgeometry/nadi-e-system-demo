@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { SiteFormDialog } from "@/components/site/SiteFormDialog";
 import {
   fetchSites,
   fetchAllStates,
@@ -63,8 +62,6 @@ export const BookingSiteDashBoard = ({
 
   const queryClient = useQueryClient();
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [siteToEdit, setSiteToEdit] = useState<Site | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [siteToDelete, setSiteToDelete] = useState<string | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -90,9 +87,8 @@ export const BookingSiteDashBoard = ({
   };
 
   const handleEditClick = (site: Site) => {
-    // Set the site to edit and open the dialog
-    setSiteToEdit(site);
-    setIsDialogOpen(true);
+    // Navigate to the edit page
+    navigate(`/site-management/edit/${site.id}`);
   };
 
   const handleToggleStatus = async (site: Site) => {
@@ -400,17 +396,6 @@ export const BookingSiteDashBoard = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {isDialogOpen && (
-          <SiteFormDialog
-            open={isDialogOpen}
-            onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) setSiteToEdit(null); // Reset siteToEdit when dialog is closed
-            }}
-            site={siteToEdit}
-          />
-        )}
       </div>
     </>
   );

@@ -39,6 +39,7 @@ const AuditOverviewPage = lazy(() => import("@/pages/dashboard/site/Audit"));
 const AuditFormPage = lazy(() => import("@/components/site/component/AuditForm"));
 const LocalAuthorityOverviewPage = lazy(() => import("@/pages/dashboard/site/LocalAuthority"));
 const LocalAuthorityFormPage = lazy(() => import("@/components/site/component/LocalAuthorityForm"));
+const SiteFormPage = lazy(() => import("@/pages/dashboard/site/SiteForm"));
 
 
 export const siteRoutes = [
@@ -48,6 +49,26 @@ export const siteRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <SiteManagementPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/create",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <SiteFormPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/site-management/edit/:siteId",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <SiteFormPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

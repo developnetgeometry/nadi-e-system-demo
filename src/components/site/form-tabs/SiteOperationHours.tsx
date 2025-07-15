@@ -66,7 +66,7 @@ export const SiteOperationHours = ({
           const { data, error } = await supabase
             .from("nd_site_operation")
             .select("*")
-            .eq("site_id", siteId);
+            .eq("site_id", Number(siteId));
 
           clearTimeout(timeoutId); // Clear timeout on successful response
 
@@ -243,13 +243,14 @@ export const SiteOperationHours = ({
             <Button
               variant="outline"
               size="sm"
+              type="button"
               onClick={clearAllOperationTimes}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear All
             </Button>
           ) : (
-            <Button onClick={createDefaultOperationTimes} size="sm">
+            <Button onClick={createDefaultOperationTimes} size="sm" type="button">
               <Plus className="h-4 w-4 mr-2" />
               Add All Days
             </Button>
@@ -266,6 +267,7 @@ export const SiteOperationHours = ({
                   key={day}
                   variant="outline"
                   size="sm"
+                  type="button"
                   onClick={() => addOperationTime(day)}
                 >
                   {day}
@@ -286,6 +288,7 @@ export const SiteOperationHours = ({
                     <Button
                       variant="ghost"
                       size="icon"
+                      type="button"
                       className="h-6 w-6 absolute top-1 right-1"
                       onClick={() => removeOperationTime(item.day)}
                     >
@@ -354,6 +357,7 @@ export const SiteOperationHours = ({
                       key={day}
                       variant="outline"
                       size="sm"
+                      type="button"
                       onClick={() => addOperationTime(day)}
                     >
                       <Plus className="h-3 w-3 mr-1" />
