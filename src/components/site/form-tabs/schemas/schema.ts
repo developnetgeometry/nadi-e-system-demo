@@ -12,6 +12,7 @@ export const siteFormSchema = z.object({
   mukim: z.string().optional(),
   email: z.string().email("Invalid email format").optional().or(z.literal("")),
   website: z.string().optional(),
+  website_last_updated: z.string().optional(),
   status: z.string().min(1, "Site status is required"),
   dusp_tp_id: z.string().optional(),
 

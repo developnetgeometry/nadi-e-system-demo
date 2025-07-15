@@ -88,6 +88,7 @@ export const useSiteFormSubmission = ({
     mukim_id: data.mukim === "" ? null : Number(data.mukim),
     email: data.email || "",
     website: data.website || "",
+    website_last_updated: data.website_last_updated || null,
     longtitude: data.longitude || null,
     latitude: data.latitude || null,
     state_id: data.state === "" ? null : Number(data.state),

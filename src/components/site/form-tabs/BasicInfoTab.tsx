@@ -147,10 +147,30 @@ export const BasicInfoTab = ({
             )}
           />
         )}
+
+        {/* Operation Date */}
+        <FormField
+          control={form.control}
+          name="operate_date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Operation Date</FormLabel>
+              <FormControl>
+                <DateInput
+                  id="operate_date"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select operation date"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Contact & Operation Details</h3>
+        <h3 className="text-lg font-semibold">Contact Details</h3>
         
         {/* Email */}
         <FormField
@@ -192,19 +212,19 @@ export const BasicInfoTab = ({
           )}
         />
 
-        {/* Operation Date */}
+        {/* Website Last Updated */}
         <FormField
           control={form.control}
-          name="operate_date"
+          name="website_last_updated"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Operation Date</FormLabel>
+              <FormLabel>Website Last Updated</FormLabel>
               <FormControl>
                 <DateInput
-                  id="operate_date"
+                  id="website_last_updated"
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder="Select operation date"
+                  placeholder="Select last updated date"
                 />
               </FormControl>
               <FormMessage />
