@@ -4,6 +4,7 @@ export { LocationTab } from './LocationTab';
 export { BuildingTab } from './BuildingTab';
 export { ConnectivityTab } from './ConnectivityTab';
 export { FacilitiesTab } from './FacilitiesTab';
+export { OperationalStatusTab } from './OperationalStatusTab';
 export { SiteImagesTab } from './SiteImagesTab';
 export { SiteOperationHours } from './SiteOperationHours';
 

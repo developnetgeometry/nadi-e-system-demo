@@ -65,7 +65,7 @@ export const LocationTab = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Address Information</h3>
+        <h3 className="text-lg font-semibold">Physical Address</h3>
         
         {/* Address */}
         <FormField
@@ -98,6 +98,30 @@ export const LocationTab = ({
                   id="address2"
                   placeholder="Enter additional address information"
                   {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* State */}
+        <FormField
+          control={form.control}
+          name="state"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>State *</FormLabel>
+              <FormControl>
+                <SelectOne
+                  options={siteState.map((state) => ({
+                    id: String(state.id),
+                    label: state.name,
+                  }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select state"
+                  disabled={isStateLoading}
                 />
               </FormControl>
               <FormMessage />
@@ -143,30 +167,6 @@ export const LocationTab = ({
           )}
         />
 
-        {/* State */}
-        <FormField
-          control={form.control}
-          name="state"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>State *</FormLabel>
-              <FormControl>
-                <SelectOne
-                  options={siteState.map((state) => ({
-                    id: String(state.id),
-                    label: state.name,
-                  }))}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select state"
-                  disabled={isStateLoading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* District */}
         <FormField
           control={form.control}
@@ -190,10 +190,33 @@ export const LocationTab = ({
             </FormItem>
           )}
         />
+
+        {/* Coordinates */}
+        <FormField
+          control={form.control}
+          name="coordinates"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Coordinates (Longitude, Latitude)</FormLabel>
+              <FormControl>
+                <Input
+                  id="coordinates"
+                  placeholder="e.g., 103.8198, 1.3521"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleCoordinatesChange(e.target.value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Geographic Information</h3>
+        <h3 className="text-lg font-semibold">Administrative Boundaries</h3>
         
         {/* Region */}
         <FormField
@@ -212,29 +235,6 @@ export const LocationTab = ({
                   onChange={field.onChange}
                   placeholder="Select region"
                   disabled={isRegionLoading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Coordinates */}
-        <FormField
-          control={form.control}
-          name="coordinates"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Coordinates (Longitude, Latitude)</FormLabel>
-              <FormControl>
-                <Input
-                  id="coordinates"
-                  placeholder="e.g., 103.8198, 1.3521"
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    handleCoordinatesChange(e.target.value);
-                  }}
                 />
               </FormControl>
               <FormMessage />

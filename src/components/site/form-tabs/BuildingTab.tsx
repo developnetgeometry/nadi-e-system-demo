@@ -38,7 +38,7 @@ export const BuildingTab = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Building Information</h3>
+        <h3 className="text-lg font-semibold">Building Specifications</h3>
         
         {/* Building Type */}
         <FormField
@@ -84,31 +84,33 @@ export const BuildingTab = ({
           )}
         />
 
-        {/* Building Rental */}
+        {/* Building Level */}
         <FormField
           control={form.control}
-          name="building_rental"
+          name="building_level"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+            <FormItem>
+              <FormLabel>Building Level</FormLabel>
               <FormControl>
-                <Checkbox
-                  checked={field.value ?? false}
-                  onCheckedChange={field.onChange}
+                <SelectOne
+                  options={buildingLevels.map((level) => ({
+                    id: String(level.id),
+                    label: level.eng,
+                  }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select building level"
+                  disabled={isBuildingLevelsLoading}
                 />
               </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Building Rental</FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Check if this building is rented
-                </p>
-              </div>
+              <FormMessage />
             </FormItem>
           )}
         />
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Building Details</h3>
+        <h3 className="text-lg font-semibold">Location & Zoning</h3>
         
         {/* Zone */}
         <FormField
@@ -158,73 +160,75 @@ export const BuildingTab = ({
           )}
         />
 
-        {/* Building Level */}
-        <FormField
-          control={form.control}
-          name="building_level"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Building Level</FormLabel>
-              <FormControl>
-                <SelectOne
-                  options={buildingLevels.map((level) => ({
-                    id: String(level.id),
-                    label: level.eng,
-                  }))}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select building level"
-                  disabled={isBuildingLevelsLoading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-4 pt-4">
+          <h4 className="text-base font-medium">Building Properties</h4>
+          
+          {/* Mini Site */}
+          <FormField
+            control={form.control}
+            name="is_mini"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Mini Site</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Check if this is a mini site
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
 
-        {/* Mini Site */}
-        <FormField
-          control={form.control}
-          name="is_mini"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Mini Site</FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Check if this is a mini site
-                </p>
-              </div>
-            </FormItem>
-          )}
-        />
+          {/* Building Rental */}
+          <FormField
+            control={form.control}
+            name="building_rental"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Building Rental</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Check if this building is rented
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
 
-        {/* OKU Friendly */}
-        <FormField
-          control={form.control}
-          name="oku"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value ?? false}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>OKU Friendly</FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Check if this building is OKU friendly
-                </p>
-              </div>
-            </FormItem>
-          )}
-        />
+          {/* OKU Friendly */}
+          <FormField
+            control={form.control}
+            name="oku"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value ?? false}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>OKU Friendly</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Check if this building is OKU friendly
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </div>
   );

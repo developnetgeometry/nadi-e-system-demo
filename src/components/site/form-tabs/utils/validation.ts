@@ -55,6 +55,12 @@ export const hasTabErrors = (tabName: string, errors: FieldErrors<SiteFormData>)
         errors.space
       );
     
+    case "operational-status":
+      return !!(
+        errors.status ||
+        errors.operate_date
+      );
+    
     default:
       return false;
   }
@@ -116,6 +122,14 @@ export const getFirstTabWithError = (errors: FieldErrors<SiteFormData>): string 
     return "facilities";
   }
   
+  // Operational Status tab fields - sixth priority
+  if (
+    errors.status ||
+    errors.operate_date
+  ) {
+    return "operational-status";
+  }
+  
   // Default fallback to basic-info if no specific errors found
   return "basic-info";
 };
@@ -164,6 +178,11 @@ export const TAB_FIELD_MAPPING = {
   "facilities": [
     "socio_economic",
     "space"
+  ] as const,
+  
+  "operational-status": [
+    "status",
+    "operate_date"
   ] as const,
 } as const;
 

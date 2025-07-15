@@ -22,64 +22,59 @@ export const ConnectivityTab = ({
   });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Connectivity Information</h3>
-        
-        {/* Technology */}
-        <FormField
-          control={form.control}
-          name="technology"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Internet Technology *</FormLabel>
-              <FormControl>
-                <SelectOne
-                  options={technologies.map((tech) => ({
-                    id: String(tech.id),
-                    label: tech.name,
-                  }))}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select internet technology"
-                  disabled={isTechnologiesLoading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="max-w-2xl">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Internet Connectivity</h3>
+          <div className="space-y-4">
+            {/* Technology */}
+            <FormField
+              control={form.control}
+              name="technology"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Internet Technology *</FormLabel>
+                  <FormControl>
+                    <SelectOne
+                      options={technologies.map((tech) => ({
+                        id: String(tech.id),
+                        label: tech.name,
+                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select internet technology"
+                      disabled={isTechnologiesLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Bandwidth */}
-        <FormField
-          control={form.control}
-          name="bandwidth"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bandwidth</FormLabel>
-              <FormControl>
-                <SelectOne
-                  options={bandwidths.map((bandwidth) => ({
-                    id: String(bandwidth.id),
-                    label: bandwidth.name,
-                  }))}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select bandwidth"
-                  disabled={isBandwidthsLoading}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Additional Information</h3>
-        
-        <div className="text-sm text-muted-foreground">
-          Please ensure the selected technology and bandwidth meet the site requirements.
+            {/* Bandwidth */}
+            <FormField
+              control={form.control}
+              name="bandwidth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bandwidth</FormLabel>
+                  <FormControl>
+                    <SelectOne
+                      options={bandwidths.map((bandwidth) => ({
+                        id: String(bandwidth.id),
+                        label: bandwidth.name,
+                      }))}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select bandwidth"
+                      disabled={isBandwidthsLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
       </div>
     </div>

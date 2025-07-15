@@ -19,6 +19,7 @@ import {
   BuildingTab,
   ConnectivityTab,
   FacilitiesTab,
+  OperationalStatusTab,
   SiteImagesTab,
   createSiteFormSchema, 
   type SiteFormData,
@@ -316,11 +317,11 @@ const SiteFormPage = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" noValidate>
               <Tabs value={activeTab} onValueChange={handleTabChange}>
-                <TabsList className="grid w-full grid-cols-7">
+                <TabsList className="grid w-full grid-cols-8">
                   <TabsTrigger
                     value="basic-info"
                     className={cn(
-                      "text-sm",
+                      "text-xs",
                       hasTabErrors("basic-info", form.formState.errors) ? "text-red-500 font-medium" : ""
                     )}
                   >
@@ -329,7 +330,7 @@ const SiteFormPage = () => {
                   <TabsTrigger
                     value="location"
                     className={cn(
-                      "text-sm",
+                      "text-xs",
                       hasTabErrors("location", form.formState.errors) ? "text-red-500 font-medium" : ""
                     )}
                   >
@@ -338,7 +339,7 @@ const SiteFormPage = () => {
                   <TabsTrigger
                     value="building"
                     className={cn(
-                      "text-sm",
+                      "text-xs",
                       hasTabErrors("building", form.formState.errors) ? "text-red-500 font-medium" : ""
                     )}
                   >
@@ -347,7 +348,7 @@ const SiteFormPage = () => {
                   <TabsTrigger
                     value="connectivity"
                     className={cn(
-                      "text-sm",
+                      "text-xs",
                       hasTabErrors("connectivity", form.formState.errors) ? "text-red-500 font-medium" : ""
                     )}
                   >
@@ -356,17 +357,26 @@ const SiteFormPage = () => {
                   <TabsTrigger 
                     value="facilities"
                     className={cn(
-                      "text-sm",
+                      "text-xs",
                       hasTabErrors("facilities", form.formState.errors) ? "text-red-500 font-medium" : ""
                     )}
                   >
                     Facilities
                   </TabsTrigger>
-                  <TabsTrigger value="operation" className="text-sm">
+                  <TabsTrigger value="images" className="text-xs">
+                    Images
+                  </TabsTrigger>
+                  <TabsTrigger value="operation" className="text-xs">
                     Operation Hours
                   </TabsTrigger>
-                  <TabsTrigger value="images" className="text-sm">
-                    Site Images
+                  <TabsTrigger
+                    value="operational-status"
+                    className={cn(
+                      "text-xs",
+                      hasTabErrors("operational-status", form.formState.errors) ? "text-red-500 font-medium" : ""
+                    )}
+                  >
+                    Site Status
                   </TabsTrigger>
                 </TabsList>
 
@@ -391,6 +401,14 @@ const SiteFormPage = () => {
                     <FacilitiesTab form={form} />
                   </TabsContent>
 
+                  <TabsContent value="images" className="space-y-4">
+                    <SiteImagesTab
+                      site={site}
+                      open={true}
+                      onImagesChange={handleImagesChange}
+                    />
+                  </TabsContent>
+
                   <TabsContent value="operation">
                     <SiteOperationHours
                       siteId={siteId}
@@ -399,12 +417,8 @@ const SiteFormPage = () => {
                     />
                   </TabsContent>
 
-                  <TabsContent value="images" className="space-y-4">
-                    <SiteImagesTab
-                      site={site}
-                      open={true}
-                      onImagesChange={handleImagesChange}
-                    />
+                  <TabsContent value="operational-status" className="space-y-4">
+                    <OperationalStatusTab form={form} />
                   </TabsContent>
                 </div>
               </Tabs>

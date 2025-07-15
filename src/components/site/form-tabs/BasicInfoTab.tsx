@@ -4,7 +4,6 @@ import { DateInput } from "@/components/ui/date-input";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  fetchSiteStatus, 
   fetchPhase, 
   fetchOrganization 
 } from "@/components/site/hook/site-utils";
@@ -13,13 +12,7 @@ import { BasicInfoTabProps } from "./utils/types";
 export const BasicInfoTab = ({
   form,
   isSuperAdmin
-}: BasicInfoTabProps) => {
-  // Fetch lookup data
-  const { data: siteStatus = [], isLoading: isStatusLoading } = useQuery({
-    queryKey: ["site-status"],
-    queryFn: () => fetchSiteStatus(),
-  });
-  
+}: BasicInfoTabProps) => {  // Fetch lookup data
   const { data: sitePhase = [], isLoading: isPhaseLoading } = useQuery({
     queryKey: ["site-phase"],
     queryFn: () => fetchPhase(),
@@ -34,7 +27,7 @@ export const BasicInfoTab = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Basic Information</h3>
+        <h3 className="text-lg font-semibold">Site Identification</h3>
         
         {/* Site Code */}
         <FormField
@@ -67,30 +60,6 @@ export const BasicInfoTab = ({
                   id="name"
                   placeholder="Enter site name"
                   {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Site Status */}
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Site Status *</FormLabel>
-              <FormControl>
-                <SelectOne
-                  options={siteStatus.map((status) => ({
-                    id: String(status.id),
-                    label: status.eng,
-                  }))}
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select site status"
-                  disabled={isStatusLoading}
                 />
               </FormControl>
               <FormMessage />
@@ -147,90 +116,73 @@ export const BasicInfoTab = ({
             )}
           />
         )}
-
-        {/* Operation Date */}
-        <FormField
-          control={form.control}
-          name="operate_date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Operation Date</FormLabel>
-              <FormControl>
-                <DateInput
-                  id="operate_date"
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select operation date"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Contact Details</h3>
-        
-        {/* Email */}
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter email address"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold">Contact Information</h3>
+          <div className="space-y-4">
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter email address"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Website */}
-        <FormField
-          control={form.control}
-          name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website</FormLabel>
-              <FormControl>
-                <Input
-                  id="website"
-                  type="url"
-                  placeholder="Enter website URL"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            {/* Website */}
+            <FormField
+              control={form.control}
+              name="website"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="website"
+                      type="url"
+                      placeholder="Enter website URL"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Website Last Updated */}
-        <FormField
-          control={form.control}
-          name="website_last_updated"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website Last Updated</FormLabel>
-              <FormControl>
-                <DateInput
-                  id="website_last_updated"
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select last updated date"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            {/* Website Last Updated */}
+            <FormField
+              control={form.control}
+              name="website_last_updated"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website Last Updated</FormLabel>
+                  <FormControl>
+                    <DateInput
+                      id="website_last_updated"
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select last updated date"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
