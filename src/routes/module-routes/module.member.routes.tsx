@@ -8,12 +8,14 @@ import MemberManagement from "@/pages/dashboard/members/MemberManagement";
 import ActivityLogs from "@/pages/dashboard/members/ActivityLogs";
 import MemberProfile from "@/pages/dashboard/members/MemberProfilePages";
 import MemberRegister from "@/pages/dashboard/members/MemberRegister";
+import BulkUploadPages from "@/pages/dashboard/members/BulkUploadPages";
 
 // Implement lazy loading for the Dashboard component
 const MemberManagementPage = lazy(() => Promise.resolve({ default: MemberManagement }));
 const ActivityLogsPage = lazy(() => Promise.resolve({ default: ActivityLogs }));
 const MemberProfilePage = lazy(() => Promise.resolve({ default: MemberProfile }));
 const MemberRegisterPage = lazy(() => Promise.resolve({ default: MemberRegister }));
+const BulkUploadPage = lazy(() => Promise.resolve({ default: BulkUploadPages }));
 
 export const memberRoutes = [
   {
@@ -52,6 +54,16 @@ export const memberRoutes = [
       <Suspense fallback={<LoadingSpinner />}>
         {/* <ProtectedRoute requiredPermission=""> */}
         <ActivityLogsPage />
+        {/* </ProtectedRoute> */}
+      </Suspense>
+    ),
+  },
+  {
+    path: "/member-management/bulk-registration",
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        {/* <ProtectedRoute requiredPermission=""> */}
+        <BulkUploadPage />
         {/* </ProtectedRoute> */}
       </Suspense>
     ),

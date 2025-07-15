@@ -90,6 +90,7 @@ import { communityRoutes } from "./module-routes/module.community.routes";
 import {financialRoutes} from "./module-routes/module.financial.routes";
 import { takwimRoutes } from "./module-routes/module.takwim.routes";
 import { reportRoutes } from "./module-routes/module.report.routes";
+import { dashboardRoutes } from "./module.dashboard.routes";
 
 export const moduleRoutes: RouteObject[] = [
   // HR Routes
