@@ -59,7 +59,8 @@ export function DemographicForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Nationality */}
         <div className="space-y-2 mb-4">
-          <Label className="flex items-center">Nationality <span className="text-red-500 ml-1">*</span></Label>
+          <Label className="flex items-center">Nationality</Label>
+          {/* <Label className="flex items-center">Nationality <span className="text-red-500 ml-1">*</span></Label> */}
           <Select
             value={nationality_id || ""}
             onValueChange={(value) => updateFields({ nationality_id: value })}
@@ -80,7 +81,7 @@ export function DemographicForm({
 
         {/* Race */}
         <div className="space-y-2 mb-4">
-          <Label className="flex items-center">Race <span className="text-red-500 ml-1">*</span></Label>
+          <Label className="flex items-center">Race</Label>
           <Select
             value={race_id || ""}
             onValueChange={(value) => updateFields({ race_id: value })}
@@ -101,7 +102,7 @@ export function DemographicForm({
 
         {/* Ethnic */}
         <div className="space-y-2 mb-4">
-          <Label className="flex items-center">Ethnic <span className="text-red-500 ml-1">*</span></Label>
+          <Label className="flex items-center">Ethnic</Label>
           <Select
             value={ethnic_id || ""}
             onValueChange={(value) => updateFields({ ethnic_id: value })}
