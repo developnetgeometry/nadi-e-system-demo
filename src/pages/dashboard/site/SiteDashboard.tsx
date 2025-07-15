@@ -306,7 +306,7 @@ export const SiteDashboard = ({
           <div>
             <h1 className="text-2xl font-bold">{!isBookingsEnabled ? "Site Management" : "Booking Management"}</h1>
             <p className="text-gray-500 mt-1">
-              Manage all physical PC and Facility in locations
+              {!isBookingsEnabled ? "Manage and configure site locations and information" : "Manage all physical PC and Facility in locations"}
             </p>
           </div>
           {(!isRestrictedUser && !isBookingsEnabled) && (
