@@ -1,11 +1,60 @@
+import React from "react";
 import {
-    PDFDocument,
-    PageSizes,
-    rgb
-} from 'pdf-lib';
-import { drawPDFHeader, drawPDFMetaSection, drawSectionTitle, drawPDFFooter, embedImageByType, generatePdfFilename, drawAttachmentBorder, drawImageInBorder } from "../component/pdf-utils";
+    Document,
+    Page,
+    Text,
+    View,
+    StyleSheet,
+    pdf,
+    Image,
+} from "@react-pdf/renderer";
+import {
+    PDFFooter,
+    PDFTable,
+    PDFSectionTitle,
+    PDFAppendixTitlePage,
+    PDFPhaseQuarterInfo,
+    PDFMetaSection,
+    PDFHeader
+} from "../component/pdf-component";
+// Import the actual data fetching functions, not hooks
 import { fetchPhaseData } from "@/hooks/use-phase";
 import fetchMonitoringData from "./hook/use-monitoring-reporting-data";
+// Import PDF utilities
+import { generatePdfFilename } from "../component/pdf-utils";
+// Import the new upload attachment handler
+import { processUploadAttachments, hasUploadAttachments } from "../component/pdf-upload-handler";
+
+const styles = StyleSheet.create({
+    page: {
+        padding: 40,
+        paddingBottom: 80, // <-- Increased bottom padding to avoid overlap with footer
+        fontSize: 10,
+        fontFamily: "Helvetica",
+        position: "relative",
+    },
+    placeholderBox: {
+        backgroundColor: "#fff",
+        borderWidth: 1,
+        borderColor: "#000",
+        borderStyle: "solid",
+        textAlign: "center",
+        fontSize: 12,
+        padding: 60,
+        marginTop: 20,
+    },
+    attachmentMessageBox: {
+        backgroundColor: "#fafafa",
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderStyle: "solid",
+        textAlign: "center",
+        fontSize: 12,
+        padding: 20,
+        marginTop: 20,
+        color: "#666",
+    },
+});
 
 
 type MonitoringProps = {
@@ -19,7 +68,7 @@ type MonitoringProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
-    uploadAttachment?: File | null;
+    uploadAttachment?: File[] | File | null; // Support both single file and array
 };
 
 const Monitoring = async ({
@@ -36,7 +85,7 @@ const Monitoring = async ({
     uploadAttachment = null,
 
 }: MonitoringProps): Promise<File> => {
-    // Fetch Monitoring data based on filters
+    // Fetch Monitoring data based on filters (for reference, but attachments won't be displayed)
     const { monitor } = await fetchMonitoringData({
         startDate,
         endDate,
@@ -45,167 +94,87 @@ const Monitoring = async ({
         nadiFilter,
         tpFilter
     });
+    console.log("Monitoring data:", monitor);
+
+    // Check for user upload attachments
+    const hasAttachment = hasUploadAttachments(uploadAttachment);
+
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
+    console.log("Phase data:", phase);
     const phaseLabel = phase?.name || "All Phases";
 
-    // Create a new PDF document
-    const pdfDoc = await PDFDocument.create();
-    const [pageWidth, pageHeight] = PageSizes.A4;
-    let page: any = null;
-    let y = pageHeight - 40; // Start below top margin
+    // Define the PDF document using @react-pdf/renderer
+    const MonitoringReportDoc = (
+        <Document>
+            {/* Page 1: Monitoring & Reporting */}
+            <Page size="A4" style={styles.page}>
 
-    // Fetch and embed images (move to outer scope for reuse)
-    let mcmcImage: any = undefined;
-    let duspImage: any = undefined;
-    if (header) {
-        const mcmcLogoUrl = '/MCMC_Logo.png';
-        const duspLogoUrl = dusplogo || '';
-        const mcmcLogoBytes = await fetch(mcmcLogoUrl).then(r => r.arrayBuffer());
-        if (duspLogoUrl) {
-            try {
-                const duspLogoBytes = await fetch(duspLogoUrl).then(r => r.arrayBuffer());
-                duspImage = await embedImageByType(pdfDoc, duspLogoBytes, duspLogoUrl);
-            } catch (e) {
-                duspImage = undefined;
-            }
-        }
-        mcmcImage = await embedImageByType(pdfDoc, mcmcLogoBytes, mcmcLogoUrl);
-    }
+                {header && (
+                    <>
+                        <PDFHeader
+                            mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
+                            duspLogo={dusplogo} // Use provided DUSP logo or placeholder
+                        />
 
-    // Gather all attachments
-    const allAttachments = monitor.flatMap(site => site.attachments_path);
-    const hasContent = allAttachments.length > 0;
+                        <PDFMetaSection
+                            reportTitle="4.0 INTERNET ACCESS"
+                            phaseLabel={phaseLabel}
+                            claimType={claimType}
+                            quater={quater}
+                            startDate={startDate}
+                            endDate={endDate}
+                        />
+                    </>
+                )}
 
-    // Only process attachments if there are any
-    if (hasContent) {
-        let firstAttachment = true;
-        for (const path of allAttachments) {
-            if (typeof path !== 'string') continue;
-            const isImage = /\.(png|jpg|jpeg|gif|webp|bmp|tiff)$/i.test(path);
-            const isPdf = path.toLowerCase().endsWith('.pdf');
-            if (!isImage && !isPdf) continue;
+                <PDFSectionTitle title="4.3 MONITORING & REPORTING" />
 
-            // Create a new page for each attachment
-            let currentPage, currentY, currentWidth, currentHeight;
-            if (isImage) {
-                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                currentY = pageHeight - 40;
-                currentWidth = pageWidth;
-                currentHeight = pageHeight;
-            }
-            if (isPdf) {
-                try {
-                    const pdfBytes = await fetch(path).then(r => r.arrayBuffer());
-                    const extPdf = await PDFDocument.load(pdfBytes);
-                    const [copiedPage] = await pdfDoc.copyPages(extPdf, [0]);
-                    currentPage = pdfDoc.addPage(copiedPage);
-                    currentWidth = currentPage.getWidth();
-                    currentHeight = currentPage.getHeight();
-                    currentY = currentHeight - 40;
-                } catch (e) {
-                    const errPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                    errPage.drawText('PDF not available', {
-                        x: 50,
-                        y: pageHeight / 2,
-                        size: 12,
-                        color: rgb(1, 0, 0),
-                    });
-                    drawPDFFooter(errPage, pageWidth);
-                    firstAttachment = false;
-                    continue;
-                }
-            }
+                {/* If attachment provided, show minimal content and let PDF-lib handle attachment */}
+                {hasAttachment ? (
+                    <View style={styles.attachmentMessageBox}>
+                        <Text>
+                            Please refer to the next page for the detailed information.
+                        </Text>
+                    </View>
+                ) : (
+                    <>
+                        {!header && (
+                            <View style={{ alignSelf: "flex-end", marginBottom: 10 }}>
+                                {/* when header not provided, show phase and quarter info */}
+                                <PDFPhaseQuarterInfo
+                                    phaseLabel={phaseLabel}
+                                    claimType={claimType}
+                                    quater={quater}
+                                    startDate={startDate}
+                                    endDate={endDate}
+                                />
+                            </View>
+                        )}
+                    </>
+                )}
 
-            // Only first page gets header/meta
-            if (firstAttachment && header) {
-                drawPDFHeader(currentPage, mcmcImage, duspImage, 40, currentY, currentWidth - 80, 60);
-                currentY -= 70;
-                drawPDFMetaSection(
-                    currentPage,
-                    "4.0 INTERNET ACCESS",
-                    phaseLabel,
-                    claimType,
-                    quater,
-                    startDate,
-                    endDate,
-                    40,
-                    currentY,
-                    currentWidth - 80,
-                    24
-                );
-                currentY -= 60;
-            }
-            drawSectionTitle(currentPage, "4.3 MONITORING & REPORTING", 40, currentY, currentWidth - 80, 24);
-            currentY -= 34;
+                <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
+            </Page>
+        </Document>
+    );
 
-            // Draw black border for image attachments only
-            if (isImage) {
-                const { borderX, borderY, borderWidth, borderHeight } = drawAttachmentBorder(currentPage, pageWidth, currentY);
-                await drawImageInBorder(currentPage, path, pdfDoc, borderX, borderY, borderWidth, borderHeight);
-            }
-            // For PDF: do not draw border, just import the page as before
-            drawPDFFooter(currentPage, currentWidth);
-            firstAttachment = false;
-        }
-    } else {
-        // If there are no attachments, create a page and show the label
-        const emptyPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        let emptyY = pageHeight - 40;
-        if (header) {
-            drawPDFHeader(emptyPage, mcmcImage, duspImage, 40, emptyY, pageWidth - 80, 60);
-            emptyY -= 70;
-            drawPDFMetaSection(
-                emptyPage,
-                "4.0 INTERNET ACCESS",
-                phaseLabel,
-                claimType,
-                quater,
-                startDate,
-                endDate,
-                40,
-                emptyY,
-                pageWidth - 80,
-                24
-            );
-            emptyY -= 60;
-        }
-        drawSectionTitle(emptyPage, "4.3 MONITORING & REPORTING", 40, emptyY, pageWidth - 80, 24);
-        emptyY -= 34;
-        const boxX = 40;
-        const boxY = emptyY - 120;
-        const boxWidth = pageWidth - 80;
-        const boxHeight = 120;
-        emptyPage.drawRectangle({
-            x: boxX,
-            y: boxY,
-            width: boxWidth,
-            height: boxHeight,
-            borderColor: rgb(0, 0, 0),
-            borderWidth: 1,
-            color: rgb(1, 1, 1),
-        });
-        // Center the text horizontally and vertically in the box
-        const label = 'Attachment Uptime & Downtime';
-        const fontSize = 12;
-        // Estimate text width (pdf-lib default font is about 0.5*fontSize per char for uppercase)
-        const textWidth = label.length * fontSize * 0.5;
-        const textX = boxX + (boxWidth - textWidth) / 2;
-        const textY = boxY + (boxHeight - fontSize) / 2;
-        emptyPage.drawText(label, {
-            x: textX,
-            y: textY,
-            size: fontSize,
-            color: rgb(1, 0, 0),
-        });
-        drawPDFFooter(emptyPage, pageWidth);
-    }
-    // Serialize PDF
-    const pdfBytes = await pdfDoc.save();
+    // Create a blob from the PDF document (main report)
+    const reportBlob = await pdf(MonitoringReportDoc).toBlob();
+
+    // Process upload attachments using the reusable utility
+    const { processedBlob } = await processUploadAttachments(reportBlob, {
+        uploadAttachment,
+        sectionTitle: "MONITORING & REPORTING",
+        titlePosition: { x: 170, y: 40 },
+        titleStyle: { size: 8, color: [0.5, 0.5, 0.5] }
+    });
+
     // Generate filename based on filters
     const fileName = generatePdfFilename('monitoring-reporting-report', claimType, phase?.name);
-    // Convert to File object
-    return new File([pdfBytes], fileName, {
+
+    // Convert blob to File object with metadata
+    return new File([processedBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });

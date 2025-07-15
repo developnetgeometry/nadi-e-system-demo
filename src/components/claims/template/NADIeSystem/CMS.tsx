@@ -23,6 +23,8 @@ import fetchCMSData from "./hook/use-cms-data";
 
 // Import PDF utilities
 import { generatePdfFilename } from "../component/pdf-utils";
+// Import the new upload attachment handler
+import { processUploadAttachments, hasUploadAttachments } from "../component/pdf-upload-handler";
 
 
 const styles = StyleSheet.create({
@@ -56,6 +58,17 @@ const styles = StyleSheet.create({
         width: '100%',
         marginBottom: 20,
     },
+    attachmentMessageBox: {
+        backgroundColor: "#fafafa",
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderStyle: "solid",
+        textAlign: "center",
+        fontSize: 12,
+        padding: 20,
+        marginTop: 20,
+        color: "#666",
+    },
 });
 
 type CMSProps = {
@@ -69,7 +82,7 @@ type CMSProps = {
     quater?: string | null; //optional, used for quarterly reports
     header?: boolean; // Optional header for the PDF
     dusplogo?: string | null; // Optional DUSP logo
-    uploadAttachment?: File | null;
+    uploadAttachment?: File[] | File | null; // Support both single file and array
 
 };
 
@@ -99,10 +112,15 @@ const CMS = async ({
     });
     console.log("CMS data:", cms);
 
+    // Check for user upload attachments
+    const hasAttachment = hasUploadAttachments(uploadAttachment);
+
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
-    const phaseLabel = phase?.name || "All Phases";    // Define the PDF document (only the main report pages)
+    const phaseLabel = phase?.name || "All Phases";
+
+    // Define the PDF document (only the main report pages)
     const CMSDoc = (
         <Document>
             {/* Page 1: CMS */}
@@ -129,62 +147,81 @@ const CMS = async ({
 
                 <PDFSectionTitle title="3.1 CMS" />
 
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
-                    <View style={{ alignSelf: "flex-start",flexDirection: "row", justifyContent: "space-between",gap: 10 }}>
-                        <View style={{ ...styles.totalBox }}>
-                            {/* total NADI sites with CMS */}
-                            <Text>Total NADI{"\n"}</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{cms.length}</Text>
-                        </View>
-                        <View style={styles.totalBox}>
-                            {/* total install sites with CMS */}
-                            <Text>Total Installed{"\n"}</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{cms.reduce((total, site) => total + (Number(site.pc_client_count) || 0), 0)}</Text>
-                        </View>
+                {/* If attachment provided, show minimal content and let PDF-lib handle attachment */}
+                {hasAttachment ? (
+                    <View style={styles.attachmentMessageBox}>
+                        <Text>
+                            Please refer to the next page for the detailed information.
+                        </Text>
                     </View>
-                    {!header && (
-                        <View style={{ alignSelf: "flex-end" }}>
-                            {/* when header not provided, show phase and quarter info */}
-
-                            <PDFPhaseQuarterInfo
-                                phaseLabel={phaseLabel}
-                                claimType={claimType}
-                                quater={quater}
-                                startDate={startDate}
-                                endDate={endDate}
-                            />
-
-                        </View>
-                    )}
-                </View>
-
-                {cms.length > 0 ? (
-                    <PDFTable
-                        data={cms}
-                        columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID" },
-                            { key: "site_name", header: "NADI" },
-                            { key: "state", header: "STATE" },
-                            { key: "pc_client_count", header: "QTY CMS PC CLIENT" },
-                            { key: "date_install", header: "DATE INSTALL" },
-                        ]}
-                    />
                 ) : (
-                    <Text>No cms data available.</Text>
+                    <>
+                        {!header && (
+                            <View style={{ alignSelf: "flex-end", marginBottom: 10 }}>
+                                {/* when header not provided, show phase and quarter info */}
+                                <PDFPhaseQuarterInfo
+                                    phaseLabel={phaseLabel}
+                                    claimType={claimType}
+                                    quater={quater}
+                                    startDate={startDate}
+                                    endDate={endDate}
+                                />
+                            </View>
+                        )}
+
+                        {/* Commented out table and total boxes since data is dummy */}
+                        {/*
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10 }}>
+                            <View style={{ alignSelf: "flex-start",flexDirection: "row", justifyContent: "space-between",gap: 10 }}>
+                                <View style={{ ...styles.totalBox }}>
+                                    <Text>Total NADI{"\n"}</Text>
+                                    <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{cms.length}</Text>
+                                </View>
+                                <View style={styles.totalBox}>
+                                    <Text>Total Installed{"\n"}</Text>
+                                    <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{cms.reduce((total, site) => total + (Number(site.pc_client_count) || 0), 0)}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {cms.length > 0 ? (
+                            <PDFTable
+                                data={cms}
+                                columns={[
+                                    { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                                    { key: "standard_code", header: "REFID" },
+                                    { key: "site_name", header: "NADI" },
+                                    { key: "state", header: "STATE" },
+                                    { key: "pc_client_count", header: "QTY CMS PC CLIENT" },
+                                    { key: "date_install", header: "DATE INSTALL" },
+                                ]}
+                            />
+                        ) : (
+                            <Text>No cms data available.</Text>
+                        )}
+                        */}
+                    </>
                 )}
                 <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
             </Page>
         </Document>
     );
-    // Create a blob from the PDF document (main report and appendix title page)
+    // Create a blob from the PDF document (main report)
     const reportBlob = await pdf(CMSDoc).toBlob();
+
+    // Process upload attachments using the reusable utility
+    const { processedBlob } = await processUploadAttachments(reportBlob, {
+        uploadAttachment,
+        sectionTitle: "CMS",
+        titlePosition: { x: 80, y: 40 },
+        titleStyle: { size: 8, color: [0.5, 0.5, 0.5] }
+    });
 
     // Generate filename based on filters
     const fileName = generatePdfFilename('cms-report', claimType, phase?.name);
 
     // Convert blob to File object with metadata
-    return new File([reportBlob], fileName, {
+    return new File([processedBlob], fileName, {
         type: 'application/pdf',
         lastModified: Date.now()
     });
