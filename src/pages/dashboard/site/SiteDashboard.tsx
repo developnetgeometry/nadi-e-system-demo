@@ -31,14 +31,10 @@ import {
 import DataTable, { Column } from "@/components/ui/datatable";
 
 interface SiteDashboardProps {
-  isBookingsEnabled?: boolean;
-  setSelectedSiteId?: React.Dispatch<React.SetStateAction<number | null>>;
+  // No booking-related props needed
 }
 
-export const SiteDashboard = ({
-  isBookingsEnabled = false,
-  setSelectedSiteId
-}: SiteDashboardProps) => {
+export const SiteDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const userMetadata = useUserMetadata();
@@ -140,11 +136,6 @@ export const SiteDashboard = ({
     }
   };
 
-  // Get total PC
-  const getTotalPC = (site: Site) => {
-    return site?.nd_site[0]?.nd_asset?.filter(pc => pc?.type_id === 3).length || 0;
-  };
-
   // DataTable columns configuration
   const columns: Column[] = [
     {
@@ -225,25 +216,19 @@ export const SiteDashboard = ({
       render: (value: any) => value || "N/A"
     }] : []),
     {
-      key: isBookingsEnabled ? (row: any) => getTotalPC(row) : "nd_site_status.eng",
-      header: isBookingsEnabled ? "Total PC" : "Status",
-      filterable: !isBookingsEnabled,
+      key: "nd_site_status.eng",
+      header: "Status",
+      filterable: true,
       visible: true,
-      filterType: isBookingsEnabled ? ("number" as const) : ("string" as const),
+      filterType: "string" as const,
       align: "center" as const,
       width: "10%",
-      render: (value, row) => {
-        if (isBookingsEnabled) {
-          return getTotalPC(row);
-        } else {
-          return getStatusBadge(value);
-        }
-      }
+      render: (value) => getStatusBadge(value)
     },
     {
       key: (row) => (
         <div className="flex space-x-2 justify-center">
-          {(!isRestrictedUser && !isBookingsEnabled) && (
+          {!isRestrictedUser && (
             <Button
               variant="outline"
               size="sm"
@@ -271,7 +256,7 @@ export const SiteDashboard = ({
             variant="outline"
             size="sm"
             className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-100"
-            onClick={() => !isBookingsEnabled ? handleViewDetailsClick(row.id) : setSelectedSiteId?.(row.id)}
+            onClick={() => handleViewDetailsClick(row.id)}
             title="View details"
           >
             <Eye className="h-4 w-4" />
@@ -304,12 +289,12 @@ export const SiteDashboard = ({
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">{!isBookingsEnabled ? "Site Management" : "Booking Management"}</h1>
+            <h1 className="text-2xl font-bold">Site Management</h1>
             <p className="text-gray-500 mt-1">
-              {!isBookingsEnabled ? "Manage and configure site locations and information" : "Manage all physical PC and Facility in locations"}
+              Manage and configure site locations and information
             </p>
           </div>
-          {(!isRestrictedUser && !isBookingsEnabled) && (
+          {!isRestrictedUser && (
             <Button
               onClick={() => navigate("/site-management/create")}
               className="flex items-center gap-2"
