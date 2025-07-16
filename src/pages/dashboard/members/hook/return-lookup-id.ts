@@ -34,6 +34,24 @@ export async function getStateId(state: string): Promise<number | null> {
   return data?.id ?? null;
 }
 
+export async function getDistrictId(district: string, stateId: number): Promise<number | null> {
+  const keyword = district.toLowerCase();
+
+  const { data, error } = await supabase
+    .from("nd_district")
+    .select("id")
+    .eq("state_id", stateId)
+    .or(`name.ilike.${keyword}`)
+    .single();
+
+  if (error) {
+    console.error("Failed to fetch district ID:", error.message);
+    return null;
+  }
+
+  return data?.id ?? null;
+}
+
 export async function getRaceId(race: string): Promise<number | null> {
   const keyword = race.toLowerCase();
 

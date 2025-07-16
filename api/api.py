@@ -1,13 +1,19 @@
 import json
+import os
+from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_cors import CORS
 from smartcard.System import readers
 from smartcard.util import toHexString
 from smartcard.Exceptions import CardConnectionException
 
+load_dotenv()
+allowed_origin = os.getenv("API_ORIGIN", "http://localhost:8080").strip()
+
+print("Loaded origin:", repr(allowed_origin))  # repr() shows invisible characters if any
+
 app = Flask(__name__)
-CORS(app)
-# CORS(app, resources={r"/api/*": {"origins": "https://my-tsx-server.com"}})
+CORS(app, resources={r"/api/*": {"origins": allowed_origin}})
 
 # MyKad specific APDUs
 SELECT_APDU = [0x00, 0xA4, 0x04, 0x00, 0x0A, 0xA0, 0x00, 0x00, 0x00, 0x74, 0x4A, 0x50, 0x4E, 0x00, 0x10]

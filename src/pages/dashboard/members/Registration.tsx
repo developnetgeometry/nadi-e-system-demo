@@ -18,7 +18,7 @@ import { ICForm } from "@/components/member/form/ICForm";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form } from "react-router-dom";
 import { MemberIdDialog } from "@/components/member/form/MemberIdDialog";
-import { getGenderId, getNationalityId, getRaceId, getStateId } from "./hook/return-lookup-id";
+import { getDistrictId, getGenderId, getNationalityId, getRaceId, getStateId } from "./hook/return-lookup-id";
 
 type FormData = {
   identity_no_type: string;
@@ -271,7 +271,6 @@ const RegistrationPage = () => {
   };
 
   type MessageType = "success" | "error";
-  const [result, setResult] = useState<any | null>(null);
   const [loading2, setLoading2] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<MessageType>("success");
@@ -291,7 +290,6 @@ const RegistrationPage = () => {
 
       const response = await fetch("http://127.0.0.1:5000/api/mykad-reader");
       const icData = await response.json();
-      setResult(icData);
 
       console.log("IC Data:", icData.data?.ic);
 
@@ -315,8 +313,15 @@ const RegistrationPage = () => {
           return null;
         });
 
-        console.log(icData.data.sex, genderId);
-        console.log(icData.data.address.state, stateId);
+        const districtId = await getDistrictId(icData.data.address.city, stateId).catch((err) => {
+          console.error("Failed to get district ID:", err);
+          return null;
+        });
+
+        // console.log(icData.data.sex, genderId);
+        // console.log(icData.data.address.state, stateId);
+        // console.log(icData.data.address.city, districtId);
+
 
         updateFields({
           identity_no_type: "1",
@@ -329,6 +334,7 @@ const RegistrationPage = () => {
           address1: icData.data.address.line1 ?? "",
           address2: (icData.data.address.line2 ?? "") + " " + (icData.data.address.line3 ?? ""),
           state_id: stateId?.toString() ?? "",
+          district_id: districtId?.toString() ?? "",
           city: icData.data.address.city ?? "",
           postcode: icData.data.address.postcode ?? "",
         });
@@ -351,6 +357,13 @@ const RegistrationPage = () => {
       setLoading2(false);
     }
   };
+
+  const handleReset = () => {
+    setData(INITIAL_DATA);
+    reset();
+    setMessage("");
+    setShouldRunICBlur(false);
+  }
 
 
   return (
@@ -384,19 +397,17 @@ const RegistrationPage = () => {
                   </button>
                 </div>
               )}
-              {/* 
+              
               {isFirstStep && (
-                <div>
+                <div className="flex space-x-2">
+                  <Button variant="secondary" onClick={handleReset} disabled={loading2}>
+                    Reset
+                  </Button>
                   <Button variant="outline" onClick={readMyKad} disabled={loading2}>
                     Load MyKad Reader
                   </Button>
                 </div>
-              )} */}
-              <div>
-                <Button variant="outline" onClick={readMyKad} disabled={loading2}>
-                  Load MyKad Reader
-                </Button>
-              </div>
+              )}
 
             </div>
             {/* <pre className="mt-4 bg-gray-100 p-4 rounded text-sm overflow-auto">

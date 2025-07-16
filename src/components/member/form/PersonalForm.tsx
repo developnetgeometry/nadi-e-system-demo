@@ -80,7 +80,7 @@ export function PersonalForm({
             required
             type="text"
             name="fullname"
-            value={fullname}
+            value={fullname ?? ""}
             onChange={(e) => updateFields({ fullname: e.target.value })}
           />
         </div>
@@ -90,7 +90,7 @@ export function PersonalForm({
           <Label className="flex items-center">Date of Birth <span className="text-red-500 ml-1">*</span></Label>
           <Input
             type="date"
-            value={dob}
+            value={dob ?? ""}
             onChange={(e) => updateFields({ dob: e.target.value })}
             required
           />
@@ -123,7 +123,7 @@ export function PersonalForm({
           <Label className="flex items-center">Mobile Number</Label>
           <Input
             type="tel"
-            value={mobile_no}
+            value={mobile_no ?? ""}
             onChange={(e) => updateFields({ mobile_no: e.target.value })}
           />
         </div>
@@ -133,7 +133,7 @@ export function PersonalForm({
           <Label className="flex items-center">Email<span className="text-red-500 ml-1">*</span></Label>
           <Input
             type="email"
-            value={email}
+            value={email ?? ""}
             onChange={(e) =>
               updateFields({ email: e.target.value.toLowerCase() })
             }
@@ -235,7 +235,7 @@ export function PersonalForm({
           <Label className="flex items-center">Join Date <span className="text-red-500 ml-1">*</span></Label>
           <Input
             type="date"
-            value={join_date}
+            value={join_date ?? ""}
             onChange={(e) => updateFields({ join_date: e.target.value })}
             required
           />
