@@ -95,7 +95,7 @@ const LocalAuthority = async ({
         tpFilter
     });
 
-    console.log("Local Authority data:", localAuthority);
+    // console.log("Local Authority data:", localAuthority);
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
@@ -145,20 +145,62 @@ const LocalAuthority = async ({
                         </View>
                     )}
                 </View>
-
-                {localAuthority.length > 0 ?
-                    (<PDFTable
+                
+                {/* should be shown all site with or without local authority. status indicate it have or not local authority */}
+                {localAuthority.length > 0 ? (
+                    <PDFTable
                         data={localAuthority}
                         columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID", },
-                            { key: "site_name", header: "NADI", },
-                            { key: "state", header: "STATE", }
+                            { 
+                                key: (_, i) => `${i + 1}.`, 
+                                header: "NO", 
+                                width: "5%",
+                                align: "center"
+                            },
+                            { 
+                                key: "standard_code", 
+                                header: "REFID",
+                                width: "15%"
+                            },
+                            { 
+                                key: "site_name", 
+                                header: "NADI",
+                                width: "25%"
+                            },
+                            { 
+                                key: "state", 
+                                header: "STATE",
+                                width: "15%"
+                            },
+                            { 
+                                key: "status", 
+                                header: "STATUS",
+                                align: "center",
+                                render: (value, item) => {
+                                    return item.status ? "Yes" : "No";
+                                }
+                            },
+                            { 
+                                key: "start_date", 
+                                header: "START DATE",
+                                align: "center",
+                                render: (value, item) => {
+                                    return item.start_date ? new Date(item.start_date).toLocaleDateString() : "-";
+                                }
+                            },
+                            { 
+                                key: "end_date", 
+                                header: "END DATE",
+                                align: "center",
+                                render: (value, item) => {
+                                    return item.end_date ? new Date(item.end_date).toLocaleDateString() : "-";
+                                }
+                            }
                         ]}
                     />
-                    ) : (
-                        <Text>No local authority data available.</Text>
-                    )}
+                ) : (
+                    <Text>No local authority data available.</Text>
+                )}
 
                 {/* Footer Component */}
                 <PDFFooter />

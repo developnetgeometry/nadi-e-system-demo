@@ -2678,7 +2678,7 @@ export type Database = {
           program_mode: number | null
           program_name: string | null
           requester_id: string | null
-          site_id: number | null
+          site_id: Json | null
           start_datetime: string | null
           status_id: number | null
           subcategory_id: number | null
@@ -2707,7 +2707,7 @@ export type Database = {
           program_mode?: number | null
           program_name?: string | null
           requester_id?: string | null
-          site_id?: number | null
+          site_id?: Json | null
           start_datetime?: string | null
           status_id?: number | null
           subcategory_id?: number | null
@@ -2736,7 +2736,7 @@ export type Database = {
           program_mode?: number | null
           program_name?: string | null
           requester_id?: string | null
-          site_id?: number | null
+          site_id?: Json | null
           start_datetime?: string | null
           status_id?: number | null
           subcategory_id?: number | null
@@ -2795,13 +2795,6 @@ export type Database = {
             columns: ["program_mode"]
             isOneToOne: false
             referencedRelation: "nd_program_mode"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_event_nd_site_fk"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "nd_site"
             referencedColumns: ["id"]
           },
         ]
@@ -9634,6 +9627,7 @@ export type Database = {
           pay_info_id: number | null
           payment_reference: string | null
           payroll_date: string | null
+          site_id: number | null
           staff_eis: number | null
           staff_epf: number | null
           staff_id: string | null
@@ -9669,6 +9663,7 @@ export type Database = {
           pay_info_id?: number | null
           payment_reference?: string | null
           payroll_date?: string | null
+          site_id?: number | null
           staff_eis?: number | null
           staff_epf?: number | null
           staff_id?: string | null
@@ -9704,6 +9699,7 @@ export type Database = {
           pay_info_id?: number | null
           payment_reference?: string | null
           payroll_date?: string | null
+          site_id?: number | null
           staff_eis?: number | null
           staff_epf?: number | null
           staff_id?: string | null
@@ -9743,6 +9739,27 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "nd_site_profile_name"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_staff_payroll_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "vw_site_profile_details"
             referencedColumns: ["id"]
           },
           {
@@ -13215,7 +13232,7 @@ export type Database = {
         | "submitted"
         | "draft"
       notification_channel: "in_app" | "email" | "sms"
-      notification_type: "info" | "warning" | "success" | "error"
+      notification_type: "info" | "warning" | "success" | "error" | "payroll"
       organization_type: "dusp" | "tp"
       priority_level: "low" | "medium" | "high" | "urgent"
       programme_status: "draft" | "active" | "completed" | "cancelled"
@@ -13414,7 +13431,7 @@ export const Constants = {
         "draft",
       ],
       notification_channel: ["in_app", "email", "sms"],
-      notification_type: ["info", "warning", "success", "error"],
+      notification_type: ["info", "warning", "success", "error", "payroll"],
       organization_type: ["dusp", "tp"],
       priority_level: ["low", "medium", "high", "urgent"],
       programme_status: ["draft", "active", "completed", "cancelled"],

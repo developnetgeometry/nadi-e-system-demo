@@ -4,8 +4,8 @@ import { useUserMetadata } from "@/hooks/use-user-metadata";
 import { SuperAdminPage } from "@/components/hr/payroll/SuperAdminPage";
 import { MCMCPage } from "@/components/hr/payroll/MCMCPage";
 import { DUSPPage } from "@/components/hr/payroll/DUSPPage";
-import { TPPage } from "@/components/hr/payroll/TPPage";
-import { StaffPage } from "@/components/hr/payroll/StaffPage";
+import { EnhancedTPPage } from "@/components/hr/payroll/EnhancedTPPage";
+import { EnhancedStaffPage } from "@/components/hr/payroll/EnhancedStaffPage";
 
 export default function PayrollPage() {
   const userMetadata = useUserMetadata(); // e.g. '{"user_type":"super_admin",…}' or just 'tp_admin'
@@ -44,13 +44,13 @@ export default function PayrollPage() {
         return <DUSPPage />;
       case "staff_manager":
       case "staff_assistant_manager":
-        return <StaffPage />;
+        return <EnhancedStaffPage />;
       case "tp_operation":
       case "tp_admin":
       case "tp_hr":
       case "tp_pic":
       case "tp_site":
-        return <TPPage />;
+        return <EnhancedTPPage />;
       default:
         return (
           <div>

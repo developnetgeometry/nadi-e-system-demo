@@ -71,3 +71,8 @@ export interface AssetType {
 export interface ErrorFallbackProps {
   error: Error;
 }
+
+export const RetailTypes = [
+  { id: 1, name: "Retail" },
+  { id: 2, name: "Non-Retail" },
+];

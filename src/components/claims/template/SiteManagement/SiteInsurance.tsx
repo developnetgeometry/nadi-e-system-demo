@@ -86,7 +86,7 @@ const Insurance = async ({
 
 }: InsuranceProps): Promise<File> => {
     // Fetch insurance data based on filters
-    const { insurance } = await fetchInsuranceData({
+    const { insurance, insuranceTypes } = await fetchInsuranceData({
         startDate,
         endDate,
         duspFilter,
@@ -95,6 +95,49 @@ const Insurance = async ({
         tpFilter
     });
     console.log("insurance data:", insurance);
+    console.log("insurance types from DB:", insuranceTypes);
+
+    // Group insurance data by type, but include ALL sites for each type
+    const insuranceByType: Record<string, any[]> = {};
+    
+    // First, collect all unique sites
+    const allSitesMap = new Map();
+    insurance.forEach(item => {
+        // Store unique sites
+        if (!allSitesMap.has(item.site_id)) {
+            allSitesMap.set(item.site_id, {
+                site_id: item.site_id,
+                standard_code: item.standard_code,
+                site_name: item.site_name,
+                refId: item.refId,
+                state: item.state
+            });
+        }
+    });
+    
+    // For each insurance type from database, create a table with ALL sites
+    insuranceTypes.forEach(insuranceTypeObj => {
+        const insuranceTypeName = insuranceTypeObj.name;
+        insuranceByType[insuranceTypeName] = Array.from(allSitesMap.values()).map(site => {
+            // Find if this site has this specific insurance type
+            const siteInsurance = insurance.find(item => 
+                item.site_id === site.site_id && 
+                item.insurance_type === insuranceTypeName
+            );
+            
+            return {
+                ...site,
+                status: !!siteInsurance?.status,
+                duration: siteInsurance?.duration || "",
+                start_date: siteInsurance?.start_date || null,
+                end_date: siteInsurance?.end_date || null,
+                insurance_type: insuranceTypeName
+            };
+        });
+    });
+
+    console.log("Insurance by type (all sites):", insuranceByType);
+    console.log("Insurance types from database:", insuranceTypes);
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
@@ -102,7 +145,7 @@ const Insurance = async ({
     const phaseLabel = phase?.name || "All Phases";    // Define the PDF document (only the main report pages)
     const insuranceDoc = (
         <Document>
-            {/* Page 1: insurance */}
+            {/* Page 1: Main insurance page with first insurance type */}
             <Page size="A4" style={styles.page}>
 
                 {header && (
@@ -129,8 +172,8 @@ const Insurance = async ({
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
                         <View style={{ ...styles.totalBox }}>
-                            <Text>Total NADI</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{insurance.length}</Text>
+                            <Text>Total Sites</Text>
+                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{allSitesMap.size}</Text>
                         </View>
                     </View>
                     {!header && (
@@ -147,22 +190,106 @@ const Insurance = async ({
                     )}
                 </View>
 
-                {insurance.length > 0 ? (
-                    <PDFTable
-                        data={insurance}
-                        columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID" },
-                            { key: "site_name", header: "NADI" },
-                            { key: "state", header: "STATE" },
-                            { key: "duration", header: "DURATION", align: "center" },
-                        ]}
-                    />
+                {/* Show first insurance type on main page */}
+                {Object.keys(insuranceByType).length > 0 ? (
+                    (() => {
+                        const [firstInsuranceType, firstInsuranceList] = Object.entries(insuranceByType)[0];
+                        const sitesWithThisInsurance = firstInsuranceList.filter(site => site.status);
+                        return (
+                            <View style={{ marginTop: 15 }}>
+                                <Text style={{ 
+                                    fontSize: 10, 
+                                    fontWeight: "bold", 
+                                    marginBottom: 5,
+                                    textTransform: "uppercase" 
+                                }}>
+                                    {firstInsuranceType} INSURANCE 
+                                    {/* ({sitesWithThisInsurance.length}/{firstInsuranceList.length} sites) */}
+                                </Text>
+                                <PDFTable
+                                    data={firstInsuranceList as any[]}
+                                    columns={[
+                                        { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                                        { key: "standard_code", header: "REFID", width: "16%" },
+                                        { key: "site_name", header: "NADI", width: "25%" },
+                                        { key: "state", header: "STATE", width: "14%" },
+                                        { 
+                                            key: "status", 
+                                            header: "STATUS", 
+                                            align: "center",
+                                            render: (value, item) => item.status ? "Yes" : "No"
+                                        },
+                                        { 
+                                            key: "start_date", 
+                                            header: "START DATE", 
+                                            align: "center",
+                                            render: (value, item) => item.start_date ? new Date(item.start_date).toLocaleDateString('en-GB') : "-"
+                                        },
+                                        { 
+                                            key: "end_date", 
+                                            header: "END DATE", 
+                                            align: "center",
+                                            render: (value, item) => item.end_date ? new Date(item.end_date).toLocaleDateString('en-GB') : "-"
+                                        },
+                                    ]}
+                                />
+                            </View>
+                        );
+                    })()
                 ) : (
                     <Text>No insurance data available.</Text>
                 )}
                 <PDFFooter />
             </Page>
+
+            {/* Additional pages for remaining insurance types */}
+            {Object.entries(insuranceByType).slice(1).map(([insuranceType, allSitesForType]) => {
+                const sitesWithThisInsurance = allSitesForType.filter(site => site.status);
+                return (
+                    <Page key={insuranceType} size="A4" style={styles.page}>
+                        <View style={{ marginTop: 15 }}>
+                            <Text style={{ 
+                                fontSize: 10, 
+                                fontWeight: "bold", 
+                                marginBottom: 5,
+                                textTransform: "uppercase" 
+                            }}>
+                                {insuranceType} INSURANCE 
+                                {/* ({sitesWithThisInsurance.length}/{allSitesForType.length} sites) */}
+                            </Text>
+                            <PDFTable
+                                data={allSitesForType as any[]}
+                                columns={[
+                                    { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                                    { key: "standard_code", header: "REFID", width: "16%" },
+                                    { key: "site_name", header: "NADI", width: "25%" },
+                                    { key: "state", header: "STATE", width: "14%" },
+                                    { 
+                                        key: "status", 
+                                        header: "STATUS", 
+                                        align: "center",
+                                        render: (value, item) => item.status ? "Yes" : "No"
+                                    },
+                                    { 
+                                        key: "start_date", 
+                                        header: "START DATE",  
+                                        align: "center",
+                                        render: (value, item) => item.start_date ? new Date(item.start_date).toLocaleDateString('en-GB') : "-"
+                                    },
+                                    { 
+                                        key: "end_date", 
+                                        header: "END DATE", 
+                                        align: "center",
+                                        render: (value, item) => item.end_date ? new Date(item.end_date).toLocaleDateString('en-GB') : "-"
+                                    },
+                                ]}
+                            />
+                        </View>
+                        
+                        <PDFFooter />
+                    </Page>
+                );
+            })}
 
             {/* Page 2: APPENDIX for INSURANCE - Title page */}
             {/* <Page size="A4" style={styles.page}>

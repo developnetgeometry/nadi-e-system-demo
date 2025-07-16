@@ -43,8 +43,9 @@ import "react-quill/dist/quill.snow.css";
 const formSchema = z.object({
   title: z.string().min(1, { message: "Programme name is required" }),
   description: z.string().optional(),
+  state: z.string().optional(),
   location: z.string().optional(),
-  site_id: z.string().optional(),
+  site_id: z.array(z.string()).optional(),
   start_date: z.string().min(1, { message: "Start date is required" }),
   end_date: z.string().min(1, { message: "End date is required" }),
   trainer_name: z.string().optional(),
@@ -53,8 +54,12 @@ const formSchema = z.object({
   pillar: z.string().min(1, { message: "Pillar is required" }),
   programme: z.string().min(1, { message: "Programme is required" }),
   module: z.string().min(1, { message: "Module is required" }),
-  start_time: z.string().min(1, { message: "Start time is required" }),
-  end_time: z.string().min(1, { message: "End time is required" }),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
+  dayTimes: z.array(z.object({
+    start_time: z.string().min(1, { message: "Start time is required" }),
+    end_time: z.string().min(1, { message: "End time is required" }),
+  })).optional(),
   event_type: z.string().min(1, { message: "Event type is required" }),
   is_group_event: z.boolean().default(false),
   target_participants: z
@@ -72,6 +77,7 @@ interface ProgrammeData {
   program_name: string;
   description: string | null;
   location_event: string | null;
+  state_id: string | null;
   site_id: string | null;
   start_datetime: string;
   end_datetime: string;
@@ -123,9 +129,13 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     { id: string; file_path: string }[]
   >([]);
   const [siteOptions, setSiteOptions] = useState<
-    { value: string; label: string }[]
+    { value: string; label: string; stateId: string; }[]
   >([]);
+  const [stateOptions, setStateOptions] = useState([]);
   const [isCustomLocation, setIsCustomLocation] = useState(false);
+  const [siteCodes, setSiteCodes] = useState({});
+  const [differentDays, setDifferentDays] = useState(0);
+  const [dayTimes, setDayTimes] = useState([]);
 
   // Event types
   const eventTypes = [
@@ -136,7 +146,16 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     { value: "meetup", label: "Meetup", color: "bg-red-500" },
   ];
 
+  const eventTypeToModeMap = {
+    "webinar": 1,
+    "workshop": 2,
+    "conference": 3,
+    "training": 3,
+    "meetup": 3,
+  }
+
   // Filtered options based on selections
+  const [filteredSites, setFilteredSites] = useState([]);
   const [filteredPillars, setFilteredPillars] = useState<
     { value: string; label: string; categoryId: string }[]
   >([]);
@@ -154,7 +173,8 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       title: "",
       description: "",
       location: "",
-      site_id: "",
+      state: "",
+      site_id: [],
       start_date: "",
       end_date: "",
       trainer_name: "",
@@ -165,6 +185,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       module: "",
       start_time: "",
       end_time: "",
+      dayTimes: [],
       event_type: "",
       is_group_event: false,
       target_participants: "umum",
@@ -259,11 +280,26 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       }
     };
 
+    const fetchStates = async () => {
+      try {
+        const { data: stateData, error: stateError } = await supabase
+          .from("nd_state")
+          .select('*')
+          .order('name');
+
+        if (stateError) throw stateError;
+
+        setStateOptions(stateData);
+      } catch (error) {
+        console.error("Error fetching sites:", error);
+      }
+    };
+
     const fetchSites = async () => {
       try {
         const { data: siteData, error: siteError } = await supabase
           .from("nd_site_profile")
-          .select("id, sitename")
+          .select("id, sitename, state_id, nd_state (id, name)")
           .eq("is_active", true)
           .order("sitename");
 
@@ -272,6 +308,9 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         const formattedSites = siteData.map((site) => ({
           value: site.id.toString(),
           label: site.sitename,
+          state: site.nd_state.name,
+          stateId: site.state_id.toString(),
+          siteId: site.id,
         }));
 
         setSiteOptions(formattedSites);
@@ -280,11 +319,32 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       }
     };
 
+    const fetchSiteCodes = async () => {
+      try {
+        const { data: siteCodeData, error: siteCodeError } = await supabase
+          .from('nd_site')
+          .select('*');
+
+        if (siteCodeError) throw siteCodeError;
+
+        const codeMap = {};
+        siteCodeData.forEach(site => {
+          codeMap[site.site_profile_id] = site.refid_mcmc;
+        });
+
+        setSiteCodes(codeMap);
+      } catch (error) {
+        console.error("Error fetching site codes:", error);
+      }
+    }
+
     fetchCategories();
     fetchPillars();
     fetchProgrammes();
     fetchModules();
     fetchSites();
+    fetchStates();
+    fetchSiteCodes();
   }, []);
 
   useEffect(() => {
@@ -337,6 +397,8 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
           )
         : null;
 
+      const stateToSet = matchingSite ? matchingSite.stateId : (programmeData.state_id?.toString() || "");
+
       // If no site_id but has location_event, it's a custom location
       const shouldUseCustom = !hasSiteId && !!existingLocation;
       setIsCustomLocation(shouldUseCustom);
@@ -345,7 +407,8 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         title: programmeData.program_name || "",
         description: programmeData.description || "",
         location: shouldUseCustom ? existingLocation : "",
-        site_id: hasSiteId ? programmeData.site_id?.toString() : "",
+        state: stateToSet,
+        site_id: hasSiteId ? (Array.isArray(programmeData.site_id) ? programmeData.site_id.map(id => id.toString()) : [programmeData.site_id?.toString()]) : [],
         start_date: format(startDateTime, "yyyy-MM-dd"),
         end_date: format(endDateTime, "yyyy-MM-dd"),
         start_time: format(startDateTime, "HH:mm"),
@@ -398,6 +461,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
   ]);
 
   // Watch form fields to calculate duration and filter options
+  const watchState = form.watch("state");
   const watchCategory = form.watch("category");
   const watchPillar = form.watch("pillar");
   const watchProgramme = form.watch("programme");
@@ -407,25 +471,125 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
   const watchEndTime = form.watch("end_time");
   const watchMode = form.watch("mode");
 
-  // Calculate duration when dates and times change
+  // Filter sites based on selected state
   useEffect(() => {
-    if (watchStartDate && watchEndDate && watchStartTime && watchEndTime) {
+    if (watchState && siteOptions.length > 0) {
+      const filtered = siteOptions.filter(
+        (site) => site.stateId === watchState
+      );
+
+      setFilteredSites(filtered);
+
+      if(!isEditMode || !programmeData) {
+        form.setValue("site_id", []);
+        // form.setValue("location", "");
+        setIsCustomLocation(false);
+      }
+    } else {
+      setFilteredSites([]);
+
+      if(!isEditMode || !programmeData) {
+        form.setValue("site_id", []);
+        // form.setValue("location", "");
+        setIsCustomLocation(false);
+      }
+    }
+  }, [watchState, siteOptions, form, isEditMode, programmeData]);
+
+  // For single-day time changes
+  useEffect(() => {
+    if (differentDays === 1 && watchStartDate && watchEndDate && watchStartTime && watchEndTime) {
       const startDateTime = new Date(`${watchStartDate}T${watchStartTime}`);
       const endDateTime = new Date(`${watchEndDate}T${watchEndTime}`);
+      const durationMs = endDateTime.getTime() - startDateTime.getTime();
+      const durationHours = durationMs / (1000 * 60 * 60);
+      setDuration(formatDuration(durationHours));
+    }
+  }, [watchStartDate, watchEndDate, watchStartTime, watchEndTime, differentDays]);
+
+  // Calculate duration and dynamic time when dates and times change
+  useEffect(() => {
+    if (watchStartDate && watchEndDate) {
+      // const startDateTime = new Date(`${watchStartDate}T${watchStartTime}`);
+      // const endDateTime = new Date(`${watchEndDate}T${watchEndTime}`);
+
+      let startDate = new Date(watchStartDate).getTime();
+      let endDate = new Date(watchEndDate).getTime();
+      const diffDays = Math.floor((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1; // +1 to include both start and end days
 
       // Calculate duration in milliseconds
-      const durationMs = endDateTime.getTime() - startDateTime.getTime();
+      // const durationMs = endDateTime.getTime() - startDateTime.getTime();
 
       // Convert to hours
-      const durationHours = durationMs / (1000 * 60 * 60);
+      // const durationHours = durationMs / (1000 * 60 * 60);
 
       // Format the duration
-      const formattedDuration = formatDuration(durationHours);
-      setDuration(formattedDuration);
+      // const formattedDuration = formatDuration(durationHours);
+      // setDuration(formattedDuration);
+
+      if (diffDays !== differentDays) {
+        setDifferentDays(diffDays);
+
+        if (diffDays > 1) {
+          // Multi-day event: clear single day times and set up dayTimes
+          form.setValue("start_time", "");
+          form.setValue("end_time", "");
+
+          const newDayTimes = Array.from({ length: diffDays }, (_, index) => {
+            // If had existing times for this day, preserve them
+            const existingDay = dayTimes[index];
+            return {
+              day: index + 1,
+              start_time: existingDay?.start_time || "",
+              end_time: existingDay?.end_time || "",
+            };
+          });
+  
+          setDayTimes(newDayTimes);
+          form.setValue("dayTimes", newDayTimes);
+        } else {
+          // Single day event: clear dayTimes
+          setDayTimes([]);
+          form.setValue("dayTimes", []);
+        }
+      }
+
+      // Calculate duration based on times
+      if (diffDays > 1) {
+        // For multi-day, calculate total duration from all day times
+        let totalDuration = 0;
+        dayTimes.forEach((dayTime) => {
+          if (dayTime.start_time && dayTime.end_time) {
+            const dayStart = new Date(`2000-01-01T${dayTime.start_time}`);
+            const dayEnd = new Date(`2000-01-01T${dayTime.end_time}`);
+            const dayDuration = (dayEnd.getTime() - dayStart.getTime()) / (1000 * 60 * 60);
+            totalDuration += dayDuration;
+          }
+        });
+
+        if (totalDuration > 0) {
+          setDuration(formatDuration(totalDuration));
+        }
+      } else {
+        // For single day, use original time fields
+        const startTime = form.getValues("start_time");
+        const endTime = form.getValues("end_time");
+
+        if (startTime && endTime) {
+          const startDateTime = new  Date(`${watchStartDate}T${startTime}`);
+          const endDateTime = new  Date(`${watchEndDate}T${endTime}`);
+          const durationMs = endDateTime.getTime() - startDateTime.getTime();
+          const durationHours = durationMs / (1000 * 60 * 60);
+          setDuration(formatDuration(durationHours));
+        }
+      }
+
     } else {
+      setDifferentDays(0);
+      setDayTimes([]);
       setDuration("");
     }
-  }, [watchStartDate, watchEndDate, watchStartTime, watchEndTime]);
+  }, [watchStartDate, watchEndDate, dayTimes, form, differentDays]);
 
   // Filter pillars based on selected category
   useEffect(() => {
@@ -484,37 +648,151 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     }
   }, [watchMode]);
 
+  useEffect(() => {
+    console.log("Current form errors:", form.formState.errors);
+    console.log("Current form values:", form.getValues());
+  }, [form.formState.errors]);
+
   const onSubmit = async (data: FormValues) => {
+
+    if (differentDays > 1) {
+      // For multi-day events, validate dayTimes array
+      if(!data.dayTimes || data.dayTimes.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please fill in start and end times for each day.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check each day has both start and end times
+      for (let i = 0; i < data.dayTimes.length; i++) {
+        if (!data.dayTimes[i].start_time || !data.dayTimes[i].end_time) {
+          toast({
+            title: "Error",
+            description: `Please fill in both start and end times for Day ${i + 1}`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+    } else {
+      // For single day events, validate start_time and end_time
+      if (!data.start_time || !data.end_time) {
+        toast({
+          title: "Error",
+          description: "Please fill in start and end times.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
+      // Get user ID from localStorage
+      let userId = null;
+
+      try {
+        const storedUserMetadata = localStorage.getItem('user_metadata');
+        if (storedUserMetadata) {
+          const userData = JSON.parse(storedUserMetadata);
+          userId = userData.group_profile?.user_id || null;
+        }
+      } catch (error) {
+        console.error("Error retrieving user data from localStorage:", error);
+      }
+
       // Calculate duration
-      const startDateTime = new Date(`${data.start_date}T${data.start_time}`);
-      const endDateTime = new Date(`${data.end_date}T${data.end_time}`);
-      const durationHours =
-        (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+      // const startDateTime = new Date(`${data.start_date}T${data.start_time}`);
+      // const endDateTime = new Date(`${data.end_date}T${data.end_time}`);
+      // const durationHours =
+      //   (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+
+      let startDateTime, endDateTime, durationHours;
+      let actualStartDate;
+
+      if (differentDays > 1) {
+        // For multi-day events, use the first day's start time and last day's end time
+        const firstDay = dayTimes[0];
+        const lastDay = dayTimes[dayTimes.length - 1];
+
+        if (!firstDay?.start_time || !lastDay?.end_time) {
+          toast({
+            title: "Error",
+            description: "Please fill in all start and end times for each day.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const startDateStr = `${data.start_date}T${firstDay.start_time}:00`;
+        const endDateStr = `${data.end_date}T${lastDay.end_time}:00`;
+
+        startDateTime = new Date(startDateStr);
+        endDateTime = new Date(endDateStr);
+
+        // Calculate total duration across all days
+        let totalDuration = 0;
+        dayTimes.forEach((dayTime, index) => {
+          if (dayTime.start_time && dayTime.end_time) {
+            const dayDate = new Date(new Date(data.start_date).getTime() + index * 24 * 60 * 60 * 1000);
+            const dayStart = new Date(`${dayDate.toISOString().split('T')[0]}T${dayTime.start_time}:00`);
+            const dayEnd = new Date(`${dayDate.toISOString().split('T')[0]}T${dayTime.end_time}:00`);
+            const dayDuration = (dayEnd.getTime() - dayStart.getTime()) / (1000 * 60 * 60);
+            totalDuration += dayDuration;
+          }
+        });
+
+        durationHours = totalDuration;
+        actualStartDate = new Date(data.start_date);
+      } else {
+        // For single day events, use the original logic but get times from form
+        const startTime = data.start_time;
+        const endTime = data.end_time;
+
+        if (!startTime || !endTime) {
+          toast({
+            title: "Error",
+            description: "Please fill in start and end times.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const startDateStr = `${data.start_date}T${startTime}:00`;
+        const endDateStr = `${data.end_date}T${endTime}:00`;
+
+        startDateTime = new Date(startDateStr);
+        endDateTime = new Date(endDateStr);
+        durationHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
+        actualStartDate = startDateTime;
+      }
 
       // Prepare event data
       const eventData = {
         program_name: data.title,
         description: data.description || "",
-        location_event: isCustomLocation ? data.location || "" : "",
-        site_id:
-          !isCustomLocation && data.site_id ? parseInt(data.site_id) : null,
+        location_event: data.location || "",
+        site_id: data.site_id && data.site_id.length > 0 ? data.site_id.map(id => parseInt(id)) : null,
         start_datetime: startDateTime.toISOString(),
         end_datetime: endDateTime.toISOString(),
         duration: durationHours,
         trainer_name: data.trainer_name || "",
-        created_by: user?.id,
+        created_by: userId,
         requester_id: user?.id,
         category_id: parseInt(data.category),
         subcategory_id: parseInt(data.pillar),
         program_id: parseInt(data.programme),
         module_id: parseInt(data.module),
         program_method: data.mode === "Physical" ? 1 : 2, // 1=Physical, 2=Online
+        program_mode: eventTypeToModeMap[data.event_type] || 3,
         total_participant: data.max_participants
           ? parseInt(data.max_participants)
           : null,
-        status_id: new Date(startDateTime) >= new Date() ? 2 : 1, // 2=Published if not backdated, 1=Draft if backdated
+        status_id: actualStartDate >= new Date().setHours(0, 0, 0, 0) ? 2 : 1, // 2=Submitted if not backdated, 1=Draft if backdated
         is_active: data.is_active, // Boolean value
         is_group_event: data.is_group_event,
         target_participants: data.target_participants,
@@ -554,6 +832,25 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
           description: "Programme registered successfully",
           variant: "default",
         });
+      }
+
+      // Save individual day schedules if multi-day event
+      if (differentDays > 1 && dayTimes.length > 0) {
+        const daySchedulePromises = dayTimes.map((dayTime, index) => {
+          const dayDate = new Date(new Date(data.start_date).getTime() + index * 24 * 60 * 60 * 1000);
+          const scheduleDateStr = dayDate.toISOString().split('T')[0];
+
+          return supabase.from("nd_event_schedule").insert({
+            event_id: eventId,
+            day_number: index + 1,
+            schedule_date: scheduleDateStr,
+            start_time: dayTime.start_time,
+            end_time: dayTime.end_time,
+            created_by: userId,
+          });
+        });
+
+        await Promise.all(daySchedulePromises);
       }
 
       // Handle file uploads if any files are present
@@ -621,6 +918,38 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     </div>
   );
 
+  const getSiteDisplayText = (site) => {
+    const siteCode = siteCodes[site.siteId];
+    return siteCode ? `${siteCode} - ${site.label}` : site.label;
+  };
+
+  // function to update specific day time
+  const updateDayTime = (dayIndex, field, value) => {
+    const updatedDayTimes = [...dayTimes];
+    updatedDayTimes[dayIndex] = {
+      ...updatedDayTimes[dayIndex],
+      [field]: value,
+    };
+
+    setDayTimes(updatedDayTimes);
+    form.setValue("dayTimes", updatedDayTimes);
+
+    // Recalculate total duration
+    let totalDuration = 0;
+    updatedDayTimes.forEach((dayTime) => {
+      if (dayTime.start_time && dayTime.end_time) {
+        const dayStart = new Date(`2000-01-01T${dayTime.start_time}`);
+        const dayEnd = new Date(`2000-01-01T${dayTime.end_time}`);
+        const dayDuration = (dayEnd.getTime() - dayStart.getTime()) / (1000 * 60 * 60);
+        totalDuration += dayDuration;
+      }
+    });
+
+    if (totalDuration > 0) {
+      setDuration(formatDuration(totalDuration));
+    }
+  };
+
   return (
     // Form Title : Programme Creation
 
@@ -676,65 +1005,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                   </FormItem>
                 )}
               />
-              {watchMode === "Physical" && (
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        <LabelWithTooltip
-                          label="Location"
-                          tooltip="Select a site location or choose 'Other' to enter a custom location."
-                        />
-                      </FormLabel>
-                      <FormControl>
-                        <div className="space-y-2">
-                          <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                            value={
-                              isCustomLocation
-                                ? "other"
-                                : form.getValues("site_id") || ""
-                            }
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === "other") {
-                                setIsCustomLocation(true);
-                                form.setValue("site_id", "");
-                                field.onChange(""); // Clear location for custom input
-                              } else {
-                                setIsCustomLocation(false);
-                                form.setValue("site_id", value); // Store site_id
-                                field.onChange(""); // Clear location since we're using site_id
-                              }
-                            }}
-                          >
-                            <option value="">Select Location</option>
-                            {siteOptions.map((site) => (
-                              <option key={site.value} value={site.value}>
-                                {site.label}
-                              </option>
-                            ))}
-                            <option value="other">
-                              Other (Custom Location)
-                            </option>
-                          </select>
-                          {isCustomLocation && (
-                            <Input
-                              placeholder="Enter custom location"
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-              {watchMode === "Online" && (
+              {watchMode === "Online" ? (
                 <FormField
                   control={form.control}
                   name="location"
@@ -753,7 +1024,135 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                     </FormItem>
                   )}
                 />
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="Location"
+                          tooltip="Provide the full address location for the programme."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Programme address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="State"
+                        tooltip="Select a state first to filter available locations."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value);
+                          }}
+                        >
+                          <option value="">Select State</option>
+                          {stateOptions.map((state) => (
+                            <option key={state.id} value={state.id}>
+                              {state.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="site_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <LabelWithTooltip
+                        label="Site"
+                        tooltip="Please select a state first. Select a site location."
+                      />
+                    </FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                          value=""
+                          onChange={(e) => {
+                            // Add the selected site if not already selected
+                            const selectedValues = e.target.value;
+                            const currentValues = field.value || [];
+
+                            if(!currentValues.includes(selectedValues)) {
+                              field.onChange([...currentValues, selectedValues]);
+                            }
+                          }}
+                          disabled={!watchState}
+                        >
+                            <option value="">
+                              {!watchState ? "Please select a state first" : "Choose a site to add..."}
+                            </option>
+                          {filteredSites
+                            .filter(site => !field.value?.includes(site.value))
+                            .map((site) => (
+                              <option key={site.value} value={site.value}>
+                                {getSiteDisplayText(site)}
+                              </option>
+                          ))}
+                        </select>
+
+                        {/* Display selected sites */}
+                        {field.value && field.value.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium">
+                              Selected Sites ({field.value.length}):
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {field.value.map((siteId) => {
+                                const site = filteredSites.find(s => s.value === siteId);
+                                return site ? (
+                                  <span key={siteId} className="inline-flex items-center px-2 py-1 rounded-full text-xs">
+                                    {getSiteDisplayText(site)}
+                                    <button 
+                                      type="button"
+                                      onClick={() => {
+                                        const newValues = field.value.filter(id => id !== siteId);
+                                        field.onChange(newValues);
+                                      }}
+                                      className="ml-1 text-blue-600 hover:text-blue-800"
+                                    >
+                                      x
+                                    </button>
+                                  </span>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             {/* Category and Pillar */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -977,54 +1376,101 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                 )}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="start_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      <LabelWithTooltip
-                        label="Start Time*"
-                        tooltip="Specify the time the programme will begin."
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <TimeInput
-                        id="start_time"
-                        value={field.value}
-                        onChange={field.onChange}
-                        disallowSameAsValue=""
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="end_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      <LabelWithTooltip
-                        label="End Time*"
-                        tooltip="Specify the time the programme will end."
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <TimeInput
-                        id="end_time"
-                        value={field.value}
-                        onChange={field.onChange}
-                        disallowSameAsValue=""
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {differentDays > 1 ? (
+              <div className="space-y-4">
+                <h4 className="text-md font-medium">Daily Schedule ({differentDays} days)</h4>
+                {Array.from({ length: differentDays }, (_, index) => (
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <h5 className="col-span-full text-sm font-medium text-gray-700">
+                      Day {index + 1} - {format(new Date(new Date(watchStartDate).getTime() + index * 24 * 60 * 60 * 1000 ), "EEEE, dd/MM/yyyy")}
+                    </h5>
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label={`Start Time Day ${index + 1}*`}
+                          tooltip={`Specify the start time for day ${index + 1}.`}
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <TimeInput
+                          id={`start_time_day_${index}`}
+                          value={dayTimes[index]?.start_time || ""}
+                          onChange={(value) => updateDayTime(index, "start_time", value)}
+                          disallowSameAsValue=""
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label={`End Time Day ${index + 1}*`}
+                          tooltip={`Specify the end time for day ${index + 1}.`}
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <TimeInput
+                          id={`end_time_day_${index}`}
+                          value={dayTimes[index]?.end_time || ""}
+                          onChange={(value) => updateDayTime(index, "end_time", value)}
+                          disallowSameAsValue=""
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="start_time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="Start Time*"
+                          tooltip="Specify the time the programme will begin."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <TimeInput
+                          id="start_time"
+                          value={field.value}
+                          onChange={field.onChange}
+                          disallowSameAsValue=""
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="end_time"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="End Time*"
+                          tooltip="Specify the time the programme will end."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <TimeInput
+                          id="end_time"
+                          value={field.value}
+                          onChange={field.onChange}
+                          disallowSameAsValue=""
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium leading-none flex items-center gap-1">
                 Duration (Hours)
