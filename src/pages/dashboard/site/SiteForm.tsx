@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -34,9 +34,11 @@ import {
   type OperationTime,
   type SiteImage
 } from "@/components/site/hook/site-utils";
+import { ConfirmationDialog } from "@/components/site/form-tabs/components/ConfirmationDialog";
 
 const SiteFormPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { siteId } = useParams<{ siteId?: string }>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -58,6 +60,15 @@ const SiteFormPage = () => {
   const [activeTab, setActiveTab] = useState("basic-info");
   const [originalSiteData, setOriginalSiteData] = useState<SiteFormData | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    open: boolean;
+    type: 'create' | 'update' | 'reset' | 'resetChanges' | 'navigate';
+    data?: SiteFormData;
+    navigationCallback?: () => void;
+  }>({
+    open: false,
+    type: 'create'
+  });
 
   // Fetch site data if editing
   const { data: site, isLoading } = useQuery({
@@ -133,6 +144,18 @@ const SiteFormPage = () => {
   };
 
   const handleSubmit = async (data: SiteFormData) => {
+    // Show confirmation dialog before submitting
+    setConfirmationDialog({
+      open: true,
+      type: isEditing ? 'update' : 'create',
+      data
+    });
+  };
+
+  const handleConfirmSubmit = async () => {
+    const data = confirmationDialog.data;
+    if (!data) return;
+
     try {
       await submitForm(data);
     } catch (error: any) {
@@ -153,41 +176,141 @@ const SiteFormPage = () => {
   };
 
   const handleCancel = () => {
-    navigate("/site-management");
+    if (hasChanges) {
+      // Show confirmation dialog before navigating away
+      setConfirmationDialog({
+        open: true,
+        type: 'navigate',
+        navigationCallback: () => navigate("/site-management")
+      });
+    } else {
+      navigate("/site-management");
+    }
   };
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (hasChanges) {
+        // Push the current state back to prevent navigation
+        window.history.pushState(null, '', window.location.href);
+        
+        setConfirmationDialog({
+          open: true,
+          type: 'navigate',
+          navigationCallback: () => {
+            // Temporarily disable the changes check and navigate
+            setHasChanges(false);
+            setTimeout(() => {
+              window.history.back();
+            }, 100);
+          }
+        });
+      }
+    };
+
+    // Add initial history entry to enable back button interception
+    window.history.pushState(null, '', window.location.href);
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [hasChanges]);
+
+  // Handle browser beforeunload (refresh, close tab, etc.)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
 
   // Function to check if form has changes
   const checkForChanges = () => {
-    if (!originalSiteData || !isEditing) {
-      setHasChanges(false);
-      return;
-    }
-
     const currentValues = form.getValues();
     
-    // Compare each field
-    const fieldsChanged = Object.keys(originalSiteData).some((key) => {
-      const originalValue = originalSiteData[key as keyof SiteFormData];
-      const currentValue = currentValues[key as keyof SiteFormData];
-      
-      // Handle arrays (socio_economic, space)
-      if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
-        return JSON.stringify(originalValue.sort()) !== JSON.stringify(currentValue.sort());
+    if (isEditing) {
+      // For editing: compare with original data
+      if (!originalSiteData) {
+        setHasChanges(false);
+        return;
       }
-      
-      // Handle regular values
-      return originalValue !== currentValue;
-    });
 
-    // Also check for changes in operation times, images, etc.
-    const hasOperationChanges = (form.watch("operationTimes") || []).length > 0;
-    const hasImageChanges = (form.watch("selectedImageFiles") || []).length > 0 || 
-                           (form.watch("imagesToDelete") || []).length > 0;
-    
-    setHasChanges(fieldsChanged || hasOperationChanges || hasImageChanges);
+      // Compare each field
+      const fieldsChanged = Object.keys(originalSiteData).some((key) => {
+        const originalValue = originalSiteData[key as keyof SiteFormData];
+        const currentValue = currentValues[key as keyof SiteFormData];
+        
+        // Handle arrays (socio_economic, space, operationTimes)
+        if (Array.isArray(originalValue) && Array.isArray(currentValue)) {
+          return JSON.stringify(originalValue.sort()) !== JSON.stringify(currentValue.sort());
+        }
+        
+        // Handle regular values
+        return originalValue !== currentValue;
+      });
+
+      // Also check for changes in operation times, images, etc.
+      const hasOperationChanges = (form.watch("operationTimes") || []).length !== (originalSiteData.operationTimes || []).length;
+      const hasImageChanges = (form.watch("selectedImageFiles") || []).length > 0 || 
+                             (form.watch("imagesToDelete") || []).length > 0;
+      
+      setHasChanges(fieldsChanged || hasOperationChanges || hasImageChanges);
+    } else {
+      // For creation: check if any fields have been filled with meaningful data
+      const hasFormData = Object.keys(currentValues).some((key) => {
+        const currentValue = currentValues[key as keyof SiteFormData];
+        
+        // Skip these fields as they don't indicate user input
+        if (key === 'hasLoadedOperationData' || key === 'selectedImageFiles' || 
+            key === 'imagesToDelete' || key === 'siteImages' || key === 'status') {
+          return false;
+        }
+        
+        // Handle arrays (socio_economic, space, operationTimes)
+        if (Array.isArray(currentValue)) {
+          return currentValue.length > 0;
+        }
+        
+        // Handle strings - check if not empty
+        if (typeof currentValue === 'string') {
+          return currentValue.trim() !== '';
+        }
+        
+        // Handle booleans - for these specific fields, any true value indicates user input
+        if (typeof currentValue === 'boolean') {
+          if (key === 'is_mini' || key === 'building_rental' || key === 'oku') {
+            return currentValue === true;
+          }
+        }
+        
+        return false;
+      });
+
+      // Also check for operation times and images
+      const hasOperationData = (form.watch("operationTimes") || []).length > 0;
+      const hasImageData = (form.watch("selectedImageFiles") || []).length > 0;
+      
+      const hasAnyChanges = hasFormData || hasOperationData || hasImageData;
+      setHasChanges(hasAnyChanges);
+    }
   };
 
   const handleResetChanges = () => {
+    // Show confirmation dialog before resetting changes
+    setConfirmationDialog({
+      open: true,
+      type: 'resetChanges'
+    });
+  };
+
+  const handleConfirmResetChanges = () => {
     if (site) {
       // Reset form to original site data
       const siteData: SiteFormData = {
@@ -247,6 +370,30 @@ const SiteFormPage = () => {
         description: "All changes have been reverted to the original values.",
       });
     }
+  };
+
+  const handleReset = () => {
+    // Show confirmation dialog before resetting form
+    setConfirmationDialog({
+      open: true,
+      type: 'reset'
+    });
+  };
+
+  const handleConfirmReset = () => {
+    // Reset to default values defined in form initialization
+    form.reset();
+    // Reset form state for operation times and images
+    form.setValue("operationTimes", []);
+    form.setValue("selectedImageFiles", []);
+    form.setValue("imagesToDelete", []);
+    form.setValue("siteImages", []);
+    form.setValue("hasLoadedOperationData", false);
+    
+    toast({
+      title: "Form Reset",
+      description: "All form fields have been reset to default values.",
+    });
   };
 
   // Effects
@@ -312,22 +459,18 @@ const SiteFormPage = () => {
     }
   }, [site, form, siteId]);
 
-  // Monitor form changes
+  // Monitor form changes for both creation and editing
   useEffect(() => {
-    if (isEditing && originalSiteData) {
-      const subscription = form.watch(() => {
-        checkForChanges();
-      });
-      return () => subscription.unsubscribe();
-    }
-  }, [form, isEditing, originalSiteData]);
-
-  // Monitor form changes
-  useEffect(() => {
-    if (isEditing) {
+    const subscription = form.watch(() => {
       checkForChanges();
-    }
-  }, [isEditing]);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Initial check for changes
+  useEffect(() => {
+    checkForChanges();
+  }, [isEditing, originalSiteData]);
 
   // Auto-jump to first tab with validation errors
   useEffect(() => {
@@ -397,20 +540,11 @@ const SiteFormPage = () => {
               Reset Changes
             </Button>
           )}
-          {!isEditing && (
+          {!isEditing && hasChanges && (
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                // Reset to default values defined in form initialization
-                form.reset();
-                // Reset form state for operation times and images
-                form.setValue("operationTimes", []);
-                form.setValue("selectedImageFiles", []);
-                form.setValue("imagesToDelete", []);
-                form.setValue("siteImages", []);
-                form.setValue("hasLoadedOperationData", false);
-              }}
+              onClick={handleReset}
               disabled={isSubmitting}
             >
               Reset
@@ -546,8 +680,113 @@ const SiteFormPage = () => {
           </Form>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        open={confirmationDialog.open}
+        onOpenChange={(open) => setConfirmationDialog(prev => ({ ...prev, open }))}
+        title={getConfirmationTitle()}
+        description={getConfirmationDescription()}
+        confirmText={getConfirmationText()}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmationDialog(prev => ({ ...prev, open: false }))}
+        isDestructive={confirmationDialog.type === 'reset' || confirmationDialog.type === 'resetChanges' || confirmationDialog.type === 'navigate'}
+        isLoading={isSubmitting}
+        icon={getConfirmationIcon()}
+      />
     </div>
   );
+
+  function getConfirmationTitle() {
+    switch (confirmationDialog.type) {
+      case 'create':
+        return 'Create New Site';
+      case 'update':
+        return 'Update Site';
+      case 'reset':
+        return 'Reset Form';
+      case 'resetChanges':
+        return 'Reset Changes';
+      case 'navigate':
+        return 'Unsaved Changes';
+      default:
+        return 'Confirm Action';
+    }
+  }
+
+  function getConfirmationDescription() {
+    switch (confirmationDialog.type) {
+      case 'create':
+        return 'Are you sure you want to create this new site? This will add the site to the system.';
+      case 'update':
+        return 'Are you sure you want to update this site? This will save all your changes.';
+      case 'reset':
+        return 'Are you sure you want to reset the form? All entered data will be lost and cannot be recovered.';
+      case 'resetChanges':
+        return 'Are you sure you want to reset all changes? This will revert all fields back to their original values.';
+      case 'navigate':
+        return 'You have unsaved changes that will be lost if you leave this page. Are you sure you want to continue?';
+      default:
+        return 'Are you sure you want to proceed?';
+    }
+  }
+
+  function getConfirmationText() {
+    switch (confirmationDialog.type) {
+      case 'create':
+        return 'Create Site';
+      case 'update':
+        return 'Update Site';
+      case 'reset':
+        return 'Reset Form';
+      case 'resetChanges':
+        return 'Reset Changes';
+      case 'navigate':
+        return 'Leave Page';
+      default:
+        return 'Confirm';
+    }
+  }
+
+  function getConfirmationIcon() {
+    switch (confirmationDialog.type) {
+      case 'create':
+        return 'create';
+      case 'update':
+        return 'save';
+      case 'reset':
+      case 'resetChanges':
+        return 'reset';
+      case 'navigate':
+        return 'warning';
+      default:
+        return 'warning';
+    }
+  }
+
+  function handleConfirmAction() {
+    switch (confirmationDialog.type) {
+      case 'create':
+      case 'update':
+        handleConfirmSubmit();
+        break;
+      case 'reset':
+        handleConfirmReset();
+        break;
+      case 'resetChanges':
+        handleConfirmResetChanges();
+        break;
+      case 'navigate':
+        handleConfirmNavigation();
+        break;
+    }
+  }
+
+  function handleConfirmNavigation() {
+    if (confirmationDialog.navigationCallback) {
+      confirmationDialog.navigationCallback();
+    }
+  }
 };
 
 export default SiteFormPage;
