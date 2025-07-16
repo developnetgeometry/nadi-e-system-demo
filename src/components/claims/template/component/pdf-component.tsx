@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import { Text, View, StyleSheet, Image, Link } from "@react-pdf/renderer";
 import { Svg, Rect, Path } from "@react-pdf/renderer";
 
 // PDF styles for the components
@@ -496,7 +496,27 @@ export const PDFTable = <T extends Record<string, any>>({
                 {typeof displayValue === 'string' || typeof displayValue === 'number' ? (
                   <Text style={[tableStyles.td, align !== 'left' && { textAlign: align }]}>{displayValue}</Text>
                 ) : (
-                  displayValue
+                  <View style={{ 
+                    width: '100%', 
+                    justifyContent: 'center', 
+                    alignItems, 
+                    paddingHorizontal: 6,
+                    paddingVertical: 6 
+                  }}>
+                    {React.isValidElement(displayValue) && displayValue.type === Link ? 
+                      React.cloneElement(displayValue as React.ReactElement<any>, {
+                        style: {
+                          fontSize: 8,
+                          color: '#0066cc',
+                          textDecoration: 'none',
+                          flexWrap: 'wrap',
+                          textAlign: align,
+                          width: '100%',
+                          ...((displayValue.props as any)?.style || {})
+                        }
+                      }) : displayValue
+                    }
+                  </View>
                 )}
               </View>
             );

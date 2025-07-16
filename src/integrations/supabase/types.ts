@@ -766,9 +766,6 @@ export type Database = {
       }
       nd_asset: {
         Row: {
-          asset_group: string | null
-          asset_mobility: string | null
-          asset_subtype_id: number | null
           brand_id: number | null
           created_at: string | null
           created_by: string | null
@@ -779,6 +776,7 @@ export type Database = {
           deleted_at: string | null
           id: number
           is_active: boolean | null
+          is_movable: boolean | null
           is_using: boolean | null
           location_id: number | null
           name: string | null
@@ -792,9 +790,6 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          asset_group?: string | null
-          asset_mobility?: string | null
-          asset_subtype_id?: number | null
           brand_id?: number | null
           created_at?: string | null
           created_by?: string | null
@@ -805,6 +800,7 @@ export type Database = {
           deleted_at?: string | null
           id?: number
           is_active?: boolean | null
+          is_movable?: boolean | null
           is_using?: boolean | null
           location_id?: number | null
           name?: string | null
@@ -818,9 +814,6 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          asset_group?: string | null
-          asset_mobility?: string | null
-          asset_subtype_id?: number | null
           brand_id?: number | null
           created_at?: string | null
           created_by?: string | null
@@ -831,6 +824,7 @@ export type Database = {
           deleted_at?: string | null
           id?: number
           is_active?: boolean | null
+          is_movable?: boolean | null
           is_using?: boolean | null
           location_id?: number | null
           name?: string | null
@@ -856,13 +850,6 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "nd_space"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "nd_asset_nd_asset_subtype_fk"
-            columns: ["asset_subtype_id"]
-            isOneToOne: false
-            referencedRelation: "nd_asset_subtype"
             referencedColumns: ["id"]
           },
           {
@@ -957,38 +944,93 @@ export type Database = {
       }
       nd_asset_subtype: {
         Row: {
-          asset_type_id: number | null
           created_at: string | null
           created_by: string | null
+          description: string | null
           id: number
+          is_composite: boolean | null
           name: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          asset_type_id?: number | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
           id: number
+          is_composite?: boolean | null
           name?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          asset_type_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: number
+          is_composite?: boolean | null
+          name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      nd_asset_systems: {
+        Row: {
+          assigned_date: string | null
+          child_asset_id: number | null
+          component_role: string | null
+          created_at: string | null
+          created_by: string | null
+          id: number
+          is_active: boolean | null
+          parent_asset_id: number | null
+          replacement_reason: string | null
+          unassigned_date: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          assigned_date?: string | null
+          child_asset_id?: number | null
+          component_role?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: number
-          name?: string | null
+          is_active?: boolean | null
+          parent_asset_id?: number | null
+          replacement_reason?: string | null
+          unassigned_date?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          assigned_date?: string | null
+          child_asset_id?: number | null
+          component_role?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: number
+          is_active?: boolean | null
+          parent_asset_id?: number | null
+          replacement_reason?: string | null
+          unassigned_date?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "nd_asset_subtype_nd_asset_type_fk"
-            columns: ["asset_type_id"]
+            foreignKeyName: "nd_asset_systems_nd_asset_fk"
+            columns: ["parent_asset_id"]
             isOneToOne: false
-            referencedRelation: "nd_asset_type"
+            referencedRelation: "nd_asset"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nd_asset_systems_nd_asset_fk_1"
+            columns: ["child_asset_id"]
+            isOneToOne: false
+            referencedRelation: "nd_asset"
             referencedColumns: ["id"]
           },
         ]
@@ -4340,7 +4382,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           file_path?: string | null
-          id: number
+          id?: number
           leave_id?: number | null
           updated_at?: string | null
           updated_by?: string | null
@@ -4839,7 +4881,7 @@ export type Database = {
           created_by?: string | null
           end_date?: string | null
           half_day?: boolean | null
-          id: number
+          id?: number
           leave_status?: number | null
           leave_type?: number | null
           remark?: string | null
@@ -8213,6 +8255,7 @@ export type Database = {
           updated_by: string | null
           ust_id: number | null
           website: string | null
+          website_last_updated: string | null
           zone_id: number | null
         }
         Insert: {
@@ -8256,6 +8299,7 @@ export type Database = {
           updated_by?: string | null
           ust_id?: number | null
           website?: string | null
+          website_last_updated?: string | null
           zone_id?: number | null
         }
         Update: {
@@ -8299,6 +8343,7 @@ export type Database = {
           updated_by?: string | null
           ust_id?: number | null
           website?: string | null
+          website_last_updated?: string | null
           zone_id?: number | null
         }
         Relationships: [

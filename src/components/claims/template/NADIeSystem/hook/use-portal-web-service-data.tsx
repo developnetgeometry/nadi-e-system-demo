@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface PortalWebServiceData {
     site_id: string;
     standard_code: string;
@@ -5,8 +7,7 @@ export interface PortalWebServiceData {
     refId: string;
     state: string;
     site_url_web_portal: string;
-    email_staff: string[];
-    // attachments_path: string[];
+    website_last_updated: string; // Column now exists in database
 }
 
 /**
@@ -30,34 +31,47 @@ export const fetchPortalWebServiceData = async ({
         tpFilter 
     });
     
-    // Mock data (replace with actual API call in production)
-    const portalWebService = [
-        {
-            site_id: "1",
-            standard_code: "K11N012",
-            site_name: "NADI Kampung Musa",
-            refId: "K09C002",
-            state: "Kedah",
-            site_url_web_portal: "https://kgmusa.nadi.my/",
-            email_staff: ["yap.jia.hui@kgmusa.nadi.my","muhammad.luqman@kgmusa.nadi.my"],
-           
-        },
-        {
-            site_id: "2",
-            standard_code: "N11N009",
-            site_name: "NADI Taman Bukit Inai",
-            refId: "N09C001",
-            state: "Kelantan",
-            site_url_web_portal: "tamanbukitinai.nadi.my",
-            email_staff: ["sim.mei.hui@tamanbukitinai.nadi.my","mazlan.shah@tamanbukitinai.nadi.my"],
-          
-        },
-        
-    ];
+    // Fetch site details from nd_site_profile
+    let siteQuery = supabase
+        .from("nd_site_profile")
+        .select(`
+            id,
+            sitename,
+            website,
+            website_last_updated,
+            nd_site:nd_site(standard_code, refid_tp, refid_mcmc),
+            state_id:nd_state(name)
+        `);
+
+    // Apply filters
+    if (phaseFilter) siteQuery = siteQuery.eq("phase_id", Number(phaseFilter));
+    if (nadiFilter && nadiFilter.length > 0) siteQuery = siteQuery.in("id", nadiFilter.map(Number));
+
+    const { data: siteDetails, error: siteError } = await siteQuery;
+    if (siteError) throw siteError;
+    if (!siteDetails || siteDetails.length === 0) return { portalWebService: [] };
+
+    console.log("Fetched site details with website_last_updated:", siteDetails.map(site => ({
+        id: site.id,
+        sitename: site.sitename,
+        website: site.website,
+        website_last_updated: site.website_last_updated
+    })));
+
+    // Transform the data to match the interface
+    const portalWebService: PortalWebServiceData[] = siteDetails.map(site => ({
+        site_id: String(site.id),
+        standard_code: site.nd_site?.[0]?.refid_mcmc || "",
+        site_name: site.sitename || "",
+        refId: site.nd_site?.[0]?.refid_tp || "",
+        state: site.state_id?.name || "",
+        site_url_web_portal: site.website || "", // Use the actual website column from database
+        website_last_updated: site.website_last_updated || "", // Now fetches from database column
+    }));
     
     // Return the data in the same format as the hook
     return { 
-        portalWebService: portalWebService as PortalWebServiceData[]
+        portalWebService: portalWebService
     };
 }
 

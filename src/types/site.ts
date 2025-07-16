@@ -14,6 +14,8 @@ export interface Site {
   is_active: boolean;
   email: string;
   website: string;
+  website_last_updated: string;
+  is_mini: boolean;
   longtitude: string;
   latitude: string;
   operate_date: string;
