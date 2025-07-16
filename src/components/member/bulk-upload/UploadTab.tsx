@@ -56,7 +56,7 @@ const UploadTab: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-    const requiredFields = ['NADI_SITE', 'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'GENDER'];
+    const requiredFields = ['NADI_SITE', 'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'EMAIL', 'GENDER'];
 
     const expectedHeaders = [
         'NADI_SITE', 'FULLNAME', 'IDENTITY_NO', 'IDENTITY_TYPE', 'EMAIL', 'GENDER',
@@ -785,7 +785,7 @@ const UploadTab: React.FC = () => {
                                         <p className="font-mono text-xs mt-1">
                                             RACE,PDPA_DECLARE,AGREE_DECLARE,NATIONALITY,MADANI_COMMUNITY,ENTREPRENEUR_STATUS,GUARDIAN_NAME,ADDRESS1,ADDRESS2,DISTRICT,STATE,POSTCODE,CITY
                                         </p>
-                                        <p className="mt-2"><strong>Required Fields:</strong> NADI_SITE, FULLNAME, IDENTITY_NO, IDENTITY_TYPE, GENDER</p>
+                                        <p className="mt-2"><strong>Required Fields:</strong> NADI_SITE, FULLNAME, IDENTITY_NO, IDENTITY_TYPE, EMAIL, GENDER</p>
                                     </div>
                                 </div>
                             </div>

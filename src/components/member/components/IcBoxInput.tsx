@@ -4,9 +4,15 @@ interface ICBoxInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  onBlurEnd?: () => void; // 🔹 New optional prop
 }
 
-export function ICBoxInput({ value, onChange, disabled = false }: ICBoxInputProps) {
+export function ICBoxInput({
+  value,
+  onChange,
+  disabled = false,
+  onBlurEnd,
+}: ICBoxInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (index: number, char: string) => {
@@ -44,6 +50,8 @@ export function ICBoxInput({ value, onChange, disabled = false }: ICBoxInputProp
           value={value[i] || ""}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
+          //onBlur={i === 11 ? onBlurEnd : undefined} // 🔹 Only attach onBlur to last input
+          onBlur={onBlurEnd} // 🔹 Only attach onBlur to last input
           disabled={disabled}
           className="w-8 h-10 text-center border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
         />

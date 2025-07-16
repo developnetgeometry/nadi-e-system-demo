@@ -78,7 +78,7 @@ export function AddressForm({
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
-              checked={useGuardianAddress}
+              checked={useGuardianAddress ?? false}
               onChange={(e) => setUseGuardianAddress(e.target.checked)}
             />
             <span>Use guardian's address</span>
@@ -88,11 +88,12 @@ export function AddressForm({
 
       {/* Address Line 1 */}
       <div className="space-y-2 mb-4">
-        <Label className="flex items-center">Address Line 1 <span className="text-red-500 ml-1">*</span></Label>
+        <Label className="flex items-center">Address Line 1</Label>
+        {/* <Label className="flex items-center">Address Line 1 <span className="text-red-500 ml-1">*</span></Label> */}
         <Input
           required
           type="text"
-          value={address1}
+          value={address1 ?? ""}
           onChange={(e) => updateFields({ address1: e.target.value })}
           disabled={useGuardianAddress && isUnder12}
         />
@@ -103,7 +104,7 @@ export function AddressForm({
         <Label className="flex items-center">Address Line 2</Label>
         <Input
           type="text"
-          value={address2}
+          value={address2 ?? ""}
           onChange={(e) => updateFields({ address2: e.target.value })}
           disabled={useGuardianAddress && isUnder12}
         />
@@ -111,7 +112,7 @@ export function AddressForm({
 
       {/* State */}
       <div className="space-y-2 mb-4">
-        <Label className="flex items-center">State <span className="text-red-500 ml-1">*</span></Label>
+        <Label className="flex items-center">State</Label>
         <Select
           value={state_id || ""}
           onValueChange={(value) => {
@@ -135,7 +136,7 @@ export function AddressForm({
 
       {/* District */}
       <div className="space-y-2 mb-4">
-        <Label className="flex items-center">District <span className="text-red-500 ml-1">*</span></Label>
+        <Label className="flex items-center">District</Label>
         <Select
           value={district_id || ""}
           onValueChange={(value) => updateFields({ district_id: value })}
@@ -157,11 +158,11 @@ export function AddressForm({
 
       {/* City */}
       <div className="space-y-2 mb-4">
-        <Label className="flex items-center">City <span className="text-red-500 ml-1">*</span></Label>
+        <Label className="flex items-center">City</Label>
         <Input
           required
           type="text"
-          value={city}
+          value={city ?? ""}
           onChange={(e) => updateFields({ city: e.target.value })}
           disabled={useGuardianAddress && isUnder12}
         />
@@ -169,11 +170,11 @@ export function AddressForm({
 
       {/* Postcode */}
       <div className="space-y-2 mb-4">
-        <Label className="flex items-center">Postcode <span className="text-red-500 ml-1">*</span></Label>
+        <Label className="flex items-center">Postcode</Label>
         <Input
           required
           type="text"
-          value={postcode}
+          value={postcode ?? ""}
           onChange={(e) => updateFields({ postcode: e.target.value })}
           disabled={useGuardianAddress && isUnder12}
         />
@@ -184,7 +185,7 @@ export function AddressForm({
         <Label className="flex items-center">Distance from NADI (km)</Label>
         <Input
           type="number"
-          value={distance}
+          value={distance ?? ""}
           onChange={(e) => updateFields({ distance: e.target.value })}
         />
       </div>
