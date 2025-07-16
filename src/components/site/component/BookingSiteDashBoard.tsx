@@ -309,15 +309,6 @@ export const BookingSiteDashBoard = ({
               Manage all physical PC and Facility in locations
             </p>
           </div>
-          {(!isRestrictedUser && !isBookingsEnabled) && (
-            <Button
-              onClick={() => setIsDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus size={16} />
-              <span>Add New Site</span>
-            </Button>
-          )}
         </div>
 
         <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
