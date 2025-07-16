@@ -16,6 +16,7 @@ interface FileUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onExistingFilesChange?: (files: Array<{ url: string; name: string }>) => void;
   children?: React.ReactNode;
   multiple?: boolean;
+  selectedFiles?: File[]; // Add controlled selected files prop
 }
 
 export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
@@ -33,16 +34,20 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       onExistingFilesChange,
       multiple = false,
       children,
+      selectedFiles: controlledSelectedFiles,
       ...props
     },
     ref
   ) => {
-    const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+    const [internalSelectedFiles, setInternalSelectedFiles] = React.useState<File[]>([]);
     const [error, setError] = React.useState<string | null>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const [isDraggingInvalidFile, setIsDraggingInvalidFile] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
     const dropZoneRef = React.useRef<HTMLDivElement>(null);
+    
+    // Use controlled files if provided, otherwise use internal state
+    const selectedFiles = controlledSelectedFiles !== undefined ? controlledSelectedFiles : internalSelectedFiles;
     
     // Update maxFiles based on multiple prop
     const effectiveMaxFiles = multiple ? maxFiles : 1;
@@ -68,13 +73,21 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
     React.useImperativeHandle(ref, () => ({
       ...inputRef.current,
       reset: () => {
-        setSelectedFiles([]);
+        // If using controlled files, only notify parent, don't update internal state
+        if (controlledSelectedFiles !== undefined) {
+          if (onFilesSelected) {
+            onFilesSelected([]);
+          }
+        } else {
+          // Use internal state when not controlled
+          setInternalSelectedFiles([]);
+          if (onFilesSelected) {
+            onFilesSelected([]);
+          }
+        }
         setError(null);
         if (inputRef.current) {
           inputRef.current.value = "";
-        }
-        if (onFilesSelected) {
-          onFilesSelected([]);
         }
       }
     }));
@@ -201,9 +214,17 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
       const validatedFiles = validateFiles(filesArray);
 
       if (validatedFiles) {
-        setSelectedFiles(validatedFiles);
-        if (onFilesSelected) {
-          onFilesSelected(validatedFiles);
+        // If using controlled files, only notify parent, don't update internal state
+        if (controlledSelectedFiles !== undefined) {
+          if (onFilesSelected) {
+            onFilesSelected(validatedFiles);
+          }
+        } else {
+          // Use internal state when not controlled
+          setInternalSelectedFiles(validatedFiles);
+          if (onFilesSelected) {
+            onFilesSelected(validatedFiles);
+          }
         }
       }
     };
@@ -211,10 +232,18 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
     const handleRemoveFile = (index: number) => {
       const newFiles = [...selectedFiles];
       newFiles.splice(index, 1);
-      setSelectedFiles(newFiles);
-
-      if (onFilesSelected) {
-        onFilesSelected(newFiles);
+      
+      // If using controlled files, only notify parent, don't update internal state
+      if (controlledSelectedFiles !== undefined) {
+        if (onFilesSelected) {
+          onFilesSelected(newFiles);
+        }
+      } else {
+        // Use internal state when not controlled
+        setInternalSelectedFiles(newFiles);
+        if (onFilesSelected) {
+          onFilesSelected(newFiles);
+        }
       }
 
       // Reset the input value to allow selecting the same file again
@@ -327,9 +356,17 @@ export const FileUpload = React.forwardRef<HTMLInputElement, FileUploadProps>(
         const validatedFiles = validateFiles(droppedFiles);
         
         if (validatedFiles) {
-          setSelectedFiles(validatedFiles);
-          if (onFilesSelected) {
-            onFilesSelected(validatedFiles);
+          // If using controlled files, only notify parent, don't update internal state
+          if (controlledSelectedFiles !== undefined) {
+            if (onFilesSelected) {
+              onFilesSelected(validatedFiles);
+            }
+          } else {
+            // Use internal state when not controlled
+            setInternalSelectedFiles(validatedFiles);
+            if (onFilesSelected) {
+              onFilesSelected(validatedFiles);
+            }
           }
         }
       }

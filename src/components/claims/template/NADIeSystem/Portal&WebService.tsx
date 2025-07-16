@@ -157,11 +157,27 @@ const PortalWebService = async ({
                         data={portalWebService}
                         columns={[
                             { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "standard_code", header: "REFID" },
-                            { key: "site_name", header: "NADI" },
-                            { key: "state", header: "STATE" },
-                            { key: "site_url_web_portal", header: "URL PORTAL",width: "27%",render: (value) => value ?<Link src={value.startsWith('http') ? value : `${value}`}>{value}</Link> : "-" },
-                            { key: "email_staff", header: "EMAIL STAFF",render: (value) => value ? value.join(";\n") : "-",width: "30%" },
+                            { key: "standard_code", header: "REFID", width: "15%" },
+                            { key: "site_name", header: "NADI", width: "25%" },
+                            { key: "state", header: "STATE", width: "12%" },
+                            { 
+                                key: "site_url_web_portal",
+                                header: "URL PORTAL", 
+                                width: "28%",
+                                align: "left",
+                                render: (value) => value ? (
+                                    <Link src={value.startsWith('http') ? value : `https://${value}`}>
+                                        {value}
+                                    </Link>
+                                ) : "-"
+                            },
+                            { 
+                                key: "website_last_updated",
+                                header: "LAST UPDATED", 
+                                width: "15%",
+                                align: "center",
+                                render: (value) => value ? new Date(value).toLocaleDateString() : "-"
+                            },
                         ]}
                     />
                 ) : (
