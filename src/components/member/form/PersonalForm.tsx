@@ -50,41 +50,21 @@ export function PersonalForm({
   registrationMethods,
 }: PersonalFormProps) {
   const { profiles = [], loading, error: siteProfilesError } = useSiteProfiles();
-  const [checkingEmail, setCheckingEmail] = useState(false);
-  const [hasCheckedEmail, setHasCheckedEmail] = useState(false);
-  const [lastValidatedEmail, setLastValidatedEmail] = useState<string | null>(null);
-  const debounceEmailRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (!email || email.length < 5) {
-      setHasCheckedEmail(false);
-      return;
-    }
-    if (email === lastValidatedEmail) return;
 
-    if (debounceEmailRef.current) {
-      clearTimeout(debounceEmailRef.current);
-    }
+  const handleEmailBlur = async () => {
+    if (!email || email.length < 5) return;
 
-    debounceEmailRef.current = setTimeout(async () => {
-      setCheckingEmail(true);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("email", email)
+      .maybeSingle();
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email", email)
-        .maybeSingle();
+    const exists = !!data && !error;
+    updateFields({ isEmailExist: exists });
+  };
 
-      if (!error) {
-        const exists = !!data;
-        updateFields({ isEmailExist: !exists });
-        setHasCheckedEmail(true);
-        setLastValidatedEmail(email);
-      }
-
-      setCheckingEmail(false);
-    }, 500);
-  }, [email, updateFields, lastValidatedEmail]);
 
   return (
     <>
@@ -100,7 +80,7 @@ export function PersonalForm({
             required
             type="text"
             name="fullname"
-            value={fullname}
+            value={fullname ?? ""}
             onChange={(e) => updateFields({ fullname: e.target.value })}
           />
         </div>
@@ -110,7 +90,7 @@ export function PersonalForm({
           <Label className="flex items-center">Date of Birth <span className="text-red-500 ml-1">*</span></Label>
           <Input
             type="date"
-            value={dob}
+            value={dob ?? ""}
             onChange={(e) => updateFields({ dob: e.target.value })}
             required
           />
@@ -140,10 +120,10 @@ export function PersonalForm({
 
         {/* Mobile Number */}
         <div className="space-y-2">
-          <Label className="flex items-center">Mobile Number<span className="text-red-500 ml-1">*</span></Label>
+          <Label className="flex items-center">Mobile Number</Label>
           <Input
             type="tel"
-            value={mobile_no}
+            value={mobile_no ?? ""}
             onChange={(e) => updateFields({ mobile_no: e.target.value })}
           />
         </div>
@@ -153,25 +133,22 @@ export function PersonalForm({
           <Label className="flex items-center">Email<span className="text-red-500 ml-1">*</span></Label>
           <Input
             type="email"
-            value={email}
+            value={email ?? ""}
             onChange={(e) =>
               updateFields({ email: e.target.value.toLowerCase() })
             }
+            onBlur={handleEmailBlur}
+
           />
           {email.length > 5 && (
             <div className="mt-1 flex items-center space-x-1 text-sm">
-              {checkingEmail ? (
-                <span className="text-gray-500 italic">Checking...</span>
-              ) : hasCheckedEmail ? (
-                isEmailExist ? (
-                  <span />
-                ) : (
-                  <span className="text-red-600 flex items-center">
-                    <XCircle className="w-4 h-4 mr-1" />
-                    This email already exists in the system
-                  </span>
-                )
-              ) : null}
+
+              {isEmailExist && (
+                <div className="text-red-600 flex items-center text-sm mt-1">
+                  <XCircle className="w-4 h-4 mr-1" />
+                  This email already exists in the system
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -258,7 +235,7 @@ export function PersonalForm({
           <Label className="flex items-center">Join Date <span className="text-red-500 ml-1">*</span></Label>
           <Input
             type="date"
-            value={join_date}
+            value={join_date ?? ""}
             onChange={(e) => updateFields({ join_date: e.target.value })}
             required
           />

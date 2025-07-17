@@ -40,6 +40,9 @@ type ICFormProps = ICData & {
   states?: { id: string; name: string }[];
   districts?: { id: string; name: string }[];
   fetchDistrictsByState?: (stateId: string) => Promise<void>;
+
+  shouldRunICBlur: boolean;
+  setShouldRunICBlur: (val: boolean) => void;
 };
 
 export function ICForm({
@@ -71,114 +74,106 @@ export function ICForm({
   states,
   districts,
   fetchDistrictsByState,
+
+  shouldRunICBlur,
+  setShouldRunICBlur,
 }: ICFormProps) {
-  const [checking, setChecking] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
-  const [lastValidatedIC, setLastValidatedIC] = useState<string | null>(null); // 🆕 Track last validated
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const dummyInput = useRef<HTMLInputElement>(null);
+  const [icTouched, setIcTouched] = useState(false);
 
   useEffect(() => {
-    if (identity_no.length <= 5) {
-      setHasChecked(false);
-      return;
+    if (shouldRunICBlur) {
+      handleICBlur().finally(() => {
+        setShouldRunICBlur(false); // reset trigger after running
+        setIcTouched(true);
+        dummyInput.current?.blur();
+      });
     }
+  }, [shouldRunICBlur]);
 
-    if (identity_no === lastValidatedIC) return;
+  const handleICBlur = async () => {
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("ic_number")
+      .eq("ic_number", identity_no)
+      .maybeSingle();
 
-    debounceRef.current = setTimeout(async () => {
-      setChecking(true);
+    const exists = !!data && !error;
+    updateFields({ isIcNumberExist: exists });
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("ic_number")
-        .eq("ic_number", identity_no)
-        .maybeSingle();
 
-      if (!error) {
-        const exists = !!data;
-        updateFields({ isIcNumberExist: !exists });
-        setHasChecked(true);
-        setLastValidatedIC(identity_no);
-      }
+    if (identity_no_type === "1" && identity_no.length >= 6) {
+      const yearPart = parseInt(identity_no.substring(0, 2), 10);
+      const monthPart = parseInt(identity_no.substring(2, 4), 10);
+      const dayPart = parseInt(identity_no.substring(4, 6), 10);
 
-      setChecking(false);
+      const now = new Date();
+      const currentYear = now.getFullYear() % 100;
+      const fullYear = yearPart > currentYear ? 1900 + yearPart : 2000 + yearPart;
 
-      if (identity_no_type === "1" && identity_no.length >= 6) {
-        const yearPart = parseInt(identity_no.substring(0, 2), 10);
-        const monthPart = parseInt(identity_no.substring(2, 4), 10);
-        const dayPart = parseInt(identity_no.substring(4, 6), 10);
+      const isValidYear = fullYear <= now.getFullYear();
+      const isValidMonth = monthPart >= 1 && monthPart <= 12;
+      const isValidDay = dayPart >= 1 && dayPart <= 31;
 
-        const now = new Date();
-        const currentYear = now.getFullYear() % 100;
-        const fullYear = yearPart > currentYear ? 1900 + yearPart : 2000 + yearPart;
+      const dob = new Date(fullYear, monthPart - 1, dayPart);
+      const today = new Date();
 
-        const isValidYear = fullYear <= now.getFullYear(); // Validate year
-        const isValidMonth = monthPart >= 1 && monthPart <= 12; // Validate month
-        const isValidDay = dayPart >= 1 && dayPart <= 31; // Validate day
+      const isExactDateMatch =
+        dob.getFullYear() === fullYear &&
+        dob.getMonth() === monthPart - 1 &&
+        dob.getDate() === dayPart;
 
-        const dob = new Date(fullYear, monthPart - 1, dayPart);
-        const today = new Date();
+      const isValidDate =
+        isValidYear && isValidMonth && isValidDay && isExactDateMatch && dob < today;
 
-        const isExactDateMatch =
-          dob.getFullYear() === fullYear &&
-          dob.getMonth() === monthPart - 1 &&
-          dob.getDate() === dayPart;
+      updateFields({
+        isIcYearValid: isValidYear,
+        isIcMonthValid: isValidMonth,
+        isIcDayValid: isValidDay,
+        isIcNumberValid: isValidDate,
+        nationality_id: "1",
+      });
 
-        const isValidDate = isValidYear && isValidMonth && isValidDay && isExactDateMatch && dob < today;
-
-        // Update fields for year, month, and day validity
+      if (!isValidDate) {
         updateFields({
-          isIcYearValid: isValidYear,
-          isIcMonthValid: isValidMonth,
-          isIcDayValid: isValidDay,
-          isIcNumberValid: isValidDate,
-          nationality_id: "1", // 👈 set nationality_id
-        });
-
-        if (!isValidDate) {
-          updateFields({
-            dob: null,
-            gender: null,
-            isUnder12: false,
-          });
-          return;
-        }
-
-        const age = now.getFullYear() - fullYear;
-        const dobString = `${fullYear.toString().padStart(4, "0")}-${monthPart
-          .toString()
-          .padStart(2, "0")}-${dayPart.toString().padStart(2, "0")}`;
-
-        const lastDigit = parseInt(identity_no.charAt(identity_no.length - 1), 10);
-        const gender = lastDigit % 2 === 0 ? "2" : "1";
-
-        updateFields({
-          dob: dobString,
-          gender,
-          isUnder12: age <= 12,
-        });
-      } else if (identity_no_type === "1") {
-        updateFields({
-          isIcYearValid: false,
-          isIcMonthValid: false,
-          isIcDayValid: false,
-          isIcNumberValid: false,
-          isUnder12: false,
           dob: null,
+          gender: null,
+          isUnder12: false,
         });
+        return;
       }
-    }, 500);
-  }, [identity_no, updateFields, lastValidatedIC]);
 
+      const age = now.getFullYear() - fullYear;
+      const dobString = `${fullYear.toString().padStart(4, "0")}-${monthPart
+        .toString()
+        .padStart(2, "0")}-${dayPart.toString().padStart(2, "0")}`;
+
+      const lastDigit = parseInt(identity_no.charAt(identity_no.length - 1), 10);
+      const gender = lastDigit % 2 === 0 ? "2" : "1";
+
+      updateFields({
+        dob: dobString,
+        gender,
+        isUnder12: age <= 12,
+      });
+    } else if (identity_no_type === "1") {
+      updateFields({
+        isIcYearValid: false,
+        isIcMonthValid: false,
+        isIcDayValid: false,
+        isIcNumberValid: false,
+        isUnder12: false,
+        dob: null,
+      });
+    }
+  };
 
 
   return (
     <>
       <div className="mb-4">Identity Information</div>
+      {/* <pre>{JSON.stringify(isIcNumberExist, null, 2)}</pre> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Identity Type */}
@@ -192,12 +187,11 @@ export function ICForm({
               updateFields({
                 identity_no_type: value,
                 identity_no: "", // 👈 reset identity number
-                isIcNumberExist: false, // 👈 optionally reset validation
+                isIcNumberExist: true, // 👈 optionally reset validation
                 isIcNumberValid: false, // 👈 reset validation status
                 isUnder12: false, // 👈 reset under 12 status
               });
-              setHasChecked(false); // 👈 reset checked status
-              setLastValidatedIC(null); // 👈 clear validation cache
+              setIcTouched(false);
             }}
             required
           >
@@ -222,8 +216,16 @@ export function ICForm({
             </Label>
             {identity_no_type === "1" ? (
               <ICBoxInput
-                value={identity_no}
-                onChange={(val) => updateFields({ identity_no: val })}
+                value={identity_no ?? ""}
+                onChange={(val) => {
+                  updateFields({ identity_no: val });
+                  setIcTouched(false);
+                }
+                }
+                onBlurEnd={async () => {
+                  setIcTouched(true); // show validation after blur
+                  await handleICBlur();
+                }}
               />
             ) : (
               <Input
@@ -232,56 +234,47 @@ export function ICForm({
                 value={identity_no}
                 onChange={(e) => {
                   updateFields({ identity_no: e.target.value });
+                  setIcTouched(false); // hide validation while typing
+                }}
+                onBlur={() => {
+                  setIcTouched(true); // show validation after blur
+                  handleICBlur();     // run your validation logic
                 }}
                 placeholder="Enter identity number"
                 maxLength={30}
               />
+
             )}
 
-
-            {identity_no.length > 5 && (
+            {icTouched && (
               <div className="mt-1 flex items-center space-x-1 text-sm">
-                {checking ? (
-                  <span className="text-gray-500 italic">Checking...</span>
-                ) : hasChecked ? (
-                  identity_no_type === "1" ? (
-                    identity_no.length !== 12 ? (
-                      <span className="text-red-600 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        This IC number must have 12 digits
-                      </span>
-                    ) : !isIcYearValid ? (
-                      <span className="text-red-600 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Invalid year in IC number
-                      </span>
-                    ) : !isIcMonthValid ? (
-                      <span className="text-red-600 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Invalid month in IC number
-                      </span>
-                    ) : !isIcDayValid ? (
-                      <span className="text-red-600 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Invalid day in IC number
-                      </span>
-                    ) : !isIcNumberValid ? (
-                      <span className="text-red-600 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Invalid IC number format (invalid or future date)
-                      </span>
-                    ) : !isIcNumberExist ? (
-                      <span className="text-red-600 flex items-center">
-                        <XCircle className="w-4 h-4 mr-1" />
-                        The IC number already exists in the system
-                      </span>
-                    ) : (
-                      <span className="text-green-600 flex items-center">
-                        <CheckCircle2 className="w-4 h-4 mr-1" />
-                        Valid IC
-                      </span>
-                    )
-                  ) : !isIcNumberExist ? (
+                {identity_no_type === "1" ? (
+                  identity_no.length !== 12 ? (
+                    <span className="text-red-600 flex items-center">
+                      <XCircle className="w-4 h-4 mr-1" />
+                      This IC number must have 12 digits
+                    </span>
+                  ) : !isIcYearValid ? (
+                    <span className="text-red-600 flex items-center">
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Invalid year in IC number
+                    </span>
+                  ) : !isIcMonthValid ? (
+                    <span className="text-red-600 flex items-center">
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Invalid month in IC number
+                    </span>
+                  ) : !isIcDayValid ? (
+                    <span className="text-red-600 flex items-center">
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Invalid day in IC number
+                    </span>
+                  ) : !isIcNumberValid ? (
+                    <span className="text-red-600 flex items-center">
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Invalid IC number format (invalid or future date)
+                    </span>
+                  ) : isIcNumberExist ? (
                     <span className="text-red-600 flex items-center">
                       <XCircle className="w-4 h-4 mr-1" />
                       The IC number already exists in the system
@@ -292,11 +285,19 @@ export function ICForm({
                       Valid IC
                     </span>
                   )
-                ) : null}
+                ) : isIcNumberExist ? (
+                  <span className="text-red-600 flex items-center">
+                    <XCircle className="w-4 h-4 mr-1" />
+                    The IC number already exists in the system
+                  </span>
+                ) : (
+                  <span className="text-green-600 flex items-center">
+                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                    Valid IC
+                  </span>
+                )}
               </div>
             )}
-
-
 
 
           </div>
