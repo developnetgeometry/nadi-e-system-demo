@@ -26,6 +26,7 @@ import { Loader2, PlusCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import EventDetailsDialog from "@/components/programmes/EventDetailsDialog";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const OthersProgrammes = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,11 +37,35 @@ const OthersProgrammes = () => {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isTPSite = parsedMetadata?.user_type === "tp_site";
+
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+
+        // Get user ID from localStorage
+        let userId = null;
+        let userSiteProfileId = null;
+
+        try {
+          const storedUserMetadata = localStorage.getItem('user_metadata');
+          if (storedUserMetadata) {
+            const userData = JSON.parse(storedUserMetadata);
+            userId = userData.group_profile?.user_id || null;
+
+            // For TP Site users,get their site profile ID
+            if (isTPSite) {
+              userSiteProfileId = userData.group_profile?.site_profile_id || null;
+            }
+          }
+        } catch (error) {
+          console.error("Error retrieving user data from localStorage:", error);
+        }
 
         // Fetch event statuses for filter
         const { data: statusData, error: statusError } = await supabase
@@ -51,7 +76,28 @@ const OthersProgrammes = () => {
         setStatuses(statusData);
 
         // Fetch programs where category_id is 3 (Other Programs)
-        const { data: programData, error: programError } = await supabase
+        // const { data: programData, error: programError } = await supabase
+        //   .from("nd_event")
+        //   .select(
+        //     `
+        //     id,
+        //     program_name,
+        //     location_event,
+        //     site_id,
+        //     start_datetime,
+        //     end_datetime,
+        //     created_by,
+        //     nd_event_status:status_id(id, name),
+        //     nd_site:site_id(
+        //       nd_site_profile:site_profile_id(
+        //         sitename
+        //       )
+        //     )
+        //   `
+        //   )
+        //   .eq("category_id", 3);
+
+        let eventQuery = supabase
           .from("nd_event")
           .select(
             `
@@ -62,17 +108,54 @@ const OthersProgrammes = () => {
             start_datetime,
             end_datetime,
             created_by,
-            nd_event_status:status_id(id, name),
-            nd_site:site_id(
-              nd_site_profile:site_profile_id(
-                sitename
-              )
-            )
+            nd_event_status:status_id(id, name)
           `
           )
           .eq("category_id", 3);
 
+        if (isTPSite && userId) {
+          eventQuery = eventQuery.eq("created_by", userId);
+        }
+
+        const { data: programData, error: programError } = await eventQuery
+
         if (programError) throw programError;
+
+        const { data: scheduleData, error: scheduleError } = await supabase
+          .from("nd_event_schedule")
+          .select("event_id, day_number, schedule_date, start_time, end_time")
+          .order("day_number");
+
+        if (scheduleError) {
+          console.error("Error fetching schedule data:", scheduleError);
+        }
+
+        // Create schedule lookup map
+        const scheduleMap = {};
+        if (scheduleData) {
+          scheduleData.forEach(schedule => {
+            if (!scheduleMap[schedule.event_id]) {
+              scheduleMap[schedule.event_id] = [];
+            }
+            scheduleMap[schedule.event_id].push(schedule);
+          });
+        }
+
+        const { data: siteProfiles, error: siteError } = await supabase
+          .from("nd_site_profile")
+          .select("id, sitename");
+
+        if (siteError) {
+          console.error("Error fetching site profiles:", siteError);
+        }
+
+        // Lookup map for site names
+        const siteMap = {};
+        if (siteProfiles) {
+          siteProfiles.forEach(site => {
+            siteMap[site.id] = site.sitename;
+          });
+        }
 
         // Format data
         const formattedData = await Promise.all(
@@ -89,14 +172,35 @@ const OthersProgrammes = () => {
               creatorName = userData?.full_name || "Unknown";
             }
 
+            const location = program.location_event || "No Location Specified";
+            let participatingSites = "No participating sites";
+
+            if (program.site_id && Array.isArray(program.site_id) && program.site_id.length > 0) {
+              // If site_id is an array, get the names of all sites
+              const siteNames = program.site_id
+                .map(siteId => siteMap[siteId])
+                .filter(Boolean);
+
+              if (siteNames.length > 0) {
+                participatingSites = siteNames.join(", ");
+              }
+            }
+
+            let displayDate = program.start_datetime;
+            const programSchedules = scheduleMap[program.id] || [];
+            const firstDaySchedule = programSchedules.find(s => s.day_number === 1);
+            
+            if (firstDaySchedule && firstDaySchedule.schedule_date) {
+              displayDate = firstDaySchedule.schedule_date;
+            }
+
             const formattedProgram = {
               id: program.id,
               title: program.program_name || "Untitled Program",
-              location:
-                program.nd_site?.nd_site_profile?.sitename ||
-                program.location_event ||
-                "No Location",
-              date: program.start_datetime || new Date().toISOString(),
+              location: location,
+              participatingSites: participatingSites,
+              date: displayDate,
+              schedules: programSchedules,
               createdBy: creatorName,
               status: program.nd_event_status?.name?.toLowerCase() || "draft",
               statusId: program.nd_event_status?.id || 1, // Default to 1 (Draft) if no status
@@ -124,7 +228,7 @@ const OthersProgrammes = () => {
     };
 
     fetchData();
-  }, []);
+  }, [isTPSite, isSuperAdmin]);
 
   // Function to get badge variant based on status
   const getStatusBadge = (statusId: string | number | undefined) => {
@@ -181,6 +285,24 @@ const OthersProgrammes = () => {
         return (
           <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">
             Postponed
+          </Badge>
+        );
+      case "9":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+            Request Approval
+          </Badge>
+        );
+      case "10":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+            Rejected
+          </Badge>
+        );
+      case "11":
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
+            Verified
           </Badge>
         );
       default:
