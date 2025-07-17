@@ -15,11 +15,12 @@ import {
     PDFSectionTitle,
     PDFPhaseQuarterInfo,
     PDFMetaSection,
+    PDFMetaSection2,
     PDFHeader
 } from "../component/pdf-component";
 // Import the actual data fetching functions, not hooks
 import { fetchPhaseData } from "@/hooks/use-phase";
-import fetchSmartServiceData from "./hook/use-smart-service-data";
+import { fetchSmartServiceDataBySite } from "./hook/use-smart-service-data";
 // Import PDF utilities
 import { generatePdfFilename } from "../component/pdf-utils";
 
@@ -86,86 +87,105 @@ const SmartService = async ({
     uploadAttachment = null,
 
 }: SmartServiceProps): Promise<File> => {
-    // Fetch SmartService data based on filters
-    const { pillarData, programmeImplementedData, programmeParticipationData } = await fetchSmartServiceData({
-        startDate,
-        endDate,
-        duspFilter,
-        phaseFilter,
-        nadiFilter,
-        tpFilter
-    });
-    console.log("pillarData data:", pillarData);
-    console.log("programmeImplementedData data:", programmeImplementedData);
-    console.log("programmeParticipationData data:", programmeParticipationData);
-    // Calculate total program and participant
-    const totalProgram = pillarData.reduce((sum, pillar) => sum + pillar.programs.reduce((s, p) => s + (p.no_of_programme || 0), 0), 0);
-    const totalParticipant = pillarData.reduce((sum, pillar) => sum + pillar.programs.reduce((s, p) => s + (p.no_of_participation || 0), 0), 0);
-
+    // Fetch data grouped by site
+    let siteDataArray = [];
+    
+    try {
+        siteDataArray = await fetchSmartServiceDataBySite({
+            startDate,
+            endDate,
+            duspFilter,
+            phaseFilter,
+            nadiFilter,
+            tpFilter
+        });
+        
+        console.log("Site data array:", siteDataArray);
+        
+    } catch (error) {
+        console.error("Error fetching smart service data by site:", error);
+        // If fetch completely fails, use empty data
+        siteDataArray = [];
+    }
 
     // Fetch phase info if phaseFilter is provided
     const { phase } = await fetchPhaseData(phaseFilter);
     console.log("Phase data:", phase);
     const phaseLabel = phase?.name || "All Phases";
 
-    // Flatten programmeImplementedData for the pictures table, only include rows with a valid image
-    const pictureRows = programmeImplementedData.flatMap((item) =>
-        (item.attachments_path || [])
-            .filter((imgUrl) => typeof imgUrl === 'string' && imgUrl.trim() !== '')
-            .map((imgUrl) => ({
-                ...item,
-                picture_url: imgUrl,
-            }))
-    );    // Define the PDF document (only the main report pages)
-    const SmartServiceDoc = (
-        <Document>
-            {/* Page 1: SmartService */}
-            <Page size="A4" style={styles.page}>
+    // Helper function to create pages for a specific site
+    const createSitePages = (siteData, siteIndex) => {
+        const { siteInfo, pillarData, programmeImplementedData, programmeParticipationData } = siteData;
+        
+        // Calculate total program and participant for this site
+        const totalProgram = pillarData.reduce((sum, pillar) => sum + pillar.programs.reduce((s, p) => s + (p.no_of_programme || 0), 0), 0);
+        const totalParticipant = pillarData.reduce((sum, pillar) => sum + pillar.programs.reduce((s, p) => s + (p.no_of_participation || 0), 0), 0);
+
+        // Flatten programmeImplementedData for the pictures table
+        const pictureRows = programmeImplementedData.flatMap((item) =>
+            (item.attachments_path || [])
+                .filter((imgUrl) => typeof imgUrl === 'string' && imgUrl.trim() !== '')
+                .map((imgUrl) => ({
+                    ...item,
+                    picture_url: imgUrl,
+                }))
+        );
+
+        return [
+            // Page 1: Main table for this site
+            <Page key={`site-${siteIndex}-main`} size="A4" style={styles.page}>
                 {header && (
                     <>
                         <PDFHeader
-                            mcmcLogo={"/MCMC_Logo.png"} // Replace with actual MCMC logo if needed
-                            duspLogo={dusplogo} // Use provided DUSP logo or placeholder
+                            mcmcLogo={"/MCMC_Logo.png"}
+                            duspLogo={dusplogo}
                         />
-                        <PDFMetaSection
-                            reportTitle="7.0 Smart Services"
-                            phaseLabel={phaseLabel}
+
+                        <View style={{ textAlign: "center", marginTop: -10, marginBottom: 20 }}>
+                            <Text style={{
+                                fontSize: 14,
+                                fontWeight: "bold",
+                                textAlign: "center",
+                                textTransform: "uppercase"
+                            }}>
+                                NADI SMART SERVICES
+                            </Text>
+                        </View>
+
+                        <PDFMetaSection2
+                            title="NADI SMART SERVICE PROGRAM IMPLEMENTATION STATUS REPORT"
                             claimType={claimType}
                             quater={quater}
                             startDate={startDate}
                             endDate={endDate}
+                            phaseLabel={phaseLabel}
+                            nadiName={siteInfo.nadiName}
+                            refId={siteInfo.refId}
+                            siteCode={siteInfo.siteCode}
+                            state={siteInfo.state}
                         />
+
+                        <View style={{ textAlign: "center", marginTop: 5 }}>
+                            <Text style={{
+                                textAlign: "center",
+                                fontWeight: "bold"
+                            }}>
+                                Status Report: NADI Smart Service Program Implementation & Participation for {claimType?.toLowerCase() === 'quarterly' ? `Q${quater}'${new Date().getFullYear()}` : claimType?.toLowerCase() === 'monthly' ? `${new Date(startDate || '').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : `${new Date().getFullYear()}`}
+                            </Text>
+                        </View>
                     </>
                 )}
 
-                <PDFSectionTitle title="7.1 SMART SERVICES" />
-
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <View style={{ alignSelf: "flex-start", flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
-                        <View style={{ ...styles.totalBox }}>
-                            {/* Total Program with SMART SERVICES */}
-                            <Text>Total{"\n"}Program</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{totalProgram}</Text>
-                        </View>
-                        <View style={{ ...styles.totalBox }}>
-                            {/* Total Participant with SMART SERVICES */}
-                            <Text>Total{"\n"}Participant</Text>
-                            <Text style={{ fontSize: 11, fontWeight: "bold", textAlign: "center" }}>{totalParticipant}</Text>
-                        </View>
+                {!header && (
+                    <View style={{ marginBottom: 20 }}>
+                        <Text style={{ fontSize: 12, fontWeight: 'bold', textAlign: 'center' }}>
+                            {siteInfo.nadiName} - {siteInfo.state}
+                        </Text>
+                        <Text style={{ fontSize: 10, textAlign: 'center' }}>
+                            Site Code: {siteInfo.siteCode} | Ref ID: {siteInfo.refId}
+                        </Text>
                     </View>
-                    {!header && (
-                        <View style={{ alignSelf: "flex-end" }}>
-                            {/* when header not provided, show phase and quarter info */}
-                            <PDFPhaseQuarterInfo
-                                phaseLabel={phaseLabel}
-                                claimType={claimType}
-                                quater={quater}
-                                startDate={startDate}
-                                endDate={endDate}
-                            />
-                        </View>
-                    )}
-                </View>
+                )}
 
                 {/* table */}
                 <View style={{ marginTop: 20, borderWidth: 1, borderColor: '#000', borderStyle: 'solid', width: 515, alignSelf: 'center' }}>
@@ -191,14 +211,12 @@ const SmartService = async ({
                     {/* Table Body */}
                     {pillarData.map((pillar, pillarIdx) => (
                         <View key={pillar.pillar} style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-                            {/* Pillar cell with row span effect */}
                             <View style={{ width: 135, borderRightWidth: 1, borderColor: '#000', borderTopWidth: pillarIdx === 0 ? 0 : 1, borderStyle: 'solid', justifyContent: 'center', alignItems: 'flex-start', padding: 8 }}>
                                 <Text style={{ fontWeight: 'normal', fontSize: 8 }}>{pillar.pillar}</Text>
                             </View>
                             <View style={{ flex: 1, flexDirection: 'column' }}>
                                 {pillar.programs.map((program, progIdx) => (
                                     <View key={program.name} style={{ flexDirection: 'row', borderTopWidth: progIdx === 0 && pillarIdx === 0 ? 0 : 1, borderColor: '#000', borderStyle: 'solid' }}>
-                                        {/* Program number and name */}
                                         <View style={{ width: 40, borderRightWidth: 1, borderColor: '#000', padding: 8, textAlign: 'center' }}>
                                             <Text style={{ fontSize: 8 }}>{progIdx + 1}</Text>
                                         </View>
@@ -218,112 +236,110 @@ const SmartService = async ({
                     ))}
                 </View>
 
-                <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
-            </Page>
+                <PDFFooter />
+            </Page>,
 
-            {/* programme implemented data page */}
-            <Page size="A4" style={styles.page}>
-
+            // Page 2: Programme implemented for this site
+            <Page key={`site-${siteIndex}-implemented`} size="A4" style={styles.page}>
                 <PDFSectionTitle title="7.1 SMART SERVICES" />
 
                 <View style={{ marginBottom: 6, marginTop: 6 }}>
                     <Text style={{ fontWeight: 'bold', fontSize: 9, textAlign: 'center' }}>
-                        LIST OF PROGRAMS IMPLEMENTED
+                        LIST OF PROGRAMS IMPLEMENTED - {siteInfo.nadiName}
                     </Text>
                 </View>
 
-                {programmeImplementedData.length > 0 ? (
-                    <PDFTable
-                        data={programmeImplementedData}
-                        columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "programme_name", header: "PROGRAMME" },
-                            { key: "programme_date", header: "DATE" },
-                            { key: "programme_time", header: "TIME" },
-                            { key: "programme_method", header: "METHOD" },
-                            { key: "programme_participation", header: "NO OF\nPARTICIPATION" },
-                        ]}
-                    />
-                ) : (
-                    <Text>No programme data available.</Text>
-                )}
+                <PDFTable
+                    data={programmeImplementedData}
+                    columns={[
+                        { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                        { key: "programme_name", header: "PROGRAMME" },
+                        { key: "programme_date", header: "DATE" },
+                        { key: "programme_time", header: "TIME" },
+                        { key: "programme_method", header: "METHOD" },
+                        { key: "programme_participation", header: "NO OF\nPARTICIPATION" },
+                    ]}
+                />
 
-                <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
-            </Page>
+                <PDFFooter />
+            </Page>,
 
-            {/* programme participation data page */}
-            <Page size="A4" style={styles.page}>
-
+            // Page 3: Programme participation for this site
+            <Page key={`site-${siteIndex}-participation`} size="A4" orientation="landscape" style={styles.page}>
                 <PDFSectionTitle title="7.1 SMART SERVICES" />
 
                 <View style={{ marginBottom: 6, marginTop: 6 }}>
                     <Text style={{ fontWeight: 'bold', fontSize: 9, textAlign: 'center' }}>
-                        LIST OF PARTICIPICATION
+                        LIST OF PARTICIPATION - {siteInfo.nadiName}
                     </Text>
                 </View>
 
-                {programmeParticipationData.length > 0 ? (
-                    <PDFTable
-                        data={programmeParticipationData}
-                        columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            { key: "programme_name", header: "PROGRAMME", width: "15%" },
-                            // { key: "programme_date", header: "DATE" },
-                            { key: "participant_name", header: "NAME" },
-                            { key: "participant_ic", header: "NRIC" },
-                            { key: "participant_phone", header: "PHONE", width: "10%" },
-                            { key: "participant_membership", header: "MEMBERSHIP" },
-                            { key: "participant_age", header: "AGE", width: "6%" },
-                            { key: "participant_gender", header: "GENDER", width: "10%" },
-                            { key: "participant_race", header: "RACE", width: "6%" },
-                            { key: "participant_oku", header: "OKU", width: "6%" },
-                        ]}
-                    />
-                ) : (
-                    <Text>No programme participant data available.</Text>
-                )}
+                <PDFTable
+                    data={programmeParticipationData}
+                    columns={[
+                        { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                        { key: "programme_name", header: "PROGRAMME", width: "15%" },
+                        { key: "participant_name", header: "NAME" },
+                        { key: "participant_ic", header: "NRIC" },
+                        { key: "participant_phone", header: "PHONE", width: "10%" },
+                        { key: "participant_membership", header: "MEMBERSHIP" },
+                        { key: "participant_age", header: "AGE", width: "6%" },
+                        { key: "participant_gender", header: "GENDER", width: "10%" },
+                        { key: "participant_race", header: "RACE", width: "6%" },
+                        { key: "participant_oku", header: "OKU", width: "6%" },
+                    ]}
+                />
 
-                <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
-            </Page>
+                <PDFFooter />
+            </Page>,
 
-            {/* PICTURES OF PROGRAMME IMPLEMENTATION page */}
-            <Page size="A4" style={styles.page}>
-
+            // Page 4: Pictures for this site
+            <Page key={`site-${siteIndex}-pictures`} size="A4" orientation="landscape" style={styles.page}>
                 <PDFSectionTitle title="7.1 SMART SERVICES" />
 
                 <View style={{ marginBottom: 6, marginTop: 6 }}>
                     <Text style={{ fontWeight: 'bold', fontSize: 9, textAlign: 'center' }}>
-                        PICTURES OF PROGRAMME IMPLEMENTATION
+                        PICTURES OF PROGRAMME IMPLEMENTATION - {siteInfo.nadiName}
                     </Text>
                 </View>
 
-                {pictureRows.length > 0 ? (
-                    <PDFTable
-                        data={pictureRows}
-                        columns={[
-                            { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
-                            {
-                                key: "picture_url",
-                                header: "PICTURE",
-                                width: "45%",
-                                render: (value) => (
-                                    <View style={{ width: 180, height: 140, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', display: 'flex' }}>
-                                        <Image src={value} style={{ width: 180, height: 140, objectFit: 'contain' }} />
-                                    </View>
-                                ),
-                            },
-                            { key: "programme_name", header: "PROGRAMME" },
-                            { key: "programme_date", header: "DATE" },
-                            { key: "programme_remarks", header: "REMARK" },
-                        ]}
-                    />
-                ) : (
-                    <Text>No programme data available.</Text>
-                )}
+                <PDFTable
+                    data={pictureRows}
+                    columns={[
+                        { key: (_, i) => `${i + 1}.`, header: "NO", width: "5%" },
+                        {
+                            key: "picture_url",
+                            header: "PICTURE",
+                            width: "45%",
+                            render: (value) => (
+                                <View style={{ width: 180, height: 140, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', display: 'flex' }}>
+                                    <Image src={value} style={{ width: 180, height: 140, objectFit: 'contain' }} />
+                                </View>
+                            ),
+                        },
+                        { key: "programme_name", header: "PROGRAMME" },
+                        { key: "programme_date", header: "DATE" },
+                        { key: "programme_remarks", header: "REMARK" },
+                    ]}
+                />
 
-                <PDFFooter /> {/* Keep as fixed, but paddingBottom prevents overlap */}
+                <PDFFooter />
             </Page>
+        ];
+    };
 
+    // Define the PDF document with pages for each site
+    const SmartServiceDoc = (
+        <Document>
+            {siteDataArray.length > 0 ? (
+                siteDataArray.flatMap((siteData, index) => createSitePages(siteData, index))
+            ) : (
+                <Page size="A4" style={styles.page}>
+                    <Text style={{ textAlign: 'center', marginTop: 100 }}>
+                        No site data available.
+                    </Text>
+                </Page>
+            )}
         </Document>
     );
     // Create a blob from the PDF document (main report and appendix title page)
