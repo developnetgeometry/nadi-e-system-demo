@@ -297,7 +297,11 @@ export const fetchSiteData = async (nadiFilter: (string | number)[]) => {
             `);
 
         if (nadiFilter && nadiFilter.length > 0) {
-            query = query.in('id', nadiFilter);
+            // Convert all values to numbers for consistent typing
+            const numericIds = nadiFilter.map(id => Number(id)).filter(id => !isNaN(id));
+            if (numericIds.length > 0) {
+                query = query.in('id', numericIds);
+            }
         }
 
         const { data: siteData, error } = await query;
