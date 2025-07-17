@@ -248,6 +248,270 @@ export const PDFMetaSection = ({
 };
 
 /**
+ * The PDF meta section component for site-specific reports with different layout
+ */
+export const PDFMetaSection2 = ({
+  title,
+  claimType = null,
+  quater = null,
+  startDate = null,
+  endDate = null,
+  phaseLabel,
+  nadiName,
+  refId,
+  siteCode,
+  state,
+}: {
+  title?: string;
+  claimType?: string | null;
+  quater?: string | number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  phaseLabel?: string;
+  nadiName?: string;
+  refId?: string;
+  siteCode?: string;
+  state?: string;
+}) => {
+  // Format duration from startDate and endDate
+  const formatDuration = () => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Format start date as "1 OCT"
+      const startDay = start.getDate();
+      const startMonth = start.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+      
+      // Format end date as "31 DEC 2024"
+      const endDay = end.getDate();
+      const endMonth = end.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+      const endYear = end.getFullYear();
+      
+      return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${endYear}`;
+    }
+    return "-";
+  };
+
+  // Determine periodType based on claimType if not directly provided
+  const periodType = claimType ?
+    (claimType.toLowerCase() === "monthly" ? "MONTH / YEAR" :
+      claimType.toLowerCase() === "quarterly" ? "QUARTER / YEAR" :
+        claimType.toLowerCase() === "yearly" ? "YEAR" :
+          "All Time") : "All Time";
+
+  // Format the period value based on periodType and available data
+  let formattedPeriodValue = "-";
+
+  // Extract month and year from startDate and endDate if provided
+  const month = startDate ? new Date(startDate).toLocaleString('default', { month: 'short' }) : null;
+  const year = endDate ? new Date(endDate).getFullYear().toString() : null;
+
+  if (periodType === "MONTH / YEAR" && month && year) {
+    formattedPeriodValue = `${month} ${year}`;
+  } else if (periodType === "QUARTER / YEAR") {
+    if (quater && year) {
+      formattedPeriodValue = `${quater} ${year}`;
+    }
+  } else if (periodType === "YEAR" && year) {
+    formattedPeriodValue = `${year}`;
+  }
+  // Create styles for the meta section table
+  const metaStyles = StyleSheet.create({
+    container: {
+      width: "100%",
+      borderWidth: 1,
+      borderColor: "#000",
+      marginBottom: 10,
+    },
+    row: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: "#000",
+    },
+    lastRow: {
+      flexDirection: "row",
+      borderBottomWidth: 0, // No bottom border for last row
+    },
+    labelCell: {
+      backgroundColor: "#fff",
+      color: "#000",
+      fontWeight: "bold",
+      padding: 6,
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+      textAlign: "center",
+      justifyContent: "center", // Center text vertically in the cell
+      alignItems: "center",
+      overflow: "hidden", // Prevent text overflow
+    },
+    valueCell: {
+      padding: 6,
+      borderRightWidth: 1,
+      borderRightColor: "#000",
+      textAlign: "center", // Center align for colon columns
+      justifyContent: "center", // Center vertically
+      alignItems: "center", // Center horizontally
+    },
+    lastValueCell: {
+      padding: 6,
+      borderRightWidth: 0, // No right border for last cell
+      textAlign: "left",
+      justifyContent: "center", // Center text vertically in the cell
+      alignItems: "flex-start",
+    },
+    titleContainer: {
+      backgroundColor: "#000",
+      padding: 6,
+      width: "100%",
+      textAlign: "center",
+    },
+    titleText: {
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: "bold",
+      textTransform: "uppercase",
+    }
+  });
+
+  // Define table structure - single source of truth for layout
+  // Column widths optimized to ensure "QUARTER/YEAR" label fits on a single line
+  const tableStructure = {
+    totalColumns: 6,
+    columnTypes: ['leftLabel', 'colon', 'leftValue', 'rightLabel', 'colon', 'rightValue'],
+    baseWidths: {
+      leftLabel: 22,     // Left label columns (DURATION, NADI NAME, REFID, PHASE) - reduced from 24% to 22%
+      colon: 4,          // Colon separators (:) - both left and right use same width
+      leftValue: 26,     // Left value columns (reduced to give more space to right value)
+      rightLabel: 24,    // Right label columns (QUARTER/YEAR, SITE CODE, STATE)
+      rightValue: 18     // Right value columns (increased to 18% to prevent wrapping of long state names)
+    }
+  };
+
+  // Calculate precise column widths accounting for border space
+  const calculateColumnWidths = () => {
+    const { totalColumns, baseWidths } = tableStructure;
+    
+    // PDF measurements in points (react-pdf standard)
+    const estimatedContainerWidth = 500;
+    const borderWidth = 1;
+    const totalBorderWidth = (totalColumns + 1) * borderWidth;
+    const availableWidth = estimatedContainerWidth - totalBorderWidth;
+    
+    // Calculate actual widths in points
+    const leftLabelWidthPt = (baseWidths.leftLabel / 100) * availableWidth;
+    const colonWidthPt = (baseWidths.colon / 100) * availableWidth;
+    const leftValueWidthPt = (baseWidths.leftValue / 100) * availableWidth;
+    const rightLabelWidthPt = (baseWidths.rightLabel / 100) * availableWidth;
+    const rightValueWidthPt = (baseWidths.rightValue / 100) * availableWidth;
+    
+    // Convert to percentage strings for react-pdf
+    const toPercentage = (widthPt) => `${((widthPt / estimatedContainerWidth) * 100).toFixed(2)}%`;
+    
+    return {
+      leftLabel: toPercentage(leftLabelWidthPt),
+      colon: toPercentage(colonWidthPt),
+      leftValue: toPercentage(leftValueWidthPt),
+      rightLabel: toPercentage(rightLabelWidthPt),
+      rightValue: toPercentage(rightValueWidthPt),
+      nadiNameSpan: toPercentage(availableWidth - leftLabelWidthPt - colonWidthPt)
+    };
+  };
+
+  const columnWidths = calculateColumnWidths();
+
+  return (
+    <View style={metaStyles.container}>
+      {/* Title Header (if title is provided) */}
+      {title && (
+        <View style={metaStyles.titleContainer}>
+          <Text style={metaStyles.titleText}>{title}</Text>
+        </View>
+      )}
+
+      {/* Row 1: DURATION and QUARTER/YEAR */}
+      <View style={metaStyles.row}>
+        <View style={[metaStyles.labelCell, { width: columnWidths.leftLabel }]}>
+          <Text>DURATION</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.leftValue, textAlign: "left", justifyContent: "center", alignItems: "flex-start", borderRightWidth: 1, borderRightColor: "#000" }]}>
+          <Text>{formatDuration()}</Text>
+        </View>
+        <View style={[metaStyles.labelCell, { width: columnWidths.rightLabel }]}>
+          <Text>{periodType}</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.rightValue }]}>
+          <Text>{formattedPeriodValue}</Text>
+        </View>
+      </View>
+
+      {/* Row 2: NADI NAME (spans remaining columns) */}
+      <View style={metaStyles.row}>
+        <View style={[metaStyles.labelCell, { width: columnWidths.leftLabel }]}>
+          <Text>NADI NAME</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.nadiNameSpan, textAlign: "left", justifyContent: "center", alignItems: "flex-start" }]}>
+          <Text>{nadiName || "-"}</Text>
+        </View>
+      </View>
+
+      {/* Row 3: REFID and SITE CODE */}
+      <View style={metaStyles.row}>
+        <View style={[metaStyles.labelCell, { width: columnWidths.leftLabel }]}>
+          <Text>REFID</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.leftValue, textAlign: "left", justifyContent: "center", alignItems: "flex-start", borderRightWidth: 1, borderRightColor: "#000" }]}>
+          <Text>{refId || "-"}</Text>
+        </View>
+        <View style={[metaStyles.labelCell, { width: columnWidths.rightLabel }]}>
+          <Text>SITE CODE</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.rightValue }]}>
+          <Text>{siteCode || "-"}</Text>
+        </View>
+      </View>
+
+      {/* Row 4: PHASE and STATE (last row, no bottom border) */}
+      <View style={metaStyles.lastRow}>
+        <View style={[metaStyles.labelCell, { width: columnWidths.leftLabel }]}>
+          <Text>PHASE</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.leftValue, textAlign: "left", justifyContent: "center", alignItems: "flex-start", borderRightWidth: 1, borderRightColor: "#000" }]}>
+          <Text>{phaseLabel || "-"}</Text>
+        </View>
+        <View style={[metaStyles.labelCell, { width: columnWidths.rightLabel }]}>
+          <Text>STATE</Text>
+        </View>
+        <View style={[metaStyles.valueCell, { width: columnWidths.colon }]}>
+          <Text style={{ textAlign: "center" }}>:</Text>
+        </View>
+        <View style={[metaStyles.lastValueCell, { width: columnWidths.rightValue }]}>
+          <Text>{state || "-"}</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+/**
  * The PDF Section Title component
  */
 export const PDFSectionTitle = ({
