@@ -423,7 +423,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         target_participants: programmeData.target_participants
           ? "komuniti_madani"
           : "umum",
-        mode: programmeData.program_method === 1 ? "Physical" : "Online",
+        mode: programmeData.program_method === 1 ? "Online" : "Physical",
         max_participants: programmeData.total_participant?.toString() || "",
         is_active: programmeData.status_id === 1, // Assuming status_id 1 is active
       });
@@ -694,12 +694,14 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
     try {
       // Get user ID from localStorage
       let userId = null;
+      let userSiteProfileId = null;
 
       try {
         const storedUserMetadata = localStorage.getItem('user_metadata');
         if (storedUserMetadata) {
           const userData = JSON.parse(storedUserMetadata);
           userId = userData.group_profile?.user_id || null;
+          userSiteProfileId = userData.group_profile?.site_profile_id || null;
         }
       } catch (error) {
         console.error("Error retrieving user data from localStorage:", error);
@@ -712,7 +714,6 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
       //   (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
 
       let startDateTime, endDateTime, durationHours;
-      let actualStartDate;
 
       if (differentDays > 1) {
         // For multi-day events, use the first day's start time and last day's end time
@@ -747,7 +748,6 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         });
 
         durationHours = totalDuration;
-        actualStartDate = new Date(data.start_date);
       } else {
         // For single day events, use the original logic but get times from form
         const startTime = data.start_time;
@@ -768,7 +768,26 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         startDateTime = new Date(startDateStr);
         endDateTime = new Date(endDateStr);
         durationHours = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60);
-        actualStartDate = startDateTime;
+      }
+
+      let siteIdToUse = null;
+      if (categoryParam === "2" || categoryParam === "3") {
+        siteIdToUse = userSiteProfileId ? [userSiteProfileId] : null;
+      } else {
+        siteIdToUse = data.site_id && data.site_id.length > 0 ? data.site_id.map(id => parseInt(id)) : null;
+      }
+
+      // Calculate if this is a backdated programme
+      const actualStartDate = differentDays > 1 ? new Date(data.start_date) : startDateTime;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0,);
+      const isBackdated = actualStartDate < today;
+
+      let statusId;
+      if (isBackdated) {
+        statusId = 9; // Request approval for backdated programmes
+      } else {
+        statusId = actualStartDate >= new Date().setHours(0, 0, 0, 0) ? 2 : 1; // 2=Submitted if not backdated, 1=Draft if future
       }
 
       // Prepare event data
@@ -776,7 +795,7 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         program_name: data.title,
         description: data.description || "",
         location_event: data.location || "",
-        site_id: data.site_id && data.site_id.length > 0 ? data.site_id.map(id => parseInt(id)) : null,
+        site_id: siteIdToUse,
         start_datetime: startDateTime.toISOString(),
         end_datetime: endDateTime.toISOString(),
         duration: durationHours,
@@ -787,12 +806,12 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
         subcategory_id: parseInt(data.pillar),
         program_id: parseInt(data.programme),
         module_id: parseInt(data.module),
-        program_method: data.mode === "Physical" ? 1 : 2, // 1=Physical, 2=Online
+        program_method: data.mode === "Online" ? 1 : 2, // 1=Online, 2=Physical
         program_mode: eventTypeToModeMap[data.event_type] || 3,
         total_participant: data.max_participants
           ? parseInt(data.max_participants)
           : null,
-        status_id: actualStartDate >= new Date().setHours(0, 0, 0, 0) ? 2 : 1, // 2=Submitted if not backdated, 1=Draft if backdated
+        status_id: statusId,
         is_active: data.is_active, // Boolean value
         is_group_event: data.is_group_event,
         target_participants: data.target_participants,
@@ -1045,115 +1064,117 @@ const RegisterProgrammeForm: React.FC<RegisterProgrammeFormProps> = ({
                 />
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      <LabelWithTooltip
-                        label="State"
-                        tooltip="Select a state first to filter available locations."
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <select
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                          value={field.value || ""}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value);
-                          }}
-                        >
-                          <option value="">Select State</option>
-                          {stateOptions.map((state) => (
-                            <option key={state.id} value={state.id}>
-                              {state.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="site_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      <LabelWithTooltip
-                        label="Site"
-                        tooltip="Please select a state first. Select a site location."
-                      />
-                    </FormLabel>
-                    <FormControl>
-                      <div className="space-y-2">
-                        <select
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                          value=""
-                          onChange={(e) => {
-                            // Add the selected site if not already selected
-                            const selectedValues = e.target.value;
-                            const currentValues = field.value || [];
-
-                            if(!currentValues.includes(selectedValues)) {
-                              field.onChange([...currentValues, selectedValues]);
-                            }
-                          }}
-                          disabled={!watchState}
-                        >
-                            <option value="">
-                              {!watchState ? "Please select a state first" : "Choose a site to add..."}
-                            </option>
-                          {filteredSites
-                            .filter(site => !field.value?.includes(site.value))
-                            .map((site) => (
-                              <option key={site.value} value={site.value}>
-                                {getSiteDisplayText(site)}
+            {categoryParam === "1" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="State"
+                          tooltip="Select a state first to filter available locations."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value);
+                            }}
+                          >
+                            <option value="">Select State</option>
+                            {stateOptions.map((state) => (
+                              <option key={state.id} value={state.id}>
+                                {state.name}
                               </option>
-                          ))}
-                        </select>
+                            ))}
+                          </select>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="site_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <LabelWithTooltip
+                          label="Site"
+                          tooltip="Please select a state first. Select a site location."
+                        />
+                      </FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                            value=""
+                            onChange={(e) => {
+                              // Add the selected site if not already selected
+                              const selectedValues = e.target.value;
+                              const currentValues = field.value || [];
 
-                        {/* Display selected sites */}
-                        {field.value && field.value.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-xs text-muted-foreground font-medium">
-                              Selected Sites ({field.value.length}):
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {field.value.map((siteId) => {
-                                const site = filteredSites.find(s => s.value === siteId);
-                                return site ? (
-                                  <span key={siteId} className="inline-flex items-center px-2 py-1 rounded-full text-xs">
-                                    {getSiteDisplayText(site)}
-                                    <button 
-                                      type="button"
-                                      onClick={() => {
-                                        const newValues = field.value.filter(id => id !== siteId);
-                                        field.onChange(newValues);
-                                      }}
-                                      className="ml-1 text-blue-600 hover:text-blue-800"
-                                    >
-                                      x
-                                    </button>
-                                  </span>
-                                ) : null;
-                              })}
+                              if(!currentValues.includes(selectedValues)) {
+                                field.onChange([...currentValues, selectedValues]);
+                              }
+                            }}
+                            disabled={!watchState}
+                          >
+                              <option value="">
+                                {!watchState ? "Please select a state first" : "Choose a site to add..."}
+                              </option>
+                            {filteredSites
+                              .filter(site => !field.value?.includes(site.value))
+                              .map((site) => (
+                                <option key={site.value} value={site.value}>
+                                  {getSiteDisplayText(site)}
+                                </option>
+                            ))}
+                          </select>
+
+                          {/* Display selected sites */}
+                          {field.value && field.value.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-xs text-muted-foreground font-medium">
+                                Selected Sites ({field.value.length}):
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {field.value.map((siteId) => {
+                                  const site = filteredSites.find(s => s.value === siteId);
+                                  return site ? (
+                                    <span key={siteId} className="inline-flex items-center px-2 py-1 rounded-full text-xs">
+                                      {getSiteDisplayText(site)}
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                          const newValues = field.value.filter(id => id !== siteId);
+                                          field.onChange(newValues);
+                                        }}
+                                        className="ml-1 text-blue-600 hover:text-blue-800"
+                                      >
+                                        x
+                                      </button>
+                                    </span>
+                                  ) : null;
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
             {/* Category and Pillar */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField

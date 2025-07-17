@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const ProgrammesDashboard = () => {
   const { user } = useAuth();
@@ -23,16 +24,57 @@ const ProgrammesDashboard = () => {
   const [statusData, setStatusData] = useState([]);
   const [recentProgrammes, setRecentProgrammes] = useState([]);
 
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isSSO = parsedMetadata?.user_type === "sso_admin";
+  const isTPSite = parsedMetadata?.user_type === "tp_site";
+  const isSSOUser = parsedMetadata?.user_group_name === "SSO";
+
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
+        // Get user ID from localStorage
+        let userId = null;
+        let userSiteProfileId = null;
+
+        try {
+          const storedUserMetadata = localStorage.getItem('user_metadata');
+          if (storedUserMetadata) {
+            const userData = JSON.parse(storedUserMetadata);
+            userId = userData.group_profile?.user_id || null;
+
+            // For TP Site users,get their site profile ID
+            if (isTPSite) {
+              userSiteProfileId = userData.group_profile?.site_profile_id || null;
+            }
+          }
+        } catch (error) {
+          console.error("Error retrieving user data from localStorage:", error);
+        }
+
         // Fetch program counts by category
-        const { data: eventData, error: eventError } = await supabase
+        // const { data: eventData, error: eventError } = await supabase
+        //   .from("nd_event")
+        //   .select("category_id");
+
+        let eventQuery = supabase
           .from("nd_event")
           .select("category_id");
+
+        if (isSSOUser && userId) {
+          eventQuery = eventQuery.eq("created_by", userId);
+        } 
+
+        if (isTPSite && userSiteProfileId) {
+          // For TP Site users, filter by site_id (JSONB contains check)
+          eventQuery = eventQuery.filter("site_id", 'cs', JSON.stringify([userSiteProfileId]));
+        }
+
+        const { data: eventData, error: eventError } = await eventQuery
 
         if (eventError) throw eventError;
 
@@ -65,10 +107,26 @@ const ProgrammesDashboard = () => {
         // Fetch count for each status
         const statusWithCounts = await Promise.all(
           statusData.map(async (status) => {
-            const { count, error: countError } = await supabase
+            // const { count, error: countError } = await supabase
+            //   .from("nd_event")
+            //   .select("*", { count: "exact", head: true })
+            //   .eq("status_id", status.id);
+
+            let statusQuery = supabase
               .from("nd_event")
               .select("*", { count: "exact", head: true })
               .eq("status_id", status.id);
+
+            if (isSSOUser && userId) {
+              statusQuery = statusQuery.eq("created_by", userId);
+            }
+
+            if (isTPSite && userSiteProfileId) {
+              // For TP Site users, filter by site_id (JSONB contains check)
+              statusQuery = statusQuery.filter("site_id", 'cs', JSON.stringify([userSiteProfileId]));
+            }
+
+            const { count, error: countError } = await statusQuery;
 
             if (countError) throw countError;
 
@@ -94,6 +152,18 @@ const ProgrammesDashboard = () => {
               case "cancelled":
                 color = "bg-red-100 text-red-700";
                 break;
+              case "rejected":
+                color = "bg-slate-100 text-slate-700";
+                break;
+              case "submitted":
+                color = "bg-green-100 text-green-800";
+                break;
+              case "postponed":
+                color = "bg-indigo-100 text-indigo-800";
+                break;
+              case "verified":
+                color = "bg-emerald-100 text-emerald-800";
+                break;
               default:
                 color = "bg-gray-200 text-gray-700";
             }
@@ -109,7 +179,21 @@ const ProgrammesDashboard = () => {
         setStatusData(statusWithCounts);
 
         // Fetch recent programs
-        const { data: recentData, error: recentError } = await supabase
+        // const { data: recentData, error: recentError } = await supabase
+        //   .from("nd_event")
+        //   .select(
+        //     `
+        //     id, 
+        //     program_name,
+        //     location_event,
+        //     nd_event_category:category_id(name),
+        //     nd_event_status:status_id(name)
+        //   `
+        //   )
+        //   .order("created_at", { ascending: false })
+        //   .limit(5);
+
+        let recentProgramQuery = supabase
           .from("nd_event")
           .select(
             `
@@ -120,8 +204,21 @@ const ProgrammesDashboard = () => {
             nd_event_status:status_id(name)
           `
           )
-          .order("created_at", { ascending: false })
-          .limit(5);
+
+        if (isSSOUser && userId) {
+          recentProgramQuery = recentProgramQuery.eq("created_by", userId)
+            .order("created_at", { ascending: false })
+            .limit(5);
+        } else if (isTPSite && userSiteProfileId) {
+          // For TP Site users, filter by site_id (JSONB contains check)
+          recentProgramQuery = recentProgramQuery.filter("site_id", 'cs', JSON.stringify([userSiteProfileId]))
+            .order("created_at", { ascending: false })
+            .limit(5);
+        } else {
+            recentProgramQuery = recentProgramQuery.order("created_at", { ascending: false }).limit(5);
+        }
+
+        const { data: recentData, error: recentError } = await recentProgramQuery
 
         if (recentError) throw recentError;
 
@@ -143,7 +240,7 @@ const ProgrammesDashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [isSSO, isTPSite, isSuperAdmin, isSSOUser]);
 
   // Helper function to get badge for status
   const getStatusBadge = (status) => {
@@ -177,7 +274,7 @@ const ProgrammesDashboard = () => {
         );
       case "verified":
         return (
-          <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+          <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200">
             Verified
           </Badge>
         );
@@ -228,17 +325,19 @@ const ProgrammesDashboard = () => {
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-3xl font-bold">{category.count}</span>
                     <Button variant="link" className="text-sm" asChild>
-                      <Link
-                        to={`/programmes/${
-                          category.id === 1
-                            ? "nadi4u"
-                            : category.id === 2
-                            ? "nadi2u"
-                            : "others"
-                        }`}
-                      >
-                        View All
-                      </Link>
+                      {(!isSSOUser || category.id === 1) && (
+                        <Link
+                          to={`/programmes/${
+                            category.id === 1
+                              ? "nadi4u"
+                              : category.id === 2
+                              ? "nadi2u"
+                              : "others"
+                          }`}
+                        >
+                          View All
+                        </Link>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -315,18 +414,22 @@ const ProgrammesDashboard = () => {
                   <Link to="/programmes/nadi4u">View and manage programs</Link>
                 </Button>
               </div>
-              <div className="border rounded-lg p-4 text-center">
-                <h4 className="font-medium text-xl mb-2">NADI 2U</h4>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/programmes/nadi2u">View and manage programs</Link>
-                </Button>
-              </div>
-              <div className="border rounded-lg p-4 text-center">
-                <h4 className="font-medium text-xl mb-2">Other Programs</h4>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/programmes/others">View and manage programs</Link>
-                </Button>
-              </div>
+              {!isSSOUser && (
+                <>
+                  <div className="border rounded-lg p-4 text-center">
+                    <h4 className="font-medium text-xl mb-2">NADI 2U</h4>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/programmes/nadi2u">View and manage programs</Link>
+                    </Button>
+                  </div>
+                  <div className="border rounded-lg p-4 text-center">
+                    <h4 className="font-medium text-xl mb-2">Other Programs</h4>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to="/programmes/others">View and manage programs</Link>
+                    </Button>
+                  </div>  
+                </>  
+              )}
             </div>
           </CardContent>
         </Card>

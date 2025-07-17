@@ -26,6 +26,7 @@ import { Loader2, PlusCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import EventDetailsDialog from "@/components/programmes/EventDetailsDialog";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 const SmartServicesNadi4U = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,11 +37,38 @@ const SmartServicesNadi4U = () => {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isSSO = parsedMetadata?.user_type === "sso_admin";
+  const isSSOPic = parsedMetadata?.user_type === "sso_pic";
+  const isTPSite = parsedMetadata?.user_type === "tp_site";
+  const isSSOUser = parsedMetadata?.user_group_name === "SSO";
+
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+
+        // Get user ID from localStorage
+        let userId = null;
+        let userSiteProfileId = null;
+
+        try {
+          const storedUserMetadata = localStorage.getItem('user_metadata');
+          if (storedUserMetadata) {
+            const userData = JSON.parse(storedUserMetadata);
+            userId = userData.group_profile?.user_id || null;
+
+            // For TP Site users,get their site profile ID
+            if (isTPSite) {
+              userSiteProfileId = userData.group_profile?.site_profile_id || null;
+            }
+          }
+        } catch (error) {
+          console.error("Error retrieving user data from localStorage:", error);
+        }
 
         // Fetch event statuses for filter
         const { data: statusData, error: statusError } = await supabase
@@ -51,7 +79,24 @@ const SmartServicesNadi4U = () => {
         setStatuses(statusData);
 
         // Fetch programs where category_id is 1 (NADI 4U Programs)
-        const { data: programData, error: programError } = await supabase
+        // const { data: programData, error: programError } = await supabase
+        //   .from("nd_event")
+        //   .select(
+        //     `
+        //     id,
+        //     program_name,
+        //     location_event,
+        //     site_id,
+        //     start_datetime,
+        //     end_datetime,
+        //     created_by,
+        //     nd_event_status:status_id(id, name)
+        //   `
+        //   )
+        //   .eq("category_id", 1)
+        //   .eq("created_by", userId);
+
+        let eventQuery = supabase
           .from("nd_event")
           .select(
             `
@@ -66,6 +111,17 @@ const SmartServicesNadi4U = () => {
           `
           )
           .eq("category_id", 1);
+
+        if (isSSOUser && userId) {
+          eventQuery = eventQuery.eq("created_by", userId);
+        } 
+        
+        if (isTPSite && userSiteProfileId) {
+          // For TP Site users, filter by site_id (JSONB contains check)
+          eventQuery = eventQuery.filter("site_id", 'cs', JSON.stringify([userSiteProfileId]));
+        }
+
+        const { data: programData, error: programError } = await eventQuery;
 
         if (programError) throw programError;
 
@@ -183,7 +239,7 @@ const SmartServicesNadi4U = () => {
     };
 
     fetchData();
-  }, []);
+  }, [isSSO, isTPSite, isSuperAdmin, isSSOUser]);
 
   // Function to get badge variant based on status
   const getStatusBadge = (statusId: string | number | undefined) => {
@@ -242,6 +298,24 @@ const SmartServicesNadi4U = () => {
             Postponed
           </Badge>
         );
+      case "9":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+            Request Approval
+          </Badge>
+        );
+      case "10":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+            Rejected
+          </Badge>
+        );
+      case "11":
+        return (
+          <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200">
+            Verified
+          </Badge>
+        );
       default:
         return (
           <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200">
@@ -291,12 +365,14 @@ const SmartServicesNadi4U = () => {
             <h1 className="text-2xl font-bold">
               Smart Services NADI4U Programs
             </h1>
-            <Button asChild>
-              <Link to="/programmes/registration?category=1">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Register New Program
-              </Link>
-            </Button>
+            {(isSSO || isSSOPic || isSuperAdmin) && (
+              <Button asChild>
+                <Link to="/programmes/registration?category=1">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Register New Program
+                </Link>
+              </Button>
+            )}
           </div>
 
           <Card className="mb-8">

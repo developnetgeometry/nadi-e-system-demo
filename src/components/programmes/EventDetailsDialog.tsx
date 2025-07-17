@@ -21,11 +21,13 @@ import {
   CheckCircle,
   AlertCircle,
   Save,
+  FileText,
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useUserMetadata } from "@/hooks/use-user-metadata";
 
 interface Participant {
   id: string;
@@ -89,6 +91,27 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const userMetadata = useUserMetadata();
+  const parsedMetadata = userMetadata ? JSON.parse(userMetadata) : null;
+  const isSuperAdmin = parsedMetadata?.user_type === "super_admin";
+  const isSSO = parsedMetadata?.user_type === "sso_admin" || parsedMetadata?.user_type === "sso_pic";
+  const isTPSite = parsedMetadata?.user_type === "tp_site";
+
+  // Check if programme is within 7 days after end date for SSO verification
+  const isWithin7DaysAfterEnd = eventDetails && (() => {
+    const endDate = new Date(eventDetails.end_datetime);
+    const today = new Date();
+    const daysDiff = Math.floor((today.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24));
+    return daysDiff >= 0 && daysDiff <= 7;
+  })();
+
+  // Check if programme can be cancelled (before start date)
+  const canCancelBeforeStart = eventDetails && (() => {
+    const startDate = new Date(eventDetails.start_datetime);
+    const today = new Date();
+    return today < startDate && [2, 3].includes(eventDetails.status_id); // Submitted or  Open for Registration
+  })();
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -281,6 +304,18 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             Postponed
           </Badge>
         );
+      case "request approval":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
+            Request Approval
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
+            Rejected
+          </Badge>
+        );
       default:
         return (
           <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-200">
@@ -296,10 +331,19 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     ["draft", "postponed"].includes(eventDetails.status_name.toLowerCase());
 
   // Check if attendance can be verified (status is completed)
-  const canVerifyAttendance = eventDetails && eventDetails.status_id === 6; // status_id 6 is COMPLETED
+  // const canVerifyAttendance = eventDetails && eventDetails.status_id === 6; // status_id 6 is COMPLETED
 
   // Check if event status can be updated (status is submitted)
-  const canUpdateStatus = eventDetails && eventDetails.status_id === 2; // status_id 2 is SUBMITTED
+  // const canUpdateStatus = eventDetails && eventDetails.status_id === 2; // status_id 2 is SUBMITTED
+
+  // Check if attendance can be verified (status is submitted)
+  const canVerifyAttendance = eventDetails && (
+    (isTPSite && eventDetails.status_id === 2) || // Nadi Manager can verify when submitted
+    (isSSO && eventDetails.status_id === 6) // SSO can review when completed
+  );
+
+  // Check if user can approve backdated prommes (TP Site / Nadi Manager)
+  const canApproveBackdated = eventDetails && eventDetails.status_id === 9 && parsedMetadata?.user_type === "tp_site";
 
   const handleEdit = () => {
     if (eventDetails) {
@@ -479,6 +523,16 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
     }
   };
 
+  const handleExportReport = () => {
+    toast({
+      title: "Export Report",
+      description: "PDF export functionality will be implemented  soon.",
+      variant: "default",
+    });
+
+    // Report PDF export function will be implemented here
+  }
+
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
@@ -524,9 +578,10 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             </DialogDescription>
             <div className="mt-2 flex items-center gap-2">
               {getStatusBadge(eventDetails.status_name)}
-              {canUpdateStatus && (
+
+              {isSSO && canCancelBeforeStart && (
                 <div className="flex gap-2 ml-4">
-                  <Button
+                  {/* <Button
                     size="sm"
                     onClick={() => handleStatusUpdate(6, "Completed")}
                     disabled={isUpdatingStatus}
@@ -534,7 +589,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
                     Mark as Completed
-                  </Button>
+                  </Button> */}
                   <Button
                     size="sm"
                     variant="outline"
@@ -543,9 +598,72 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                     className="border-red-300 text-red-700 hover:bg-red-50"
                   >
                     <AlertCircle className="h-4 w-4 mr-1" />
-                    Mark as Cancelled
+                    Cancel Programme
                   </Button>
                 </div>
+              )}
+
+              {/* SSO Mark as Completed button - within 7 days after programme end, when status is not completed yet */}
+              {isSSO && eventDetails.status_id === 2 && isWithin7DaysAfterEnd && (
+                <Button
+                  size="sm"
+                  onClick={() => handleStatusUpdate(6, "Completed")}
+                  disabled={isUpdatingStatus}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Mark as Completed
+                </Button>
+              )}
+
+              {/* Nadi Manager Verify button - after SSO marked as completed */}
+              {isTPSite && eventDetails.status_id === 6 && (
+                <Button
+                  size="sm"
+                  onClick={() => handleStatusUpdate(11, "Verified")}
+                  disabled={isUpdatingStatus}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Verify
+                </Button>
+              )}
+
+              {canApproveBackdated && (
+                <div className="flex gap-2 ml-4">
+                  <Button
+                    size="sm"
+                    onClick={() => handleStatusUpdate(2, "Submitted")}
+                    disabled={isUpdatingStatus}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approve Backdated
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStatusUpdate(10, "Rejected")}
+                    disabled={isUpdatingStatus}
+                    className="border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    Reject
+                  </Button>
+                </div>
+              )}
+
+              {(isSSO || isTPSite) && eventDetails.status_id === 11 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleExportReport()}
+                  disabled={isUpdatingStatus}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <FileText className="h-4 w-4 mr-1" />
+                  Report
+                </Button>
               )}
             </div>
           </div>
@@ -806,13 +924,16 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                             htmlFor="overall-verification"
                             className="text-sm font-medium text-blue-900 cursor-pointer"
                           >
-                            I acknowledge that I have verified the attendance of
-                            all participants
+                            {isTPSite 
+                              ? "I acknowledge that I have verified the attendance of all participants" 
+                              : "I acknowledge that I have reviewed and verified the attendance records"
+                            }
                           </label>
                           <p className="text-xs text-blue-700 mt-1">
-                            This confirms that you have reviewed and verified
-                            the attendance status for this event. This action
-                            will be logged for audit purposes.
+                            {isTPSite
+                              ? "This confirms that you have reviewed and verified the attendance status for this event."
+                              : "This confirms your review of the attendance records provided by the Nadi Manager."
+                            }
                           </p>
                         </div>
                       </div>
@@ -820,7 +941,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                         <div className="mt-3 flex items-center space-x-2 text-sm text-green-700">
                           <CheckCircle className="h-4 w-4" />
                           <span>
-                            Overall attendance verification acknowledged
+                            {isTPSite ? "Attendance verification acknowledged" : "SSO review acknowledged"}
                           </span>
                         </div>
                       )}
